@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Providers;
+namespace App\Core\User\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
@@ -46,13 +46,13 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../Resources/Views', 'user');
-        Fortify::loginView(fn () => view('user::views.auth.login'));
-        Fortify::verifyEmailView(fn () => view('user::views.auth.verify-email'));
-        Fortify::twoFactorChallengeView(fn () => view('user::views.auth.two-factor-challenge'));
-        Fortify::confirmPasswordView(fn () => view('user::views.auth.confirm-password'));
-        Fortify::registerView(fn () => view('user::views.auth.register'));
-        Fortify::resetPasswordView(fn () => view('user::views.auth.reset-password'));
-        Fortify::requestPasswordResetLinkView(fn () => view('user::views.auth.forgot-password'));
+        Fortify::loginView(fn () => view('user::auth.login'));
+        Fortify::verifyEmailView(fn () => view('user::auth.verify-email'));
+        Fortify::twoFactorChallengeView(fn () => view('user::auth.two-factor-challenge'));
+        Fortify::confirmPasswordView(fn () => view('user::auth.confirm-password'));
+        Fortify::registerView(fn () => view('user::auth.register'));
+        Fortify::resetPasswordView(fn () => view('user::auth.reset-password'));
+        Fortify::requestPasswordResetLinkView(fn () => view('user::auth.forgot-password'));
     }
 
     /**
