@@ -15,6 +15,7 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasUlids, Notifiable, TwoFactorAuthenticatable;
 
+
     /**
      * The attributes that are mass assignable.
      *
@@ -77,6 +78,14 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class, 'role_user');
     }
+    
+    /**
+     * Resolve the model factory for this model.
+     */
+    protected static function newFactory()
+    {
+            return \App\Core\User\Database\Factories\UserFactory::new();
+    }
 
-
+    
 }
