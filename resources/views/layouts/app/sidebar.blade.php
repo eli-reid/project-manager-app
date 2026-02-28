@@ -11,25 +11,30 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
+                <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                    {{ __('Dashboard') }}
+                </flux:sidebar.item>
+
+                <flux:sidebar.item href="#" icon="drafting-compass" :current="request()->routeIs('projects')" wire:navigate>
+                    {{ __('My Projects') }}
+                </flux:sidebar.item>
+
+                <flux:sidebar.group expandable heading="Time" class="grid">
+                    <flux:sidebar.item href="#" icon='clock' :current="request()->routeIs('timecards')">My Timecards</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon='calendar' :current="request()->routeIs('daily')">Daily</flux:sidebar.item>
                 </flux:sidebar.group>
-            </flux:sidebar.nav>
 
+                <flux:sidebar.group expandable heading="Stock" class="grid">
+                    <flux:sidebar.item href="#" icon='clipboard-pen-line' :current="request()->routeIs('timecards')">Create Order</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon='clipboard-type' :current="request()->routeIs('daily')">My Templates</flux:sidebar.item>
+                </flux:sidebar.group>
+                <flux:sidebar.group expandable heading="Documents" class="grid">
+                    <flux:sidebar.item href="#" icon='clipboard-pen-line' :current="request()->routeIs('timecards')">My Documents</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon='clipboard-type' :current="request()->routeIs('daily')">Upload</flux:sidebar.item>
+                </flux:sidebar.group>
+
+            </flux:sidebar.nav>
             <flux:spacer />
-
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
-
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
         </flux:sidebar>
 
