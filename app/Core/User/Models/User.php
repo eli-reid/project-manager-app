@@ -69,4 +69,14 @@ class User extends Authenticatable
     {           
         return Str::upper(Str::substr($this->first_name, 0, 1) . Str::substr($this->last_name, 0, 1));
     }
+
+    /**
+    * The roles that belong to the user.
+    */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
+
 }
