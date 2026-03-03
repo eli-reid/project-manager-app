@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Services\Scheduler;
+namespace App\Core\Scheduler\Services;
 
+use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Scheduler\Models\ScheduledTask;
-use App\Services\Scheduler\Contracts\SchedulableTask;
+use App\Core\Scheduler\Services\Contracts\SchedulableTask;
 
 class ScheduledTaskFactory
 {

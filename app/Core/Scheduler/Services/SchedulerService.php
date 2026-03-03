@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Scheduler;
+namespace App\Core\Scheduler\Services;
 
-use App\Models\ScheduledTask;
+use App\Core\Scheduler\Models\ScheduledTask;
 use App\Services\Scheduler\Contracts\SchedulableTask;
 use Illuminate\Support\Facades\Log;
 

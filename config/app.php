@@ -123,4 +123,22 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    'providers' => [
+       
+         /*
+         * Package Service Providers...
+         */
+
+         /*
+         * Application Service Providers...
+         */
+        App\Core\Scheduler\Providers\SchedulerServiceProvider::class,
+        App\Core\Announcement\Providers\AnnouncementRouteServiceProvider::class,
+        App\Core\User\Providers\FortifyServiceProvider::class,
+        App\Core\User\Providers\UserRouteServiceProvider::class,
+    ],
+
+
+
 ];

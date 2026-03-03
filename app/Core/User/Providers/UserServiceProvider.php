@@ -5,7 +5,7 @@ namespace App\Core\User\Providers;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
-class UserRouteServiceProvider extends ServiceProvider
+class UserServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {

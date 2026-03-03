@@ -1,11 +1,13 @@
 <?php
 namespace App\Core\Scheduler\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class ScheduledTask extends Model
 {
+    use HasUlids;
     protected $table = 'scheduled_tasks';
 
     protected $fillable = [

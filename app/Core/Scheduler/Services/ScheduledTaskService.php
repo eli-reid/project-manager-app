@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Core\Scheduler\Services;
 
-use App\Models\ScheduledTask;
+use App\Core\Scheduler\Models\ScheduledTask;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
