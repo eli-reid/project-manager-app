@@ -138,7 +138,7 @@ return [
         App\Core\Scheduler\Providers\SchedulerServiceProvider::class,
         App\Core\Announcement\Providers\AnnouncementRouteServiceProvider::class,
         App\Core\User\Providers\FortifyServiceProvider::class,
-        App\Core\User\Providers\UserRouteServiceProvider::class,
+        App\Core\User\Providers\UserServiceProvider::class,
     ],
 
 
