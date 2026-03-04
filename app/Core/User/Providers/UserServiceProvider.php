@@ -3,20 +3,30 @@
 namespace App\Core\User\Providers;
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Support\ServiceProvider;
 
 class UserServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->routes(function () {
-            Route::prefix('admin')
-                ->middleware(['web', 'auth', 'can:access-admin'])
-                ->group(function () {
-                    $this->loadRoutesFrom(__DIR__ . '/../Routes/admin/users.php');
-                    $this->loadRoutesFrom(__DIR__ . '/../Routes/admin/roles.php');
-                });
-        });
+        $this->configureRoutes();
+    }
+
+
+    private function configureRoutes(): void
+    {
+        Route::prefix('admin')
+            ->middleware(['web', 'auth', 'can:access-admin'])
+            ->group(__DIR__ . '/../Routes/admin.php');
+
+        /**Route::middleware(['web', 'auth'])
+            ->group(__DIR__ . '/../Routes/web.php');
+
+        Route::middleware(['mobile', 'auth'])
+            ->group(__DIR__ . '/../Routes/mobile.php');
+
+        Route::prefix('api')
+            ->middleware(['api', 'auth:sanctum'])
+            ->group(__DIR__ . '/../Routes/api.php');**/
     }
 }
-

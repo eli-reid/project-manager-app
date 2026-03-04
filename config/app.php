@@ -132,7 +132,9 @@ return [
 
          /*
          * Application Service Providers...
+         * NOTE: Settings provider must be registered FIRST to initialize config early
          */
+        App\Core\Settings\Providers\SettingServiceProvider::class,
         App\Core\Scheduler\Providers\SchedulerServiceProvider::class,
         App\Core\Announcement\Providers\AnnouncementRouteServiceProvider::class,
         App\Core\User\Providers\FortifyServiceProvider::class,

@@ -44,6 +44,13 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        'settings_sqlite' => [
+            'driver' => 'sqlite',
+            'database' => env('SETTINGS_DB_PATH', base_path('settings.data')),
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),

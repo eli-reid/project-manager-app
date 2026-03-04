@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Core\Scheduler\Providers;
+namespace App\Core\Settings\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 
-class SchedulerServiceProvider extends ServiceProvider
+class SettingsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
@@ -23,14 +23,14 @@ class SchedulerServiceProvider extends ServiceProvider
 
     private function configureViews(): void
     {
-        $this->loadViewsFrom(__DIR__ . '/../Resources/Views', 'scheduler');
+        $this->loadViewsFrom(__DIR__ . '/../Resources/Views', 'settings');
     }
 
     private function configureComponents(): void
     {
         Blade::componentNamespace(
-            'App\\Core\\Scheduler\\View\\Components',
-            'scheduler'
+            '\\App\\Core\\Settings\\View\\Components',
+            'settings'
         );
     }
 
