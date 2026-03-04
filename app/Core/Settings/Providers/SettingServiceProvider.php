@@ -2,6 +2,8 @@
 
 namespace App\Core\Settings\Providers;
 
+use App\Core\Settings\Models\SettingsSqlite;
+use App\Core\Settings\Observers\SettingsObserver;
 use App\Core\Settings\Services\SettingsCacheService;
 use App\Core\Settings\Services\SettingsRepository;
 use App\Core\Settings\Services\SettingsSqliteService;
@@ -49,6 +51,9 @@ class SettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register the settings observer for auto cache clearing
+        SettingsSqlite::observe(SettingsObserver::class);
+
         // Initialize settings database early (no database config needed)
         $this->initializeSettingsDatabase();
     }
