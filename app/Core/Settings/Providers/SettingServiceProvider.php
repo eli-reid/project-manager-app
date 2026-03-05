@@ -51,6 +51,12 @@ class SettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Load views from the Settings module
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core');
+
+        // Load routes from the Settings module
+        $this->loadRoutesFrom(__DIR__.'/../Routes/admin.php');
+
         // Register the settings observer for auto cache clearing
         SettingsSqlite::observe(SettingsObserver::class);
 
