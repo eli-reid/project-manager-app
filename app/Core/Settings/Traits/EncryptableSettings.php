@@ -3,6 +3,7 @@
 namespace App\Core\Settings\Traits;
 
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 trait EncryptableSettings
 {
@@ -38,7 +39,7 @@ trait EncryptableSettings
             } catch (\Exception $e) {
                 // If decryption fails, return the original value
                 // This handles cases where the value wasn't encrypted yet
-                \Log::warning("Failed to decrypt setting '{$this->key}': " . $e->getMessage());
+                Log::warning("Failed to decrypt setting '{$this->key}': " . $e->getMessage());
                 return $value;
             }
         }

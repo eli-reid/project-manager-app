@@ -19,7 +19,7 @@ class SettingServiceProvider extends ServiceProvider
     {
         // Register and merge the configuration file
         $this->mergeConfigFrom(
-            __DIR__.'/../Resources/config/settings-db.php',
+            __DIR__.'/../config/settings-db.php',
             'settings-db'
         );
 

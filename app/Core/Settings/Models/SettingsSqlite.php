@@ -2,7 +2,7 @@
 
 namespace App\Core\Settings\Models;
 
-use App\Traits\EncryptableSettings;
+use App\Core\Settings\Traits\EncryptableSettings;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
@@ -235,7 +235,7 @@ class SettingsSqlite extends Model
             return $setting->save();
             
         } catch (\Exception $e) {
-            \Log::error("Failed to save setting '{$key}': " . $e->getMessage());
+            Log::error("Failed to save setting '{$key}': " . $e->getMessage());
             return false;
         }
     }
@@ -347,7 +347,7 @@ class SettingsSqlite extends Model
             
             return static::all()->pluck('value', 'key')->toArray();
         } catch (\Exception $e) {
-            \Log::warning("Failed to get all settings: " . $e->getMessage());
+            Log::warning("Failed to get all settings: " . $e->getMessage());
             return [];
         }
     }
@@ -383,7 +383,7 @@ class SettingsSqlite extends Model
                 cache()->forget("settings.group.{$group}");
             }
         } catch (\Exception $e) {
-            \Log::warning("Failed to clear all settings cache: " . $e->getMessage());
+            Log::warning("Failed to clear all settings cache: " . $e->getMessage());
         }
     }
 }

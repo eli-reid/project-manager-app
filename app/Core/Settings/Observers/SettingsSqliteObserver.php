@@ -2,7 +2,7 @@
 
 namespace App\Core\Settings\Observers;
 
-use App\Models\SettingsSqlite;
+use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Support\Facades\Cache;
 
 /**

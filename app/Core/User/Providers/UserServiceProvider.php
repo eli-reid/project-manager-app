@@ -17,7 +17,7 @@ class UserServiceProvider extends ServiceProvider
     {
         Route::prefix('admin')
             ->middleware(['web', 'auth', 'can:access-admin'])
-            ->group(__DIR__ . '/../Routes/admin.php');
+            ->group(__DIR__ . '/../Routes/users/admin.php');
 
         /**Route::middleware(['web', 'auth'])
             ->group(__DIR__ . '/../Routes/web.php');

@@ -3,7 +3,7 @@
 namespace App\Core\Announcement\Providers;
 
 use Illuminate\Support\ServiceProvider;
-
+use Illuminate\Support\Facades\Route;
 
 class AnnouncementServiceProvider extends ServiceProvider
 {
@@ -22,6 +22,7 @@ class AnnouncementServiceProvider extends ServiceProvider
     {
         $this->configureActions();
         $this->configureViews();
+        $this->configureRoutes();
     }
 
     /**
@@ -39,5 +40,23 @@ class AnnouncementServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__ . '/../Resources/Views', 'announcement');
 
+    }
+
+    private function configureRoutes(): void 
+    {
+         Route::prefix('admin')
+            ->middleware(['web', 'auth', 'can:access-admin'])
+            ->group(__DIR__ . '/../Routes/admin.php');
+
+        Route::middleware(['web', 'auth'])
+            ->group(__DIR__ . '/../Routes/web.php');
+
+        Route::middleware(['mobile', 'auth'])
+            ->group(__DIR__ . '/../Routes/mobile.php');
+
+        Route::prefix('api')
+            ->middleware(['api', 'auth:sanctum'])
+            ->group(__DIR__ . '/../Routes/api.php');
+        
     }
 }
