@@ -57,6 +57,5 @@ class AnnouncementServiceProvider extends ServiceProvider
         Route::prefix('api')
             ->middleware(['api', 'auth:sanctum'])
             ->group(__DIR__ . '/../Routes/api.php');
-        
     }
 }
