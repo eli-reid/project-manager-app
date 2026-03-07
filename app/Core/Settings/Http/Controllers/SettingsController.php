@@ -2,25 +2,22 @@
 
 namespace App\Core\Settings\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\View\View;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 /**
  * SettingsController
- * 
+ *
  * Admin controller for managing application settings.
  * Handles all admin settings management routes.
  */
-class SettingsController
+class SettingsController extends Controller
 {
-    use AuthorizesRequests;
-
     /**
      * Display settings management page
      */
     public function index(): View
     {
-        // Authorize: can:admin check happens via middleware
         return view('core::admin.settings.index');
     }
 
@@ -39,7 +36,7 @@ class SettingsController
             });
 
         return response()->json($settings)
-            ->header('Content-Disposition', 'attachment; filename=settings-' . now()->format('Y-m-d-His') . '.json');
+            ->header('Content-Disposition', 'attachment; filename=settings-'.now()->format('Y-m-d-His').'.json');
     }
 
     /**
@@ -47,7 +44,6 @@ class SettingsController
      */
     public function import()
     {
-        // This would typically handle file upload and validation
-        return view('core::settings.admin.settings.import');
+        return view('core::admin.settings.import');
     }
 }

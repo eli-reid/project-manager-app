@@ -3,10 +3,11 @@
 namespace App\Core\Settings\Services;
 
 use App\Core\Settings\Models\SettingsSqlite;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 /**
  * SettingsRepository
- * 
+ *
  * Pure data access layer for settings. No business logic, no caching, no fallbacks.
  * Sole responsibility: fetch and persist setting records to the database.
  */
@@ -14,9 +15,6 @@ class SettingsRepository
 {
     /**
      * Find a setting by key
-     *
-     * @param string $key
-     * @return SettingsSqlite|null
      */
     public function find(string $key): ?SettingsSqlite
     {
@@ -29,19 +27,14 @@ class SettingsRepository
 
     /**
      * Save a setting
-     *
-     * @param string $key
-     * @param mixed $value
-     * @param array $attributes
-     * @return SettingsSqlite|null
      */
     public function save(string $key, mixed $value, array $attributes = []): ?SettingsSqlite
     {
         try {
             $setting = $this->find($key);
 
-            if (!$setting) {
-                $setting = new SettingsSqlite();
+            if (! $setting) {
+                $setting = new SettingsSqlite;
                 $setting->key = $key;
             }
 
@@ -63,11 +56,8 @@ class SettingsRepository
 
     /**
      * Get all settings
-     *
-     * @param string|null $group
-     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function all(?string $group = null): \Illuminate\Database\Eloquent\Collection
+    public function all(?string $group = null): EloquentCollection
     {
         try {
             $query = SettingsSqlite::query();
@@ -78,15 +68,12 @@ class SettingsRepository
 
             return $query->get();
         } catch (\Exception $e) {
-            return collect();
+            return new EloquentCollection;
         }
     }
 
     /**
      * Delete a setting by key
-     *
-     * @param string $key
-     * @return bool
      */
     public function delete(string $key): bool
     {
@@ -105,9 +92,6 @@ class SettingsRepository
 
     /**
      * Check if a setting exists
-     *
-     * @param string $key
-     * @return bool
      */
     public function exists(string $key): bool
     {
@@ -120,8 +104,6 @@ class SettingsRepository
 
     /**
      * Get all settings as key-value pairs
-     *
-     * @return array
      */
     public function toArray(): array
     {

@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-8">
             <h1 class="h2">
@@ -17,28 +16,25 @@
         </div>
     </div>
 
-    <!-- Main Settings Interface -->
     <div class="row g-4">
-        <!-- Settings Groups List -->
         <div class="col-lg-3">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light border-bottom">
                     <h6 class="mb-0">Setting Groups</h6>
                 </div>
                 <div class="card-body p-0">
-                    <livewire:admin.settings.settings-group-list />
+                    <livewire:app.core.settings.livewire.settings-group-list />
                 </div>
             </div>
         </div>
 
-        <!-- Settings Editor -->
         <div class="col-lg-9">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light border-bottom">
                     <h6 class="mb-0">Edit Settings</h6>
                 </div>
                 <div class="card-body">
-                    <livewire:admin.settings.settings-editor />
+                    <livewire:app.core.settings.livewire.settings-editor />
                 </div>
             </div>
         </div>

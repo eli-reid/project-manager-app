@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Core\User\Models\User;
 use Laravel\Fortify\Features;
 use Livewire\Livewire;
 

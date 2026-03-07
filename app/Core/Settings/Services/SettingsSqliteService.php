@@ -6,7 +6,7 @@ use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Traits\EncryptableSettings;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Str;
 
 class SettingsSqliteService
 {
@@ -59,10 +59,11 @@ class SettingsSqliteService
             // Use cache to fetch the setting
             return $this->cache->remember("setting.{$key}", function () use ($key, $default) {
                 $setting = $this->repository->find($key);
+
                 return $setting?->value ?? $default;
             });
         } catch (\Exception $e) {
-            $this->safeLog('debug', "SQLite settings error for '{$key}': " . $e->getMessage());
+            $this->safeLog('debug', "SQLite settings error for '{$key}': ".$e->getMessage());
 
             // Final fallback to .env
             return $this->getFromEnv($key, $default);
@@ -82,15 +83,18 @@ class SettingsSqliteService
         try {
             self::$allSettings = $this->cache->remember('settings.all', function () {
                 $settings = $this->repository->all();
+
                 return $settings->mapWithKeys(fn ($setting) => [$setting->key => $setting->value]);
             });
 
             self::$settingsLoaded = true;
+
             return self::$allSettings;
         } catch (\Exception $e) {
-            $this->safeLog('warning', "Failed to preload all settings: " . $e->getMessage());
+            $this->safeLog('warning', 'Failed to preload all settings: '.$e->getMessage());
             self::$allSettings = collect();
             self::$settingsLoaded = true;
+
             return self::$allSettings;
         }
     }
@@ -101,6 +105,7 @@ class SettingsSqliteService
     protected function loadAllSettingsFromDb(): Collection
     {
         $settings = $this->repository->all();
+
         return $settings->mapWithKeys(fn ($setting) => [$setting->key => $setting->value]);
     }
 
@@ -144,7 +149,7 @@ class SettingsSqliteService
             }
 
             // Check direct env key
-            return env(strtoupper($key)) !== null;
+            return env($this->normalizeEnvKey($key)) !== null;
         }
 
         try {
@@ -164,7 +169,7 @@ class SettingsSqliteService
         // Warn if we're in dev mode and trying to set a value that will be read from .env
         if ($this->shouldUseEnvInDev()) {
             $envMappings = config('settings-db.env_mappings', []);
-            if (isset($envMappings[$key]) || env(strtoupper($key)) !== null) {
+            if (isset($envMappings[$key]) || env($this->normalizeEnvKey($key)) !== null) {
                 $this->safeLog('warning', "Attempting to set '{$key}' in dev mode, but .env file will override this value. Set SETTINGS_USE_ENV_IN_DEV=false to use database settings.");
             }
         }
@@ -182,12 +187,15 @@ class SettingsSqliteService
                 $this->cache->forget("setting.{$key}");
                 $this->cache->forget("setting.exists.{$key}");
                 $this->cache->flush();
+                $this->resetInMemoryCache();
+
                 return true;
             }
 
             return false;
         } catch (\Exception $e) {
-            $this->safeLog('error', "Failed to set setting '{$key}': " . $e->getMessage());
+            $this->safeLog('error', "Failed to set setting '{$key}': ".$e->getMessage());
+
             return false;
         }
     }
@@ -204,7 +212,8 @@ class SettingsSqliteService
                     ->groupBy('group');
             });
         } catch (\Exception $e) {
-            $this->safeLog('warning', "Failed to get grouped settings: " . $e->getMessage());
+            $this->safeLog('warning', 'Failed to get grouped settings: '.$e->getMessage());
+
             return collect();
         }
     }
@@ -220,7 +229,8 @@ class SettingsSqliteService
                     ->sortBy('order');
             });
         } catch (\Exception $e) {
-            $this->safeLog('warning', "Failed to get settings for group '{$group}': " . $e->getMessage());
+            $this->safeLog('warning', "Failed to get settings for group '{$group}': ".$e->getMessage());
+
             return collect();
         }
     }
@@ -243,6 +253,7 @@ class SettingsSqliteService
 
         // Flush all caches after bulk update
         $this->cache->flush();
+        $this->resetInMemoryCache();
 
         return $results;
     }
@@ -253,11 +264,6 @@ class SettingsSqliteService
     public function getPublicSettings(): Collection
     {
         try {
-            // If settings are pre-loaded, use them
-            if (self::$settingsLoaded && self::$allSettings !== null) {
-                return self::$allSettings;
-            }
-
             return $this->cache->remember('settings.public', function () {
                 return $this->repository->all()
                     ->where('is_public', true)
@@ -269,7 +275,8 @@ class SettingsSqliteService
                     ]);
             });
         } catch (\Exception $e) {
-            $this->safeLog('warning', "Failed to get public settings: " . $e->getMessage());
+            $this->safeLog('warning', 'Failed to get public settings: '.$e->getMessage());
+
             return collect();
         }
     }
@@ -283,6 +290,7 @@ class SettingsSqliteService
         foreach ($keys as $key) {
             $results[$key] = $this->get($key);
         }
+
         return $results;
     }
 
@@ -294,8 +302,10 @@ class SettingsSqliteService
         try {
             $settings = $this->repository->all($group)
                 ->where('is_visible', true)
-                ->sortBy('group')
-                ->sortBy('order');
+                ->sortBy([
+                    ['group', 'asc'],
+                    ['order', 'asc'],
+                ]);
 
             return $settings->map(function ($setting) {
                 return [
@@ -312,7 +322,8 @@ class SettingsSqliteService
                 ];
             });
         } catch (\Exception $e) {
-            $this->safeLog('warning', "Failed to get form data: " . $e->getMessage());
+            $this->safeLog('warning', 'Failed to get form data: '.$e->getMessage());
+
             return collect();
         }
     }
@@ -323,18 +334,22 @@ class SettingsSqliteService
     public function clearAllCache(): void
     {
         $this->cache->flush();
+        $this->resetInMemoryCache();
     }
+
     /**
      * Initialize the settings database
      */
     public function initializeDatabase(): bool
     {
         try {
-            $model = new SettingsSqlite();
+            $model = new SettingsSqlite;
             $model->ensureSettingsDatabase();
+
             return true;
         } catch (\Exception $e) {
-            $this->safeLog('error', "Failed to initialize settings database: " . $e->getMessage());
+            $this->safeLog('error', 'Failed to initialize settings database: '.$e->getMessage());
+
             return false;
         }
     }
@@ -345,7 +360,6 @@ class SettingsSqliteService
     public function getDatabasePath(): string
     {
         return config('settings-db.database_path', base_path('settings.data'));
-        return config('settings-db.database_path', base_path('settings.data'));
     }
 
     /**
@@ -355,14 +369,15 @@ class SettingsSqliteService
     {
         try {
             $dbPath = $this->getDatabasePath();
-            
-            if (!file_exists($dbPath)) {
+
+            if (! file_exists($dbPath)) {
                 // Try to create it
                 $this->initializeDatabase();
             }
-            
+
             // Test connection
             SettingsSqlite::count();
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -377,8 +392,10 @@ class SettingsSqliteService
         try {
             $allSettings = $this->repository->all()
                 ->where('is_visible', true)
-                ->sortBy('group')
-                ->sortBy('order')
+                ->sortBy([
+                    ['group', 'asc'],
+                    ['order', 'asc'],
+                ])
                 ->groupBy('group');
 
             $steps = [];
@@ -418,7 +435,8 @@ class SettingsSqliteService
 
             return $steps;
         } catch (\Exception $e) {
-            $this->safeLog('error', "Failed to get setup wizard steps: " . $e->getMessage());
+            $this->safeLog('error', 'Failed to get setup wizard steps: '.$e->getMessage());
+
             return [];
         }
     }
@@ -429,16 +447,16 @@ class SettingsSqliteService
     protected function shouldUseEnvInDev(): bool
     {
         $devModeConfig = config('settings-db.dev_mode', []);
-        
+
         // Check if dev mode is enabled
-        if (!($devModeConfig['use_env_file'] ?? false)) {
+        if (! ($devModeConfig['use_env_file'] ?? false)) {
             return false;
         }
-        
+
         // Check if current environment is in the allowed list
         $currentEnv = app()->environment();
         $allowedEnvs = $devModeConfig['enabled_environments'] ?? ['local', 'development', 'dev', 'testing'];
-        
+
         return in_array($currentEnv, $allowedEnvs);
     }
 
@@ -448,24 +466,25 @@ class SettingsSqliteService
     protected function getFromEnv(string $key, mixed $default = null): mixed
     {
         $envMappings = config('settings-db.env_mappings', []);
-        
+
         if (isset($envMappings[$key])) {
             $envKey = $envMappings[$key];
             $value = env($envKey, $default);
-            
+
             // Log that we're using .env in dev mode for debugging
             $this->safeLog('debug', "Using .env value for setting '{$key}' from env key '{$envKey}' in dev mode");
-            
+
             return $value;
         }
-        
+
         // If no mapping exists, try to use the key directly as env key
-        $directValue = env(strtoupper($key), null);
+        $directValue = env($this->normalizeEnvKey($key), null);
         if ($directValue !== null) {
             $this->safeLog('debug', "Using direct .env value for setting '{$key}' in dev mode");
+
             return $directValue;
         }
-        
+
         return $default;
     }
 
@@ -476,8 +495,8 @@ class SettingsSqliteService
     {
         try {
             $setting = SettingsSqlite::where('key', $key)->first();
-            
-            if (!$setting) {
+
+            if (! $setting) {
                 return [
                     'valid' => false,
                     'errors' => ['Setting not found'],
@@ -492,38 +511,38 @@ class SettingsSqliteService
             }
 
             // Skip further validation if value is empty and not required
-            if ((is_null($value) || $value === '') && !$setting->is_required) {
+            if ((is_null($value) || $value === '') && ! $setting->is_required) {
                 return ['valid' => true, 'errors' => []];
             }
 
             // Type-specific validation
             switch ($setting->type) {
                 case 'email':
-                    if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    if (! filter_var($value, FILTER_VALIDATE_EMAIL)) {
                         $errors[] = "The {$setting->display_name} must be a valid email address.";
                     }
                     break;
 
                 case 'url':
-                    if (!filter_var($value, FILTER_VALIDATE_URL)) {
+                    if (! filter_var($value, FILTER_VALIDATE_URL)) {
                         $errors[] = "The {$setting->display_name} must be a valid URL.";
                     }
                     break;
 
                 case 'number':
-                    if (!is_numeric($value)) {
+                    if (! is_numeric($value)) {
                         $errors[] = "The {$setting->display_name} must be a number.";
                     }
                     break;
 
                 case 'integer':
-                    if (!filter_var($value, FILTER_VALIDATE_INT)) {
+                    if (! filter_var($value, FILTER_VALIDATE_INT)) {
                         $errors[] = "The {$setting->display_name} must be an integer.";
                     }
                     break;
 
                 case 'boolean':
-                    if (!in_array($value, [true, false, 1, 0, '1', '0', 'true', 'false'], true)) {
+                    if (! in_array($value, [true, false, 1, 0, '1', '0', 'true', 'false'], true)) {
                         $errors[] = "The {$setting->display_name} must be true or false.";
                     }
                     break;
@@ -531,7 +550,7 @@ class SettingsSqliteService
                 case 'select':
                     if ($setting->options) {
                         $options = is_string($setting->options) ? json_decode($setting->options, true) : $setting->options;
-                        if (is_array($options) && !array_key_exists($value, $options)) {
+                        if (is_array($options) && ! array_key_exists($value, $options)) {
                             $errors[] = "The {$setting->display_name} must be one of the available options.";
                         }
                     }
@@ -552,8 +571,25 @@ class SettingsSqliteService
         } catch (\Exception $e) {
             return [
                 'valid' => false,
-                'errors' => ['Validation error: ' . $e->getMessage()],
+                'errors' => ['Validation error: '.$e->getMessage()],
             ];
         }
+    }
+
+    /**
+     * Normalize a setting key into a conventional environment variable key.
+     */
+    protected function normalizeEnvKey(string $key): string
+    {
+        return Str::upper((string) preg_replace('/[^A-Za-z0-9]+/', '_', $key));
+    }
+
+    /**
+     * Clear request-scoped in-memory settings cache.
+     */
+    protected function resetInMemoryCache(): void
+    {
+        self::$allSettings = null;
+        self::$settingsLoaded = false;
     }
 }

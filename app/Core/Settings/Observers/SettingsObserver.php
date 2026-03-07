@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * SettingsObserver
- * 
+ *
  * Handles automatic side effects when settings are modified:
  * - Clears relevant caches
  * - Logs changes for audit trail
@@ -31,8 +31,7 @@ class SettingsObserver
      */
     public function created(SettingsSqlite $setting): void
     {
-        $this->logChange('created', $setting);
-        $this->clearCaches($setting);
+        $this->handleMutation('created', $setting);
     }
 
     /**
@@ -40,8 +39,7 @@ class SettingsObserver
      */
     public function updated(SettingsSqlite $setting): void
     {
-        $this->logChange('updated', $setting);
-        $this->clearCaches($setting);
+        $this->handleMutation('updated', $setting);
     }
 
     /**
@@ -49,8 +47,7 @@ class SettingsObserver
      */
     public function deleted(SettingsSqlite $setting): void
     {
-        $this->logChange('deleted', $setting);
-        $this->clearCaches($setting);
+        $this->handleMutation('deleted', $setting);
     }
 
     /**
@@ -58,7 +55,15 @@ class SettingsObserver
      */
     public function restored(SettingsSqlite $setting): void
     {
-        $this->logChange('restored', $setting);
+        $this->handleMutation('restored', $setting);
+    }
+
+    /**
+     * Handle common side effects for a model mutation.
+     */
+    protected function handleMutation(string $action, SettingsSqlite $setting): void
+    {
+        $this->logChange($action, $setting);
         $this->clearCaches($setting);
     }
 
@@ -68,21 +73,32 @@ class SettingsObserver
     protected function clearCaches(SettingsSqlite $setting): void
     {
         try {
-            // Clear individual setting cache
-            $this->cache->forget("setting.{$setting->key}");
-            $this->cache->forget("setting.exists.{$setting->key}");
+            $cacheKeys = [
+                "setting.{$setting->key}",
+                "setting.exists.{$setting->key}",
+                'settings.all',
+                'settings.all.grouped',
+                'settings.public',
+            ];
 
-            // Clear group-related caches
-            if ($setting->group) {
-                $this->cache->forget("settings.group.{$setting->group}");
+            $originalKey = (string) $setting->getOriginal('key');
+            if ($originalKey !== '' && $originalKey !== $setting->key) {
+                $cacheKeys[] = "setting.{$originalKey}";
+                $cacheKeys[] = "setting.exists.{$originalKey}";
             }
 
-            // Clear aggregate caches
-            $this->cache->forget('settings.all');
-            $this->cache->forget('settings.all.grouped');
-            $this->cache->forget('settings.public');
+            $groupsToClear = array_filter([
+                $setting->group,
+                $setting->getOriginal('group'),
+            ]);
+
+            foreach (array_unique($groupsToClear) as $group) {
+                $cacheKeys[] = "settings.group.{$group}";
+            }
+
+            $this->cache->forgetMany(array_values(array_unique($cacheKeys)));
         } catch (\Exception $e) {
-            Log::warning("Failed to clear settings cache for key '{$setting->key}': " . $e->getMessage());
+            Log::warning("Failed to clear settings cache for key '{$setting->key}': ".$e->getMessage());
         }
     }
 
@@ -92,8 +108,9 @@ class SettingsObserver
     protected function logChange(string $action, SettingsSqlite $setting): void
     {
         try {
-            // Only log in non-production or with explicit logging enabled
-            if (config('app.debug') || env('SETTINGS_LOG_CHANGES', false)) {
+            $shouldLogChanges = (bool) config('settings-db.log_changes', false);
+
+            if (config('app.debug') || $shouldLogChanges) {
                 Log::info("Settings change: {$action}", [
                     'key' => $setting->key,
                     'group' => $setting->group,

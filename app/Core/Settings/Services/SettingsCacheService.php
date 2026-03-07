@@ -3,10 +3,11 @@
 namespace App\Core\Settings\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * SettingsCacheService
- * 
+ *
  * Centralized caching layer for settings.
  * Sole responsibility: Remember, forget, and flush settings cache.
  */
@@ -30,14 +31,10 @@ class SettingsCacheService
 
     /**
      * Remember a value in cache
-     *
-     * @param string $key
-     * @param callable $callback
-     * @return mixed
      */
     public function remember(string $key, callable $callback): mixed
     {
-        if (!$this->isCacheAvailable()) {
+        if (! $this->isCacheAvailable()) {
             return call_user_func($callback);
         }
 
@@ -53,13 +50,10 @@ class SettingsCacheService
 
     /**
      * Forget a cached value
-     *
-     * @param string $key
-     * @return bool
      */
     public function forget(string $key): bool
     {
-        if (!$this->isCacheAvailable()) {
+        if (! $this->isCacheAvailable()) {
             return true;
         }
 
@@ -74,20 +68,23 @@ class SettingsCacheService
 
     /**
      * Forget all cache for a namespace
-     *
-     * @param string $namespace
-     * @return bool
      */
     public function flushNamespace(string $namespace): bool
     {
-        if (!$this->isCacheAvailable()) {
+        if (! $this->isCacheAvailable()) {
             return true;
         }
 
         try {
-            $pattern = $this->prefix . '.namespace.' . $namespace . '.*';
-            Cache::forget($pattern);
-            return true;
+            // Cache::forget does not support wildcard patterns. Clear known keys and
+            // then flush aggregate settings caches to guarantee consistency.
+            $this->forgetMany([
+                "settings.group.{$namespace}",
+                "setting.{$namespace}",
+                "setting.exists.{$namespace}",
+            ]);
+
+            return $this->flush();
         } catch (\Exception $e) {
             return false;
         }
@@ -95,19 +92,18 @@ class SettingsCacheService
 
     /**
      * Forget all settings cache
-     *
-     * @return bool
      */
     public function flush(): bool
     {
-        if (!$this->isCacheAvailable()) {
+        if (! $this->isCacheAvailable()) {
             return true;
         }
 
         try {
-            Cache::forget($this->prefix . '.all');
-            Cache::forget($this->prefix . '.public');
-            Cache::forget($this->prefix . '.all.grouped');
+            Cache::forget($this->prefix.'.all');
+            Cache::forget($this->prefix.'.public');
+            Cache::forget($this->prefix.'.all.grouped');
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -116,10 +112,6 @@ class SettingsCacheService
 
     /**
      * Remember multiple values
-     *
-     * @param array $keys
-     * @param callable $callback
-     * @return array
      */
     public function rememberMany(array $keys, callable $callback): array
     {
@@ -136,16 +128,13 @@ class SettingsCacheService
 
     /**
      * Forget multiple values
-     *
-     * @param array $keys
-     * @return bool
      */
     public function forgetMany(array $keys): bool
     {
         $success = true;
 
         foreach ($keys as $key) {
-            if (!$this->forget($key)) {
+            if (! $this->forget($key)) {
                 $success = false;
             }
         }
@@ -155,15 +144,13 @@ class SettingsCacheService
 
     /**
      * Check if cache is available
-     *
-     * @return bool
      */
     protected function isCacheAvailable(): bool
     {
         try {
             $enabled = config('settings-db.cache.enabled', true);
 
-            if (!$enabled) {
+            if (! $enabled) {
                 return false;
             }
 
@@ -175,12 +162,13 @@ class SettingsCacheService
 
     /**
      * Generate cache key
-     *
-     * @param string $key
-     * @return string
      */
     protected function getCacheKey(string $key): string
     {
+        if (Str::startsWith($key, $this->prefix.'.')) {
+            return $key;
+        }
+
         return "{$this->prefix}.{$key}";
     }
 }
