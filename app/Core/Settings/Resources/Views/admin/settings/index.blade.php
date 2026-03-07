@@ -13,7 +13,11 @@
 
         <div class="grid gap-4 lg:grid-cols-12">
             <section class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700 lg:col-span-4 xl:col-span-3">
-                <flux:heading size="lg">{{ __('Setting Groups') }}</flux:heading>
+                <div class="flex items-center justify-between gap-3">
+                    <flux:heading size="lg">{{ __('Setting Groups') }}</flux:heading>
+                    <flux:text class="text-sm">{{ __('Pick one') }}</flux:text>
+                </div>
+
                 <div class="mt-3">
                     <livewire:app.core.settings.livewire.settings-group-list />
                 </div>

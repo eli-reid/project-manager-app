@@ -1,211 +1,152 @@
-<div wire:init="loadSettings('{{ $group }}')">
+<div wire:init="loadSettings('{{ $group }}')" class="space-y-4">
     @if (!$group)
-        <div class="alert alert-info d-flex align-items-center" role="alert">
-            <i class="fas fa-info-circle me-2"></i>
-            <div>
-                <strong>Select a Group</strong>
-                <p class="mb-0">Choose a setting group from the left panel to begin editing.</p>
-            </div>
+        <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+            {{ __('Choose a tab above to start editing settings.') }}
         </div>
     @else
-        <!-- Success Message -->
         @if ($successMessage)
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                <strong>Success!</strong> {{ $successMessage }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+                {{ $successMessage }}
             </div>
         @endif
 
-        <!-- Error Message -->
         @if ($errorMessage)
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <strong>Error!</strong> {{ $errorMessage }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200">
+                {{ $errorMessage }}
             </div>
         @endif
 
-        <!-- Group Title -->
-        <div class="mb-4">
-            <h5>
-                <i class="fas fa-folder-open me-2"></i>
-                {{ ucfirst(str_replace('_', ' ', $group)) }} Settings
-            </h5>
-            <p class="text-muted mb-0">
-                Manage {{ count($settingsMetadata) }} settings in this group
-            </p>
+        <div class="flex items-end justify-between">
+            <div>
+                <flux:heading size="lg">{{ ucfirst(str_replace('_', ' ', $group)) }} {{ __('Settings') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Manage :count settings in this group', ['count' => count($settingsMetadata)]) }}</flux:text>
+            </div>
         </div>
 
-        <!-- Settings Form -->
-        <form wire:submit="updateAllSettings">
-            <div class="row">
-                @forelse($settingsMetadata as $key => $meta)
-                    <div class="col-12 mb-4">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body">
-                                <!-- Field Label & Description -->
-                                <label for="{{ $key }}" class="form-label mb-1">
-                                    <i class="fas fa-{{ $this->getFieldIcon($meta['type']) }} me-1 text-primary"></i>
-                                    {{ $meta['display_name'] }}
-                                    @if ($meta['is_required'])
-                                        <span class="badge bg-danger">Required</span>
-                                    @endif
-                                    @if ($meta['encrypted'])
-                                        <span class="badge bg-warning">Encrypted</span>
-                                    @endif
-                                </label>
-                                <small class="text-muted d-block mb-2">{{ $meta['description'] }}</small>
+        <form wire:submit="updateAllSettings" class="space-y-3">
+            @forelse($settingsMetadata as $key => $meta)
+                <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <flux:heading size="sm">{{ $meta['display_name'] }}</flux:heading>
+                        @if ($meta['is_required'])
+                            <span class="rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-700 dark:bg-rose-950 dark:text-rose-300">{{ __('Required') }}</span>
+                        @endif
+                        @if ($meta['encrypted'])
+                            <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">{{ __('Encrypted') }}</span>
+                        @endif
+                    </div>
 
-                                <!-- Form Field Based on Type -->
-                                @if ($meta['type'] === 'textarea')
-                                    <textarea
-                                        id="{{ $key }}"
-                                        class="form-control @error($key) is-invalid @enderror"
-                                        wire:model="formData.{{ $key }}"
-                                        wire:change="updateSetting('{{ $key }}')"
-                                        rows="4"
-                                        placeholder="Enter value..."
-                                    ></textarea>
+                    @if (!empty($meta['description']))
+                        <flux:text class="mb-3 text-sm">{{ $meta['description'] }}</flux:text>
+                    @endif
 
-                                @elseif ($meta['type'] === 'select')
-                                    <select
-                                        id="{{ $key }}"
-                                        class="form-select @error($key) is-invalid @enderror"
-                                        wire:model="formData.{{ $key }}"
-                                        wire:change="updateSetting('{{ $key }}')"
-                                    >
-                                        <option value="">-- Select an option --</option>
-                                        @if ($meta['options'])
-                                            @foreach ($meta['options'] as $optionKey => $optionLabel)
-                                                <option value="{{ $optionKey }}">{{ $optionLabel }}</option>
-                                            @endforeach
-                                        @endif
-                                    </select>
-
-                                @elseif ($meta['type'] === 'boolean')
-                                    <div class="form-check form-switch">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            id="{{ $key }}"
-                                            wire:model="formData.{{ $key }}"
-                                            value="true"
-                                            {{ ($formData[$key] ?? '') === 'true' || ($formData[$key] ?? '') === '1' ? 'checked' : '' }}
-                                            wire:change="updateSetting('{{ $key }}')"
-                                        >
-                                        <label class="form-check-label" for="{{ $key }}">
-                                            Enabled
-                                        </label>
-                                    </div>
-
-                                @elseif ($meta['type'] === 'password')
-                                    <div class="input-group">
-                                        <input
-                                            type="password"
-                                            id="{{ $key }}"
-                                            class="form-control @error($key) is-invalid @enderror"
-                                            wire:model="formData.{{ $key }}"
-                                            placeholder="Leave blank to keep current value"
-                                            autocomplete="off"
-                                        >
-                                        <button
-                                            class="btn btn-outline-secondary"
-                                            type="button"
-                                            onclick="togglePasswordField('{{ $key }}')"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-
-                                @elseif ($meta['type'] === 'email')
-                                    <input
-                                        type="email"
-                                        id="{{ $key }}"
-                                        class="form-control @error($key) is-invalid @enderror"
-                                        wire:model="formData.{{ $key }}"
-                                        wire:change="updateSetting('{{ $key }}')"
-                                        placeholder="user@example.com"
-                                    >
-
-                                @elseif ($meta['type'] === 'url')
-                                    <input
-                                        type="url"
-                                        id="{{ $key }}"
-                                        class="form-control @error($key) is-invalid @enderror"
-                                        wire:model="formData.{{ $key }}"
-                                        wire:change="updateSetting('{{ $key }}')"
-                                        placeholder="https://example.com"
-                                    >
-
-                                @elseif ($meta['type'] === 'number' || $meta['type'] === 'integer')
-                                    <input
-                                        type="number"
-                                        id="{{ $key }}"
-                                        class="form-control @error($key) is-invalid @enderror"
-                                        wire:model="formData.{{ $key }}"
-                                        wire:change="updateSetting('{{ $key }}')"
-                                        placeholder="0"
-                                    >
-
-                                @else
-                                    <!-- Default: text input -->
-                                    <input
-                                        type="text"
-                                        id="{{ $key }}"
-                                        class="form-control @error($key) is-invalid @enderror"
-                                        wire:model="formData.{{ $key }}"
-                                        wire:change="updateSetting('{{ $key }}')"
-                                        placeholder="Enter value..."
-                                    >
-                                @endif
-
-                                <!-- Validation Error -->
-                                @if (isset($validationErrors[$key]))
-                                    <div class="invalid-feedback d-block mt-1">
-                                        <i class="fas fa-times-circle me-1"></i>
-                                        {{ $validationErrors[$key] }}
-                                    </div>
-                                @endif
-                            </div>
+                    @if ($meta['type'] === 'textarea')
+                        <textarea
+                            id="{{ $key }}"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            wire:model="formData.{{ $key }}"
+                            wire:change="updateSetting('{{ $key }}')"
+                            rows="4"
+                            placeholder="{{ __('Enter value...') }}"
+                        ></textarea>
+                    @elseif ($meta['type'] === 'select')
+                        <select
+                            id="{{ $key }}"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            wire:model="formData.{{ $key }}"
+                            wire:change="updateSetting('{{ $key }}')"
+                        >
+                            <option value="">{{ __('-- Select an option --') }}</option>
+                            @if ($meta['options'])
+                                @foreach ($meta['options'] as $optionKey => $optionLabel)
+                                    <option value="{{ $optionKey }}">{{ $optionLabel }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    @elseif ($meta['type'] === 'boolean')
+                        <select
+                            id="{{ $key }}"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            wire:model="formData.{{ $key }}"
+                            wire:change="updateSetting('{{ $key }}')"
+                        >
+                            <option value="true">{{ __('Enabled') }}</option>
+                            <option value="false">{{ __('Disabled') }}</option>
+                        </select>
+                    @elseif ($meta['type'] === 'password')
+                        <div x-data="{ visible: false }" class="space-y-2">
+                            <input
+                                x-bind:type="visible ? 'text' : 'password'"
+                                id="{{ $key }}"
+                                class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                                wire:model="formData.{{ $key }}"
+                                placeholder="{{ __('Leave blank to keep current value') }}"
+                                autocomplete="off"
+                            >
+                            <button type="button" x-on:click="visible = !visible" class="text-xs text-zinc-600 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200">
+                                <span x-show="!visible">{{ __('Show value') }}</span>
+                                <span x-show="visible">{{ __('Hide value') }}</span>
+                            </button>
                         </div>
-                    </div>
-                @empty
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        No settings found in this group.
-                    </div>
-                @endforelse
-            </div>
+                    @elseif ($meta['type'] === 'email')
+                        <input
+                            type="email"
+                            id="{{ $key }}"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            wire:model="formData.{{ $key }}"
+                            wire:change="updateSetting('{{ $key }}')"
+                            placeholder="user@example.com"
+                        >
+                    @elseif ($meta['type'] === 'url')
+                        <input
+                            type="url"
+                            id="{{ $key }}"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            wire:model="formData.{{ $key }}"
+                            wire:change="updateSetting('{{ $key }}')"
+                            placeholder="https://example.com"
+                        >
+                    @elseif ($meta['type'] === 'number' || $meta['type'] === 'integer')
+                        <input
+                            type="number"
+                            id="{{ $key }}"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            wire:model="formData.{{ $key }}"
+                            wire:change="updateSetting('{{ $key }}')"
+                            placeholder="0"
+                        >
+                    @else
+                        <input
+                            type="text"
+                            id="{{ $key }}"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            wire:model="formData.{{ $key }}"
+                            wire:change="updateSetting('{{ $key }}')"
+                            placeholder="{{ __('Enter value...') }}"
+                        >
+                    @endif
 
-            <!-- Form Actions -->
+                    @if (isset($validationErrors[$key]))
+                        <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $validationErrors[$key] }}</p>
+                    @endif
+                </div>
+            @empty
+                <div class="rounded-lg border border-dashed border-zinc-300 px-4 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                    {{ __('No settings found in this group.') }}
+                </div>
+            @endforelse
+
             @if (!empty($settingsMetadata))
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
-                        <i class="fas fa-save me-1"></i>
-                        <span wire:loading.remove>Save All Changes</span>
-                        <span wire:loading>
-                            <i class="spinner-border spinner-border-sm me-1"></i>
-                            Saving...
-                        </span>
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary" wire:click="resetForm">
-                        <i class="fas fa-redo me-1"></i>
-                        Reset
-                    </button>
+                <div class="sticky bottom-2 z-10 flex flex-wrap gap-2 rounded-xl border border-zinc-200 bg-white/90 p-3 backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/90">
+                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                        <span wire:loading.remove>{{ __('Save All Changes') }}</span>
+                        <span wire:loading>{{ __('Saving...') }}</span>
+                    </flux:button>
+                    <flux:button type="button" variant="ghost" wire:click="resetForm">
+                        {{ __('Reset') }}
+                    </flux:button>
                 </div>
             @endif
         </form>
     @endif
 </div>
-
-<script>
-function togglePasswordField(fieldId) {
-    const field = document.getElementById(fieldId);
-    if (field.type === 'password') {
-        field.type = 'text';
-    } else {
-        field.type = 'password';
-    }
-}
-</script>

@@ -3,12 +3,12 @@
 namespace App\Core\Settings\Livewire;
 
 use App\Core\Settings\Models\SettingsSqlite;
-use Livewire\Component;
 use Livewire\Attributes\Computed;
+use Livewire\Component;
 
 /**
  * SettingsGroupList Component
- * 
+ *
  * Displays a list of all available settings groups with counts.
  * Allows selecting a group to edit settings within it.
  */
@@ -30,6 +30,10 @@ class SettingsGroupList extends Component
     public function mount(): void
     {
         $this->selectedGroup = $this->settingGroups()->first()?->group ?? '';
+
+        if ($this->selectedGroup !== '') {
+            $this->dispatch('group-selected', group: $this->selectedGroup);
+        }
     }
 
     /**
@@ -38,6 +42,14 @@ class SettingsGroupList extends Component
     public function selectGroup(string $group): void
     {
         $this->selectedGroup = $group;
+        $this->dispatch('group-selected', group: $group);
+    }
+
+    /**
+     * Keep editor in sync when group is changed by model binding (mobile select).
+     */
+    public function updatedSelectedGroup(string $group): void
+    {
         $this->dispatch('group-selected', group: $group);
     }
 

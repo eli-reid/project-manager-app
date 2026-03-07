@@ -4,6 +4,7 @@ namespace App\Core\Settings\Providers;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;
+use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
 use App\Core\Settings\Services\SettingsRepository;
 use App\Core\Settings\Services\SettingsSqliteService;
@@ -25,12 +26,12 @@ class SettingServiceProvider extends ServiceProvider
 
         // Register cache service as singleton
         $this->app->singleton(SettingsCacheService::class, function () {
-            return new SettingsCacheService();
+            return new SettingsCacheService;
         });
 
         // Register repository as singleton
         $this->app->singleton(SettingsRepository::class, function () {
-            return new SettingsRepository();
+            return new SettingsRepository;
         });
 
         // Register settings service as singleton with dependencies injected
@@ -39,6 +40,11 @@ class SettingServiceProvider extends ServiceProvider
                 $app->make(SettingsRepository::class),
                 $app->make(SettingsCacheService::class)
             );
+        });
+
+        // Register domain settings synchronizer
+        $this->app->singleton(DomainSettingsSynchronizer::class, function () {
+            return new DomainSettingsSynchronizer;
         });
 
         // Create aliases for easier access
@@ -62,6 +68,9 @@ class SettingServiceProvider extends ServiceProvider
 
         // Initialize settings database early (no database config needed)
         $this->initializeSettingsDatabase();
+
+        // Sync domain-defined settings defaults when domain config files change.
+        $this->syncDomainSettings();
     }
 
     /**
@@ -84,17 +93,38 @@ class SettingServiceProvider extends ServiceProvider
                 if ($this->app->bound('log')) {
                     Log::info('Settings service running in dev mode - using .env file instead of database');
                 }
+
                 return;
             }
 
             // Initialize the database if it doesn't exist
-            if (!$settingsService->isDatabaseAvailable()) {
+            if (! $settingsService->isDatabaseAvailable()) {
                 $settingsService->initializeDatabase();
             }
         } catch (\Exception $e) {
             // Log warning but don't break the app if settings initialization fails
             if ($this->app->bound('log')) {
-                Log::warning('Failed to initialize settings database: ' . $e->getMessage());
+                Log::warning('Failed to initialize settings database: '.$e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Synchronize settings defined by domain-level config providers.
+     */
+    private function syncDomainSettings(): void
+    {
+        try {
+            /** @var DomainSettingsSynchronizer $synchronizer */
+            $synchronizer = $this->app->make(DomainSettingsSynchronizer::class);
+            $changes = $synchronizer->syncIfChanged();
+
+            if ($changes > 0 && $this->app->bound('log')) {
+                Log::info('Domain settings synchronized', ['changes' => $changes]);
+            }
+        } catch (\Exception $e) {
+            if ($this->app->bound('log')) {
+                Log::warning('Failed to synchronize domain settings: '.$e->getMessage());
             }
         }
     }

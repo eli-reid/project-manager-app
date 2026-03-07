@@ -3,16 +3,17 @@
 namespace Database\Seeders;
 
 use App\Core\Settings\Models\SettingsSqlite;
+use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use Illuminate\Database\Seeder;
 
 /**
  * SettingsSeeder
- * 
+ *
  * Seeds default application settings into the settings SQLite database.
- * Includes settings for: app, company, mail, mailgun, postmark, aws, cpanel, 
- * weather, zoom, projects, timecards, financials, documents, session, system, 
+ * Includes settings for: app, company, mail, mailgun, postmark, aws, cpanel,
+ * weather, zoom, projects, timecards, financials, documents, session, system,
  * security, and features.
- * 
+ *
  * Run with: php artisan db:seed --class=SettingsSeeder
  */
 class SettingsSeeder extends Seeder
@@ -23,7 +24,7 @@ class SettingsSeeder extends Seeder
     public function run(): void
     {
         // Ensure database is initialized
-        $model = new SettingsSqlite();
+        $model = new SettingsSqlite;
         $model->ensureSettingsDatabase();
 
         // Seed all setting groups
@@ -54,7 +55,11 @@ class SettingsSeeder extends Seeder
             );
         }
 
-        $this->command->info('✓ Settings seeded successfully: ' . count($allSettings) . ' settings');
+        // Sync settings declared by each domain in app/Domains/*/config/settings.php.
+        $domainChanges = app(DomainSettingsSynchronizer::class)->sync();
+
+        $this->command->info('✓ Settings seeded successfully: '.count($allSettings).' base settings');
+        $this->command->info('✓ Domain settings synchronized: '.$domainChanges.' changes');
     }
 
     /**

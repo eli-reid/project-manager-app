@@ -79,3 +79,7 @@ it('resets in-memory preload cache after setting updates', function () {
     $reloadedSettings = $service->preloadAllSettings();
     expect($reloadedSettings->get($key))->toBe('New Name');
 });
+
+it('uses isolated settings database in testing', function () {
+    expect(config('settings-db.database_path'))->toBe('database/testing-settings.data');
+});

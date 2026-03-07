@@ -6,6 +6,7 @@
 /storage/*.key
 /storage/pail
 /vendor
+/database/testing-settings.data
 .env
 .env.backup
 .env.production
