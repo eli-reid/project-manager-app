@@ -17,6 +17,11 @@ it('renders settings index in app layout for admin users', function () {
         ->assertSee('Settings Management');
 });
 
+it('redirects guests to login for settings index', function () {
+    $this->get(route('admin.settings.index'))
+        ->assertRedirect(route('login'));
+});
+
 it('forbids non-admin users from settings index', function () {
     $nonAdmin = User::factory()->create(['is_admin' => false]);
 

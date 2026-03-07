@@ -16,7 +16,7 @@
                 </flux:sidebar.item>
 
                 @can('admin')
-                    <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
+                    <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" data-test="admin-settings-sidebar-main-link">
                         {{ __('Admin Settings') }}
                     </flux:sidebar.item>
                 @endcan
@@ -41,7 +41,15 @@
 
             </flux:sidebar.nav>
             <flux:spacer />
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+            @auth
+                <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+            @else
+                <div class="hidden px-4 pb-4 lg:block">
+                    <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                        {{ __('Log in') }}
+                    </a>
+                </div>
+            @endauth
         </flux:sidebar>
 
         <!-- Mobile User Menu -->
@@ -50,58 +58,64 @@
 
             <flux:spacer />
 
-            <flux:dropdown position="top" align="end">
-                <flux:profile
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
-                />
+            @auth
+                <flux:dropdown position="top" align="end">
+                    <flux:profile
+                        :initials="auth()->user()->initials()"
+                        icon-trailing="chevron-down"
+                    />
 
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <flux:avatar
-                                    :name="auth()->user()->name"
-                                    :initials="auth()->user()->initials()"
-                                />
+                    <flux:menu>
+                        <flux:menu.radio.group>
+                            <div class="p-0 text-sm font-normal">
+                                <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                                    <flux:avatar
+                                        :name="auth()->user()->name"
+                                        :initials="auth()->user()->initials()"
+                                    />
 
-                                <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
-                                    <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
+                                    <div class="grid flex-1 text-start text-sm leading-tight">
+                                        <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
+                                        <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </flux:menu.radio.group>
+                        </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                        <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                            {{ __('Settings') }}
-                        </flux:menu.item>
-                        @can('admin')
-                            <flux:menu.item :href="route('admin.settings.index')" icon="cog" wire:navigate data-test="admin-settings-link-mobile">
-                                {{ __('Admin Settings') }}
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
+                                {{ __('Settings') }}
                             </flux:menu.item>
-                        @endcan
-                    </flux:menu.radio.group>
+                            @can('admin')
+                                <flux:menu.item :href="route('admin.settings.index')" icon="cog" data-test="admin-settings-link-mobile">
+                                    {{ __('Admin Settings') }}
+                                </flux:menu.item>
+                            @endcan
+                        </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                        <flux:menu.separator />
 
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item
-                            as="button"
-                            type="submit"
-                            icon="arrow-right-start-on-rectangle"
-                            class="w-full cursor-pointer"
-                            data-test="logout-button"
-                        >
-                            {{ __('Log out') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                            @csrf
+                            <flux:menu.item
+                                as="button"
+                                type="submit"
+                                icon="arrow-right-start-on-rectangle"
+                                class="w-full cursor-pointer"
+                                data-test="logout-button"
+                            >
+                                {{ __('Log out') }}
+                            </flux:menu.item>
+                        </form>
+                    </flux:menu>
+                </flux:dropdown>
+            @else
+                <a href="{{ route('login') }}" class="inline-flex items-center rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                    {{ __('Log in') }}
+                </a>
+            @endauth
         </flux:header>
 
         {{ $slot }}

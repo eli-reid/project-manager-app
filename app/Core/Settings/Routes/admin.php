@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
  * All routes in this group require authentication and admin authorization.
  * Prefix: /admin
  */
-Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['web', 'auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     // Settings management routes
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');

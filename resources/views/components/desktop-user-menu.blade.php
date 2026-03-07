@@ -30,7 +30,7 @@
                 {{ __('Settings') }}
             </flux:menu.item>
             @can('admin')
-                <flux:menu.item :href="route('admin.settings.index')" icon="cog" wire:navigate data-test="admin-settings-link">
+                <flux:menu.item :href="route('admin.settings.index')" icon="cog" data-test="admin-settings-link">
                     {{ __('Admin Settings') }}
                 </flux:menu.item>
             @endcan
