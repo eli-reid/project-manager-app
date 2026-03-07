@@ -2,6 +2,18 @@
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
+use App\Domains\Documents\Settings\DocumentsSettings;
+
+it('defines default document settings keys', function () {
+    $keys = collect(DocumentsSettings::settings())
+        ->pluck('key')
+        ->all();
+
+    expect($keys)->toContain('documents.allowed_types');
+    expect($keys)->toContain('documents.max_file_size');
+    expect($keys)->toContain('documents.enable_versioning');
+    expect($keys)->toContain('documents.storage_disk');
+});
 
 it('loads domain settings definitions from domain config folders', function () {
     $synchronizer = app(DomainSettingsSynchronizer::class);
