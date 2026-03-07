@@ -3,8 +3,8 @@
 namespace App\Core\User\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -14,7 +14,6 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasUlids, Notifiable, TwoFactorAuthenticatable;
-
 
     /**
      * The attributes that are mass assignable.
@@ -67,25 +66,31 @@ class User extends Authenticatable
      * Get the user's initials
      */
     public function initials(): string
-    {           
-        return Str::upper(Str::substr($this->first_name, 0, 1) . Str::substr($this->last_name, 0, 1));
+    {
+        return Str::upper(Str::substr($this->first_name, 0, 1).Str::substr($this->last_name, 0, 1));
     }
 
     /**
-    * The roles that belong to the user.
-    */
+     * The roles that belong to the user.
+     */
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'role_user');
     }
-    
+
     /**
      * Resolve the model factory for this model.
      */
     protected static function newFactory()
     {
-            return \App\Core\User\Database\Factories\UserFactory::new();
+        return \App\Core\User\Database\Factories\UserFactory::new();
     }
 
-    
+    /**
+     * Determine if the user has administrator access.
+     */
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
+    }
 }

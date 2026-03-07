@@ -57,7 +57,7 @@
                         {{ __('Dashboard')  }}
                     </flux:sidebar.item>
                     @can('admin')
-                        <flux:sidebar.item icon="sliders-horizontal" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-sidebar-link">
+                        <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-sidebar-link">
                             {{ __('Admin Settings') }}
                         </flux:sidebar.item>
                     @endcan

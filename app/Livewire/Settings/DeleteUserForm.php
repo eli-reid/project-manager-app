@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Settings;
 
-use App\Concerns\PasswordValidationRules;
-use App\Livewire\Actions\Logout;
+use App\Core\User\Actions\User\Logout;
+use App\Core\User\Concerns\PasswordValidationRules;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 

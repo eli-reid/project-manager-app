@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Settings;
 
-use App\Concerns\PasswordValidationRules;
+use App\Core\User\Concerns\PasswordValidationRules;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Title;

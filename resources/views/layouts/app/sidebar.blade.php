@@ -15,6 +15,12 @@
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
 
+                @can('admin')
+                    <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
+                        {{ __('Admin Settings') }}
+                    </flux:sidebar.item>
+                @endcan
+
                 <flux:sidebar.item href="#" icon="drafting-compass" :current="request()->routeIs('projects')" wire:navigate>
                     {{ __('My Projects') }}
                 </flux:sidebar.item>
@@ -74,7 +80,7 @@
                             {{ __('Settings') }}
                         </flux:menu.item>
                         @can('admin')
-                            <flux:menu.item :href="route('admin.settings.index')" icon="sliders-horizontal" wire:navigate data-test="admin-settings-link-mobile">
+                            <flux:menu.item :href="route('admin.settings.index')" icon="cog" wire:navigate data-test="admin-settings-link-mobile">
                                 {{ __('Admin Settings') }}
                             </flux:menu.item>
                         @endcan

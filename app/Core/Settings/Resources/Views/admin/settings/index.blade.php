@@ -1,63 +1,30 @@
-@extends('layouts.app')
+<x-layouts::app :title="__('Settings Management')">
+    <div class="flex w-full flex-1 flex-col gap-4">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <flux:heading size="xl">{{ __('Settings Management') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Manage application settings and configuration') }}</flux:text>
+            </div>
 
-@section('content')
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h2">
-                <i class="fas fa-cogs me-2"></i> Settings Management
-            </h1>
-            <p class="text-muted">Manage application settings and configuration</p>
+            <a href="{{ route('admin.settings.export') }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" data-test="admin-settings-export-link">
+                {{ __('Export') }}
+            </a>
         </div>
-        <div class="col-md-4 text-end">
-            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Export settings as JSON">
-                <i class="fas fa-download me-1"></i> Export
-            </button>
-        </div>
-    </div>
 
-    <div class="row g-4">
-        <div class="col-lg-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light border-bottom">
-                    <h6 class="mb-0">Setting Groups</h6>
-                </div>
-                <div class="card-body p-0">
+        <div class="grid gap-4 lg:grid-cols-12">
+            <section class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700 lg:col-span-4 xl:col-span-3">
+                <flux:heading size="lg">{{ __('Setting Groups') }}</flux:heading>
+                <div class="mt-3">
                     <livewire:app.core.settings.livewire.settings-group-list />
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <div class="col-lg-9">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light border-bottom">
-                    <h6 class="mb-0">Edit Settings</h6>
-                </div>
-                <div class="card-body">
+            <section class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700 lg:col-span-8 xl:col-span-9">
+                <flux:heading size="lg">{{ __('Edit Settings') }}</flux:heading>
+                <div class="mt-3">
                     <livewire:app.core.settings.livewire.settings-editor />
                 </div>
-            </div>
+            </section>
         </div>
     </div>
-</div>
-
-<style>
-    .settings-group-item {
-        transition: all 0.2s ease;
-    }
-
-    .settings-group-item:hover {
-        background-color: #f8f9fa;
-    }
-
-    .settings-group-item.active {
-        background-color: #e7f3ff;
-        border-left: 3px solid #0d6efd;
-    }
-
-    .form-control-plaintext {
-        padding-top: 0.375rem;
-        padding-bottom: 0.375rem;
-    }
-</style>
-@endsection
+</x-layouts::app>

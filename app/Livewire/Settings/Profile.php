@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Settings;
 
-use App\Concerns\ProfileValidationRules;
+use App\Core\User\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -15,7 +15,11 @@ class Profile extends Component
 {
     use ProfileValidationRules;
 
-    public string $name = '';
+    public string $first_name = '';
+
+    public string $last_name = '';
+
+    public string $username = '';
 
     public string $email = '';
 
@@ -24,7 +28,9 @@ class Profile extends Component
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
+        $this->first_name = Auth::user()->first_name;
+        $this->last_name = Auth::user()->last_name;
+        $this->username = Auth::user()->username;
         $this->email = Auth::user()->email;
     }
 
@@ -45,7 +51,7 @@ class Profile extends Component
 
         $user->save();
 
-        $this->dispatch('profile-updated', name: $user->name);
+        $this->dispatch('profile-updated', name: trim($user->first_name.' '.$user->last_name));
     }
 
     /**
