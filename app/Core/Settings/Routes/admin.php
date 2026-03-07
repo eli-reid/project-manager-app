@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\Route;
  */
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     // Settings management routes
-    Route::group(['prefix' => 'settings', 'name' => 'settings.'], function () {
+    Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
         Route::post('/export', [SettingsController::class, 'export'])->name('export');
+        Route::get('/import', [SettingsController::class, 'import'])->name('import');
     });
 });

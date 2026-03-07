@@ -73,6 +73,11 @@
                         <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                             {{ __('Settings') }}
                         </flux:menu.item>
+                        @can('admin')
+                            <flux:menu.item :href="route('admin.settings.index')" icon="sliders-horizontal" wire:navigate data-test="admin-settings-link-mobile">
+                                {{ __('Admin Settings') }}
+                            </flux:menu.item>
+                        @endcan
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
