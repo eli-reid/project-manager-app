@@ -12,29 +12,53 @@ class DomainSettingsSynchronizer
 {
     private const CACHE_KEY_HASH = 'settings.domain-definitions.hash';
 
+    private const CACHE_KEY_NEXT_CHECK_AT = 'settings.domain-definitions.next-check-at';
+
     /**
-     * Sync domain settings when domain config definitions change.
+     * Sync settings when core/domain config definitions change.
      */
     public function syncIfChanged(): int
     {
+        $nextCheckAt = (int) Cache::get(self::CACHE_KEY_NEXT_CHECK_AT, 0);
+        $now = time();
+
+        if ($nextCheckAt > $now) {
+            return 0;
+        }
+
         $currentHash = $this->definitionsHash();
         $lastHash = (string) Cache::get(self::CACHE_KEY_HASH, '');
 
         if ($currentHash === $lastHash) {
+            $this->cacheNextCheck($now);
+
             return 0;
         }
 
         $changes = $this->sync();
 
         Cache::forever(self::CACHE_KEY_HASH, $currentHash);
+        $this->cacheNextCheck($now);
 
         return $changes;
     }
 
+    protected function cacheNextCheck(int $now): void
+    {
+        $interval = (int) config('settings-db.sync.check_interval_seconds', 300);
+        $interval = max(0, $interval);
+
+        if ($interval > 0) {
+            Cache::forever(self::CACHE_KEY_NEXT_CHECK_AT, $now + $interval);
+        } else {
+            Cache::forget(self::CACHE_KEY_NEXT_CHECK_AT);
+        }
+    }
+
     /**
-     * Sync all discovered domain settings into settings SQLite.
+     * Sync all discovered settings definitions into settings SQLite.
      */
-    public function sync(bool $overwriteValues = false): int
+    public function sync(bool $overwriteValues = false, bool $pruneUndefined = false): int
     {
         $definitions = $this->loadDefinitions();
         $changedCount = 0;
@@ -67,11 +91,38 @@ class DomainSettingsSynchronizer
             }
         }
 
-        if ($changedCount > 0) {
+        $prunedCount = 0;
+        if ($pruneUndefined) {
+            $definitionKeys = collect($definitions)
+                ->pluck('key')
+                ->filter(fn ($key) => is_string($key) && $key !== '')
+                ->values()
+                ->all();
+
+            $prunedCount = $this->pruneUndefinedSettings($definitionKeys);
+        }
+
+        if (($changedCount + $prunedCount) > 0) {
             app(SettingsSqliteService::class)->clearAllCache();
         }
 
-        return $changedCount;
+        return $changedCount + $prunedCount;
+    }
+
+    /**
+     * @param  array<int, string>  $definitionKeys
+     */
+    protected function pruneUndefinedSettings(array $definitionKeys): int
+    {
+        if ($definitionKeys === []) {
+            Log::warning('Skipping undefined settings prune because no settings definitions were discovered.');
+
+            return 0;
+        }
+
+        return SettingsSqlite::query()
+            ->whereNotIn('key', $definitionKeys)
+            ->delete();
     }
 
     /**
@@ -103,7 +154,11 @@ class DomainSettingsSynchronizer
      */
     protected function settingsConfigFiles(): array
     {
-        $files = glob(app_path('Domains/*/config/settings.php')) ?: [];
+        $files = [
+            ...(file_exists(app_path('config/settings.php')) ? [app_path('config/settings.php')] : []),
+            ...(glob(app_path('Core/*/config/settings.php')) ?: []),
+            ...(glob(app_path('Domains/*/config/settings.php')) ?: []),
+        ];
 
         sort($files);
 

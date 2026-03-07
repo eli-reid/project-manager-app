@@ -19,6 +19,11 @@ class SettingsCacheService
     protected int $ttl = 3600;
 
     /**
+     * Whether settings cache should be stored forever.
+     */
+    protected bool $forever = true;
+
+    /**
      * Cache key prefix
      */
     protected string $prefix = 'settings';
@@ -27,6 +32,7 @@ class SettingsCacheService
     {
         $this->ttl = config('settings-db.cache.ttl', 3600);
         $this->prefix = config('settings-db.cache.prefix', 'settings');
+        $this->forever = (bool) config('settings-db.cache.forever', true);
     }
 
     /**
@@ -41,6 +47,10 @@ class SettingsCacheService
         $cacheKey = $this->getCacheKey($key);
 
         try {
+            if ($this->forever) {
+                return Cache::rememberForever($cacheKey, $callback);
+            }
+
             return Cache::remember($cacheKey, $this->ttl, $callback);
         } catch (\Exception $e) {
             // Fallback: execute callback without caching

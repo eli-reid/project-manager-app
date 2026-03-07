@@ -18,12 +18,6 @@ class SettingServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register and merge the configuration file
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/settings-db.php',
-            'settings-db'
-        );
-
         // Register cache service as singleton
         $this->app->singleton(SettingsCacheService::class, function () {
             return new SettingsCacheService;
@@ -114,6 +108,15 @@ class SettingServiceProvider extends ServiceProvider
      */
     private function syncDomainSettings(): void
     {
+        $syncOnBoot = config('settings-db.sync.on_boot');
+        if ($syncOnBoot === null) {
+            $syncOnBoot = ! $this->app->isProduction();
+        }
+
+        if (! (bool) $syncOnBoot) {
+            return;
+        }
+
         try {
             /** @var DomainSettingsSynchronizer $synchronizer */
             $synchronizer = $this->app->make(DomainSettingsSynchronizer::class);
