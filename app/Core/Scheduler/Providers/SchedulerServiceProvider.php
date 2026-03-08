@@ -25,22 +25,24 @@ class SchedulerServiceProvider extends ServiceProvider
         $this->app->singleton(TaskTypeRegistry::class, function (): TaskTypeRegistry {
             $registry = new TaskTypeRegistry;
 
-            $registry->register('timecard_reminders', NoOpTask::class, [
-                'name' => 'Timecard Reminders',
-                'description' => 'Send periodic timecard reminders.',
-            ]);
-            $registry->register('automated_reports', NoOpTask::class, [
-                'name' => 'Automated Reports',
-                'description' => 'Generate and distribute scheduled reports.',
-            ]);
-            $registry->register('database_backup', NoOpTask::class, [
-                'name' => 'Database Backup',
-                'description' => 'Run scheduled database backup tasks.',
-            ]);
-            $registry->register('system_cleanup', NoOpTask::class, [
-                'name' => 'System Cleanup',
-                'description' => 'Run periodic cleanup routines.',
-            ]);
+            if ((bool) config('scheduler.register_core_tasks', false)) {
+                $registry->register('timecard_reminders', NoOpTask::class, [
+                    'name' => 'Timecard Reminders',
+                    'description' => 'Send periodic timecard reminders.',
+                ]);
+                $registry->register('automated_reports', NoOpTask::class, [
+                    'name' => 'Automated Reports',
+                    'description' => 'Generate and distribute scheduled reports.',
+                ]);
+                $registry->register('database_backup', NoOpTask::class, [
+                    'name' => 'Database Backup',
+                    'description' => 'Run scheduled database backup tasks.',
+                ]);
+                $registry->register('system_cleanup', NoOpTask::class, [
+                    'name' => 'System Cleanup',
+                    'description' => 'Run periodic cleanup routines.',
+                ]);
+            }
 
             return $registry;
         });
@@ -56,7 +58,6 @@ class SchedulerServiceProvider extends ServiceProvider
         $this->app->singleton(TaskDefinitionSyncService::class, function ($app): TaskDefinitionSyncService {
             return new TaskDefinitionSyncService(
                 $app->make(TaskTypeRegistry::class),
-                $app->make(ScheduledTaskService::class),
             );
         });
 
@@ -69,6 +70,7 @@ class SchedulerServiceProvider extends ServiceProvider
     {
         $this->registerAuthorizationGates();
         $this->registerPermissions();
+        $this->configureMigrations();
         $this->configureRoutes();
         $this->configureViews();
         $this->configureComponents();
@@ -106,6 +108,11 @@ class SchedulerServiceProvider extends ServiceProvider
     {
         Livewire::component('app.core.scheduler.livewire.admin.tasks', \App\Core\Scheduler\Livewire\Admin\Tasks\Index::class);
         Livewire::component('app.core.scheduler.livewire.admin.tasks.form', \App\Core\Scheduler\Livewire\Admin\Tasks\Form::class);
+    }
+
+    private function configureMigrations(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 
     private function configureViews(): void

@@ -17,8 +17,8 @@ class ScheduledTask extends Model
 
     protected $fillable = [
         'name',
-        'feature_type',
         'description',
+        'available_task_id',
         'schedule_type',
         'time',
         'timezone',
@@ -61,6 +61,11 @@ class ScheduledTask extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function availableTask(): BelongsTo
+    {
+        return $this->belongsTo(AvailableTask::class, 'available_task_id');
     }
 
     public function updater(): BelongsTo

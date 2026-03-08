@@ -3,6 +3,7 @@
 use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
+use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
@@ -53,11 +54,16 @@ it('forbids scheduler admin pages for users without scheduler permissions', func
 
 it('creates a scheduler task through livewire form', function (): void {
     $user = schedulerUserWithPermissions(['scheduler.create']);
+    $availableTask = AvailableTask::factory()->create([
+        'feature_type' => 'timecard_reminders',
+        'name' => 'Timecard Reminders',
+    ]);
+
     $this->actingAs($user);
 
     Livewire::test(Form::class)
         ->set('name', 'Daily Reminder Task')
-        ->set('feature_type', 'timecard_reminders')
+        ->set('available_task_id', (string) $availableTask->id)
         ->set('schedule_type', 'daily')
         ->set('time', '08:30')
         ->set('timezone', 'America/New_York')
@@ -78,10 +84,14 @@ it('can toggle and run tasks from index component', function (): void {
     Queue::fake();
 
     $user = schedulerUserWithPermissions(['scheduler.view', 'scheduler.toggle', 'scheduler.run']);
+    $availableTask = AvailableTask::factory()->create([
+        'feature_type' => 'timecard_reminders',
+        'name' => 'Timecard Reminders',
+    ]);
 
     $task = ScheduledTask::query()->create([
         'name' => 'Test Task',
-        'feature_type' => 'timecard_reminders',
+        'available_task_id' => $availableTask->id,
         'schedule_type' => 'daily',
         'time' => '10:00:00',
         'timezone' => 'America/New_York',

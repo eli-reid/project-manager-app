@@ -8,12 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('available_tasks')) {
+            Schema::create('available_tasks', function (Blueprint $table): void {
+                $table->ulid('id')->primary();
+                $table->string('feature_type')->unique();
+                $table->string('name');
+                $table->text('description')->nullable();
+                $table->json('task_config')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+
+                $table->index(['is_active', 'feature_type']);
+            });
+        }
+
         if (! Schema::hasTable('scheduled_tasks')) {
             Schema::create('scheduled_tasks', function (Blueprint $table): void {
                 $table->ulid('id')->primary();
                 $table->string('name');
-                $table->string('feature_type');
                 $table->text('description')->nullable();
+                $table->foreignUlid('available_task_id')->constrained('available_tasks')->cascadeOnDelete();
 
                 $table->enum('schedule_type', ['daily', 'weekly', 'monthly', 'yearly', 'specific_date']);
                 $table->time('time');
@@ -42,7 +56,7 @@ return new class extends Migration
                 $table->timestamps();
 
                 $table->index(['is_active', 'is_enabled', 'next_run_at']);
-                $table->index(['feature_type', 'is_active']);
+                $table->index(['available_task_id', 'is_active']);
                 $table->index('next_run_at');
             });
         }
@@ -52,6 +66,10 @@ return new class extends Migration
     {
         if (Schema::hasTable('scheduled_tasks')) {
             Schema::dropIfExists('scheduled_tasks');
+        }
+
+        if (Schema::hasTable('available_tasks')) {
+            Schema::dropIfExists('available_tasks');
         }
     }
 };

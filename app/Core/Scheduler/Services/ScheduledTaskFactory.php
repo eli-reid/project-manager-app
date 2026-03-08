@@ -2,7 +2,6 @@
 
 namespace App\Core\Scheduler\Services;
 
-use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\Contracts\SchedulableTask;
 
@@ -14,13 +13,20 @@ class ScheduledTaskFactory
 
     public function make(ScheduledTask $task): SchedulableTask
     {
-        $class = $this->registry->resolve($task->feature_type);
+        $task->loadMissing('availableTask');
 
-        if (!$class) {
-            throw new \RuntimeException("Unknown task type: {$task->feature_type}");
+        $featureType = $task->availableTask?->feature_type;
+
+        if ($featureType === null || $featureType === '') {
+            throw new \RuntimeException("Scheduled task {$task->id} is missing an available task definition.");
+        }
+
+        $class = $this->registry->resolve($featureType);
+
+        if (! $class) {
+            throw new \RuntimeException("Unknown task type: {$featureType}");
         }
 
         return app()->make($class, ['task' => $task]);
     }
 }
-

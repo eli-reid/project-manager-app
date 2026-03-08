@@ -2,9 +2,9 @@
 
 namespace App\Core\Scheduler\Livewire\Admin\Tasks;
 
+use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\ScheduledTaskService;
-use App\Core\Scheduler\Services\TaskTypeRegistry;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -23,7 +23,7 @@ class Form extends Component
 
     public string $name = '';
 
-    public string $feature_type = 'timecard_reminders';
+    public string $available_task_id = '';
 
     public string $description = '';
 
@@ -64,7 +64,7 @@ class Form extends Component
             $this->scheduledTask = $scheduledTask;
             $this->isEdit = true;
             $this->name = $scheduledTask->name;
-            $this->feature_type = $scheduledTask->feature_type;
+            $this->available_task_id = (string) $scheduledTask->available_task_id;
             $this->description = (string) $scheduledTask->description;
             $this->schedule_type = $scheduledTask->schedule_type;
             $this->time = substr((string) $scheduledTask->time, 0, 5);
@@ -84,15 +84,18 @@ class Form extends Component
         }
 
         $this->authorize('create', ScheduledTask::class);
+
+        $this->available_task_id = (string) AvailableTask::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->value('id');
     }
 
     protected function rules(): array
     {
-        $featureTypes = array_keys(app(TaskTypeRegistry::class)->all());
-
         return [
             'name' => ['required', 'string', 'max:255'],
-            'feature_type' => ['required', Rule::in($featureTypes)],
+            'available_task_id' => ['required', 'string', Rule::exists('available_tasks', 'id')],
             'description' => ['nullable', 'string', 'max:1000'],
             'schedule_type' => ['required', Rule::in(['daily', 'weekly', 'monthly', 'yearly', 'specific_date'])],
             'time' => ['required', 'date_format:H:i'],
@@ -117,7 +120,7 @@ class Form extends Component
 
         $payload = [
             'name' => $validated['name'],
-            'feature_type' => $validated['feature_type'],
+            'available_task_id' => $validated['available_task_id'],
             'description' => $validated['description'] ?: null,
             'schedule_type' => $validated['schedule_type'],
             'time' => $validated['time'].':00',
@@ -132,7 +135,6 @@ class Form extends Component
             'max_occurrences' => $validated['max_occurrences'],
             'is_active' => (bool) $validated['is_active'],
             'is_enabled' => (bool) $validated['is_enabled'],
-            'task_config' => [],
         ];
 
         if ($this->isEdit) {
@@ -143,10 +145,14 @@ class Form extends Component
 
             $this->authorize('update', $task);
 
+            $payload['task_config'] = is_array($task->task_config) ? $task->task_config : [];
             $payload['updated_by'] = auth()->id();
             $task->update($payload);
         } else {
             $this->authorize('create', ScheduledTask::class);
+
+            $availableTask = AvailableTask::query()->find($validated['available_task_id']);
+            $payload['task_config'] = is_array($availableTask?->task_config) ? $availableTask->task_config : [];
 
             $payload['created_by'] = auth()->id();
             $payload['updated_by'] = auth()->id();
@@ -166,7 +172,10 @@ class Form extends Component
     public function render()
     {
         return view('scheduler::livewire.admin.tasks.form', [
-            'featureTypes' => array_keys(app(TaskTypeRegistry::class)->all()),
+            'availableTasks' => AvailableTask::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'feature_type']),
             'timezones' => [
                 'America/New_York',
                 'America/Chicago',

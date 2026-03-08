@@ -33,9 +33,11 @@ class SchedulerService
      */
     protected function queueTask(ScheduledTask $task): void
     {
+        $task->loadMissing('availableTask');
+
         Log::info('SchedulerService: queueing task', [
             'task_id' => (string) $task->id,
-            'feature_type' => $task->feature_type,
+            'feature_type' => $task->availableTask?->feature_type,
             'schedule_type' => $task->schedule_type,
         ]);
 

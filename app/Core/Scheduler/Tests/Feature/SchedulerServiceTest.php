@@ -1,17 +1,25 @@
 <?php
 
 use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
+use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\ScheduledTaskFactory;
 use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
+use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Core\Scheduler\Tasks\NoOpTask;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Queue;
 
 it('calculates next run in utc for active daily tasks', function (): void {
+    $availableTask = AvailableTask::factory()->create([
+        'feature_type' => 'timecard_reminders',
+        'name' => 'Timecard Reminders',
+    ]);
+
     $task = ScheduledTask::query()->create([
         'name' => 'Daily test task',
-        'feature_type' => 'timecard_reminders',
+        'available_task_id' => $availableTask->id,
         'schedule_type' => 'daily',
         'time' => '09:30:00',
         'timezone' => 'America/New_York',
@@ -31,9 +39,14 @@ it('calculates next run in utc for active daily tasks', function (): void {
 it('queues due scheduled tasks for worker execution', function (): void {
     Queue::fake();
 
+    $availableTask = AvailableTask::factory()->create([
+        'feature_type' => 'timecard_reminders',
+        'name' => 'Timecard Reminders',
+    ]);
+
     $task = ScheduledTask::query()->create([
         'name' => 'Due task',
-        'feature_type' => 'timecard_reminders',
+        'available_task_id' => $availableTask->id,
         'schedule_type' => 'daily',
         'time' => Carbon::now('America/New_York')->format('H:i:s'),
         'timezone' => 'America/New_York',
@@ -53,9 +66,18 @@ it('queues due scheduled tasks for worker execution', function (): void {
 });
 
 it('worker job updates run metadata after handling task', function (): void {
+    app(TaskTypeRegistry::class)->register('timecard_reminders', NoOpTask::class, [
+        'name' => 'Timecard Reminders',
+    ]);
+
+    $availableTask = AvailableTask::factory()->create([
+        'feature_type' => 'timecard_reminders',
+        'name' => 'Timecard Reminders',
+    ]);
+
     $task = ScheduledTask::query()->create([
         'name' => 'Handled task',
-        'feature_type' => 'timecard_reminders',
+        'available_task_id' => $availableTask->id,
         'schedule_type' => 'daily',
         'time' => Carbon::now('America/New_York')->format('H:i:s'),
         'timezone' => 'America/New_York',

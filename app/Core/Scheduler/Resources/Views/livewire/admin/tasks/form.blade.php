@@ -21,13 +21,13 @@
             </div>
 
             <div>
-                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Feature Type</label>
-                <select wire:model="feature_type" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-                    @foreach ($featureTypes as $type)
-                        <option value="{{ $type }}">{{ str($type)->replace('_', ' ')->headline() }}</option>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Available Task</label>
+                <select wire:model="available_task_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    @foreach ($availableTasks as $availableTask)
+                        <option value="{{ $availableTask->id }}">{{ $availableTask->name }} ({{ str($availableTask->feature_type)->replace('_', ' ')->headline() }})</option>
                     @endforeach
                 </select>
-                @error('feature_type') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                @error('available_task_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div>

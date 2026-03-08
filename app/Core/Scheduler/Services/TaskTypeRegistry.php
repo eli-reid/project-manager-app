@@ -5,6 +5,18 @@ namespace App\Core\Scheduler\Services;
 class TaskTypeRegistry
 {
     /**
+     * Provider-level registrations should only describe the task itself.
+     * Scheduling fields are owned by scheduler admin configuration.
+     *
+     * @var array<int, string>
+     */
+    protected array $supportedDefinitionKeys = [
+        'name',
+        'description',
+        'task_config',
+    ];
+
+    /**
      * @var array<string, class-string>
      */
     protected array $types = [];
@@ -24,18 +36,17 @@ class TaskTypeRegistry
     {
         $this->types[$featureType] = $class;
 
+        $normalizedDefinition = [];
+        foreach ($this->supportedDefinitionKeys as $key) {
+            if (array_key_exists($key, $definition)) {
+                $normalizedDefinition[$key] = $definition[$key];
+            }
+        }
+
         $this->definitions[$featureType] = [
-            'name' => $definition['name'] ?? str($featureType)->replace('_', ' ')->headline()->value(),
-            'description' => $definition['description'] ?? '',
-            'schedule_type' => $definition['schedule_type'] ?? 'daily',
-            'time' => $definition['time'] ?? '09:00:00',
-            'timezone' => $definition['timezone'] ?? 'America/New_York',
-            'repeat_frequency' => $definition['repeat_frequency'] ?? 'once',
-            'repeat_interval' => $definition['repeat_interval'] ?? 1,
-            'is_active' => $definition['is_active'] ?? true,
-            'is_enabled' => $definition['is_enabled'] ?? false,
-            'task_config' => $definition['task_config'] ?? [],
-            ...$definition,
+            'name' => $normalizedDefinition['name'] ?? str($featureType)->replace('_', ' ')->headline()->value(),
+            'description' => $normalizedDefinition['description'] ?? '',
+            'task_config' => is_array($normalizedDefinition['task_config'] ?? null) ? $normalizedDefinition['task_config'] : [],
         ];
     }
 

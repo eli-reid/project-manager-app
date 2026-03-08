@@ -25,11 +25,11 @@
         </div>
 
         <div>
-            <label for="task-feature" class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Feature</label>
-            <select id="task-feature" wire:model.live="featureType" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+            <label for="task-feature" class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Available Task</label>
+            <select id="task-feature" wire:model.live="availableTask" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                 <option value="">All features</option>
-                @foreach ($featureTypes as $type)
-                    <option value="{{ $type }}">{{ str($type)->replace('_', ' ')->headline() }}</option>
+                @foreach ($availableTasks as $availableTask)
+                    <option value="{{ $availableTask->id }}">{{ $availableTask->name }} ({{ str($availableTask->feature_type)->replace('_', ' ')->headline() }})</option>
                 @endforeach
             </select>
         </div>
@@ -61,7 +61,8 @@
                         <tr wire:key="task-{{ $task->id }}">
                             <td class="px-4 py-3 align-top">
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $task->name }}</div>
-                                <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ str($task->feature_type)->replace('_', ' ')->headline() }}</div>
+                                <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $task->availableTask?->name ?? 'Unknown Task Type' }}</div>
+                                <div class="text-xs text-zinc-400 dark:text-zinc-500">{{ $task->availableTask?->feature_type ?? 'missing-feature-type' }}</div>
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
                                 <div>{{ app(\App\Core\Scheduler\Services\ScheduledTaskService::class)->formatScheduleDescription($task) }}</div>

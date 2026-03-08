@@ -3,9 +3,9 @@
 namespace App\Core\Scheduler\Livewire\Admin\Tasks;
 
 use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
+use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\ScheduledTaskService;
-use App\Core\Scheduler\Services\TaskTypeRegistry;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -21,7 +21,7 @@ class Index extends Component
 
     public string $search = '';
 
-    public string $featureType = '';
+    public string $availableTask = '';
 
     public string $status = 'all';
 
@@ -35,7 +35,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function updatingFeatureType(): void
+    public function updatingAvailableTask(): void
     {
         $this->resetPage();
     }
@@ -79,13 +79,14 @@ class Index extends Component
     public function render()
     {
         $tasks = ScheduledTask::query()
+            ->with('availableTask')
             ->when($this->search !== '', function ($query): void {
                 $query->where(function ($nested): void {
                     $nested->where('name', 'like', '%'.$this->search.'%')
                         ->orWhere('description', 'like', '%'.$this->search.'%');
                 });
             })
-            ->when($this->featureType !== '', fn ($query) => $query->where('feature_type', $this->featureType))
+            ->when($this->availableTask !== '', fn ($query) => $query->where('available_task_id', $this->availableTask))
             ->when($this->status !== 'all', function ($query): void {
                 if ($this->status === 'active') {
                     $query->where('is_active', true)->where('is_enabled', true);
@@ -101,7 +102,9 @@ class Index extends Component
 
         return view('scheduler::livewire.admin.tasks.index', [
             'tasks' => $tasks,
-            'featureTypes' => array_keys(app(TaskTypeRegistry::class)->all()),
+            'availableTasks' => AvailableTask::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'feature_type']),
         ]);
     }
 }
