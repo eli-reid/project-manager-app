@@ -12,8 +12,6 @@ class AppSettings implements DomainSettingsProvider
             ...self::applicationSettings(),
             ...self::sessionSettings(),
             ...self::systemSettings(),
-            ...self::securitySettings(),
-            ...self::featureSettings(),
         ];
     }
 
@@ -25,7 +23,7 @@ class AppSettings implements DomainSettingsProvider
         return [
             [
                 'key' => 'app.name',
-                'value' => self::value('application.name', 'Project Manager'),
+                'value' => self::value('application.name'),
                 'display_name' => 'Application Name',
                 'description' => 'The name of your application',
                 'type' => 'text',
@@ -38,7 +36,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'app.url',
-                'value' => self::value('application.url', 'http://localhost'),
+                'value' => self::value('application.url'),
                 'display_name' => 'Application URL',
                 'description' => 'The URL of your application',
                 'type' => 'url',
@@ -51,7 +49,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'app.timezone',
-                'value' => self::value('application.timezone', 'UTC'),
+                'value' => self::value('application.timezone'),
                 'display_name' => 'Timezone',
                 'description' => 'Application timezone for date/time operations',
                 'type' => 'select',
@@ -65,7 +63,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'app.debug',
-                'value' => self::value('application.debug', 'false'),
+                'value' => self::value('application.debug'),
                 'display_name' => 'Debug Mode',
                 'description' => 'Enable debug mode for development',
                 'type' => 'select',
@@ -88,7 +86,7 @@ class AppSettings implements DomainSettingsProvider
         return [
             [
                 'key' => 'session.driver',
-                'value' => self::value('session.driver', 'file'),
+                'value' => self::value('session.driver'),
                 'display_name' => 'Session Driver',
                 'description' => 'Session storage driver (file, database, redis, etc.)',
                 'type' => 'select',
@@ -102,7 +100,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'session.lifetime',
-                'value' => self::value('session.lifetime', '120'),
+                'value' => self::value('session.lifetime'),
                 'display_name' => 'Session Lifetime (minutes)',
                 'description' => 'Minutes before session expires',
                 'type' => 'number',
@@ -115,7 +113,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'session.expire_on_close',
-                'value' => self::value('session.expire_on_close', 'false'),
+                'value' => self::value('session.expire_on_close'),
                 'display_name' => 'Expire On Browser Close',
                 'description' => 'Expire session when browser closes',
                 'type' => 'select',
@@ -129,7 +127,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'session.encrypt',
-                'value' => self::value('session.encrypt', 'false'),
+                'value' => self::value('session.encrypt'),
                 'display_name' => 'Encrypt Session Data',
                 'description' => 'Encrypt all session data',
                 'type' => 'select',
@@ -152,7 +150,7 @@ class AppSettings implements DomainSettingsProvider
         return [
             [
                 'key' => 'system.date_format',
-                'value' => 'Y-m-d',
+                'value' => self::value('system.date_format'),
                 'display_name' => 'Date Format',
                 'description' => 'Date format used throughout the system',
                 'type' => 'select',
@@ -166,7 +164,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'system.time_format',
-                'value' => 'H:i',
+                'value' => self::value('system.time_format'),
                 'display_name' => 'Time Format',
                 'description' => 'Time format used throughout the system',
                 'type' => 'select',
@@ -180,7 +178,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'system.locale',
-                'value' => 'en',
+                'value' => self::value('system.locale'),
                 'display_name' => 'Default Language',
                 'description' => 'Default language for the application',
                 'type' => 'select',
@@ -194,7 +192,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'system.work_hours_per_day',
-                'value' => '8',
+                'value' => self::value('system.work_hours_per_day'),
                 'display_name' => 'Default Work Hours Per Day',
                 'description' => 'Standard number of work hours per day',
                 'type' => 'number',
@@ -207,7 +205,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'system.log_level',
-                'value' => self::value('system.log_level', 'error'),
+                'value' => self::value('system.log_level'),
                 'display_name' => 'Log Level',
                 'description' => 'Logging level for application logs',
                 'type' => 'select',
@@ -228,7 +226,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'system.cache_enabled',
-                'value' => self::value('system.cache_enabled', 'true'),
+                'value' => self::value('system.cache_enabled'),
                 'display_name' => 'Enable Settings Cache',
                 'description' => 'Cache settings for improved performance',
                 'type' => 'select',
@@ -242,7 +240,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'system.cache_ttl',
-                'value' => self::value('system.cache_ttl', '3600'),
+                'value' => self::value('system.cache_ttl'),
                 'display_name' => 'Cache TTL (seconds)',
                 'description' => 'How long to cache settings (in seconds)',
                 'type' => 'number',
@@ -255,7 +253,7 @@ class AppSettings implements DomainSettingsProvider
             ],
             [
                 'key' => 'system.log_changes',
-                'value' => self::value('system.log_changes', 'false'),
+                'value' => self::value('system.log_changes'),
                 'display_name' => 'Log Settings Changes',
                 'description' => 'Log all settings changes for audit trail',
                 'type' => 'select',
@@ -270,147 +268,7 @@ class AppSettings implements DomainSettingsProvider
         ];
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function securitySettings(): array
-    {
-        return [
-            [
-                'key' => 'security.session_timeout',
-                'value' => self::value('security.session_timeout', '120'),
-                'display_name' => 'Session Timeout (minutes)',
-                'description' => 'Minutes of inactivity before session expires',
-                'type' => 'number',
-                'group' => 'security',
-                'order' => 1,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-            [
-                'key' => 'security.password_min_length',
-                'value' => self::value('security.password_min_length', '8'),
-                'display_name' => 'Minimum Password Length',
-                'description' => 'Minimum required password length',
-                'type' => 'number',
-                'group' => 'security',
-                'order' => 2,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-            [
-                'key' => 'security.require_password_complexity',
-                'value' => self::value('security.require_password_complexity', 'true'),
-                'display_name' => 'Require Password Complexity',
-                'description' => 'Require passwords to include uppercase, lowercase, numbers, and symbols',
-                'type' => 'select',
-                'group' => 'security',
-                'options' => ['true' => 'Yes', 'false' => 'No'],
-                'order' => 3,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-        ];
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function featureSettings(): array
-    {
-        return [
-            [
-                'key' => 'features.maintenance_mode',
-                'value' => self::value('features.maintenance_mode', 'false'),
-                'display_name' => 'Maintenance Mode',
-                'description' => 'Enable maintenance mode to take application offline',
-                'type' => 'select',
-                'group' => 'features',
-                'options' => ['true' => 'Enabled', 'false' => 'Disabled'],
-                'order' => 1,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-            [
-                'key' => 'features.new_user_registration',
-                'value' => self::value('features.new_user_registration', 'true'),
-                'display_name' => 'Allow New User Registration',
-                'description' => 'Allow new users to register accounts',
-                'type' => 'select',
-                'group' => 'features',
-                'options' => ['true' => 'Enabled', 'false' => 'Disabled'],
-                'order' => 2,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-            [
-                'key' => 'features.email_verification',
-                'value' => self::value('features.email_verification', 'true'),
-                'display_name' => 'Require Email Verification',
-                'description' => 'Require users to verify their email before accessing the app',
-                'type' => 'select',
-                'group' => 'features',
-                'options' => ['true' => 'Enabled', 'false' => 'Disabled'],
-                'order' => 3,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-            [
-                'key' => 'features.notifications',
-                'value' => self::value('features.notifications', 'true'),
-                'display_name' => 'Enable Notifications',
-                'description' => 'Enable system notifications',
-                'type' => 'select',
-                'group' => 'features',
-                'options' => ['true' => 'Enabled', 'false' => 'Disabled'],
-                'order' => 4,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-            [
-                'key' => 'features.time_tracking',
-                'value' => self::value('features.time_tracking', 'true'),
-                'display_name' => 'Enable Time Tracking',
-                'description' => 'Enable time tracking features',
-                'type' => 'select',
-                'group' => 'features',
-                'options' => ['true' => 'Enabled', 'false' => 'Disabled'],
-                'order' => 5,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-            [
-                'key' => 'features.reporting',
-                'value' => self::value('features.reporting', 'true'),
-                'display_name' => 'Enable Reporting',
-                'description' => 'Enable reporting features',
-                'type' => 'select',
-                'group' => 'features',
-                'options' => ['true' => 'Enabled', 'false' => 'Disabled'],
-                'order' => 6,
-                'is_visible' => true,
-                'is_public' => false,
-                'is_required' => false,
-                'encrypted' => false,
-            ],
-        ];
-    }
+    
 
     /**
      * @return array<string, string>
@@ -439,8 +297,8 @@ class AppSettings implements DomainSettingsProvider
         ];
     }
 
-    private static function value(string $path, string $default): string
+    private static function value(string $path): string
     {
-        return (string) config('app-settings.'.$path, $default);
+        return (string) config('settings.'.$path, '');
     }
 }

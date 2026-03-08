@@ -4,11 +4,10 @@ namespace App\Core\Settings\Livewire;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\SettingsCacheService;
-use Livewire\Component;
-use Livewire\Attributes\Validate;
-use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Livewire\Component;
 
 /**
  * SettingsEditor Component
@@ -222,7 +221,12 @@ class SettingsEditor extends Component
         }
 
         if (!empty($rules)) {
-            $this->validate(['value' => implode('|', array_filter(explode('|', $rules['value'] ?? '')))], [], ['value' => $setting->display_name]);
+            Validator::make(
+                ['value' => $value],
+                ['value' => implode('|', array_filter(explode('|', $rules['value'] ?? '')))],
+                [],
+                ['value' => $setting->display_name]
+            )->validate();
         }
     }
 

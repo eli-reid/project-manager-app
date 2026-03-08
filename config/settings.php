@@ -16,10 +16,6 @@ return [
     ],
 
     'system' => [
-        'date_format' => 'Y-m-d',
-        'time_format' => 'H:i',
-        'locale' => 'en',
-        'work_hours_per_day' => '8',
         'log_level' => env('LOG_LEVEL', 'error'),
         'cache_enabled' => env('SETTINGS_CACHE_ENABLED', true) ? 'true' : 'false',
         'cache_ttl' => (string) env('SETTINGS_CACHE_TTL', 3600),
@@ -30,14 +26,5 @@ return [
         'session_timeout' => '120',
         'password_min_length' => '8',
         'require_password_complexity' => 'true',
-    ],
-
-    'features' => [
-        'maintenance_mode' => 'false',
-        'new_user_registration' => 'true',
-        'email_verification' => 'true',
-        'notifications' => 'true',
-        'time_tracking' => 'true',
-        'reporting' => 'true',
     ],
 ];
