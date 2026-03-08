@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Users;
 
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -11,6 +12,8 @@ use Livewire\Component;
 #[Title('User Form')]
 class Form extends Component
 {
+    use AuthorizesRequests;
+
     public ?User $user = null;
 
     public bool $isEdit = false;
@@ -36,6 +39,8 @@ class Form extends Component
 
     public function mount(?User $user = null): void
     {
+        $this->authorize($user !== null && $user->exists ? 'update' : 'create', $user ?? User::class);
+
         if ($user !== null && $user->exists) {
             $this->user = $user;
             $this->isEdit = true;
@@ -71,6 +76,8 @@ class Form extends Component
 
     public function save(): void
     {
+        $this->authorize($this->isEdit ? 'update' : 'create', $this->isEdit ? $this->user : User::class);
+
         $validated = $this->validate();
 
         $payload = [

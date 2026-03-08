@@ -9,9 +9,7 @@ it('allows admin ability checks only for admin users', function () {
     $nonAdmin = User::factory()->create(['is_admin' => false]);
 
     expect(Gate::forUser($admin)->allows('admin'))->toBeTrue()
-        ->and(Gate::forUser($admin)->allows('access-admin'))->toBeTrue()
-        ->and(Gate::forUser($nonAdmin)->allows('admin'))->toBeFalse()
-        ->and(Gate::forUser($nonAdmin)->allows('access-admin'))->toBeFalse();
+        ->and(Gate::forUser($nonAdmin)->allows('admin'))->toBeFalse();
 });
 
 it('allows admin ability checks for users with built-in admin role', function () {
@@ -24,6 +22,5 @@ it('allows admin ability checks for users with built-in admin role', function ()
 
     $user->roles()->sync([$adminRoleId]);
 
-    expect(Gate::forUser($user->fresh())->allows('admin'))->toBeTrue()
-        ->and(Gate::forUser($user->fresh())->allows('access-admin'))->toBeTrue();
+    expect(Gate::forUser($user->fresh())->allows('admin'))->toBeTrue();
 });

@@ -96,3 +96,18 @@ it('allows assigning and removing users from a role through livewire', function 
     expect($role->users()->whereKey($userA->id)->exists())->toBeFalse()
         ->and($role->users()->whereKey($userB->id)->exists())->toBeTrue();
 });
+
+it('forbids non-admin users from mutating roles via direct livewire requests', function () {
+    app(DomainPermissionSynchronizer::class)->sync();
+
+    $nonAdmin = User::factory()->create(['is_admin' => false]);
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    expect(
+        \Illuminate\Support\Facades\Gate::forUser($nonAdmin)->allows('create', Role::class)
+    )->toBeFalse();
+
+    expect(
+        \Illuminate\Support\Facades\Gate::forUser($admin)->allows('create', Role::class)
+    )->toBeTrue();
+});

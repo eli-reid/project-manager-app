@@ -4,6 +4,7 @@ namespace App\Core\Settings\Livewire;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\SettingsCacheService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +18,8 @@ use Livewire\Component;
  */
 class SettingsEditor extends Component
 {
+    use AuthorizesRequests;
+
     /**
      * Current group being edited
      */
@@ -54,6 +57,7 @@ class SettingsEditor extends Component
 
     public function mount(): void
     {
+        $this->authorize('viewAny', SettingsSqlite::class);
         $this->listenForGroupSelection();
     }
 
@@ -71,6 +75,8 @@ class SettingsEditor extends Component
     #[\Livewire\Attributes\On('group-selected')]
     public function loadSettings(string $group): void
     {
+        $this->authorize('viewAny', SettingsSqlite::class);
+
         $this->group = $group;
         $this->formData = [];
         $this->settingsMetadata = [];
@@ -109,6 +115,8 @@ class SettingsEditor extends Component
      */
     public function updateSetting(string $key): void
     {
+        $this->authorize('update', SettingsSqlite::class);
+
         try {
             $settingKey = $this->resolveSettingKey($key);
             $setting = SettingsSqlite::where('key', $settingKey)->firstOrFail();
@@ -145,6 +153,8 @@ class SettingsEditor extends Component
      */
     public function updateAllSettings(): void
     {
+        $this->authorize('update', SettingsSqlite::class);
+
         try {
             $updatedCount = 0;
             $errors = [];
@@ -194,6 +204,8 @@ class SettingsEditor extends Component
      */
     public function resetForm(): void
     {
+        $this->authorize('viewAny', SettingsSqlite::class);
+
         $this->loadSettings($this->group);
         $this->successMessage = 'Form reset to last saved values.';
         $this->errorMessage = null;

@@ -2,10 +2,14 @@
 
 use App\Core\Settings\Livewire\SettingsEditor;
 use App\Core\Settings\Models\SettingsSqlite;
+use App\Core\User\Models\User;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 it('updates app timezone without value property validation errors', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $this->actingAs($admin);
+
     $timezoneKey = 'app.timezone.'.Str::lower(Str::random(8));
 
     SettingsSqlite::query()->create([
@@ -46,6 +50,9 @@ it('updates app timezone without value property validation errors', function () 
 });
 
 it('updates all settings in a group without cache service initialization errors', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $this->actingAs($admin);
+
     $fromAddressKey = 'mail.from_address.'.Str::lower(Str::random(8));
     $fromNameKey = 'mail.from_name.'.Str::lower(Str::random(8));
 

@@ -3,6 +3,7 @@
 namespace App\Core\Settings\Livewire;
 
 use App\Core\Settings\Models\SettingsSqlite;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -14,6 +15,8 @@ use Livewire\Component;
  */
 class SettingsGroupList extends Component
 {
+    use AuthorizesRequests;
+
     /**
      * Selected setting group
      */
@@ -29,6 +32,8 @@ class SettingsGroupList extends Component
      */
     public function mount(): void
     {
+        $this->authorize('viewAny', SettingsSqlite::class);
+
         $this->selectedGroup = $this->settingGroups()->first()?->group ?? '';
 
         if ($this->selectedGroup !== '') {

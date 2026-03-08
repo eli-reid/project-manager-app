@@ -2,10 +2,14 @@
 
 namespace App\Core\User\Providers;
 
+use App\Core\Settings\Permissions\SettingsPermissions;
+use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Permissions\PermissionPermissions;
 use App\Core\User\Permissions\RolePermissions;
 use App\Core\User\Permissions\UserPermissions;
+use App\Core\User\Policies\RolePolicy;
+use App\Core\User\Policies\UserPolicy;
 use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -51,6 +55,7 @@ class UserServiceProvider extends ServiceProvider
         $registry = $this->app->make(PermissionRegistry::class);
 
         $permissionDefinitions = [
+            ...SettingsPermissions::all(),
             ...UserPermissions::all(),
             ...RolePermissions::all(),
             ...PermissionPermissions::all(),
@@ -78,26 +83,26 @@ class UserServiceProvider extends ServiceProvider
 
     private function registerAuthorizationGates(): void
     {
-        Gate::define('admin', function (User $user): bool {
-            return $user->isAdmin();
-        });
+        Gate::policy(\App\Core\User\Models\User::class, UserPolicy::class);
+        Gate::policy(\App\Core\User\Models\Role::class, RolePolicy::class);
 
-        Gate::define('access-admin', function (User $user): bool {
+        Gate::define('admin', function (User $user): bool {
             return $user->isAdmin();
         });
     }
 
     private function configureRoutes(): void
     {
-        $adminRouteRegistrar = function (): void {
-            require __DIR__.'/../Routes/users/admin.php';
-            require __DIR__.'/../Routes/roles/admin.php';
-        };
-
         Route::prefix('admin')
             ->name('admin.')
-            ->middleware(['web', 'auth', 'can:access-admin'])
-            ->group($adminRouteRegistrar);
+            ->middleware(['web', 'auth'])
+            ->group(function (): void {
+                Route::middleware('can:viewAny,'.User::class)
+                    ->group(__DIR__.'/../Routes/users/admin.php');
+
+                Route::middleware('can:viewAny,'.Role::class)
+                    ->group(__DIR__.'/../Routes/roles/admin.php');
+            });
 
         /**Route::middleware(['web', 'auth'])
             ->group(__DIR__ . '/../Routes/web.php');

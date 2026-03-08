@@ -4,6 +4,7 @@ namespace App\Core\User\Livewire\Admin\Roles;
 
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -12,6 +13,8 @@ use Livewire\Component;
 #[Title('Role Form')]
 class Form extends Component
 {
+    use AuthorizesRequests;
+
     public ?Role $role = null;
 
     public bool $isEdit = false;
@@ -31,6 +34,8 @@ class Form extends Component
 
     public function mount(?Role $role = null): void
     {
+        $this->authorize($role !== null && $role->exists ? 'update' : 'create', $role ?? Role::class);
+
         if ($role !== null && $role->exists) {
             $this->role = $role;
             $this->isEdit = true;
@@ -64,6 +69,11 @@ class Form extends Component
 
     public function save(): void
     {
+        $subject = $this->isEdit ? $this->role : Role::class;
+
+        $this->authorize($this->isEdit ? 'update' : 'create', $subject);
+        $this->authorize('assignPermissions', $subject);
+
         $validated = $this->validate();
 
         if ($this->isEdit && $this->role?->built_in && ! $validated['is_active']) {

@@ -4,10 +4,12 @@ namespace App\Core\Settings\Providers;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;
+use App\Core\Settings\Policies\SettingPolicy;
 use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
 use App\Core\Settings\Services\SettingsSqliteService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,10 +42,6 @@ class SettingServiceProvider extends ServiceProvider
         $this->app->singleton(DomainSettingsSynchronizer::class, function () {
             return new DomainSettingsSynchronizer;
         });
-
-        // Create aliases for easier access
-        $this->app->alias(SettingsSqliteService::class, 'settings');
-        $this->app->alias(SettingsSqliteService::class, 'setting');
     }
 
     /**
@@ -51,6 +49,8 @@ class SettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->registerAuthorizationGates();
+
         // Load views from the Settings module
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core');
 
@@ -65,6 +65,11 @@ class SettingServiceProvider extends ServiceProvider
 
         // Sync domain-defined settings defaults when domain config files change.
         $this->syncDomainSettings();
+    }
+
+    private function registerAuthorizationGates(): void
+    {
+        Gate::policy(SettingsSqlite::class, SettingPolicy::class);
     }
 
     /**

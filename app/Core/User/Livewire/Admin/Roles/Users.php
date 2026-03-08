@@ -4,12 +4,15 @@ namespace App\Core\User\Livewire\Admin\Roles;
 
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Title('Role Users')]
 class Users extends Component
 {
+    use AuthorizesRequests;
+
     public Role $role;
 
     public string $searchAssigned = '';
@@ -24,10 +27,13 @@ class Users extends Component
     public function mount(Role $role): void
     {
         $this->role = $role;
+        $this->authorize('assignUsers', $role);
     }
 
     public function assignSelectedUsers(): void
     {
+        $this->authorize('assignUsers', $this->role);
+
         $validated = $this->validate([
             'selectedUserIds' => ['required', 'array', 'min:1'],
             'selectedUserIds.*' => ['exists:users,id'],
@@ -41,6 +47,8 @@ class Users extends Component
 
     public function removeUser(string $userId): void
     {
+        $this->authorize('assignUsers', $this->role);
+
         $this->role->users()->detach($userId);
         session()->flash('success', 'User removed from role successfully.');
     }
