@@ -4,13 +4,15 @@ namespace App\Core\Settings\Livewire;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Collection;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 /**
  * SettingsGroupList Component
  *
- * Displays a list of all available settings groups with counts.
+ * Displays a list of all available settings groups.
  * Allows selecting a group to edit settings within it.
  */
 class SettingsGroupList extends Component
@@ -34,7 +36,7 @@ class SettingsGroupList extends Component
     {
         $this->authorize('viewAny', SettingsSqlite::class);
 
-        $this->selectedGroup = $this->settingGroups()->first()?->group ?? '';
+        $this->selectedGroup = $this->settingGroups->first()?->group ?? '';
 
         if ($this->selectedGroup !== '') {
             $this->dispatch('group-selected', group: $this->selectedGroup);
@@ -62,7 +64,7 @@ class SettingsGroupList extends Component
      * Get all unique setting groups
      */
     #[Computed]
-    public function settingGroups()
+    public function settingGroups(): Collection
     {
         return SettingsSqlite::query()
             ->select('group')
@@ -74,16 +76,6 @@ class SettingsGroupList extends Component
     }
 
     /**
-     * Get count of settings in a group
-     */
-    public function getGroupCount(string $group): int
-    {
-        return SettingsSqlite::where('group', $group)
-            ->where('is_visible', true)
-            ->count();
-    }
-
-    /**
      * Get display name for group (capitalized)
      */
     public function getGroupDisplayName(string $group): string
@@ -91,7 +83,7 @@ class SettingsGroupList extends Component
         return ucfirst(str_replace('_', ' ', $group));
     }
 
-    public function render()
+    public function render(): View
     {
         return view('core::livewire.settings-group-list', [
             'groups' => $this->settingGroups,
