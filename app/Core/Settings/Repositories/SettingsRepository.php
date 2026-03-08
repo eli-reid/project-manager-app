@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\Settings\Services;
+namespace App\Core\Settings\Repositories;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;

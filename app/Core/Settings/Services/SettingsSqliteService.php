@@ -3,6 +3,7 @@
 namespace App\Core\Settings\Services;
 
 use App\Core\Settings\Models\SettingsSqlite;
+use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Traits\EncryptableSettings;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;

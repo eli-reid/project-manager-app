@@ -4,9 +4,9 @@ namespace App\Core\Settings\Providers;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;
+use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
-use App\Core\Settings\Services\SettingsRepository;
 use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;

@@ -11,7 +11,7 @@ use Livewire\Component;
 
 /**
  * SettingsEditor Component
- * 
+ *
  * Edit settings within a selected group. Supports all field types:
  * text, textarea, number, email, url, select, boolean, password, etc.
  */
@@ -33,6 +33,11 @@ class SettingsEditor extends Component
     public array $settingsMetadata = [];
 
     /**
+     * Internal field id => real setting key map
+     */
+    public array $keyMap = [];
+
+    /**
      * Validation errors
      */
     public array $validationErrors = [];
@@ -47,14 +52,8 @@ class SettingsEditor extends Component
      */
     public ?string $errorMessage = null;
 
-    /**
-     * Cache service for clearing caches
-     */
-    private SettingsCacheService $cacheService;
-
-    public function mount(SettingsCacheService $cacheService): void
+    public function mount(): void
     {
-        $this->cacheService = $cacheService;
         $this->listenForGroupSelection();
     }
 
@@ -75,6 +74,7 @@ class SettingsEditor extends Component
         $this->group = $group;
         $this->formData = [];
         $this->settingsMetadata = [];
+        $this->keyMap = [];
         $this->successMessage = null;
         $this->errorMessage = null;
         $this->validationErrors = [];
@@ -85,13 +85,19 @@ class SettingsEditor extends Component
             ->get();
 
         foreach ($settings as $setting) {
-            $this->formData[$setting->key] = $setting->value;
-            $this->settingsMetadata[$setting->key] = [
+            $fieldId = $this->fieldIdForKey($setting->key);
+
+            $this->keyMap[$fieldId] = $setting->key;
+            $this->formData[$fieldId] = $setting->value;
+            $this->settingsMetadata[$fieldId] = [
+                'setting_key' => $setting->key,
                 'type' => $setting->type,
                 'display_name' => $setting->display_name,
                 'description' => $setting->description,
                 'is_required' => $setting->is_required,
-                'options' => $setting->options ? json_decode($setting->options, true) : null,
+                'options' => is_array($setting->options)
+                    ? $setting->options
+                    : ($setting->options ? json_decode($setting->options, true) : null),
                 'encrypted' => $setting->encrypted,
                 'order' => $setting->order,
             ];
@@ -104,8 +110,9 @@ class SettingsEditor extends Component
     public function updateSetting(string $key): void
     {
         try {
-            $setting = SettingsSqlite::where('key', $key)->firstOrFail();
-            $value = $this->formData[$key] ?? '';
+            $settingKey = $this->resolveSettingKey($key);
+            $setting = SettingsSqlite::where('key', $settingKey)->firstOrFail();
+            $value = $this->formData[$key] ?? $this->formData[$settingKey] ?? '';
 
             // Validate input
             $this->validateSetting($key, $value, $setting);
@@ -114,8 +121,8 @@ class SettingsEditor extends Component
             $setting->update(['value' => $value]);
 
             // Clear caches
-            $this->cacheService->forget($key);
-            $this->cacheService->flushNamespace($setting->group);
+            $this->cacheService()->forget($settingKey);
+            $this->cacheService()->flushNamespace($setting->group);
 
             // Show success
             $this->successMessage = "Setting '{$setting->display_name}' updated successfully!";
@@ -126,10 +133,10 @@ class SettingsEditor extends Component
 
         } catch (ValidationException $e) {
             $this->validationErrors[$key] = $e->validator->errors()->first();
-            $this->errorMessage = "Validation error. Please check your input.";
+            $this->errorMessage = 'Validation error. Please check your input.';
         } catch (\Exception $e) {
-            Log::error("Failed to update setting {$key}: " . $e->getMessage());
-            $this->errorMessage = "Failed to update setting: " . $e->getMessage();
+            Log::error("Failed to update setting {$key}: ".$e->getMessage());
+            $this->errorMessage = 'Failed to update setting: '.$e->getMessage();
         }
     }
 
@@ -144,25 +151,28 @@ class SettingsEditor extends Component
 
             foreach ($this->formData as $key => $value) {
                 try {
-                    $setting = SettingsSqlite::where('key', $key)->first();
-                    if (!$setting) continue;
+                    $settingKey = $this->resolveSettingKey($key);
+                    $setting = SettingsSqlite::where('key', $settingKey)->first();
+                    if (! $setting) {
+                        continue;
+                    }
 
                     // Validate
-                    $this->validateSetting($key, $value, $setting);
+                    $this->validateSetting($settingKey, $value, $setting);
 
                     // Update
                     $setting->update(['value' => $value]);
-                    $this->cacheService->forget($key);
+                    $this->cacheService()->forget($settingKey);
                     $updatedCount++;
 
                 } catch (ValidationException $e) {
-                    $errors[] = "{$setting->display_name}: " . $e->validator->errors()->first();
+                    $errors[] = "{$setting->display_name}: ".$e->validator->errors()->first();
                 }
             }
 
             // Clear group cache
             if ($this->group) {
-                $this->cacheService->flushNamespace($this->group);
+                $this->cacheService()->flushNamespace($this->group);
             }
 
             if ($errors) {
@@ -174,8 +184,8 @@ class SettingsEditor extends Component
             }
 
         } catch (\Exception $e) {
-            Log::error("Failed to update settings for group {$this->group}: " . $e->getMessage());
-            $this->errorMessage = "Failed to update settings: " . $e->getMessage();
+            Log::error("Failed to update settings for group {$this->group}: ".$e->getMessage());
+            $this->errorMessage = 'Failed to update settings: '.$e->getMessage();
         }
     }
 
@@ -185,7 +195,7 @@ class SettingsEditor extends Component
     public function resetForm(): void
     {
         $this->loadSettings($this->group);
-        $this->successMessage = "Form reset to last saved values.";
+        $this->successMessage = 'Form reset to last saved values.';
         $this->errorMessage = null;
     }
 
@@ -202,14 +212,14 @@ class SettingsEditor extends Component
 
         switch ($setting->type) {
             case 'email':
-                $rules['value'] = ($rules['value'] ?? '') . '|email';
+                $rules['value'] = ($rules['value'] ?? '').'|email';
                 break;
             case 'url':
-                $rules['value'] = ($rules['value'] ?? '') . '|url';
+                $rules['value'] = ($rules['value'] ?? '').'|url';
                 break;
             case 'number':
             case 'integer':
-                $rules['value'] = ($rules['value'] ?? '') . '|numeric';
+                $rules['value'] = ($rules['value'] ?? '').'|numeric';
                 break;
             case 'boolean':
                 if ($value !== 'true' && $value !== 'false' && $value !== '0' && $value !== '1') {
@@ -220,7 +230,7 @@ class SettingsEditor extends Component
                 break;
         }
 
-        if (!empty($rules)) {
+        if (! empty($rules)) {
             Validator::make(
                 ['value' => $value],
                 ['value' => implode('|', array_filter(explode('|', $rules['value'] ?? '')))],
@@ -230,12 +240,27 @@ class SettingsEditor extends Component
         }
     }
 
+    private function cacheService(): SettingsCacheService
+    {
+        return app(SettingsCacheService::class);
+    }
+
+    private function fieldIdForKey(string $key): string
+    {
+        return 'setting_'.md5($key);
+    }
+
+    private function resolveSettingKey(string $key): string
+    {
+        return $this->keyMap[$key] ?? $key;
+    }
+
     /**
      * Get icon for field type
      */
     public function getFieldIcon(string $type): string
     {
-        return match($type) {
+        return match ($type) {
             'text' => 'edit',
             'textarea' => 'align-left',
             'email' => 'mail',
