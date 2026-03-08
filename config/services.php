@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    'cpanel' => [
+        'url' => env('CPANEL_URL'),
+        'username' => env('CPANEL_USERNAME'),
+        'api_token' => env('CPANEL_API_TOKEN'),
+        'domain' => env('CPANEL_DOMAIN'),
+        'port' => env('CPANEL_PORT', 2083),
+        'webmail_port' => env('CPANEL_WEBMAIL_PORT', 2096),
+        'webmail_url' => env('CPANEL_WEBMAIL_URL'),
+        'default_email_quota' => env('CPANEL_DEFAULT_EMAIL_QUOTA', 250),
+        'auto_create_emails' => env('CPANEL_AUTO_CREATE_EMAILS', false),
+        'auto_delete_emails' => env('CPANEL_AUTO_DELETE_EMAILS', true),
+        'sync_user_passwords' => env('CPANEL_SYNC_USER_PASSWORDS', false),
+        'verify_ssl' => env('CPANEL_VERIFY_SSL', true),
+        'timeout' => env('CPANEL_TIMEOUT', 30),
+        'connect_timeout' => env('CPANEL_CONNECT_TIMEOUT', 10),
+    ],
+
 ];

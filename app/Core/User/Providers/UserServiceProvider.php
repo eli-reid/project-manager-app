@@ -5,6 +5,7 @@ namespace App\Core\User\Providers;
 use App\Core\Settings\Permissions\SettingsPermissions;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
+use App\Core\User\Observers\UserObserver;
 use App\Core\User\Permissions\PermissionPermissions;
 use App\Core\User\Permissions\RolePermissions;
 use App\Core\User\Permissions\UserPermissions;
@@ -39,6 +40,7 @@ class UserServiceProvider extends ServiceProvider
             $this->syncRegisteredPermissions();
         });
         $this->registerAuthorizationGates();
+        User::observe(UserObserver::class);
         $this->configureRoutes();
     }
 
@@ -47,6 +49,14 @@ class UserServiceProvider extends ServiceProvider
         Livewire::component('app.core.user.livewire.admin.roles', \App\Core\User\Livewire\Admin\Roles\Index::class);
         Livewire::component('app.core.user.livewire.admin.roles.form', \App\Core\User\Livewire\Admin\Roles\Form::class);
         Livewire::component('app.core.user.livewire.admin.roles.users', \App\Core\User\Livewire\Admin\Roles\Users::class);
+        Livewire::component('app.core.user.livewire.admin.users', \App\Core\User\Livewire\Admin\Users\Index::class);
+        Livewire::component('app.core.user.livewire.admin.users.form', \App\Core\User\Livewire\Admin\Users\Form::class);
+        Livewire::component('settings.profile', \App\Core\User\Livewire\Settings\Profile::class);
+        Livewire::component('settings.password', \App\Core\User\Livewire\Settings\Password::class);
+        Livewire::component('settings.appearance', \App\Core\User\Livewire\Settings\Appearance::class);
+        Livewire::component('settings.two-factor', \App\Core\User\Livewire\Settings\TwoFactor::class);
+        Livewire::component('settings.delete-user-form', \App\Core\User\Livewire\Settings\DeleteUserForm::class);
+        Livewire::component('settings.two-factor.recovery-codes', \App\Core\User\Livewire\Settings\TwoFactor\RecoveryCodes::class);
     }
 
     private function registerCorePermissions(): void

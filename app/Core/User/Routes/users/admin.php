@@ -1,7 +1,7 @@
 <?php
 
-use App\Livewire\Admin\Users\Form as UserForm;
-use App\Livewire\Admin\Users\Index as UserIndex;
+use App\Core\User\Livewire\Admin\Users\Form as UserForm;
+use App\Core\User\Livewire\Admin\Users\Index as UserIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('users')->name('users.')->group(function (): void {

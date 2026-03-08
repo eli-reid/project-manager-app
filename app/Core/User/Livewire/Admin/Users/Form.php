@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Users;
+namespace App\Core\User\Livewire\Admin\Users;
 
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
@@ -118,7 +118,7 @@ class Form extends Component
     {
         $roles = Role::query()->where('is_active', true)->orderBy('name')->get();
 
-        return view('livewire.admin.users.form', [
+        return view('core-user::livewire.admin.users.form', [
             'roles' => $roles,
         ])->layout('layouts.app', [
             'title' => $this->isEdit ? 'Edit User' : 'Create User',

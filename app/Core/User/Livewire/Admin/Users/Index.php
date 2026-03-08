@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Users;
+namespace App\Core\User\Livewire\Admin\Users;
 
 use App\Core\User\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -74,7 +74,7 @@ class Index extends Component
             ->orderBy('last_name')
             ->paginate(12);
 
-        return view('livewire.admin.users.index', [
+        return view('core-user::livewire.admin.users.index', [
             'users' => $users,
         ])->layout('layouts.app', [
             'title' => 'Users',

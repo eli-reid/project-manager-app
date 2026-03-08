@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Settings;
+namespace App\Core\User\Livewire\Settings;
 
 use App\Core\User\Concerns\PasswordValidationRules;
 use Illuminate\Support\Facades\Auth;
@@ -42,5 +42,10 @@ class Password extends Component
         $this->reset('current_password', 'password', 'password_confirmation');
 
         $this->dispatch('password-updated');
+    }
+
+    public function render()
+    {
+        return view('core-user::livewire.settings.password');
     }
 }

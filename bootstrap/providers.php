@@ -2,6 +2,7 @@
 
 return [
     App\Domains\Providers\DomainServiceProvider::class,
+    App\Core\Cpanel\Providers\CpanelServiceProvider::class,
     App\Core\Settings\Providers\SettingServiceProvider::class,
     App\Core\User\Providers\FortifyServiceProvider::class,
     App\Core\User\Providers\UserServiceProvider::class,

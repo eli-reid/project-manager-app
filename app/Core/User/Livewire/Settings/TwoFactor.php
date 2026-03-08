@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Settings;
+namespace App\Core\User\Livewire\Settings;
 
 use Exception;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
@@ -180,5 +180,10 @@ class TwoFactor extends Component
             'description' => __('To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.'),
             'buttonText' => __('Continue'),
         ];
+    }
+
+    public function render()
+    {
+        return view('core-user::livewire.settings.two-factor');
     }
 }
