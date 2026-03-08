@@ -4,10 +4,12 @@ namespace App\Core\User\Livewire\Admin\Users;
 
 use App\Core\User\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Layout('layouts.app')]
 #[Title('Users')]
 class Index extends Component
 {
@@ -76,8 +78,6 @@ class Index extends Component
 
         return view('core-user::livewire.admin.users.index', [
             'users' => $users,
-        ])->layout('layouts.app', [
-            'title' => 'Users',
         ]);
     }
 }

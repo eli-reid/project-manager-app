@@ -1,0 +1,41 @@
+<?php
+
+return [
+    [
+        'key' => 'weatherapi.key',
+        'default_value' => env('WEATHERAPI_KEY', ''),
+        'display_name' => 'Weather API Key',
+        'description' => 'WeatherAPI.com API key used for weather requests.',
+        'type' => 'password',
+        'group' => 'weather',
+        'order' => 10,
+        'encrypted' => true,
+    ],
+    [
+        'key' => 'weatherapi.base_url',
+        'default_value' => env('WEATHERAPI_BASE_URL', 'https://api.weatherapi.com/v1'),
+        'display_name' => 'Weather API Base URL',
+        'description' => 'Base URL for WeatherAPI endpoints.',
+        'type' => 'text',
+        'group' => 'weather',
+        'order' => 20,
+    ],
+    [
+        'key' => 'weatherapi.cache_duration',
+        'default_value' => env('WEATHERAPI_CACHE_DURATION', 60),
+        'display_name' => 'Weather Cache Duration',
+        'description' => 'Cache duration in minutes for weather responses.',
+        'type' => 'number',
+        'group' => 'weather',
+        'order' => 30,
+    ],
+    [
+        'key' => 'weatherapi.timeout',
+        'default_value' => env('WEATHERAPI_TIMEOUT', 10),
+        'display_name' => 'Weather Request Timeout',
+        'description' => 'HTTP timeout in seconds for weather API requests.',
+        'type' => 'number',
+        'group' => 'weather',
+        'order' => 40,
+    ],
+];

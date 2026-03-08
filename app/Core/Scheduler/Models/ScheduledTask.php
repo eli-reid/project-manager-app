@@ -1,143 +1,144 @@
 <?php
+
 namespace App\Core\Scheduler\Models;
 
+use App\Core\Scheduler\Services\ScheduledTaskService;
+use App\Core\User\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ScheduledTask extends Model
 {
     use HasUlids;
+
     protected $table = 'scheduled_tasks';
 
     protected $fillable = [
+        'name',
         'feature_type',
-        'payload',
+        'description',
         'schedule_type',
-        'cron_expression',
-        'day_of_week',
-        'day_of_month',
-        'run_time',
-        'run_at',
+        'time',
         'timezone',
-        'last_run_at',
-        'next_run_at',
+        'days_of_week',
+        'day_of_month',
+        'month',
+        'specific_date',
+        'repeat_frequency',
+        'repeat_interval',
+        'repeat_until',
+        'max_occurrences',
         'is_active',
         'is_enabled',
+        'last_run_at',
+        'next_run_at',
+        'run_count',
+        'task_config',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
-        'payload'      => 'array',
-        'run_at'       => 'datetime',
-        'last_run_at'  => 'datetime',
-        'next_run_at'  => 'datetime',
-        'is_active'    => 'boolean',
-        'is_enabled'   => 'boolean',
+        'days_of_week' => 'array',
+        'task_config' => 'array',
+        'specific_date' => 'date',
+        'repeat_until' => 'date',
+        'is_active' => 'boolean',
+        'is_enabled' => 'boolean',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Query Scopes
-    |--------------------------------------------------------------------------
-    */
+    protected $attributes = [
+        'is_active' => true,
+        'is_enabled' => true,
+        'run_count' => 0,
+        'repeat_interval' => 1,
+        'repeat_frequency' => 'once',
+        'timezone' => 'America/New_York',
+    ];
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeEnabled($query)
+    {
+        return $query->where('is_enabled', true);
+    }
 
     public function scopeRunnable($query)
     {
-        return $query
-            ->where('is_active', true)
-            ->where('is_enabled', true)
-            ->whereNotNull('next_run_at')
-            ->where('next_run_at', '<=', now('UTC'));
+        return $query->active()->enabled();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Scheduling Logic
-    |--------------------------------------------------------------------------
-    */
-
-    public function markAsRun(): void
+    public function scopeDue($query)
     {
-        $this->last_run_at = now('UTC');
-        $this->next_run_at = $this->computeNextRun();
-        $this->save();
+        return $query->runnable()
+            ->where('next_run_at', '<=', now())
+            ->whereNotNull('next_run_at');
     }
 
-    public function computeNextRun(): ?Carbon
+    public function getNextRunAtAttribute($value): ?Carbon
     {
-        $tz = $this->timezone ?? 'UTC';
-
-        return match ($this->schedule_type) {
-            'once'   => $this->computeOnce($tz),
-            'daily'  => $this->computeDaily($tz),
-            'weekly' => $this->computeWeekly($tz),
-            'monthly'=> $this->computeMonthly($tz),
-            'cron'   => $this->computeCron($tz),
-            default  => null,
-        };
-    }
-
-    protected function computeOnce(string $tz): ?Carbon
-    {
-        if (!$this->run_at) {
+        if (! $value) {
             return null;
         }
 
-        $run = $this->run_at->copy()->setTimezone($tz);
-
-        return $run->isPast()
-            ? null
-            : $run->clone()->setTimezone('UTC');
+        return Carbon::parse($value, 'UTC');
     }
 
-    protected function computeDaily(string $tz): Carbon
+    public function setNextRunAtAttribute($value): void
     {
-        $next = Carbon::now($tz)->setTimeFromTimeString($this->run_time);
+        if ($value instanceof Carbon) {
+            $this->attributes['next_run_at'] = $value->copy()->setTimezone('UTC')->format('Y-m-d H:i:s');
 
-        if ($next->isPast()) {
-            $next->addDay();
+            return;
         }
 
-        return $next->clone()->setTimezone('UTC');
+        $this->attributes['next_run_at'] = $value;
     }
 
-    protected function computeWeekly(string $tz): Carbon
+    public function getLastRunAtAttribute($value): ?Carbon
     {
-        $next = Carbon::now($tz)
-            ->next($this->day_of_week)
-            ->setTimeFromTimeString($this->run_time);
-
-        if ($next->isPast()) {
-            $next->addWeek();
-        }
-
-        return $next->clone()->setTimezone('UTC');
-    }
-
-    protected function computeMonthly(string $tz): Carbon
-    {
-        $next = Carbon::now($tz)
-            ->setDay($this->day_of_month)
-            ->setTimeFromTimeString($this->run_time);
-
-        if ($next->isPast()) {
-            $next->addMonth();
-        }
-
-        return $next->clone()->setTimezone('UTC');
-    }
-
-    protected function computeCron(string $tz): ?Carbon
-    {
-        if (!$this->cron_expression) {
+        if (! $value) {
             return null;
         }
 
-       $cron = new \Cron\CronExpression($this->cron_expression);
+        return Carbon::parse($value, 'UTC');
+    }
 
-        $next = Carbon::instance($cron->getNextRunDate('now', 0, false, $tz));
+    public function setLastRunAtAttribute($value): void
+    {
+        if ($value instanceof Carbon) {
+            $this->attributes['last_run_at'] = $value->copy()->setTimezone('UTC')->format('Y-m-d H:i:s');
 
-        return $next->clone()->setTimezone('UTC');
+            return;
+        }
+
+        $this->attributes['last_run_at'] = $value;
+    }
+
+    public function calculateNextRun(): ?Carbon
+    {
+        return app(ScheduledTaskService::class)->calculateNextRun($this);
+    }
+
+    public function markAsRun(): self
+    {
+        app(ScheduledTaskService::class)->markTaskAsRun($this);
+
+        return $this;
     }
 }
-

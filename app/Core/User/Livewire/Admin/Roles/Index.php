@@ -4,10 +4,12 @@ namespace App\Core\User\Livewire\Admin\Roles;
 
 use App\Core\User\Models\Role;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Layout('layouts.app')]
 #[Title('Roles')]
 class Index extends Component
 {
@@ -71,8 +73,6 @@ class Index extends Component
 
         return view('core-user::livewire.admin.roles.index', [
             'roles' => $roles,
-        ])->layout('layouts.app', [
-            'title' => 'Roles',
         ]);
     }
 }

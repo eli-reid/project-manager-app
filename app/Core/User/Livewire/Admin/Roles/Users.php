@@ -5,9 +5,11 @@ namespace App\Core\User\Livewire\Admin\Roles;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 #[Title('Role Users')]
 class Users extends Component
 {
@@ -88,8 +90,6 @@ class Users extends Component
         return view('core-user::livewire.admin.roles.users', [
             'assignedUsers' => $assignedUsers,
             'availableUsers' => $availableUsers,
-        ])->layout('layouts.app', [
-            'title' => 'Role Users',
         ]);
     }
 }

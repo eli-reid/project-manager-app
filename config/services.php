@@ -52,4 +52,11 @@ return [
         'connect_timeout' => env('CPANEL_CONNECT_TIMEOUT', 10),
     ],
 
+    'weatherapi' => [
+        'key' => env('WEATHERAPI_KEY'),
+        'base_url' => env('WEATHERAPI_BASE_URL', 'https://api.weatherapi.com/v1'),
+        'cache_duration' => (int) env('WEATHERAPI_CACHE_DURATION', 60),
+        'timeout' => (int) env('WEATHERAPI_TIMEOUT', 10),
+    ],
+
 ];

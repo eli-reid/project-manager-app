@@ -7,9 +7,11 @@ use App\Core\User\Models\Role;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 #[Title('Role Form')]
 class Form extends Component
 {
@@ -137,8 +139,6 @@ class Form extends Component
     {
         return view('core-user::livewire.admin.roles.form', [
             'permissionsByResource' => $this->permissionsByResource,
-        ])->layout('layouts.app', [
-            'title' => $this->isEdit ? 'Edit Role' : 'Create Role',
-        ]);
+        ])->title($this->isEdit ? 'Edit Role' : 'Create Role');
     }
 }
