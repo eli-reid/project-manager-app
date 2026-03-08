@@ -4,7 +4,10 @@ use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
 use App\Core\Scheduler\Models\ScheduledTask;
+use App\Core\User\Models\Permission;
+use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
+use App\Core\User\Services\DomainPermissionSynchronizer;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
@@ -22,7 +25,21 @@ it('renders scheduler admin pages for admins', function (): void {
         ->assertSee('Create Scheduler Task');
 });
 
-it('forbids scheduler admin pages for non-admin users', function (): void {
+it('allows scheduler pages for users with scheduler permissions', function (): void {
+    $user = schedulerUserWithPermissions(['scheduler.view', 'scheduler.create']);
+
+    $this->actingAs($user)
+        ->get(route('admin.scheduler.tasks.index'))
+        ->assertSuccessful()
+        ->assertSee('Scheduler Tasks');
+
+    $this->actingAs($user)
+        ->get(route('admin.scheduler.tasks.create'))
+        ->assertSuccessful()
+        ->assertSee('Create Scheduler Task');
+});
+
+it('forbids scheduler admin pages for users without scheduler permissions', function (): void {
     $user = User::factory()->create(['is_admin' => false]);
 
     $this->actingAs($user)
@@ -35,8 +52,8 @@ it('forbids scheduler admin pages for non-admin users', function (): void {
 });
 
 it('creates a scheduler task through livewire form', function (): void {
-    $admin = User::factory()->create(['is_admin' => true]);
-    $this->actingAs($admin);
+    $user = schedulerUserWithPermissions(['scheduler.create']);
+    $this->actingAs($user);
 
     Livewire::test(Form::class)
         ->set('name', 'Daily Reminder Task')
@@ -60,7 +77,7 @@ it('creates a scheduler task through livewire form', function (): void {
 it('can toggle and run tasks from index component', function (): void {
     Queue::fake();
 
-    $admin = User::factory()->create(['is_admin' => true]);
+    $user = schedulerUserWithPermissions(['scheduler.view', 'scheduler.toggle', 'scheduler.run']);
 
     $task = ScheduledTask::query()->create([
         'name' => 'Test Task',
@@ -75,7 +92,7 @@ it('can toggle and run tasks from index component', function (): void {
         'next_run_at' => now()->subMinute(),
     ]);
 
-    $this->actingAs($admin);
+    $this->actingAs($user);
 
     Livewire::test(Index::class)
         ->call('toggleEnabled', $task->id)
@@ -94,3 +111,39 @@ it('can toggle and run tasks from index component', function (): void {
         return $job->taskId === (string) $task->id;
     });
 });
+
+/**
+ * @param  array<int, string>  $permissions
+ */
+function schedulerUserWithPermissions(array $permissions): User
+{
+    app(DomainPermissionSynchronizer::class)->sync();
+
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $role = Role::query()->create([
+        'name' => 'Scheduler Test Role '.str()->uuid(),
+        'description' => 'Role created by scheduler policy tests',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 25,
+    ]);
+
+    $permissionIds = collect($permissions)
+        ->map(function (string $permission): string {
+            [$resource, $action] = explode('.', $permission, 2);
+
+            return Permission::query()
+                ->where('resource', $resource)
+                ->where('action', $action)
+                ->value('id');
+        })
+        ->filter()
+        ->values()
+        ->all();
+
+    $role->permissions()->sync($permissionIds);
+    $user->roles()->sync([$role->id]);
+
+    return $user->fresh();
+}

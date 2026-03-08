@@ -29,6 +29,12 @@
                     </flux:sidebar.group>
                 @endcan
 
+                @can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)
+                    <flux:sidebar.item icon="clock" :href="route('admin.scheduler.tasks.index')" :current="request()->routeIs('admin.scheduler.tasks.*')" wire:navigate data-test="admin-scheduler-sidebar-main-link">
+                        {{ __('Scheduler') }}
+                    </flux:sidebar.item>
+                @endcan
+
                 <flux:sidebar.item href="#" icon="drafting-compass" :current="request()->routeIs('projects')" wire:navigate>
                     {{ __('My Projects') }}
                 </flux:sidebar.item>
@@ -105,6 +111,12 @@
                                 </flux:menu.item>
                                 <flux:menu.item :href="route('admin.roles.index')" icon="shield-check" wire:navigate>
                                     {{ __('Admin Roles') }}
+                                </flux:menu.item>
+                            @endcan
+
+                            @can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)
+                                <flux:menu.item :href="route('admin.scheduler.tasks.index')" icon="clock" wire:navigate data-test="admin-scheduler-link-mobile">
+                                    {{ __('Scheduler') }}
                                 </flux:menu.item>
                             @endcan
                         </flux:menu.radio.group>

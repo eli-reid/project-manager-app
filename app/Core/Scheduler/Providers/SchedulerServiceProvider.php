@@ -2,13 +2,18 @@
 
 namespace App\Core\Scheduler\Providers;
 
+use App\Core\Scheduler\Models\ScheduledTask;
+use App\Core\Scheduler\Permissions\SchedulerPermissions;
+use App\Core\Scheduler\Policies\ScheduledTaskPolicy;
 use App\Core\Scheduler\Services\ScheduledTaskFactory;
 use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskDefinitionSyncService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Scheduler\Tasks\NoOpTask;
+use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -62,6 +67,8 @@ class SchedulerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerAuthorizationGates();
+        $this->registerPermissions();
         $this->configureRoutes();
         $this->configureViews();
         $this->configureComponents();
@@ -70,6 +77,29 @@ class SchedulerServiceProvider extends ServiceProvider
         $this->app->booted(function (): void {
             app(TaskDefinitionSyncService::class)->syncSafely();
         });
+    }
+
+    private function registerAuthorizationGates(): void
+    {
+        Gate::policy(ScheduledTask::class, ScheduledTaskPolicy::class);
+    }
+
+    private function registerPermissions(): void
+    {
+        /** @var PermissionRegistry $registry */
+        $registry = $this->app->make(PermissionRegistry::class);
+
+        $registry->registerPermissions(array_map(function (array $definition): array {
+            $resource = (string) $definition['resource'];
+            $action = (string) $definition['action'];
+
+            return [
+                'resource' => $resource,
+                'action' => $action,
+                'label' => $definition['label'] ?? str($resource.' '.$action)->replace(['_', '-'], ' ')->headline()->value(),
+                'description' => $definition['description'] ?? '',
+            ];
+        }, SchedulerPermissions::all()));
     }
 
     private function registerLivewireComponents(): void
@@ -95,7 +125,7 @@ class SchedulerServiceProvider extends ServiceProvider
     {
         Route::prefix('admin')
             ->name('admin.')
-            ->middleware(['web', 'auth', 'can:admin'])
+            ->middleware(['web', 'auth'])
             ->group(__DIR__.'/../Routes/admin.php');
 
         Route::middleware(['web', 'auth'])

@@ -10,7 +10,8 @@ it('synchronizes registered domain permissions and built-in roles', function () 
 
     expect(Role::query()->where('name', Role::BUILT_IN_ADMIN)->where('built_in', true)->exists())->toBeTrue()
         ->and(Role::query()->where('name', Role::BUILT_IN_USER)->where('built_in', true)->exists())->toBeTrue()
-        ->and(Permission::query()->where('resource', 'users')->where('action', 'view')->exists())->toBeTrue();
+        ->and(Permission::query()->where('resource', 'users')->where('action', 'view')->exists())->toBeTrue()
+        ->and(Permission::query()->where('resource', 'scheduler')->where('action', 'view')->exists())->toBeTrue();
 });
 
 it('supports registering domain permissions before synchronization', function () {

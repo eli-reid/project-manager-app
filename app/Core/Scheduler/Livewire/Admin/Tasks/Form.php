@@ -5,7 +5,7 @@ namespace App\Core\Scheduler\Livewire\Admin\Tasks;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -15,6 +15,8 @@ use Livewire\Component;
 #[Title('Scheduler Task Form')]
 class Form extends Component
 {
+    use AuthorizesRequests;
+
     public ?ScheduledTask $scheduledTask = null;
 
     public bool $isEdit = false;
@@ -56,9 +58,9 @@ class Form extends Component
 
     public function mount(?ScheduledTask $scheduledTask = null): void
     {
-        Gate::authorize('admin');
-
         if ($scheduledTask !== null && $scheduledTask->exists) {
+            $this->authorize('update', $scheduledTask);
+
             $this->scheduledTask = $scheduledTask;
             $this->isEdit = true;
             $this->name = $scheduledTask->name;
@@ -77,7 +79,11 @@ class Form extends Component
             $this->max_occurrences = $scheduledTask->max_occurrences;
             $this->is_active = (bool) $scheduledTask->is_active;
             $this->is_enabled = (bool) $scheduledTask->is_enabled;
+
+            return;
         }
+
+        $this->authorize('create', ScheduledTask::class);
     }
 
     protected function rules(): array
@@ -107,8 +113,6 @@ class Form extends Component
 
     public function save(): void
     {
-        Gate::authorize('admin');
-
         $validated = $this->validate();
 
         $payload = [
@@ -137,9 +141,13 @@ class Form extends Component
                 return;
             }
 
+            $this->authorize('update', $task);
+
             $payload['updated_by'] = auth()->id();
             $task->update($payload);
         } else {
+            $this->authorize('create', ScheduledTask::class);
+
             $payload['created_by'] = auth()->id();
             $payload['updated_by'] = auth()->id();
             $task = ScheduledTask::query()->create($payload);

@@ -7,7 +7,6 @@ use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -28,7 +27,7 @@ class Index extends Component
 
     public function mount(): void
     {
-        Gate::authorize('admin');
+        $this->authorize('viewAny', ScheduledTask::class);
     }
 
     public function updatingSearch(): void
@@ -48,9 +47,9 @@ class Index extends Component
 
     public function toggleEnabled(string $taskId): void
     {
-        Gate::authorize('admin');
-
         $task = ScheduledTask::query()->findOrFail($taskId);
+        $this->authorize('toggle', $task);
+
         app(ScheduledTaskService::class)->toggleTask($task);
 
         session()->flash('success', "Task '{$task->name}' status updated.");
@@ -58,9 +57,8 @@ class Index extends Component
 
     public function runNow(string $taskId): void
     {
-        Gate::authorize('admin');
-
         $task = ScheduledTask::query()->findOrFail($taskId);
+        $this->authorize('run', $task);
 
         ProcessScheduledTaskJob::dispatch((string) $task->id)->onQueue('scheduled-tasks');
 
@@ -69,9 +67,9 @@ class Index extends Component
 
     public function deleteTask(string $taskId): void
     {
-        Gate::authorize('admin');
-
         $task = ScheduledTask::query()->findOrFail($taskId);
+        $this->authorize('delete', $task);
+
         $name = $task->name;
         $task->delete();
 
