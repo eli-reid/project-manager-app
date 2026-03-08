@@ -5,10 +5,6 @@
                 <flux:heading size="xl">{{ __('Settings Management') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Manage application settings and configuration') }}</flux:text>
             </div>
-
-            <a href="{{ route('admin.settings.export') }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" data-test="admin-settings-export-link">
-                {{ __('Export') }}
-            </a>
         </div>
 
         <div class="grid gap-4 lg:grid-cols-12">

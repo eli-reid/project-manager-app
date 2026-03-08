@@ -4,6 +4,7 @@ namespace App\Core\Settings\Repositories;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Str;
 
 /**
  * SettingsRepository
@@ -36,6 +37,7 @@ class SettingsRepository
             if (! $setting) {
                 $setting = new SettingsSqlite;
                 $setting->key = $key;
+                $attributes = $this->withDefaultMetadata($key, $value, $attributes);
             }
 
             // Apply provided attributes
@@ -52,6 +54,74 @@ class SettingsRepository
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Add safe defaults for new setting records.
+     */
+    private function withDefaultMetadata(string $key, mixed $value, array $attributes): array
+    {
+        $group = $attributes['group'] ?? $this->groupFromKey($key);
+
+        return [
+            'display_name' => $attributes['display_name'] ?? (string) Str::of($key)
+                ->afterLast('.')
+                ->replace(['_', '-'], ' ')
+                ->headline(),
+            'description' => $attributes['description'] ?? '',
+            'type' => $attributes['type'] ?? $this->inferType($value),
+            'group' => $group,
+            'options' => $attributes['options'] ?? null,
+            'order' => $attributes['order'] ?? 0,
+            'is_public' => $attributes['is_public'] ?? false,
+            'is_visible' => $attributes['is_visible'] ?? true,
+            'is_required' => $attributes['is_required'] ?? false,
+            'encrypted' => $attributes['encrypted'] ?? false,
+            'default_value' => $attributes['default_value'] ?? $value,
+            ...$attributes,
+        ];
+    }
+
+    private function groupFromKey(string $key): string
+    {
+        if (! str_contains($key, '.')) {
+            return 'general';
+        }
+
+        $group = (string) Str::of($key)->before('.')->trim();
+
+        return $group !== '' ? $group : 'general';
+    }
+
+    private function inferType(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return 'boolean';
+        }
+
+        if (is_numeric($value)) {
+            return 'number';
+        }
+
+        if (is_array($value)) {
+            return 'array';
+        }
+
+        if (is_string($value)) {
+            if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                return 'email';
+            }
+
+            if (filter_var($value, FILTER_VALIDATE_URL)) {
+                return 'url';
+            }
+
+            if (strlen($value) > 255) {
+                return 'textarea';
+            }
+        }
+
+        return 'text';
     }
 
     /**

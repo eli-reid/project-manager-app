@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -82,4 +83,23 @@ it('resets in-memory preload cache after setting updates', function () {
 
 it('uses isolated settings database in testing', function () {
     expect(config('settings-db.database_path'))->toBe('database/testing-settings.data');
+});
+
+it('populates default metadata when creating a new setting through service set', function () {
+    $service = app(SettingsSqliteService::class);
+    $service->clearAllCache();
+
+    $key = 'mail.support_email_'.Str::lower(Str::random(8));
+
+    expect($service->set($key, 'support@example.com'))->toBeTrue();
+
+    $setting = SettingsSqlite::query()->where('key', $key)->first();
+
+    expect($setting)->not->toBeNull();
+    expect($setting->group)->toBe('mail');
+    expect($setting->type)->toBe('email');
+    expect($setting->display_name)->toContain('Support Email');
+    expect($setting->is_visible)->toBeTrue();
+    expect($setting->is_public)->toBeFalse();
+    expect($setting->is_required)->toBeFalse();
 });

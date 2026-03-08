@@ -110,7 +110,7 @@ class SettingServiceProvider extends ServiceProvider
     {
         $syncOnBoot = config('settings-db.sync.on_boot');
         if ($syncOnBoot === null) {
-            $syncOnBoot = ! $this->app->isProduction();
+            $syncOnBoot = ! $this->app->environment('production');
         }
 
         if (! (bool) $syncOnBoot) {

@@ -13,7 +13,6 @@ Route::middleware(['web', 'auth', 'can:admin'])->prefix('admin')->name('admin.')
     // Settings management routes
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
-        Route::post('/export', [SettingsController::class, 'export'])->name('export');
         Route::get('/import', [SettingsController::class, 'import'])->name('import');
     });
 });

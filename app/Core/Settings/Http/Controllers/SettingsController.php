@@ -22,24 +22,6 @@ class SettingsController extends Controller
     }
 
     /**
-     * Export all settings as JSON
-     */
-    public function export()
-    {
-        $settings = \App\Core\Settings\Models\SettingsSqlite::all()
-            ->mapWithKeys(function ($setting) {
-                return [$setting->key => [
-                    'value' => $setting->value,
-                    'type' => $setting->type,
-                    'group' => $setting->group,
-                ]];
-            });
-
-        return response()->json($settings)
-            ->header('Content-Disposition', 'attachment; filename=settings-'.now()->format('Y-m-d-His').'.json');
-    }
-
-    /**
      * Import settings from JSON
      */
     public function import()

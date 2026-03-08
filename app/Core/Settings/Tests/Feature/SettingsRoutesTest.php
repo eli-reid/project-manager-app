@@ -4,8 +4,7 @@ use App\Core\User\Models\User;
 
 it('registers admin settings route names for navigation and browser testing', function () {
     expect(route('admin.settings.index', absolute: false))->toBe('/admin/settings')
-        ->and(route('admin.settings.import', absolute: false))->toBe('/admin/settings/import')
-        ->and(route('admin.settings.export', absolute: false))->toBe('/admin/settings/export');
+        ->and(route('admin.settings.import', absolute: false))->toBe('/admin/settings/import');
 });
 
 it('renders settings index in app layout for admin users', function () {
