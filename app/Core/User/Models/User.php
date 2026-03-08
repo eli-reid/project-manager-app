@@ -5,6 +5,7 @@ namespace App\Core\User\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -73,9 +74,26 @@ class User extends Authenticatable
     /**
      * The roles that belong to the user.
      */
-    public function roles()
+    public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'role_user');
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')->withTimestamps();
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        [$resource, $action] = array_pad(explode('.', $permission, 2), 2, null);
+
+        if ($resource === null || $action === null) {
+            return false;
+        }
+
+        return $this->roles()
+            ->where('roles.is_active', true)
+            ->whereHas('permissions', function ($query) use ($resource, $action): void {
+                $query->where('resource', $resource)
+                    ->where('action', $action);
+            })
+            ->exists();
     }
 
     /**
@@ -91,6 +109,13 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return (bool) $this->is_admin;
+        if ((bool) $this->is_admin) {
+            return true;
+        }
+
+        return $this->roles()
+            ->where('built_in', true)
+            ->whereRaw('LOWER(name) = ?', [strtolower(Role::BUILT_IN_ADMIN)])
+            ->exists();
     }
 }

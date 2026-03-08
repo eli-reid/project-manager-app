@@ -16,9 +16,17 @@
                 </flux:sidebar.item>
 
                 @can('admin')
-                    <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" data-test="admin-settings-sidebar-main-link">
-                        {{ __('Admin Settings') }}
-                    </flux:sidebar.item>
+                    <flux:sidebar.group expandable heading="Admin" class="grid">
+                        <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
+                            {{ __('Users') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="shield-check" :href="route('admin.roles.index')" :current="request()->routeIs('admin.roles.*')" wire:navigate>
+                            {{ __('Roles') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" data-test="admin-settings-sidebar-main-link">
+                            {{ __('Settings') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
                 @endcan
 
                 <flux:sidebar.item href="#" icon="drafting-compass" :current="request()->routeIs('projects')" wire:navigate>
@@ -91,6 +99,12 @@
                             @can('admin')
                                 <flux:menu.item :href="route('admin.settings.index')" icon="cog" data-test="admin-settings-link-mobile">
                                     {{ __('Admin Settings') }}
+                                </flux:menu.item>
+                                <flux:menu.item :href="route('admin.users.index')" icon="users" wire:navigate>
+                                    {{ __('Admin Users') }}
+                                </flux:menu.item>
+                                <flux:menu.item :href="route('admin.roles.index')" icon="shield-check" wire:navigate>
+                                    {{ __('Admin Roles') }}
                                 </flux:menu.item>
                             @endcan
                         </flux:menu.radio.group>

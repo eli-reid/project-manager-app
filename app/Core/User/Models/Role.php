@@ -2,14 +2,18 @@
 
 namespace App\Core\User\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Role extends Model
 {
     use HasFactory, HasUlids;
+
+    public const BUILT_IN_ADMIN = 'Admin';
+
+    public const BUILT_IN_USER = 'User';
 
     /**
      * The table associated with the model.
@@ -42,13 +46,20 @@ class Role extends Model
         'access_level' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Role $role): bool {
+            return ! $role->isBuiltIn();
+        });
+    }
+
     /**
      * The permissions that belong to the role.
      */
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'role_permissions', 'role_id', 'permission_id')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     /**
@@ -57,7 +68,7 @@ class Role extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_roles', 'role_id', 'user_id')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     /**
@@ -65,7 +76,16 @@ class Role extends Model
      */
     public function hasPermission(string $permission): bool
     {
-        return $this->permissions()->where('name', $permission)->exists();
+        [$resource, $action] = array_pad(explode('.', $permission, 2), 2, null);
+
+        if ($resource === null || $action === null) {
+            return false;
+        }
+
+        return $this->permissions()
+            ->where('resource', $resource)
+            ->where('action', $action)
+            ->exists();
     }
 
     /**
@@ -89,7 +109,7 @@ class Role extends Model
      */
     public function isAdmin(): bool
     {
-        return $this->name === 'Admin' && $this->built_in;
+        return strcasecmp($this->name, self::BUILT_IN_ADMIN) === 0 && $this->built_in;
     }
 
     /**
@@ -97,7 +117,12 @@ class Role extends Model
      */
     public function toggleStatus(): bool
     {
-        $this->is_active = !$this->is_active;
+        if ($this->isBuiltIn()) {
+            return false;
+        }
+
+        $this->is_active = ! $this->is_active;
+
         return $this->save();
     }
 }

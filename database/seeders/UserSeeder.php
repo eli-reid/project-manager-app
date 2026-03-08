@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -13,7 +14,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
+        $adminUser = User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
                 'first_name' => 'System',
@@ -28,7 +29,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        User::updateOrCreate(
+        $testUser = User::updateOrCreate(
             ['email' => 'test@example.com'],
             [
                 'first_name' => 'Test',
@@ -42,5 +43,16 @@ class UserSeeder extends Seeder
                 'password_change_required' => false,
             ]
         );
+
+        $adminRoleId = Role::query()->where('name', Role::BUILT_IN_ADMIN)->value('id');
+        $userRoleId = Role::query()->where('name', Role::BUILT_IN_USER)->value('id');
+
+        if ($adminRoleId !== null) {
+            $adminUser->roles()->syncWithoutDetaching([$adminRoleId]);
+        }
+
+        if ($userRoleId !== null) {
+            $testUser->roles()->syncWithoutDetaching([$userRoleId]);
+        }
     }
 }

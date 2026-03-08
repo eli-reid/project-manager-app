@@ -24,6 +24,9 @@ class CoreSeeder extends Seeder
         // Seed default settings
         $this->call(SettingsSeeder::class);
 
+        // Seed roles and permissions registered by core/domains
+        $this->call(RolesAndPermissionsSeeder::class);
+
         // Seed default users
         $this->call(UserSeeder::class);
 

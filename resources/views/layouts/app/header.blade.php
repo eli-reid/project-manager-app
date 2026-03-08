@@ -57,9 +57,17 @@
                         {{ __('Dashboard')  }}
                     </flux:sidebar.item>
                     @can('admin')
-                        <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" data-test="admin-settings-sidebar-link">
-                            {{ __('Admin Settings') }}
-                        </flux:sidebar.item>
+                        <flux:sidebar.group expandable heading="Admin" class="grid">
+                            <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
+                                {{ __('Users') }}
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="shield-check" :href="route('admin.roles.index')" :current="request()->routeIs('admin.roles.*')" wire:navigate>
+                                {{ __('Roles') }}
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" data-test="admin-settings-sidebar-link">
+                                {{ __('Settings') }}
+                            </flux:sidebar.item>
+                        </flux:sidebar.group>
                     @endcan
                 </flux:sidebar.group>
             </flux:sidebar.nav>

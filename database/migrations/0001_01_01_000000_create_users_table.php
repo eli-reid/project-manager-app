@@ -32,6 +32,56 @@ return new class extends Migration
             });
         }
 
+        if (! Schema::hasTable('roles')) {
+            Schema::create('roles', function (Blueprint $table) {
+                $table->ulid('id')->primary();
+                $table->string('name')->unique();
+                $table->text('description')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->boolean('built_in')->default(false);
+                $table->integer('access_level')->default(0);
+                $table->timestamps();
+
+                $table->index(['is_active']);
+                $table->index(['access_level']);
+            });
+        }
+
+        if (! Schema::hasTable('permissions')) {
+            Schema::create('permissions', function (Blueprint $table) {
+                $table->ulid('id')->primary();
+                $table->string('resource');
+                $table->string('action');
+                $table->string('label');
+                $table->text('description')->nullable();
+                $table->timestamps();
+
+                $table->unique(['resource', 'action']);
+            });
+        }
+
+        if (! Schema::hasTable('user_roles')) {
+            Schema::create('user_roles', function (Blueprint $table) {
+                $table->id();
+                $table->foreignUlid('user_id')->constrained('users')->cascadeOnDelete();
+                $table->foreignUlid('role_id')->constrained('roles')->cascadeOnDelete();
+                $table->timestamps();
+
+                $table->unique(['user_id', 'role_id']);
+            });
+        }
+
+        if (! Schema::hasTable('role_permissions')) {
+            Schema::create('role_permissions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignUlid('role_id')->constrained('roles')->cascadeOnDelete();
+                $table->foreignUlid('permission_id')->constrained('permissions')->cascadeOnDelete();
+                $table->timestamps();
+
+                $table->unique(['role_id', 'permission_id']);
+            });
+        }
+
         if (! Schema::hasTable('password_reset_tokens')) {
             Schema::create('password_reset_tokens', function (Blueprint $table) {
                 $table->string('email')->primary();
@@ -57,6 +107,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('role_permissions');
+        Schema::dropIfExists('user_roles');
+        Schema::dropIfExists('permissions');
+        Schema::dropIfExists('roles');
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
