@@ -52,10 +52,10 @@
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.roles.edit', $role) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
                                     <a href="{{ route('admin.roles.users', $role) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Users</a>
-                                    <button type="button" wire:click="toggleStatus('{{ $role->id }}')" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" @disabled($role->built_in)>
+                                    <button type="button" wire:click="toggleStatus('{{ $role->id }}')" wire:confirm="Are you sure you want to {{ $role->is_active ? 'disable' : 'enable' }} this role?" wire:loading.attr="disabled" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" @disabled($role->built_in)>
                                         {{ $role->is_active ? 'Disable' : 'Enable' }}
                                     </button>
-                                    <button type="button" wire:click="deleteRole('{{ $role->id }}')" class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20" @disabled($role->built_in)>
+                                    <button type="button" wire:click="deleteRole('{{ $role->id }}')" wire:confirm="Are you sure you want to delete this role? This action cannot be undone." wire:loading.attr="disabled" class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20" @disabled($role->built_in)>
                                         Delete
                                     </button>
                                 </div>

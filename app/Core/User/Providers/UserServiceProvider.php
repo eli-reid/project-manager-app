@@ -11,6 +11,7 @@ use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class UserServiceProvider extends ServiceProvider
 {
@@ -27,12 +28,21 @@ class UserServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-user');
+        $this->registerLivewireComponents();
         $this->registerCorePermissions();
         $this->app->booted(function (): void {
             $this->syncRegisteredPermissions();
         });
         $this->registerAuthorizationGates();
         $this->configureRoutes();
+    }
+
+    private function registerLivewireComponents(): void
+    {
+        Livewire::component('app.core.user.livewire.admin.roles', \App\Core\User\Livewire\Admin\Roles\Index::class);
+        Livewire::component('app.core.user.livewire.admin.roles.form', \App\Core\User\Livewire\Admin\Roles\Form::class);
+        Livewire::component('app.core.user.livewire.admin.roles.users', \App\Core\User\Livewire\Admin\Roles\Users::class);
     }
 
     private function registerCorePermissions(): void
