@@ -115,6 +115,166 @@ class CpanelService
     }
 
     /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function updateEmailPassword(string $email, string $password): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        $password = trim($password);
+        if ($password === '') {
+            return [
+                'success' => false,
+                'message' => 'Password is required.',
+            ];
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        if ($localPart === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid email is required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'passwd_pop', 'post', [
+                'email' => $localPart,
+                'password' => $password,
+                'domain' => $domain,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Email password updated successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to update email password.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function suspendEmailAccount(string $email): array
+    {
+        return $this->updateMailboxLoginState($email, suspend: true);
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function unsuspendEmailAccount(string $email): array
+    {
+        return $this->updateMailboxLoginState($email, suspend: false);
+    }
+
+    /**
+     * @return array{success: bool, message: string, forwarders?: array<int, array<string, mixed>>, count?: int, data?: array<string, mixed>}
+     */
+    public function listForwarders(?string $email = null): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        $params = [
+            'domain' => $this->config->domain,
+        ];
+
+        if ($email !== null && trim($email) !== '') {
+            $params['regex'] = trim($email);
+        }
+
+        try {
+            $result = $this->request('Email', 'list_forwarders', 'get', $params);
+            $forwarders = $this->normalizeForwarders($result['data'] ?? []);
+
+            return [
+                'success' => true,
+                'message' => 'Forwarders retrieved successfully.',
+                'forwarders' => $forwarders,
+                'count' => count($forwarders),
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to list forwarders.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function addForwarder(string $email, string $forwardTo): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        $forwardTo = trim($forwardTo);
+
+        if ($localPart === '' || $forwardTo === '') {
+            return [
+                'success' => false,
+                'message' => 'Email and forward destination are required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'add_forwarder', 'post', [
+                'email' => $localPart,
+                'domain' => $domain,
+                'fwdopt' => 'fwd',
+                'fwdemail' => $forwardTo,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Forwarder created successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to create forwarder.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function deleteForwarder(string $email, string $forwardTo): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        $forwardTo = trim($forwardTo);
+
+        if ($localPart === '' || $forwardTo === '') {
+            return [
+                'success' => false,
+                'message' => 'Email and forward destination are required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'delete_forwarder', 'post', [
+                'email' => $localPart,
+                'domain' => $domain,
+                'fwdemail' => $forwardTo,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Forwarder deleted successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to delete forwarder.');
+        }
+    }
+
+    /**
      * @return array{success: bool, message: string, url?: string, data?: array<string, mixed>}
      */
     public function createWebmailSession(string $email): array
@@ -281,6 +441,83 @@ class CpanelService
         [$localPart] = explode('@', $normalized, 2);
 
         return trim($localPart);
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    protected function extractMailboxParts(string $email): array
+    {
+        $normalized = trim($email);
+        if ($normalized === '') {
+            return ['', (string) $this->config->domain];
+        }
+
+        if (! str_contains($normalized, '@')) {
+            return [$normalized, (string) $this->config->domain];
+        }
+
+        [$localPart, $domain] = explode('@', $normalized, 2);
+
+        return [trim($localPart), trim($domain) !== '' ? trim($domain) : (string) $this->config->domain];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $records
+     * @return array<int, array<string, mixed>>
+     */
+    protected function normalizeForwarders(array $records): array
+    {
+        return collect($records)
+            ->map(function (array $record): array {
+                return [
+                    'email' => (string) ($record['email'] ?? ''),
+                    'forward_to' => (string) ($record['forward'] ?? $record['dest'] ?? ''),
+                    'uri' => (string) ($record['uri'] ?? ''),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    protected function updateMailboxLoginState(string $email, bool $suspend): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        if ($localPart === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid email is required.',
+            ];
+        }
+
+        $function = $suspend ? 'suspend_login' : 'unsuspend_login';
+        $successMessage = $suspend
+            ? 'Email account suspended successfully.'
+            : 'Email account unsuspended successfully.';
+        $failureMessage = $suspend
+            ? 'Failed to suspend email account.'
+            : 'Failed to unsuspend email account.';
+
+        try {
+            $this->request('Email', $function, 'post', [
+                'email' => $localPart,
+                'domain' => $domain,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => $successMessage,
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, $failureMessage);
+        }
     }
 
     protected function toInteger(mixed $value): ?int

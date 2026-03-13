@@ -46,4 +46,76 @@ class EmailAccountController
 
         return response()->json($result, $status);
     }
+
+    public function resetPassword(Request $request, string $email): JsonResponse
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:12'],
+        ]);
+
+        $result = $this->cpanelService->updateEmailPassword(
+            email: $email,
+            password: $validated['password'],
+        );
+
+        $status = $result['success'] ? 200 : 422;
+
+        return response()->json($result, $status);
+    }
+
+    public function suspend(string $email): JsonResponse
+    {
+        $result = $this->cpanelService->suspendEmailAccount($email);
+        $status = $result['success'] ? 200 : 422;
+
+        return response()->json($result, $status);
+    }
+
+    public function unsuspend(string $email): JsonResponse
+    {
+        $result = $this->cpanelService->unsuspendEmailAccount($email);
+        $status = $result['success'] ? 200 : 422;
+
+        return response()->json($result, $status);
+    }
+
+    public function listForwarders(string $email): JsonResponse
+    {
+        $result = $this->cpanelService->listForwarders($email);
+        $status = $result['success'] ? 200 : 422;
+
+        return response()->json($result, $status);
+    }
+
+    public function addForwarder(Request $request, string $email): JsonResponse
+    {
+        $validated = $request->validate([
+            'forward_to' => ['required', 'email', 'max:255'],
+        ]);
+
+        $result = $this->cpanelService->addForwarder(
+            email: $email,
+            forwardTo: $validated['forward_to'],
+        );
+
+        $status = $result['success'] ? 201 : 422;
+
+        return response()->json($result, $status);
+    }
+
+    public function deleteForwarder(Request $request, string $email): JsonResponse
+    {
+        $validated = $request->validate([
+            'forward_to' => ['required', 'email', 'max:255'],
+        ]);
+
+        $result = $this->cpanelService->deleteForwarder(
+            email: $email,
+            forwardTo: $validated['forward_to'],
+        );
+
+        $status = $result['success'] ? 200 : 422;
+
+        return response()->json($result, $status);
+    }
 }
