@@ -278,9 +278,11 @@ class ScheduledTaskService
      */
     public function toggleTask(ScheduledTask $task): ScheduledTask
     {
+        $enabling = ! $task->is_enabled;
+
         $task->update([
-            'is_enabled' => ! $task->is_enabled,
-            'next_run_at' => ! $task->is_enabled ? null : $this->calculateNextRun($task),
+            'is_enabled' => $enabling,
+            'next_run_at' => $enabling ? $this->calculateNextRun($task) : null,
         ]);
 
         return $task;

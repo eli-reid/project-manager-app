@@ -6,6 +6,7 @@ use App\Core\Settings\Contracts\DomainSettingsProvider;
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class DomainSettingsSynchronizer
@@ -19,6 +20,10 @@ class DomainSettingsSynchronizer
      */
     public function syncIfChanged(): int
     {
+        if (! $this->isCacheStoreReady()) {
+            return 0;
+        }
+
         $nextCheckAt = (int) Cache::get(self::CACHE_KEY_NEXT_CHECK_AT, 0);
         $now = time();
 
@@ -245,5 +250,18 @@ class DomainSettingsSynchronizer
     protected function domainNameFromPath(string $path): string
     {
         return basename(dirname(dirname($path)));
+    }
+
+    protected function isCacheStoreReady(): bool
+    {
+        $defaultStore = (string) config('cache.default');
+
+        if ($defaultStore !== 'database') {
+            return true;
+        }
+
+        $cacheTable = (string) config('cache.stores.database.table', 'cache');
+
+        return Schema::hasTable($cacheTable);
     }
 }

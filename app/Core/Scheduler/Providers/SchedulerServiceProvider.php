@@ -2,6 +2,8 @@
 
 namespace App\Core\Scheduler\Providers;
 
+use App\Core\Scheduler\Commands\DeployUpgradeCommand;
+use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Permissions\SchedulerPermissions;
 use App\Core\Scheduler\Policies\ScheduledTaskPolicy;
@@ -10,7 +12,6 @@ use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskDefinitionSyncService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
-use App\Core\Scheduler\Tasks\NoOpTask;
 use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
@@ -23,28 +24,7 @@ class SchedulerServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TaskTypeRegistry::class, function (): TaskTypeRegistry {
-            $registry = new TaskTypeRegistry;
-
-            if ((bool) config('scheduler.register_core_tasks', false)) {
-                $registry->register('timecard_reminders', NoOpTask::class, [
-                    'name' => 'Timecard Reminders',
-                    'description' => 'Send periodic timecard reminders.',
-                ]);
-                $registry->register('automated_reports', NoOpTask::class, [
-                    'name' => 'Automated Reports',
-                    'description' => 'Generate and distribute scheduled reports.',
-                ]);
-                $registry->register('database_backup', NoOpTask::class, [
-                    'name' => 'Database Backup',
-                    'description' => 'Run scheduled database backup tasks.',
-                ]);
-                $registry->register('system_cleanup', NoOpTask::class, [
-                    'name' => 'System Cleanup',
-                    'description' => 'Run periodic cleanup routines.',
-                ]);
-            }
-
-            return $registry;
+            return new TaskTypeRegistry;
         });
 
         $this->app->singleton(ScheduledTaskService::class, function (): ScheduledTaskService {
@@ -75,10 +55,10 @@ class SchedulerServiceProvider extends ServiceProvider
         $this->configureViews();
         $this->configureComponents();
         $this->registerLivewireComponents();
-
-        $this->app->booted(function (): void {
-            app(TaskDefinitionSyncService::class)->syncSafely();
-        });
+        $this->commands([
+            SyncSchedulerTasksCommand::class,
+            DeployUpgradeCommand::class,
+        ]);
     }
 
     private function registerAuthorizationGates(): void

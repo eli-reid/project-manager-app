@@ -2,6 +2,7 @@
 
 namespace App\Core\WeatherApi\Services;
 
+use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Cache;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class WeatherApiService
+class WeatherApiService implements WeatherApiContract
 {
     public function getCurrentWeather(string $location): ?array
     {

@@ -14,6 +14,14 @@ class DomainPermissionSynchronizer
 
     public function syncIfChanged(): int
     {
+        if (! $this->isSchemaReady()) {
+            return 0;
+        }
+
+        if (! $this->isCacheStoreReady()) {
+            return 0;
+        }
+
         /** @var PermissionRegistry $registry */
         $registry = app(PermissionRegistry::class);
 
@@ -149,6 +157,10 @@ class DomainPermissionSynchronizer
 
     private function flushRoleCaches(): void
     {
+        if (! $this->isCacheStoreReady()) {
+            return;
+        }
+
         Cache::forget('roles.all');
         Cache::forget('permissions.all');
 
@@ -176,5 +188,18 @@ class DomainPermissionSynchronizer
         ]);
 
         return hash('sha256', $payload ?: '');
+    }
+
+    private function isCacheStoreReady(): bool
+    {
+        $defaultStore = (string) config('cache.default');
+
+        if ($defaultStore !== 'database') {
+            return true;
+        }
+
+        $cacheTable = (string) config('cache.stores.database.table', 'cache');
+
+        return Schema::hasTable($cacheTable);
     }
 }
