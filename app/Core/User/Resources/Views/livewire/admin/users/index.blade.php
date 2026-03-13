@@ -42,7 +42,12 @@
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $user->first_name }} {{ $user->last_name }}</div>
                                 <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ '@'.$user->username }}</div>
                             </td>
-                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $user->email }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
+                                <div>{{ $user->email }}</div>
+                                <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                                    Company: {{ $user->company_email ?: 'Not generated' }}
+                                </div>
+                            </td>
                             <td class="px-4 py-3 align-top">
                                 <div class="flex flex-wrap gap-1.5">
                                     @foreach ($user->roles as $role)
@@ -56,6 +61,14 @@
                             <td class="px-4 py-3 align-top">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.users.edit', $user) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
+                                    @can('manage-email-accounts')
+                                        <form method="POST" action="{{ route('admin.users.generate-company-email', $user) }}">
+                                            @csrf
+                                            <button type="submit" class="rounded-md border border-sky-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-sky-700 hover:bg-sky-50 dark:border-sky-800 dark:text-sky-300 dark:hover:bg-sky-900/20">
+                                                {{ $user->company_email ? 'Regenerate Email' : 'Generate Email' }}
+                                            </button>
+                                        </form>
+                                    @endcan
                                     <button type="button" wire:click="toggleActive('{{ $user->id }}')" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                                         {{ $user->is_active ? 'Disable' : 'Enable' }}
                                     </button>

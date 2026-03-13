@@ -57,6 +57,59 @@ class CpanelMailboxManager
         }
     }
 
+    /**
+     * @return array{success: bool, message: string}
+     */
+    public function generateForUser(User $user): array
+    {
+        if (! $this->cpanelService->isConfigured()) {
+            return [
+                'success' => false,
+                'message' => 'cPanel configuration is incomplete.',
+            ];
+        }
+
+        $username = trim((string) $user->username);
+        if ($username === '') {
+            return [
+                'success' => false,
+                'message' => 'User must have a username before generating company email.',
+            ];
+        }
+
+        $result = $this->cpanelService->createEmailAccount(
+            emailUsername: $username,
+            password: Str::password(24)
+        );
+
+        $resolvedCompanyEmail = $this->resolveCompanyEmail($username);
+        $cpanelMessage = strtolower((string) ($result['message'] ?? ''));
+        $accountAlreadyExists = str_contains($cpanelMessage, 'already exists');
+
+        if (! $result['success'] && ! $accountAlreadyExists) {
+            return [
+                'success' => false,
+                'message' => (string) ($result['message'] ?? 'Unable to generate company email account.'),
+            ];
+        }
+
+        if ($resolvedCompanyEmail !== null) {
+            $user->forceFill(['company_email' => $resolvedCompanyEmail])->save();
+        }
+
+        if ($accountAlreadyExists) {
+            return [
+                'success' => true,
+                'message' => 'Company email already exists. User record has been synchronized.',
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Company email generated successfully.',
+        ];
+    }
+
     public function syncUsernameChange(User $user, ?string $previousCompanyEmail): void
     {
         if (! $user->wasChanged('username')) {
