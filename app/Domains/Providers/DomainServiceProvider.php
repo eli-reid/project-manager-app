@@ -19,8 +19,8 @@ class DomainServiceProvider extends ServiceProvider
         $providerFiles = File::glob($domainProvidersPath.'/*/Providers/*ServiceProvider.php') ?: [];
 
         foreach ($providerFiles as $providerFile) {
-            $relativePath = Str::after($providerFile, app_path().DIRECTORY_SEPARATOR);
-            $providerClass = 'App\\'.Str::replace([DIRECTORY_SEPARATOR, '.php'], ['\\', ''], $relativePath);
+            $relativePath = ltrim(Str::after((string) $providerFile, app_path()), '/\\');
+            $providerClass = 'App\\'.Str::replace(['/', '\\', '.php'], ['\\', '\\', ''], $relativePath);
 
             if ($providerClass === self::class) {
                 continue;

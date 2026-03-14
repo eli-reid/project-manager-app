@@ -1,0 +1,54 @@
+<div class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Projects</h1>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Track active and planned projects across your company.</p>
+        </div>
+        @can('create', \App\Domains\Projects\Models\Project::class)
+            <a href="{{ route('admin.projects.create') }}" class="inline-flex items-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Create Project</a>
+        @endcan
+    </div>
+
+    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                <thead class="bg-zinc-50 dark:bg-zinc-800/50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project #</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Dates</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                    @forelse ($projects as $project)
+                        <tr wire:key="project-{{ $project->id }}">
+                            <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->project_number ?? 'N/A' }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
+                                <span class="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</span>
+                            </td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
+                                @if ($project->start_date || $project->end_date)
+                                    {{ optional($project->start_date)?->format('M j, Y') ?? 'TBD' }}
+                                    <span class="mx-1">to</span>
+                                    {{ optional($project->end_date)?->format('M j, Y') ?? 'TBD' }}
+                                @else
+                                    TBD
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No projects found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+            {{ $projects->links() }}
+        </div>
+    </div>
+</div>
