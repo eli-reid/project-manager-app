@@ -17,8 +17,8 @@ return new class extends Migration
                 $table->string('status')->default('pending');
                 $table->date('start_date')->nullable();
                 $table->date('end_date')->nullable();
-                $table->ulid('client_id')->nullable()->index();
-                $table->ulid('address_id')->nullable()->index();
+                $table->foreignUlid('client_id')->nullable()->constrained('clients')->nullOnDelete();
+                $table->foreignUlid('address_id')->nullable()->constrained('addresses')->nullOnDelete();
                 $table->foreignUlid('project_manager_id')->nullable()->constrained('users')->nullOnDelete();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
