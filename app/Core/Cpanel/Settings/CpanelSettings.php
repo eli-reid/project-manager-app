@@ -20,7 +20,14 @@ class CpanelSettings implements DomainSettingsProvider
             self::booleanSetting('cpanel.auto_create_emails', 'Auto Create Emails', 'Automatically create mailbox accounts for eligible users.', false, 9),
             self::booleanSetting('cpanel.auto_delete_emails', 'Auto Delete Emails', 'Delete mailbox accounts when users are deleted.', true, 10),
             self::booleanSetting('cpanel.sync_user_passwords', 'Sync User Passwords', 'Sync application password changes to mailbox accounts.', false, 11),
-            self::booleanSetting('cpanel.verify_ssl', 'Verify SSL', 'Require SSL certificate verification for cPanel API requests.', true, 12),
+            self::booleanSetting('cpanel.queue_write_operations', 'Queue Write Operations', 'Queue write-side cPanel operations for resilience.', false, 12),
+            self::numberSetting('cpanel.idempotency_ttl_seconds', 'Idempotency TTL (Seconds)', 'Deduplicate repeated write operations within this window.', 120, 13),
+            self::numberSetting('cpanel.queue_tries', 'Queue Retries', 'Maximum number of attempts for queued write operations.', 3, 14),
+            self::textSetting('cpanel.queue_backoff', 'Queue Backoff', 'Comma-separated backoff seconds for queued retries.', 15),
+            self::numberSetting('cpanel.failure_threshold', 'Failure Threshold', 'Consecutive failures before cPanel cooldown activates.', 5, 16),
+            self::numberSetting('cpanel.cooldown_seconds', 'Cooldown Seconds', 'Skip write operations while cooldown is active.', 300, 17),
+            self::textSetting('cpanel.telemetry_key_prefix', 'Telemetry Key Prefix', 'Cache key prefix for cPanel success/failure counters.', 18),
+            self::booleanSetting('cpanel.verify_ssl', 'Verify SSL', 'Require SSL certificate verification for cPanel API requests.', true, 19),
         ];
     }
 

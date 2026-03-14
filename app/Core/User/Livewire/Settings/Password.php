@@ -2,6 +2,7 @@
 
 namespace App\Core\User\Livewire\Settings;
 
+use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\User\Concerns\PasswordValidationRules;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -38,6 +39,12 @@ class Password extends Component
         Auth::user()->update([
             'password' => $validated['password'],
         ]);
+
+        /** @var \App\Core\User\Models\User|null $user */
+        $user = Auth::user();
+        if ($user !== null) {
+            app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
+        }
 
         $this->reset('current_password', 'password', 'password_confirmation');
 

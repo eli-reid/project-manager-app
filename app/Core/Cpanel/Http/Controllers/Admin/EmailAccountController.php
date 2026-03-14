@@ -2,9 +2,14 @@
 
 namespace App\Core\Cpanel\Http\Controllers\Admin;
 
+use App\Core\Cpanel\Http\Requests\Admin\CreatesMailboxAccountRequest;
+use App\Core\Cpanel\Http\Requests\Admin\DeletesMailboxForwarderRequest;
+use App\Core\Cpanel\Http\Requests\Admin\ListsMailboxForwardersRequest;
+use App\Core\Cpanel\Http\Requests\Admin\ResetsMailboxPasswordRequest;
+use App\Core\Cpanel\Http\Requests\Admin\StoresMailboxForwarderRequest;
+use App\Core\Cpanel\Http\Requests\Admin\UpdatesMailboxStatusRequest;
 use App\Core\Cpanel\Services\CpanelService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class EmailAccountController
 {
@@ -20,13 +25,9 @@ class EmailAccountController
         return response()->json($result, $status);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(CreatesMailboxAccountRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'username' => ['required', 'string', 'max:64'],
-            'password' => ['required', 'string', 'min:12'],
-            'quota' => ['nullable', 'integer', 'min:0'],
-        ]);
+        $validated = $request->validated();
 
         $result = $this->cpanelService->createEmailAccount(
             emailUsername: $validated['username'],
@@ -47,11 +48,9 @@ class EmailAccountController
         return response()->json($result, $status);
     }
 
-    public function resetPassword(Request $request, string $email): JsonResponse
+    public function resetPassword(ResetsMailboxPasswordRequest $request, string $email): JsonResponse
     {
-        $validated = $request->validate([
-            'password' => ['required', 'string', 'min:12'],
-        ]);
+        $validated = $request->validated();
 
         $result = $this->cpanelService->updateEmailPassword(
             email: $email,
@@ -63,35 +62,39 @@ class EmailAccountController
         return response()->json($result, $status);
     }
 
-    public function suspend(string $email): JsonResponse
+    public function suspend(UpdatesMailboxStatusRequest $request, string $email): JsonResponse
     {
+        $request->validated();
+
         $result = $this->cpanelService->suspendEmailAccount($email);
         $status = $result['success'] ? 200 : 422;
 
         return response()->json($result, $status);
     }
 
-    public function unsuspend(string $email): JsonResponse
+    public function unsuspend(UpdatesMailboxStatusRequest $request, string $email): JsonResponse
     {
+        $request->validated();
+
         $result = $this->cpanelService->unsuspendEmailAccount($email);
         $status = $result['success'] ? 200 : 422;
 
         return response()->json($result, $status);
     }
 
-    public function listForwarders(string $email): JsonResponse
+    public function listForwarders(ListsMailboxForwardersRequest $request, string $email): JsonResponse
     {
+        $request->validated();
+
         $result = $this->cpanelService->listForwarders($email);
         $status = $result['success'] ? 200 : 422;
 
         return response()->json($result, $status);
     }
 
-    public function addForwarder(Request $request, string $email): JsonResponse
+    public function addForwarder(StoresMailboxForwarderRequest $request, string $email): JsonResponse
     {
-        $validated = $request->validate([
-            'forward_to' => ['required', 'email', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $result = $this->cpanelService->addForwarder(
             email: $email,
@@ -103,11 +106,9 @@ class EmailAccountController
         return response()->json($result, $status);
     }
 
-    public function deleteForwarder(Request $request, string $email): JsonResponse
+    public function deleteForwarder(DeletesMailboxForwarderRequest $request, string $email): JsonResponse
     {
-        $validated = $request->validate([
-            'forward_to' => ['required', 'email', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $result = $this->cpanelService->deleteForwarder(
             email: $email,

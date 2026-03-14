@@ -20,42 +20,43 @@ Complete cPanel parity and hardening work in `project-manager-app`.
 - [x] Add tests for authorized/unauthorized cPanel endpoint access.
 
 ## 3. Advanced Mailbox Operations
-- [ ] Add mailbox password reset endpoint and service method.
-- [ ] Add suspend mailbox endpoint and service method.
-- [ ] Add unsuspend mailbox endpoint and service method.
-- [ ] Add forwarder create endpoint and service method.
-- [ ] Add forwarder list endpoint and service method.
-- [ ] Add forwarder delete endpoint and service method.
-- [ ] Add request validation for each new endpoint.
-- [ ] Add HTTP fake feature tests for all new operations.
+- [x] Add mailbox password reset endpoint and service method.
+- [x] Add suspend mailbox endpoint and service method.
+- [x] Add unsuspend mailbox endpoint and service method.
+- [x] Add forwarder create endpoint and service method.
+- [x] Add forwarder list endpoint and service method.
+- [x] Add forwarder delete endpoint and service method.
+- [x] Add request validation for each new endpoint.
+- [x] Add HTTP fake feature tests for all new operations.
 
 ## 4. Password Sync Implementation
-- [ ] Implement `sync_user_passwords` behavior in user password change flow.
-- [ ] Ensure behavior is flag-gated and non-blocking.
-- [ ] Add tests for enabled/disabled paths.
+- [x] Implement `sync_user_passwords` behavior in user password change flow.
+- [x] Ensure behavior is flag-gated and non-blocking.
+- [x] Add tests for enabled/disabled paths.
 
 ## 5. Async Reliability Hardening
-- [ ] Add queued jobs for write-side cPanel operations where needed.
-- [ ] Add idempotency checks for create/delete flows.
-- [ ] Add retry/backoff handling for transient failures.
-- [ ] Add circuit breaker/cooldown behavior for repeated outages.
-- [ ] Add telemetry counters for success/failure rates.
+- [x] Add queued jobs for write-side cPanel operations where needed.
+- [x] Add idempotency checks for create/delete flows.
+- [x] Add retry/backoff handling for transient failures.
+- [x] Add circuit breaker/cooldown behavior for repeated outages.
+- [x] Add telemetry counters for success/failure rates.
 
 ## 6. Security Hardening
-- [ ] Ensure no API token/plaintext password is logged.
-- [ ] Mask sensitive fields in logs and exception contexts.
-- [ ] Validate/sanitize email local-part/domain input on write operations.
+- [x] Ensure no API token/plaintext password is logged.
+- [x] Mask sensitive fields in logs and exception contexts.
+- [x] Validate/sanitize email local-part/domain input on write operations.
 - [ ] Rotate any exposed cPanel credentials and verify secret handling process.
+	Note: This is an operator-run environment task and is documented in `docs/development/CPANEL_ROLLOUT_PLAN.md` under `Credential Rotation Procedure`.
 
 ## 7. Docs and Rollout Alignment
-- [ ] Update rollout doc to reflect actual implemented state.
-- [ ] Replace stale checklist items with current gaps.
-- [ ] Add staged rollout notes (flags, sequencing, fallback).
-- [ ] Add operator runbook for incident handling and rollback.
+- [x] Update rollout doc to reflect actual implemented state.
+- [x] Replace stale checklist items with current gaps.
+- [x] Add staged rollout notes (flags, sequencing, fallback).
+- [x] Add operator runbook for incident handling and rollback.
 
 ## Acceptance Criteria
-- [ ] Required cPanel endpoints are implemented and permissioned.
-- [ ] Generate/regenerate user company-email workflow is fully validated.
-- [ ] Advanced mailbox operations are covered by tests.
-- [ ] Password sync and reliability controls are verified.
+- [x] Required cPanel endpoints are implemented and permissioned.
+- [x] Generate/regenerate user company-email workflow is fully validated.
+- [x] Advanced mailbox operations are covered by tests.
+- [x] Password sync and reliability controls are verified.
 - [ ] Security checks pass with no sensitive leakage.

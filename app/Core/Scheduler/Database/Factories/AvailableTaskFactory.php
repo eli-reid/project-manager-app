@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories\Core\Scheduler\Models;
+namespace App\Core\Scheduler\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 

@@ -97,6 +97,24 @@ it('suspends and unsuspends mailbox through admin endpoints', function () {
         ->postJson(route('admin.cpanel.email-accounts.unsuspend', ['email' => 'john@example.test']))
         ->assertOk()
         ->assertJsonPath('success', true);
+
+    Http::assertSent(function (Request $request): bool {
+        $data = $request->data();
+
+        return $request->method() === 'POST'
+            && $request->url() === 'https://cpanel.example.test:2083/execute/Email/suspend_login'
+            && ($data['email'] ?? null) === 'john'
+            && ($data['domain'] ?? null) === 'example.test';
+    });
+
+    Http::assertSent(function (Request $request): bool {
+        $data = $request->data();
+
+        return $request->method() === 'POST'
+            && $request->url() === 'https://cpanel.example.test:2083/execute/Email/unsuspend_login'
+            && ($data['email'] ?? null) === 'john'
+            && ($data['domain'] ?? null) === 'example.test';
+    });
 });
 
 it('manages mailbox forwarders through admin endpoints', function () {
@@ -143,6 +161,31 @@ it('manages mailbox forwarders through admin endpoints', function () {
         ])
         ->assertOk()
         ->assertJsonPath('success', true);
+
+    Http::assertSent(function (Request $request): bool {
+        return $request->method() === 'GET'
+            && str_starts_with($request->url(), 'https://cpanel.example.test:2083/execute/Email/list_forwarders');
+    });
+
+    Http::assertSent(function (Request $request): bool {
+        $data = $request->data();
+
+        return $request->method() === 'POST'
+            && $request->url() === 'https://cpanel.example.test:2083/execute/Email/add_forwarder'
+            && ($data['email'] ?? null) === 'john'
+            && ($data['domain'] ?? null) === 'example.test'
+            && ($data['fwdemail'] ?? null) === 'ops@example.net';
+    });
+
+    Http::assertSent(function (Request $request): bool {
+        $data = $request->data();
+
+        return $request->method() === 'POST'
+            && $request->url() === 'https://cpanel.example.test:2083/execute/Email/delete_forwarder'
+            && ($data['email'] ?? null) === 'john'
+            && ($data['domain'] ?? null) === 'example.test'
+            && ($data['fwdemail'] ?? null) === 'ops@example.net';
+    });
 });
 
 it('forbids advanced mailbox operation endpoints without permission', function () {
@@ -151,4 +194,40 @@ it('forbids advanced mailbox operation endpoints without permission', function (
     actingAs($user)
         ->postJson(route('admin.cpanel.email-accounts.suspend', ['email' => 'john@example.test']))
         ->assertForbidden();
+});
+
+it('validates advanced mailbox operation requests', function () {
+    $user = User::factory()->create(['is_admin' => false]);
+    grantCpanelPermission($user);
+
+    actingAs($user)
+        ->postJson(route('admin.cpanel.email-accounts.reset-password', ['email' => 'not-an-email']), [
+            'password' => 'short',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['email', 'password']);
+
+    actingAs($user)
+        ->postJson(route('admin.cpanel.email-accounts.suspend', ['email' => 'not-an-email']))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['email']);
+
+    actingAs($user)
+        ->getJson(route('admin.cpanel.email-accounts.forwarders.index', ['email' => 'not-an-email']))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['email']);
+
+    actingAs($user)
+        ->postJson(route('admin.cpanel.email-accounts.forwarders.store', ['email' => 'john@example.test']), [
+            'forward_to' => 'john@example.test',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['forward_to']);
+
+    actingAs($user)
+        ->deleteJson(route('admin.cpanel.email-accounts.forwarders.destroy', ['email' => 'john@example.test']), [
+            'forward_to' => 'invalid-destination',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['forward_to']);
 });

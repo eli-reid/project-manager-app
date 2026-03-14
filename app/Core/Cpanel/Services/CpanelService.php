@@ -56,11 +56,11 @@ class CpanelService
             return $this->configurationErrorResponse();
         }
 
-        $emailUsername = trim($emailUsername);
+        $emailUsername = $this->sanitizeLocalPart($emailUsername);
         if ($emailUsername === '') {
             return [
                 'success' => false,
-                'message' => 'Email username is required.',
+                'message' => 'Valid email username is required.',
             ];
         }
 
@@ -185,6 +185,13 @@ class CpanelService
         ];
 
         if ($email !== null && trim($email) !== '') {
+            if (! filter_var(trim($email), FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'success' => false,
+                    'message' => 'Valid email is required.',
+                ];
+            }
+
             $params['regex'] = trim($email);
         }
 
@@ -215,10 +222,10 @@ class CpanelService
         [$localPart, $domain] = $this->extractMailboxParts($email);
         $forwardTo = trim($forwardTo);
 
-        if ($localPart === '' || $forwardTo === '') {
+        if ($localPart === '' || $forwardTo === '' || ! filter_var($forwardTo, FILTER_VALIDATE_EMAIL)) {
             return [
                 'success' => false,
-                'message' => 'Email and forward destination are required.',
+                'message' => 'Valid email and forward destination are required.',
             ];
         }
 
@@ -251,10 +258,10 @@ class CpanelService
         [$localPart, $domain] = $this->extractMailboxParts($email);
         $forwardTo = trim($forwardTo);
 
-        if ($localPart === '' || $forwardTo === '') {
+        if ($localPart === '' || $forwardTo === '' || ! filter_var($forwardTo, FILTER_VALIDATE_EMAIL)) {
             return [
                 'success' => false,
-                'message' => 'Email and forward destination are required.',
+                'message' => 'Valid email and forward destination are required.',
             ];
         }
 
@@ -356,7 +363,8 @@ class CpanelService
                         'http_status' => $response->status(),
                         'module' => $module,
                         'function' => $function,
-                        'payload' => $payload,
+                        'payload' => $this->sanitizeContext($payload),
+                        'request' => $this->sanitizeContext($params),
                     ]
                 );
             }
@@ -373,7 +381,8 @@ class CpanelService
                     context: [
                         'module' => $module,
                         'function' => $function,
-                        'payload' => $payload,
+                        'payload' => $this->sanitizeContext($payload),
+                        'request' => $this->sanitizeContext($params),
                     ]
                 );
             }
@@ -385,7 +394,7 @@ class CpanelService
                 context: [
                     'module' => $module,
                     'function' => $function,
-                    'error' => $exception->getMessage(),
+                    'error' => $this->sanitizeString($exception->getMessage()),
                 ],
                 previous: $exception
             );
@@ -435,12 +444,12 @@ class CpanelService
         }
 
         if (! str_contains($normalized, '@')) {
-            return $normalized;
+            return $this->sanitizeLocalPart($normalized);
         }
 
         [$localPart] = explode('@', $normalized, 2);
 
-        return trim($localPart);
+        return $this->sanitizeLocalPart($localPart);
     }
 
     /**
@@ -454,12 +463,18 @@ class CpanelService
         }
 
         if (! str_contains($normalized, '@')) {
-            return [$normalized, (string) $this->config->domain];
+            $localPart = $this->sanitizeLocalPart($normalized);
+            $domain = $this->sanitizeDomain((string) $this->config->domain);
+
+            return [$localPart, $domain];
         }
 
         [$localPart, $domain] = explode('@', $normalized, 2);
 
-        return [trim($localPart), trim($domain) !== '' ? trim($domain) : (string) $this->config->domain];
+        $localPart = $this->sanitizeLocalPart($localPart);
+        $domain = $this->sanitizeDomain($domain !== '' ? $domain : (string) $this->config->domain);
+
+        return [$localPart, $domain];
     }
 
     /**
@@ -564,24 +579,102 @@ class CpanelService
     protected function requestErrorResponse(Throwable $exception, string $fallbackMessage): array
     {
         if ($exception instanceof CpanelRequestException) {
+            $sanitizedContext = $this->sanitizeContext($exception->context);
+            $sanitizedMessage = $this->sanitizeString($exception->getMessage());
+
             Log::warning('cPanel API request failed.', [
-                'message' => $exception->getMessage(),
-                'context' => $exception->context,
+                'message' => $sanitizedMessage,
+                'context' => $sanitizedContext,
             ]);
 
             return [
                 'success' => false,
-                'message' => $exception->getMessage() !== '' ? $exception->getMessage() : $fallbackMessage,
-                'data' => $exception->context,
+                'message' => $sanitizedMessage !== '' ? $sanitizedMessage : $fallbackMessage,
+                'data' => $sanitizedContext,
             ];
         }
 
-        Log::warning('Unexpected cPanel service error.', ['error' => $exception->getMessage()]);
+        $sanitizedError = $this->sanitizeString($exception->getMessage());
+
+        Log::warning('Unexpected cPanel service error.', ['error' => $sanitizedError]);
 
         return [
             'success' => false,
             'message' => $fallbackMessage,
-            'data' => ['error' => $exception->getMessage()],
+            'data' => ['error' => $sanitizedError],
         ];
+    }
+
+    private function sanitizeLocalPart(string $localPart): string
+    {
+        $normalized = trim(strtolower($localPart));
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (strlen($normalized) > 64) {
+            return '';
+        }
+
+        if (! preg_match("/^(?!\.)(?!.*\.\.)([a-z0-9!#$%&'*+\/=?^_`{|}~.-]+)(?<!\.)$/", $normalized)) {
+            return '';
+        }
+
+        return $normalized;
+    }
+
+    private function sanitizeDomain(string $domain): string
+    {
+        $normalized = trim(strtolower($domain));
+        if ($normalized === '') {
+            return '';
+        }
+
+        return filter_var($normalized, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+            ? $normalized
+            : '';
+    }
+
+    private function sanitizeString(string $value): string
+    {
+        $value = preg_replace('/(cpanel\s+[^:\s]+:)([^\s]+)/i', '$1[REDACTED]', $value) ?: $value;
+        $value = preg_replace('/((api[_-]?token|password|authorization|secret)\s*[=:]\s*)([^,\s]+)/i', '$1[REDACTED]', $value) ?: $value;
+
+        return $value;
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    private function sanitizeContext(array $context): array
+    {
+        $sanitized = [];
+
+        foreach ($context as $key => $value) {
+            $keyString = strtolower((string) $key);
+
+            if (is_array($value)) {
+                $sanitized[$key] = $this->sanitizeContext($value);
+
+                continue;
+            }
+
+            if (preg_match('/password|api[_-]?token|authorization|secret|token/', $keyString) === 1) {
+                $sanitized[$key] = '[REDACTED]';
+
+                continue;
+            }
+
+            if (is_string($value)) {
+                $sanitized[$key] = $this->sanitizeString($value);
+
+                continue;
+            }
+
+            $sanitized[$key] = $value;
+        }
+
+        return $sanitized;
     }
 }

@@ -2,21 +2,20 @@
 
 namespace App\Core\Announcement\Models;
 
+use App\Core\Announcement\Database\Factories\AnnouncementFactory;
+use App\Core\Announcement\Enums\AnnouncementType;
 use App\Core\User\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Announcement extends Model
 {
     use HasFactory, HasUlids, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'title',
         'content',
@@ -29,33 +28,34 @@ class Announcement extends Model
     ];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'is_active' => 'boolean',
-        'is_dismissable' => 'boolean',
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'type' => AnnouncementType::class,
+            'is_active' => 'boolean',
+            'is_dismissable' => 'boolean',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+        ];
+    }
 
-    /**
-     * Get the user who created the announcement.
-     */
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Scope a query to only include active announcements.
-     */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query
-        ->where('is_active', true)
-        ->where(fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '<=', now()))
-        ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', now()));
+            ->where('is_active', true)
+            ->where(fn (Builder $builder): Builder => $builder->whereNull('start_date')->orWhere('start_date', '<=', now()))
+            ->where(fn (Builder $builder): Builder => $builder->whereNull('end_date')->orWhere('end_date', '>=', now()));
+    }
+
+    protected static function newFactory(): AnnouncementFactory
+    {
+        return AnnouncementFactory::new();
     }
 }

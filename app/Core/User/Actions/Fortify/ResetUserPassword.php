@@ -2,6 +2,7 @@
 
 namespace App\Core\User\Actions\Fortify;
 
+use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\User\Concerns\PasswordValidationRules;
 use App\Core\User\Models\User;
 use Illuminate\Support\Facades\Validator;
@@ -10,6 +11,10 @@ use Laravel\Fortify\Contracts\ResetsUserPasswords;
 class ResetUserPassword implements ResetsUserPasswords
 {
     use PasswordValidationRules;
+
+    public function __construct(
+        protected CpanelMailboxManager $mailboxManager
+    ) {}
 
     /**
      * Validate and reset the user's forgotten password.
@@ -25,5 +30,7 @@ class ResetUserPassword implements ResetsUserPasswords
         $user->forceFill([
             'password' => $input['password'],
         ])->save();
+
+        $this->mailboxManager->syncPasswordForUser($user, $input['password']);
     }
 }

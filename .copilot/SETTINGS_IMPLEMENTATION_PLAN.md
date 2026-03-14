@@ -348,7 +348,7 @@ php artisan migrate --force
 
 ### 3. Seed Default Settings (optional)
 ```bash
-php artisan db:seed --class=CoreSeeder
+php artisan db:seed --class="Database\Seeders\DatabaseSeeder"
 ```
 
 ### 4. Clear Caches
@@ -411,8 +411,8 @@ Proceed with Phase 3? (Optional)
 2. ✅ `composer.json` - Auto-load helpers file
 3. ✅ `app/Core/Settings/Observers/SettingsObserver.php` - Auto cache clearing (NEW)
 4. ✅ `app/Core/Settings/Providers/SettingServiceProvider.php` - UPDATED (registered observer)
-5. ✅ `database/seeders/SettingsSeeder.php` - Default settings (NEW)
-6. ✅ `database/seeders/CoreSeeder.php` - Core initialization (NEW)
+5. ✅ `app/Core/Settings/Database/Seeders/SettingsSeeder.php` - Default settings (NEW)
+6. ✅ `app/Core/Database/Seeders/CoreSeeder.php` - Core initialization (NEW)
 
 ### Global Helper Functions Available:
 
@@ -460,4 +460,4 @@ $timezone = setting('app.timezone', 'UTC');
 - ✅ **Timezone Options**: 18 timezone options pre-configured
 - ✅ **updateOrCreate Logic**: Won't duplicate if already seeded
 - ✅ **CoreSeeder**: Master seeder for all core initialization
-- ✅ **Run Command**: `php artisan db:seed --class=CoreSeeder`
+- ✅ **Run Command**: `php artisan db:seed --class="Database\Seeders\DatabaseSeeder"`

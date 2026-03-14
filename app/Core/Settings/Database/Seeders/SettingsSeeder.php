@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace App\Core\Settings\Database\Seeders;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
@@ -8,9 +8,8 @@ use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Database\Seeder;
 
 /**
- * SettingsSeeder
- *
  * Settings domain owns persistence/UI only.
+ *
  * Defaults are sourced from:
  * - app/Core/{Module}/config/settings.php
  * - app/Domains/{Domain}/config/settings.php

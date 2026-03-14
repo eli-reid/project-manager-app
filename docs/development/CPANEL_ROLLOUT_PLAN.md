@@ -1,118 +1,130 @@
 # cPanel Integration Rollout Plan (`project-manager-app`)
 
 ## Goal
-Implement production-ready cPanel email management parity from `project-manager` into `project-manager-app`, while improving architecture, reliability, and security.
+Operate cPanel-backed mailbox management safely in production with flag-gated rollout, non-blocking behavior, and clear incident procedures.
 
-## Current Gap Summary
-- UI references exist for company email actions, but backend routes/controllers are missing.
-- No `services.cpanel` config block in `config/services.php`.
-- No cPanel API client/service in `project-manager-app`.
-- No user observer/job pipeline for email provisioning/sync.
-- No feature test coverage for cPanel flows in `project-manager-app`.
+## Implemented State (As-Built)
 
-## Rollout Phases
+### Completed capabilities
+- `services.cpanel` configuration exists and is settings-backed (`cpanel.*`).
+- Admin endpoints exist for:
+  - list/create/delete mailbox
+  - reset password
+  - suspend/unsuspend
+  - list/create/delete forwarders
+- Permission model is enforced by `manage-email-accounts` gate + middleware.
+- User lifecycle integration exists (provision, deprovision, username-change sync).
+- Password sync exists and is flag-gated by `cpanel.sync_user_passwords`.
+- Async reliability controls exist for write-side operations:
+  - queue toggle (`cpanel.queue_write_operations`)
+  - idempotency TTL
+  - retry/backoff settings
+  - cooldown threshold/window
+  - telemetry counters in cache
+- Security hardening exists:
+  - sensitive values masked in logs/context
+  - local-part/domain sanitization on write operations
 
-## Phase 1: Foundation + Parity (Required)
-- [ ] Add cPanel config in `config/services.php`:
-  - [ ] `url`, `username`, `api_token`, `domain`, `port`, `webmail_url`, `webmail_port`
-  - [ ] `default_email_quota`, `auto_create_emails`, `sync_user_passwords`, `verify_ssl`
-- [ ] Add `.env.example` keys for the above settings.
-- [ ] Define/seed settings keys in settings system (`cpanel.*`) so values can be managed in admin settings UI.
-- [ ] Create `CpanelApiClient` (single HTTP client wrapper):
-  - [ ] URL building
-  - [ ] auth header generation
-  - [ ] timeout/retry policy
-  - [ ] normalized response/error mapping
-- [ ] Create `CpanelEmailService` (domain operations):
-  - [ ] list accounts
-  - [ ] create account
-  - [ ] update password
-  - [ ] delete account
-  - [ ] create webmail session token/url
-- [ ] Add missing user routes in `app/Core/User/Routes/users/admin.php`:
-  - [ ] `admin.users.generate-company-email`
-- [ ] Implement action/controller method for generate/regenerate company email.
-- [ ] Ensure `User` model and DB schema support company email fields used by existing views.
+### Current operational gap
+- Credential rotation is still a manual operator process and must be executed per environment.
 
-### Phase 1 Acceptance Criteria
-- [ ] Create/edit user screens no longer reference missing routes.
-- [ ] Admin can generate/regenerate company email for a user.
-- [ ] cPanel failures do not block user CRUD and return actionable errors.
-- [ ] Feature tests pass for core generation flow.
+## Runtime Flags and Controls
 
-## Phase 2: Async Lifecycle + Password Sync
-- [ ] Add `UserObserver` integration for lifecycle hooks:
-  - [ ] on created: dispatch provisioning job when enabled
-  - [ ] on password changed: dispatch password sync job when enabled
-  - [ ] on deleted: optionally dispatch mailbox deletion (flag-gated)
-- [ ] Add queued jobs:
-  - [ ] `ProvisionCompanyEmailJob`
-  - [ ] `SyncCompanyEmailPasswordJob`
-  - [ ] `DeleteCompanyEmailJob` (optional)
-- [ ] Add idempotency checks in jobs to prevent duplicate mailbox creation.
-- [ ] Add retry/backoff strategy for transient cPanel failures.
-- [ ] Add status tracking fields/log context for provisioning outcomes.
+### Core controls
+- `cpanel.auto_create_emails`
+- `cpanel.auto_delete_emails`
+- `cpanel.sync_user_passwords`
+- `cpanel.queue_write_operations`
 
-### Phase 2 Acceptance Criteria
-- [ ] User creation and password-change flows are non-blocking.
-- [ ] Jobs retry safely and do not duplicate mailboxes.
-- [ ] Operational logs include correlation IDs/user IDs and sanitized context.
+### Reliability controls
+- `cpanel.idempotency_ttl_seconds`
+- `cpanel.queue_tries`
+- `cpanel.queue_backoff`
+- `cpanel.failure_threshold`
+- `cpanel.cooldown_seconds`
+- `cpanel.telemetry_key_prefix`
 
-## Phase 3: Admin Mailbox Management + Webmail UX
-- [ ] Add admin email account management controller endpoints:
-  - [ ] list/search
-  - [ ] create standalone mailbox
-  - [ ] reset mailbox password
-  - [ ] suspend/unsuspend
-  - [ ] delete
-  - [ ] forwarders (optional)
-- [ ] Add webmail launch route/controller (session-based redirect if supported).
-- [ ] Add permissions and policy/gate integration:
-  - [ ] `manage-email-accounts`
-- [ ] Add UI pages/components for mailbox operations.
+## Staged Rollout Notes
 
-### Phase 3 Acceptance Criteria
-- [ ] Admin can manage mailbox lifecycle from UI.
-- [ ] Authorization enforced for all mailbox actions.
-- [ ] Webmail launch works or degrades gracefully to login URL.
+### Stage 0: Safe baseline
+- Keep `auto_create_emails=false`, `sync_user_passwords=false`.
+- Set `queue_write_operations=true` and verify queue worker health.
+- Confirm admin read/list endpoints and manual generation work.
 
-## Security and Reliability Requirements (All Phases)
-- [ ] Never log API token or plaintext generated passwords.
-- [ ] Mask sensitive fields in logs and exceptions.
-- [ ] Validate/sanitize email local-part and domain usage.
-- [ ] Add circuit breaker behavior for repeated cPanel outages (cooldown window).
-- [ ] Add telemetry counters for success/failure rates.
+### Stage 1: Controlled write rollout
+- Enable `auto_create_emails=true` for mailbox provisioning on new users.
+- Keep `sync_user_passwords=false` during initial stabilization.
+- Monitor telemetry cache counters and warning logs for 24-48h.
 
-## Testing Plan
-- [ ] Unit tests for `CpanelApiClient` URL building/auth/error mapping.
-- [ ] Unit tests for `CpanelEmailService` logic and edge cases.
-- [ ] Feature tests for generate/regenerate company email route and permissions.
-- [ ] Observer/job tests for dispatch conditions and idempotency.
-- [ ] HTTP fake tests for cPanel API status codes (200, 403, 429, 5xx, timeout).
+### Stage 2: Password sync rollout
+- Enable `sync_user_passwords=true`.
+- Keep queueing enabled for write-side operations.
+- Validate password update flow and forgot-password reset flow in production-like environment.
 
-## Data and Migration Checklist
-- [ ] Confirm `users` table has `company_email` and any status fields required.
-- [ ] Add migrations for missing fields/indexes if needed.
-- [ ] Backfill `company_email` for existing users where possible.
+### Stage 3: Full operations
+- Keep cooldown and retry/backoff tuned based on observed failure rates.
+- Revisit `auto_delete_emails` default per business policy.
 
-## Deployment Checklist
-- [ ] Add env values in each environment.
-- [ ] Validate queue worker is running before enabling auto-create/sync.
-- [ ] Enable feature flags in stages:
-  - [ ] read-only/list first
-  - [ ] manual generation
-  - [ ] auto-create on user creation
-  - [ ] password sync
-- [ ] Monitor logs/metrics for first rollout window.
+## Fallback and Rollback
 
-## Open Decisions
-- [ ] Should mailbox deletion be enabled by default on user delete?
-- [ ] Should generated mailbox passwords be surfaced to admins once, or never?
-- [ ] Should webmail SSO be mandatory, optional, or postponed?
-- [ ] Which operations require queue-only execution (recommended: all write ops)?
+### Immediate fallback (no deploy required)
+- Set `cpanel.sync_user_passwords=false` to stop password sync traffic.
+- Set `cpanel.auto_create_emails=false` to stop provisioning traffic.
+- Keep `queue_write_operations=true` unless queue is degraded.
 
-## Suggested Execution Order
-1. Phase 1 config + backend route fix + generate/regenerate action.
-2. Phase 1 tests and production hardening pass.
-3. Phase 2 observer + jobs + retries + idempotency.
-4. Phase 3 admin management and webmail UX.
+### Degraded mode fallback
+- If cPanel outage persists, raise `cooldown_seconds` and/or lower `failure_threshold`.
+- Pause queue workers for cPanel queue if necessary.
+
+### Full rollback
+- Disable all write-side flags (`auto_create_emails`, `auto_delete_emails`, `sync_user_passwords`).
+- Keep read/list operations available for visibility.
+
+## Operator Runbook (Incident + Recovery)
+
+### Incident detection
+- Signals:
+  - rising `failure.*` telemetry counters
+  - repeated `cPanel API request failed` warnings
+  - cooldown key active for extended periods
+
+### Triage steps
+1. Validate cPanel connectivity and credentials outside app.
+2. Check queue worker health and backlog depth.
+3. Inspect app logs for masked cPanel errors and endpoint/function context.
+4. Confirm whether failures are transient (network/timeout) or persistent auth/config.
+
+### Containment steps
+1. Disable `cpanel.sync_user_passwords` first.
+2. Disable `cpanel.auto_create_emails` if provisioning failures continue.
+3. Keep read-only operations enabled for support visibility.
+
+### Recovery steps
+1. Fix connectivity/credential/config issue.
+2. Re-enable flags in order: provisioning, then password sync.
+3. Watch telemetry counters and queue retries for at least one full business cycle.
+
+## Credential Rotation Procedure
+
+### When to rotate
+- Any suspected leak of `CPANEL_API_TOKEN`.
+- Scheduled secret hygiene window.
+- Personnel/access changes.
+
+### Rotation steps
+1. Generate a new cPanel API token with least-privilege scope.
+2. Update secret store/environment (`CPANEL_API_TOKEN`) per environment.
+3. Sync settings value (`cpanel.api_token`) if using settings DB override.
+4. Clear config/settings cache and restart queue workers.
+5. Validate with a non-destructive operation (list email accounts).
+6. Revoke old token after new token is verified.
+
+### Verification checklist
+- Admin cPanel list endpoint returns success.
+- Write operation succeeds in staging/prod canary.
+- No auth failures in logs for 15-30 minutes after cutover.
+
+## Outstanding Items
+- Execute credential rotation in all environments and record completion evidence.
+- Decide policy default for `auto_delete_emails` and document rationale.
+

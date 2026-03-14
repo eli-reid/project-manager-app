@@ -35,6 +35,12 @@
                     </flux:sidebar.item>
                 @endcan
 
+                @can('viewAny', \App\Core\Announcement\Models\Announcement::class)
+                    <flux:sidebar.item icon="megaphone" :href="route('admin.announcements.index')" :current="request()->routeIs('admin.announcements.*')" wire:navigate data-test="admin-announcements-sidebar-main-link">
+                        {{ __('Announcements') }}
+                    </flux:sidebar.item>
+                @endcan
+
                 <flux:sidebar.item href="#" icon="drafting-compass" :current="request()->routeIs('projects')" wire:navigate>
                     {{ __('My Projects') }}
                 </flux:sidebar.item>
@@ -117,6 +123,12 @@
                             @can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)
                                 <flux:menu.item :href="route('admin.scheduler.tasks.index')" icon="clock" wire:navigate data-test="admin-scheduler-link-mobile">
                                     {{ __('Scheduler') }}
+                                </flux:menu.item>
+                            @endcan
+
+                            @can('viewAny', \App\Core\Announcement\Models\Announcement::class)
+                                <flux:menu.item :href="route('admin.announcements.index')" icon="megaphone" wire:navigate data-test="admin-announcements-link-mobile">
+                                    {{ __('Announcements') }}
                                 </flux:menu.item>
                             @endcan
                         </flux:menu.radio.group>

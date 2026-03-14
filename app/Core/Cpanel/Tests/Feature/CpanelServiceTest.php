@@ -4,6 +4,7 @@ use App\Core\Cpanel\Data\CpanelConfig;
 use App\Core\Cpanel\Services\CpanelService;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 it('returns a configuration error when cpanel credentials are missing', function () {
     $service = new CpanelService(CpanelConfig::fromServicesConfig([]));
@@ -141,4 +142,67 @@ it('falls back to webmail redirect url when session api does not return url', fu
 
     expect($result['success'])->toBeTrue();
     expect($result['url'])->toBe('https://cpanel.example.test:2096/?user=john%40example.test');
+});
+
+it('rejects invalid mailbox local part for write operations', function () {
+    $service = new CpanelService(CpanelConfig::fromServicesConfig([
+        'url' => 'https://cpanel.example.test',
+        'username' => 'root',
+        'api_token' => 'secret-token',
+        'domain' => 'example.test',
+    ]));
+
+    Http::preventStrayRequests();
+    Http::fake();
+
+    $result = $service->createEmailAccount('invalid local part', 'StrongPassword#123');
+
+    expect($result['success'])->toBeFalse();
+    expect($result['message'])->toBe('Valid email username is required.');
+    Http::assertNothingSent();
+});
+
+it('masks sensitive data in cpanel request error response context and logs', function () {
+    $service = new CpanelService(CpanelConfig::fromServicesConfig([
+        'url' => 'https://cpanel.example.test',
+        'username' => 'root',
+        'api_token' => 'secret-token',
+        'domain' => 'example.test',
+    ]));
+
+    Log::spy();
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Email/passwd_pop' => Http::response([
+            'status' => 0,
+            'errors' => ['password=super-secret'],
+            'data' => [
+                'api_token' => 'secret-token',
+                'nested' => [
+                    'authorization' => 'cpanel root:secret-token',
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $result = $service->updateEmailPassword('john@example.test', 'StrongPassword#123');
+
+    expect($result['success'])->toBeFalse();
+    expect($result['message'])->toContain('[REDACTED]');
+    expect((string) ($result['data']['request']['password'] ?? null))->toBe('[REDACTED]');
+    expect((string) ($result['data']['payload']['data']['api_token'] ?? null))->toBe('[REDACTED]');
+    expect((string) ($result['data']['payload']['data']['nested']['authorization'] ?? null))->toBe('[REDACTED]');
+
+    Log::shouldHaveReceived('warning')->withArgs(function (string $message, array $context): bool {
+        if ($message !== 'cPanel API request failed.') {
+            return false;
+        }
+
+        $logMessage = (string) ($context['message'] ?? '');
+        $requestPassword = $context['context']['request']['password'] ?? null;
+
+        return ! str_contains($logMessage, 'super-secret')
+            && $requestPassword === '[REDACTED]';
+    });
 });

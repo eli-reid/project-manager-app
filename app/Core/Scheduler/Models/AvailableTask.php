@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AvailableTask extends Model
 {
-    /** @use HasFactory<\Database\Factories\Core\Scheduler\Models\AvailableTaskFactory> */
+    /** @use HasFactory<\App\Core\Scheduler\Database\Factories\AvailableTaskFactory> */
     use HasFactory;
 
     use HasUlids;
@@ -32,5 +32,13 @@ class AvailableTask extends Model
     public function scheduledTasks(): HasMany
     {
         return $this->hasMany(ScheduledTask::class, 'available_task_id');
+    }
+
+    /**
+     * Resolve the model factory for this model.
+     */
+    protected static function newFactory()
+    {
+        return \App\Core\Scheduler\Database\Factories\AvailableTaskFactory::new();
     }
 }
