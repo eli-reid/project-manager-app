@@ -23,7 +23,11 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($projects as $project)
-                        <tr wire:key="project-{{ $project->id }}">
+                        <tr
+                            wire:key="project-{{ $project->id }}"
+                            class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                            onclick="window.location='{{ route('admin.projects.show', $project) }}'"
+                        >
                             <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->project_number ?? 'N/A' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
@@ -38,11 +42,38 @@
                                     TBD
                                 @endif
                             </td>
-                            <td class="px-4 py-3 align-top">
-                                <div class="flex items-center justify-end gap-2">
-                                    @can('update', $project)
-                                        <a href="{{ route('admin.projects.edit', $project) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
-                                    @endcan
+                            <td class="px-4 py-3 align-top" @click.stop>
+                                <div class="flex items-center justify-end" x-data="{ open: false }">
+                                    <button
+                                        type="button"
+                                        @click.stop="open = ! open"
+                                        @keydown.escape.window="open = false"
+                                        class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        aria-label="Project actions"
+                                    >
+                                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <circle cx="4" cy="10" r="1.5" />
+                                            <circle cx="10" cy="10" r="1.5" />
+                                            <circle cx="16" cy="10" r="1.5" />
+                                        </svg>
+                                    </button>
+
+                                    <div
+                                        x-show="open"
+                                        x-cloak
+                                        @click.away="open = false"
+                                        class="absolute right-4 z-20 mt-9 w-36 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                                    >
+                                        @can('view', $project)
+                                            <a href="{{ route('admin.projects.show', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">View</a>
+                                        @endcan
+                                        @can('viewAny', \App\Domains\Tasks\Models\Task::class)
+                                            <a href="{{ route('admin.tasks.index', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Tasks</a>
+                                        @endcan
+                                        @can('update', $project)
+                                            <a href="{{ route('admin.projects.edit', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
+                                        @endcan
+                                    </div>
                                 </div>
                             </td>
                         </tr>

@@ -6,6 +6,7 @@ use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
+use App\Domains\Tasks\Observers\TaskCategoryObserver;
 use App\Domains\Tasks\Permissions\TaskCategoryPermissions;
 use App\Domains\Tasks\Permissions\TaskPermissions;
 use App\Domains\Tasks\Permissions\TaskTemplatePermissions;
@@ -28,6 +29,7 @@ class TasksServiceProvider extends ServiceProvider
         Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(TaskCategory::class, TaskCategoryPolicy::class);
         Gate::policy(TaskTemplate::class, TaskTemplatePolicy::class);
+        TaskCategory::observe(TaskCategoryObserver::class);
 
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'tasks');

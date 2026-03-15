@@ -27,6 +27,7 @@ class ProjectsServiceProvider extends ServiceProvider
 
         Livewire::component('app.domains.projects.livewire.admin.projects', \App\Domains\Projects\Livewire\Admin\Projects\Index::class);
         Livewire::component('app.domains.projects.livewire.admin.projects.form', \App\Domains\Projects\Livewire\Admin\Projects\Form::class);
+        Livewire::component('app.domains.projects.livewire.admin.projects.show', \App\Domains\Projects\Livewire\Admin\Projects\Show::class);
 
         Route::prefix('admin')
             ->name('admin.')

@@ -41,22 +41,51 @@
                     </flux:sidebar.item>
                 @endcan
 
-                <flux:sidebar.item href="#" icon="drafting-compass" :current="request()->routeIs('projects')" wire:navigate>
-                    {{ __('My Projects') }}
-                </flux:sidebar.item>
+                @can('viewAny', \App\Domains\Projects\Models\Project::class)
+                    <flux:sidebar.item icon="drafting-compass" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
+                        {{ __('Projects') }}
+                    </flux:sidebar.item>
+                @endcan
+
+                @can('viewAny', \App\Domains\Clients\Models\Client::class)
+                    <flux:sidebar.item icon="building-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*')" wire:navigate>
+                        {{ __('Clients') }}
+                    </flux:sidebar.item>
+                @endcan
+
+                @if (auth()->user()?->hasPermission('tasks.view') || auth()->user()?->hasPermission('task-categories.view') || auth()->user()?->hasPermission('task-templates.view'))
+                    <flux:sidebar.group expandable heading="Tasks" class="grid">
+                        @can('viewAny', \App\Domains\Tasks\Models\Task::class)
+                            <flux:sidebar.item icon="check-circle" :href="route('admin.tasks.index')" :current="request()->routeIs('admin.tasks.*')" wire:navigate>
+                                {{ __('Tasks') }}
+                            </flux:sidebar.item>
+                        @endcan
+                        @can('viewAny', \App\Domains\Tasks\Models\TaskCategory::class)
+                            <flux:sidebar.item icon="folder" :href="route('admin.task-categories.index')" :current="request()->routeIs('admin.task-categories.*')" wire:navigate>
+                                {{ __('Categories') }}
+                            </flux:sidebar.item>
+                        @endcan
+                        @can('viewAny', \App\Domains\Tasks\Models\TaskTemplate::class)
+                            <flux:sidebar.item icon="clipboard-list" :href="route('admin.task-templates.index')" :current="request()->routeIs('admin.task-templates.*')" wire:navigate>
+                                {{ __('Templates') }}
+                            </flux:sidebar.item>
+                        @endcan
+                    </flux:sidebar.group>
+                @endif
 
                 <flux:sidebar.group expandable heading="Time" class="grid">
-                    <flux:sidebar.item href="#" icon='clock' :current="request()->routeIs('timecards')">My Timecards</flux:sidebar.item>
-                    <flux:sidebar.item href="#" icon='calendar' :current="request()->routeIs('daily')">Daily</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon="clock" :current="false">{{ __('My Timecards') }}</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon="calendar" :current="false">{{ __('Daily') }}</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group expandable heading="Stock" class="grid">
-                    <flux:sidebar.item href="#" icon='clipboard-pen-line' :current="request()->routeIs('timecards')">Create Order</flux:sidebar.item>
-                    <flux:sidebar.item href="#" icon='clipboard-type' :current="request()->routeIs('daily')">My Templates</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Create Order') }}</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon="clipboard-type" :current="false">{{ __('My Templates') }}</flux:sidebar.item>
                 </flux:sidebar.group>
+
                 <flux:sidebar.group expandable heading="Documents" class="grid">
-                    <flux:sidebar.item href="#" icon='clipboard-pen-line' :current="request()->routeIs('timecards')">My Documents</flux:sidebar.item>
-                    <flux:sidebar.item href="#" icon='clipboard-type' :current="request()->routeIs('daily')">Upload</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('My Documents') }}</flux:sidebar.item>
+                    <flux:sidebar.item href="#" icon="clipboard-type" :current="false">{{ __('Upload') }}</flux:sidebar.item>
                 </flux:sidebar.group>
 
             </flux:sidebar.nav>

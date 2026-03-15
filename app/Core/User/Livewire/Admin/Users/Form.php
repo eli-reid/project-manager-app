@@ -110,6 +110,8 @@ class Form extends Component
         }
 
         $user->roles()->sync($validated['selectedRoleIds']);
+        $user->flushAuthorizationCache();
+        User::bumpPermissionCacheVersion();
 
         session()->flash('success', $this->isEdit ? 'User updated successfully.' : 'User created successfully.');
 

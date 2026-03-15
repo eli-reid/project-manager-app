@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../project-manager"
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+
+			"php artisan test": true,
+
+			"vendor/bin/pint": true,
+
+		}
+	}
+}

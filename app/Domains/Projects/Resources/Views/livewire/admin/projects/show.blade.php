@@ -1,0 +1,357 @@
+<div class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <flux:heading size="xl" level="1">{{ $project->name }}</flux:heading>
+            <flux:text class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                Project # {{ $project->project_number ?? 'N/A' }}
+            </flux:text>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.projects.index') }}" class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Back</a>
+            @can('update', $project)
+                <a href="{{ route('admin.projects.edit', $project) }}" class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
+            @endcan
+        </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border border-zinc-200 bg-white p-2 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="flex min-w-max gap-2">
+            <button type="button" wire:click="setTab('overview')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'overview' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Overview</button>
+
+            @if (in_array('tasks', $tabs, true))
+                <button type="button" wire:click="setTab('tasks')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'tasks' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Tasks</button>
+            @endif
+
+            @if (in_array('templates', $tabs, true))
+                <button type="button" wire:click="setTab('templates')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'templates' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Templates</button>
+            @endif
+        </div>
+    </div>
+
+    @if ($activeTab === 'overview')
+        <div class="grid gap-4 md:grid-cols-3">
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</p>
+                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->status?->label() ?? 'Unknown' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Timeline</p>
+                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {{ $project->start_date?->format('M j, Y') ?? 'TBD' }}
+                    <span class="mx-1">to</span>
+                    {{ $project->end_date?->format('M j, Y') ?? 'TBD' }}
+                </p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Task Count</p>
+                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $taskCount }}</p>
+            </div>
+        </div>
+    @endif
+
+    @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))
+        @php
+            $uncategorizedTasks = $tasksByCategory->get('', collect());
+            $hasTaskHierarchy = $categories->isNotEmpty() || $uncategorizedTasks->isNotEmpty();
+        @endphp
+
+        <div x-data="{ actionsOpen: false, showCopyModal: false, showCopyCategoryModal: false }" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            @if (session('success'))
+                <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300">{{ session('error') }}</div>
+            @endif
+
+            <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Project Work Breakdown</h2>
+                <div
+                    class="relative"
+                    x-data="{ menuStyle: '', toggleMenu(event) { const rect = event.currentTarget.getBoundingClientRect(); const menuHeight = 220; const spaceBelow = window.innerHeight - rect.bottom; const right = window.innerWidth - rect.right; if (spaceBelow < menuHeight) { this.menuStyle = 'bottom: ' + (window.innerHeight - rect.top + 6) + 'px; right: ' + right + 'px;'; } else { this.menuStyle = 'top: ' + (rect.bottom + 6) + 'px; right: ' + right + 'px;'; } actionsOpen = !actionsOpen; } }"
+                    @click.away="actionsOpen = false"
+                >
+                    <button type="button" @click="toggleMenu($event)" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" aria-label="Task actions">
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <circle cx="4" cy="10" r="1.5" />
+                            <circle cx="10" cy="10" r="1.5" />
+                            <circle cx="16" cy="10" r="1.5" />
+                        </svg>
+                    </button>
+
+                    <div x-show="actionsOpen" x-cloak class="fixed z-30 w-56 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
+                        @can('create', \App\Domains\Tasks\Models\Task::class)
+                            <button type="button" @click="actionsOpen = false" wire:click="startInlineTaskForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Task</button>
+                        @endcan
+                        @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
+                            <button type="button" @click="actionsOpen = false" wire:click="startInlineCategoryForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Category</button>
+                        @endcan
+                        @can('create', \App\Domains\Tasks\Models\Task::class)
+                            <div class="my-1 border-t border-zinc-200 dark:border-zinc-700"></div>
+                            <a href="{{ route('admin.tasks.create', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Add Task</a>
+                        @endcan
+                        @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
+                            <a href="{{ route('admin.task-categories.create', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Add Category</a>
+                        @endcan
+                        @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
+                            <button type="button" @click="actionsOpen = false; showCopyCategoryModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category</button>
+                        @endcan
+                        @can('create', \App\Domains\Tasks\Models\Task::class)
+                            <button type="button" @click="actionsOpen = false; showCopyModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category Tasks</button>
+                        @endcan
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="showCopyCategoryModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 p-4" @click.self="showCopyCategoryModal = false">
+                <div class="w-full max-w-lg rounded-xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+                    <div class="mb-4 flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Copy Category</h3>
+                        <button type="button" @click="showCopyCategoryModal = false" class="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800" aria-label="Close">x</button>
+                    </div>
+
+                    <form wire:submit="copyCategory" class="space-y-4">
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Source Category</label>
+                            <select wire:model="copyCategorySourceId" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                <option value="">Select a source category</option>
+                                @foreach ($copyCategoryOptions as $option)
+                                    <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('copyCategorySourceId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                            <button type="button" @click="showCopyCategoryModal = false" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</button>
+                            <button type="submit" @click="showCopyCategoryModal = false" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Copy Category</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if ($showInlineCategoryForm)
+                <form wire:submit="createInlineCategory" class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-800/40">
+                    <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Add Category</p>
+                    <div class="grid gap-3 md:grid-cols-3">
+                        <div class="md:col-span-2">
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</label>
+                            <input type="text" wire:model="inlineCategoryName" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('inlineCategoryName') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Parent</label>
+                            <select wire:model="inlineCategoryParentId" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                <option value="">Top level</option>
+                                @foreach ($copyCategoryOptions as $option)
+                                    <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('inlineCategoryParentId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
+                            <textarea wire:model="inlineCategoryDescription" rows="2" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>
+                            @error('inlineCategoryDescription') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" wire:click="cancelInlineCategoryForm" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</button>
+                        <button type="submit" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Create Category</button>
+                    </div>
+                </form>
+            @endif
+
+            @if ($showInlineTaskForm)
+                <form wire:submit="createInlineTask" class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-800/40">
+                    <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Add Task</p>
+                    <div class="grid gap-3 md:grid-cols-3">
+                        <div class="md:col-span-2">
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</label>
+                            <input type="text" wire:model="inlineTaskTitle" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('inlineTaskTitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Category</label>
+                            <select wire:model="inlineTaskCategoryId" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                <option value="">Select category</option>
+                                @foreach ($copyCategoryOptions as $option)
+                                    <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('inlineTaskCategoryId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
+                            <textarea wire:model="inlineTaskDescription" rows="2" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>
+                            @error('inlineTaskDescription') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Assigned To</label>
+                            <select wire:model="inlineTaskAssignedTo" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                <option value="">Unassigned</option>
+                                @foreach ($assignableUsers as $user)
+                                    <option value="{{ $user->id }}">{{ trim(($user->first_name ?? '').' '.($user->last_name ?? '')) }}</option>
+                                @endforeach
+                            </select>
+                            @error('inlineTaskAssignedTo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" wire:click="cancelInlineTaskForm" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</button>
+                        <button type="submit" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Create Task</button>
+                    </div>
+                </form>
+            @endif
+
+            <div x-show="showCopyModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 p-4" @click.self="showCopyModal = false">
+                <div class="w-full max-w-lg rounded-xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+                    <div class="mb-4 flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Copy Category Tasks</h3>
+                        <button type="button" @click="showCopyModal = false" class="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800" aria-label="Close">x</button>
+                    </div>
+
+                    <form wire:submit="copyCategoryTasks" class="space-y-4">
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Source Category</label>
+                            <select wire:model="copySourceCategoryId" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                <option value="">Select a source category</option>
+                                @foreach ($copyCategoryOptions as $option)
+                                    <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('copySourceCategoryId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Target Category</label>
+                            <select wire:model="copyTargetCategoryId" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                <option value="">Uncategorized</option>
+                                @foreach ($copyCategoryOptions as $option)
+                                    <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('copyTargetCategoryId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <label class="inline-flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
+                            <input type="checkbox" wire:model="copyIncludeSubtasks" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900" />
+                            <span>Include subtasks</span>
+                        </label>
+
+                        <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                            <button type="button" @click="showCopyModal = false" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</button>
+                            <button type="submit" @click="showCopyModal = false" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Copy Tasks</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/60">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total</p>
+                    <p class="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">{{ $taskCount }}</p>
+                </div>
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/60">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">In Progress</p>
+                    <p class="mt-1 text-lg font-semibold text-amber-600 dark:text-amber-400">{{ $inProgressTaskCount }}</p>
+                </div>
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/60">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Completed</p>
+                    <p class="mt-1 text-lg font-semibold text-emerald-600 dark:text-emerald-400">{{ $completedTaskCount }}</p>
+                </div>
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/60">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Overdue</p>
+                    <p class="mt-1 text-lg font-semibold text-rose-600 dark:text-rose-400">{{ $overdueTaskCount }}</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto" x-data="{ collapsedCategories: @js($collapsedCategoryIds), isCollapsed(id) { return this.collapsedCategories.includes(id); }, toggleCategory(id) { this.collapsedCategories = this.isCollapsed(id) ? this.collapsedCategories.filter(item => item !== id) : [...this.collapsedCategories, id]; } }">
+                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <thead class="bg-zinc-50 dark:bg-zinc-800/50">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Type</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Assigned</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                        @if ($hasTaskHierarchy)
+                            @foreach ($categories as $category)
+                                @include('projects::livewire.admin.projects._task-category-tree-row', [
+                                    'category' => $category,
+                                    'depth' => 0,
+                                    'ancestors' => [],
+                                    'tasksByCategory' => $tasksByCategory,
+                                ])
+                            @endforeach
+
+                            @foreach ($uncategorizedTasks as $task)
+                                <tr wire:key="uncategorized-task-row-{{ $task->id }}">
+                                    <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200">{{ $task->title }}</td>
+                                    <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">Task</td>
+                                    <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ str($task->status)->replace('_', ' ')->headline() }}</td>
+                                    <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ $task->assignedTo ? $task->assignedTo->first_name.' '.$task->assignedTo->last_name : '—' }}</td>
+                                    <td class="px-3 py-2 align-top text-right">
+                                        <div class="relative inline-block text-left" x-data="{ open: false, menuStyle: '', toggleMenu(event) { const rect = event.currentTarget.getBoundingClientRect(); const menuHeight = 120; const spaceBelow = window.innerHeight - rect.bottom; const right = window.innerWidth - rect.right; if (spaceBelow < menuHeight) { this.menuStyle = 'bottom: ' + (window.innerHeight - rect.top + 4) + 'px; right: ' + right + 'px;'; } else { this.menuStyle = 'top: ' + (rect.bottom + 4) + 'px; right: ' + right + 'px;'; } this.open = !this.open; } }" @click.away="open = false">
+                                            <button type="button" @click="toggleMenu($event)" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-300 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Task actions">
+                                                <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <circle cx="4" cy="10" r="1.5" />
+                                                    <circle cx="10" cy="10" r="1.5" />
+                                                    <circle cx="16" cy="10" r="1.5" />
+                                                </svg>
+                                            </button>
+                                            <div x-show="open" x-cloak class="fixed z-30 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
+                                                @can('update', $task)
+                                                    <a href="{{ route('admin.tasks.edit', $task) }}" wire:navigate class="block px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit Task</a>
+                                                @endcan
+                                                @can('create', \App\Domains\Tasks\Models\Task::class)
+                                                    <button type="button" @click="open = false" wire:click="copyTaskFrom('{{ $task->id }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Task</button>
+                                                @endcan
+                                                @can('delete', $task)
+                                                    <button type="button" @click="open = false" wire:click="deleteTask('{{ $task->id }}')" wire:confirm="Delete this task?" class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30">Delete Task</button>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="5" class="px-3 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No tasks found for this project.</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+    @if ($activeTab === 'templates' && in_array('templates', $tabs, true))
+        <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Global Task Templates</h2>
+                @can('viewAny', \App\Domains\Tasks\Models\TaskTemplate::class)
+                    <a href="{{ route('admin.task-templates.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Manage Templates</a>
+                @endcan
+            </div>
+
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Templates are global and can be imported into project task lists.</p>
+
+            <ul class="space-y-2">
+                @forelse ($templates as $template)
+                    <li class="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:text-zinc-300">
+                        <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $template->name }}</span>
+                        <span class="text-zinc-500">({{ ucfirst($template->priority) }})</span>
+                    </li>
+                @empty
+                    <li class="rounded-lg border border-zinc-200 px-3 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">No templates available.</li>
+                @endforelse
+            </ul>
+        </div>
+    @endif
+</div>

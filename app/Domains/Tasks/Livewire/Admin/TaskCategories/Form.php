@@ -57,10 +57,12 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'project_id' => ['nullable', 'exists:projects,id'],
+            'project_id' => ['required', 'exists:projects,id'],
             'parent_id' => [
                 'nullable',
-                'exists:task_categories,id',
+                Rule::exists('task_categories', 'id')->where(function ($query): void {
+                    $query->where('project_id', $this->project_id);
+                }),
                 Rule::notIn(array_filter([$this->taskCategory?->id])),
             ],
             'name' => ['required', 'string', 'max:255'],
@@ -103,7 +105,10 @@ class Form extends Component
 
     public function render()
     {
-        $query = TaskCategory::query()->where('is_active', true)->orderBy('name');
+        $query = TaskCategory::query()
+            ->where('is_active', true)
+            ->when($this->project_id, fn ($builder) => $builder->where('project_id', $this->project_id))
+            ->orderBy('name');
 
         if ($this->taskCategory !== null) {
             $query->whereKeyNot($this->taskCategory->id);

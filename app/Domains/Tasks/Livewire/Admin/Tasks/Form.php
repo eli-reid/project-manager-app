@@ -74,6 +74,11 @@ class Form extends Component
         }
 
         $this->authorize('create', Task::class);
+
+        $requestedProjectId = request()->string('project_id')->value();
+        if ($requestedProjectId !== '') {
+            $this->project_id = $requestedProjectId;
+        }
     }
 
     protected function rules(): array
@@ -82,10 +87,17 @@ class Form extends Component
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'project_id' => ['required', 'exists:projects,id'],
-            'task_category_id' => ['nullable', 'exists:task_categories,id'],
+            'task_category_id' => [
+                'required',
+                Rule::exists('task_categories', 'id')->where(function ($query): void {
+                    $query->where('project_id', $this->project_id);
+                }),
+            ],
             'parent_task_id' => [
                 'nullable',
-                'exists:tasks,id',
+                Rule::exists('tasks', 'id')->where(function ($query): void {
+                    $query->where('project_id', $this->project_id);
+                }),
                 Rule::notIn(array_filter([$this->task?->id])),
             ],
             'status' => ['required', Rule::in(Task::statuses())],
@@ -115,7 +127,7 @@ class Form extends Component
             $this->task->update($validated);
 
             session()->flash('success', 'Task updated successfully.');
-            $this->redirectRoute('admin.tasks.index', navigate: true);
+            $this->redirectRoute('admin.tasks.index', ['project_id' => $validated['project_id']], navigate: true);
 
             return;
         }
@@ -124,7 +136,7 @@ class Form extends Component
         Task::query()->create($validated);
 
         session()->flash('success', 'Task created successfully.');
-        $this->redirectRoute('admin.tasks.index', navigate: true);
+        $this->redirectRoute('admin.tasks.index', ['project_id' => $validated['project_id']], navigate: true);
     }
 
     public function render()
@@ -134,11 +146,11 @@ class Form extends Component
         return view('tasks::livewire.admin.tasks.form', [
             'projects' => Project::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'categories' => TaskCategory::query()
-                ->when($projectId, fn ($query) => $query->where('project_id', $projectId))
+                ->when($projectId, fn ($query) => $query->where('project_id', $projectId), fn ($query) => $query->whereRaw('1 = 0'))
                 ->orderBy('name')
                 ->get(['id', 'name', 'project_id']),
             'parentTasks' => Task::query()
-                ->when($projectId, fn ($query) => $query->where('project_id', $projectId))
+                ->when($projectId, fn ($query) => $query->where('project_id', $projectId), fn ($query) => $query->whereRaw('1 = 0'))
                 ->when($this->task !== null, fn ($query) => $query->whereKeyNot($this->task->id))
                 ->orderBy('title')
                 ->get(['id', 'title', 'project_id']),

@@ -18,6 +18,8 @@ class Project extends Model
 {
     use HasFactory, HasUlids, SoftDeletes;
 
+    private const PROJECT_NUMBER_PADDING = 4;
+
     protected $fillable = [
         'name',
         'project_number',
@@ -42,6 +44,70 @@ class Project extends Model
             'end_date' => 'date',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Project $project): void {
+            if (filled($project->project_number)) {
+                return;
+            }
+
+            if (! setting_bool('projects.auto_generate_numbers', true)) {
+                return;
+            }
+
+            $project->project_number = self::nextAutoProjectNumber();
+        });
+    }
+
+    protected static function nextAutoProjectNumber(): string
+    {
+        $prefix = (string) setting('projects.number_prefix', 'PRJ-');
+        $highestSequence = self::highestSequenceForPrefix($prefix);
+        $nextSequence = $highestSequence + 1;
+
+        $candidate = self::formatProjectNumber($prefix, $nextSequence);
+
+        while (self::query()->where('project_number', $candidate)->exists()) {
+            $nextSequence++;
+            $candidate = self::formatProjectNumber($prefix, $nextSequence);
+        }
+
+        return $candidate;
+    }
+
+    protected static function highestSequenceForPrefix(string $prefix): int
+    {
+        $projectNumbers = self::query()
+            ->whereNotNull('project_number')
+            ->when($prefix !== '', fn ($query) => $query->where('project_number', 'like', $prefix.'%'))
+            ->pluck('project_number');
+
+        $pattern = '/^'.preg_quote($prefix, '/').'(\d+)$/';
+        $max = 0;
+
+        foreach ($projectNumbers as $projectNumber) {
+            if (! is_string($projectNumber)) {
+                continue;
+            }
+
+            if (preg_match($pattern, $projectNumber, $matches) !== 1) {
+                continue;
+            }
+
+            $sequence = (int) ($matches[1] ?? 0);
+            if ($sequence > $max) {
+                $max = $sequence;
+            }
+        }
+
+        return $max;
+    }
+
+    protected static function formatProjectNumber(string $prefix, int $sequence): string
+    {
+        return $prefix.str_pad((string) $sequence, self::PROJECT_NUMBER_PADDING, '0', STR_PAD_LEFT);
     }
 
     public function client(): BelongsTo

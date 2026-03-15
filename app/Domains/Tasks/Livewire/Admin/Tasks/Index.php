@@ -2,6 +2,7 @@
 
 namespace App\Domains\Tasks\Livewire\Admin\Tasks;
 
+use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
@@ -23,6 +24,11 @@ class Index extends Component
     public function mount(): void
     {
         $this->authorize('viewAny', Task::class);
+
+        $requestedProjectId = request()->string('project_id')->value();
+        if ($requestedProjectId !== '') {
+            $this->projectFilter = $requestedProjectId;
+        }
     }
 
     public function deleteTask(string $taskId): void
@@ -52,6 +58,7 @@ class Index extends Component
         return view('tasks::livewire.admin.tasks.index', [
             'tasks' => $query->paginate(10),
             'statuses' => Task::statuses(),
+            'projects' => Project::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 }

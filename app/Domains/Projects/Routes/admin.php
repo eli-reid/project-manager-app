@@ -2,6 +2,7 @@
 
 use App\Domains\Projects\Livewire\Admin\Projects\Form as ProjectForm;
 use App\Domains\Projects\Livewire\Admin\Projects\Index as ProjectIndex;
+use App\Domains\Projects\Livewire\Admin\Projects\Show as ProjectShow;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,10 @@ Route::prefix('projects')
         Route::get('/create', ProjectForm::class)
             ->middleware('can:create,'.Project::class)
             ->name('create');
+
+        Route::get('/{project}', ProjectShow::class)
+            ->middleware('can:view,project')
+            ->name('show');
 
         Route::get('/{project}/edit', ProjectForm::class)
             ->middleware('can:update,project')

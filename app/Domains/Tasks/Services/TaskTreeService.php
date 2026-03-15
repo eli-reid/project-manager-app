@@ -18,7 +18,7 @@ class TaskTreeService
                 ->where('is_active', true)
                 ->when($projectId, fn ($query) => $query->where('project_id', $projectId))
                 ->whereNull('parent_id')
-                ->with('childrenRecursive')
+                ->with(['childrenRecursive', 'project'])
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get();

@@ -108,6 +108,7 @@ class Form extends Component
         }
 
         $role->permissions()->sync($validated['selectedPermissionIds']);
+        \App\Core\User\Models\User::bumpPermissionCacheVersion();
 
         session()->flash('success', $this->isEdit ? 'Role updated successfully.' : 'Role created successfully.');
 

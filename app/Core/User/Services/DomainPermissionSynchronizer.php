@@ -4,6 +4,7 @@ namespace App\Core\User\Services;
 
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
+use App\Core\User\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -72,6 +73,7 @@ class DomainPermissionSynchronizer
 
         $this->ensureBuiltInRoles($registry->builtInRolePermissions());
         $this->flushRoleCaches();
+        User::bumpPermissionCacheVersion();
 
         return count($permissionDefinitions);
     }
