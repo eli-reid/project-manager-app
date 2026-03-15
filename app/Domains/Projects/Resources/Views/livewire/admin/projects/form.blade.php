@@ -1,8 +1,8 @@
 <div class="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Create Project</h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">Set project details, then assign client and location.</p>
+            <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $isEdit ? 'Edit Project' : 'Create Project' }}</h1>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $isEdit ? 'Update project details, client, and location.' : 'Set project details, then assign client and location.' }}</p>
         </div>
 
         <a href="{{ route('admin.projects.index') }}" class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Back</a>
@@ -91,7 +91,7 @@
 
         <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
             <a href="{{ route('admin.projects.index') }}" class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</a>
-            <button type="submit" wire:loading.attr="disabled" class="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Create Project</button>
+            <button type="submit" wire:loading.attr="disabled" class="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">{{ $isEdit ? 'Update Project' : 'Create Project' }}</button>
         </div>
     </form>
 </div>

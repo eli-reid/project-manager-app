@@ -14,4 +14,8 @@ Route::prefix('projects')
         Route::get('/create', ProjectForm::class)
             ->middleware('can:create,'.Project::class)
             ->name('create');
+
+        Route::get('/{project}/edit', ProjectForm::class)
+            ->middleware('can:update,project')
+            ->name('edit');
     });

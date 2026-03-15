@@ -4,7 +4,9 @@ use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Services\DomainPermissionSynchronizer;
+use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Models\Project;
+use Livewire\Livewire;
 
 it('redirects guests from domain admin routes', function (): void {
     $this->get(route('admin.projects.index'))
@@ -75,6 +77,47 @@ it('shows inline client and address widgets on project create form', function ()
         ->assertSuccessful()
         ->assertSee('Quick Add Client')
         ->assertSee('Quick Add Address');
+});
+
+it('allows authorized users to edit and update a project', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'projects.edit',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Old Project Name',
+        'project_number' => 'PRJ-EDIT-1',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.edit', $project))
+        ->assertSuccessful()
+        ->assertSee('Edit Project');
+
+    $this->actingAs($user);
+
+    Livewire::test(Form::class, ['project' => $project])
+        ->set('name', 'Updated Project Name')
+        ->set('project_number', 'PRJ-EDIT-1')
+        ->set('status', 'in_progress')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($project->fresh()->name)->toBe('Updated Project Name')
+        ->and($project->fresh()->status?->value)->toBe('in_progress');
+});
+
+it('forbids users without edit permission from accessing project edit route', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    $project = Project::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.edit', $project))
+        ->assertForbidden();
 });
 
 /**
