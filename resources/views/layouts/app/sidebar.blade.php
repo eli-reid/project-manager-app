@@ -150,6 +150,13 @@
                     {{ __('Log in') }}
                 </a>
             @endauth
+
+            @isset($domainNavbar)
+                <div class="w-full border-t border-zinc-200 px-3 py-2 dark:border-zinc-700">
+                    {{ $domainNavbar }}
+                </div>
+            @endisset
+
         </flux:header>
 
         {{ $slot }}
