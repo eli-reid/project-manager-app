@@ -7,7 +7,7 @@ use App\Core\User\Livewire\Admin\Users\Form as UserForm;
 use App\Core\User\Livewire\Admin\Users\Index as UserIndex;
 use Livewire\Attributes\Layout;
 
-it('uses the layouts.app attribute for admin role and user full-page components', function (string $componentClass): void {
+it('uses the layouts.admin attribute for admin role and user full-page components', function (string $componentClass): void {
     $reflection = new ReflectionClass($componentClass);
     $layoutAttributes = $reflection->getAttributes(Layout::class);
 
@@ -15,7 +15,7 @@ it('uses the layouts.app attribute for admin role and user full-page components'
 
     $layoutArguments = $layoutAttributes[0]->getArguments();
 
-    expect($layoutArguments[0] ?? null)->toBe('layouts.app');
+    expect($layoutArguments[0] ?? null)->toBe('layouts.admin');
 })->with([
     RoleForm::class,
     RoleIndex::class,

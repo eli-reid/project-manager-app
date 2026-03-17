@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Announcements')">
+<x-layouts::admin :title="__('Announcements')">
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
             <div>
@@ -54,4 +54,4 @@
 
         {{ $announcements->links() }}
     </div>
-</x-layouts::app>
+</x-layouts::admin>

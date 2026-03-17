@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Edit Announcement')">
+<x-layouts::admin :title="__('Edit Announcement')">
     <div class="space-y-6">
         <div>
             <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Edit Announcement') }}</h1>
@@ -11,4 +11,4 @@
             'method' => 'PUT',
         ])
     </div>
-</x-layouts::app>
+</x-layouts::admin>

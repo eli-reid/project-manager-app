@@ -1,6 +1,5 @@
 <x-layouts::app.sidebar :title="$title ?? null">
     <flux:main>
-        @include('layouts.app.domain-topbar')
         {{ $slot }}
     </flux:main>
 </x-layouts::app.sidebar>
