@@ -1,30 +1,16 @@
 @php
-    /** @var \App\Domains\Tasks\Models\TaskCategory $category */
     $categoryId = (string) $category->id;
     $categoryTasks = $tasksByCategory->get($categoryId, collect());
-    $ancestorIds = $ancestors ?? [];
-
-    $ancestorVisibilityCondition = collect($ancestorIds)
-        ->map(fn (string $ancestorId): string => "!isCollapsed('{$ancestorId}')")
-        ->implode(' && ');
-
-    $ancestorVisibilityCondition = $ancestorVisibilityCondition !== '' ? $ancestorVisibilityCondition : 'true';
-    $childrenVisibilityCondition = $ancestorVisibilityCondition." && !isCollapsed('{$categoryId}')";
-
-    $directTaskCount = $categoryTasks->count();
-    $subTaskCount = $categoryTasks->sum(fn ($task): int => $task->subTasks->count());
-    $categoryTaskCount = $directTaskCount + $subTaskCount;
-
-    $completedDirectTaskCount = $categoryTasks->where('status', \App\Domains\Tasks\Models\Task::STATUS_COMPLETED)->count();
-    $completedSubTaskCount = $categoryTasks
-        ->sum(fn ($task): int => $task->subTasks->where('status', \App\Domains\Tasks\Models\Task::STATUS_COMPLETED)->count());
-    $completedTaskCount = $completedDirectTaskCount + $completedSubTaskCount;
-    $categoryProgressPercent = $categoryTaskCount > 0
-        ? (int) round(($completedTaskCount / $categoryTaskCount) * 100)
-        : 0;
+    $summary = $categorySummaries[$categoryId] ?? [
+        'taskCount' => 0,
+        'completedTaskCount' => 0,
+        'progressPercent' => 0,
+        'ancestorVisibilityCondition' => 'true',
+        'childrenVisibilityCondition' => "!isCollapsed('{$categoryId}')",
+    ];
 @endphp
 
-<tr class="bg-zinc-50/70 dark:bg-zinc-800/50" x-show="{{ $ancestorVisibilityCondition }}" x-cloak wire:key="category-row-{{ $categoryId }}">
+<tr class="bg-zinc-50/70 dark:bg-zinc-800/50" x-show="{{ $summary['ancestorVisibilityCondition'] }}" x-cloak wire:key="category-row-{{ $categoryId }}">
     <td class="px-3 py-2 align-top text-sm font-semibold text-zinc-900 dark:text-zinc-100" style="padding-left: {{ ($depth * 18) + 12 }}px;">
         <button type="button" @click="toggleCategory('{{ $categoryId }}')" class="inline-flex items-center gap-2 rounded-md px-1 py-1 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70">
             <svg class="h-3.5 w-3.5 text-zinc-500 transition-transform" :class="isCollapsed('{{ $categoryId }}') ? '' : 'rotate-90'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -33,14 +19,14 @@
             <span>{{ $category->name }}</span>
         </button>
     </td>
-    <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">{{ $categoryTaskCount }} items</td>
+    <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">{{ $summary['taskCount'] }} items</td>
     <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">Category</td>
     <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">
         <div class="w-full max-w-40">
             <div class="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
-                <div class="h-full rounded-full bg-emerald-500 dark:bg-emerald-400" style="width: {{ $categoryProgressPercent }}%;"></div>
+                <div class="h-full rounded-full bg-emerald-500 dark:bg-emerald-400" style="width: {{ $summary['progressPercent'] }}%;"></div>
             </div>
-            <div class="mt-1">{{ $categoryProgressPercent }}% complete ({{ $completedTaskCount }}/{{ $categoryTaskCount }})</div>
+            <div class="mt-1">{{ $summary['progressPercent'] }}% complete ({{ $summary['completedTaskCount'] }}/{{ $summary['taskCount'] }})</div>
         </div>
     </td>
     <td class="px-3 py-2 align-top text-right">
@@ -75,7 +61,7 @@
 </tr>
 
 @foreach ($categoryTasks as $task)
-    <tr x-show="{{ $childrenVisibilityCondition }}" x-cloak wire:key="task-row-{{ $task->id }}">
+    <tr x-show="{{ $summary['childrenVisibilityCondition'] }}" x-cloak wire:key="task-row-{{ $task->id }}">
         <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200" style="padding-left: {{ (($depth + 1) * 18) + 20 }}px;">
             {{ $task->title }}
         </td>
@@ -107,7 +93,7 @@
     </tr>
 
     @foreach ($task->subTasks as $subTask)
-        <tr x-show="{{ $childrenVisibilityCondition }}" x-cloak wire:key="subtask-row-{{ $subTask->id }}">
+        <tr x-show="{{ $summary['childrenVisibilityCondition'] }}" x-cloak wire:key="subtask-row-{{ $subTask->id }}">
             <td class="px-3 py-2 align-top text-sm text-zinc-700 dark:text-zinc-300" style="padding-left: {{ (($depth + 2) * 18) + 28 }}px;">
                 -> {{ $subTask->title }}
             </td>
@@ -141,10 +127,10 @@
 @endforeach
 
 @foreach ($category->childrenRecursive as $child)
-    @include('projects::livewire.admin.projects._task-category-tree-row', [
+    @include('tasks::livewire.admin.projects._task-category-tree-row', [
         'category' => $child,
         'depth' => $depth + 1,
-        'ancestors' => array_merge($ancestorIds, [$categoryId]),
         'tasksByCategory' => $tasksByCategory,
+        'categorySummaries' => $categorySummaries,
     ])
 @endforeach

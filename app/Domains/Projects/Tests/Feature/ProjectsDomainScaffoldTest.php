@@ -5,8 +5,8 @@ use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
-use App\Domains\Projects\Livewire\Admin\Projects\Show;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use Livewire\Livewire;
@@ -143,13 +143,14 @@ it('shows the livewire tabbed project page and supports tab query state', functi
         ->assertSee('Tabbed Project View')
         ->assertSee('Overview')
         ->assertSee('Tasks')
-        ->assertSee('Templates');
+        ->assertDontSee('setTab(\'templates\')', false);
 
     $this->actingAs($user)
         ->get(route('admin.projects.show', $project).'?tab=tasks')
         ->assertSuccessful()
         ->assertSee('Project Work Breakdown')
-        ->assertSee('Add Task');
+        ->assertSee('Add Task')
+        ->assertSee('Task Templates');
 });
 
 it('auto generates project numbers with configured prefix when enabled', function (): void {
@@ -210,7 +211,7 @@ it('copies category tasks from project show actions menu flow', function (): voi
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->set('copySourceCategoryId', $sourceCategory->id)
         ->set('copyTargetCategoryId', $targetCategory->id)
         ->set('copyIncludeSubtasks', true)
@@ -248,7 +249,7 @@ it('creates category and task from inline forms on project show', function (): v
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->set('inlineCategoryName', 'Electrical')
         ->set('inlineCategoryParentId', $existingCategory->id)
         ->set('inlineCategoryDescription', 'Power distribution')
@@ -262,7 +263,7 @@ it('creates category and task from inline forms on project show', function (): v
 
     expect($createdCategory)->not->toBeNull();
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->set('inlineTaskTitle', 'Install panel')
         ->set('inlineTaskDescription', 'Main service panel setup')
         ->set('inlineTaskCategoryId', $createdCategory?->id)
@@ -293,7 +294,7 @@ it('deletes task from project show when user has permission', function (): void 
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('deleteTask', $task->id)
         ->assertHasNoErrors();
 
@@ -322,7 +323,7 @@ it('does not delete task that has subtasks', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('deleteTask', $parentTask->id)
         ->assertHasNoErrors();
 
@@ -347,7 +348,7 @@ it('copies a category from project show actions', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->set('copyCategorySourceId', $source->id)
         ->call('copyCategory')
         ->assertHasNoErrors();
@@ -377,7 +378,7 @@ it('deletes an empty category from project show when user has permission', funct
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('deleteCategory', $category->id)
         ->assertHasNoErrors();
 
@@ -403,7 +404,7 @@ it('deletes category branch including descendant categories and tasks', function
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('deleteCategory', $branchCategory->id)
         ->assertHasNoErrors();
 
@@ -430,7 +431,7 @@ it('gracefully handles deleting a stale category id from project show', function
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('deleteCategory', $staleId)
         ->assertHasNoErrors();
 });
@@ -461,7 +462,7 @@ it('copies a task from project show task row action', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test(Show::class, ['project' => $project])
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('copyTaskFrom', $task->id)
         ->assertHasNoErrors();
 

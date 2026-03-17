@@ -4,10 +4,10 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar sticky collapsible class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                <flux:sidebar.collapse class="lg:hidden" />
+                <flux:sidebar.collapse class="lg:inline-flex"/>
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
@@ -16,17 +16,9 @@
                 </flux:sidebar.item>
 
                 @can('admin')
-                    <flux:sidebar.group expandable heading="Admin" class="grid">
-                        <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
-                            {{ __('Users') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="shield-check" :href="route('admin.roles.index')" :current="request()->routeIs('admin.roles.*')" wire:navigate>
-                            {{ __('Roles') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" data-test="admin-settings-sidebar-main-link">
-                            {{ __('Settings') }}
-                        </flux:sidebar.item>
-                    </flux:sidebar.group>
+                    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
+                        {{ __('Access') }}
+                    </flux:sidebar.item>
                 @endcan
 
                 @can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)
@@ -54,39 +46,14 @@
                 @endcan
 
                 @if (auth()->user()?->hasPermission('tasks.view') || auth()->user()?->hasPermission('task-categories.view') || auth()->user()?->hasPermission('task-templates.view'))
-                    <flux:sidebar.group expandable heading="Tasks" class="grid">
-                        @can('viewAny', \App\Domains\Tasks\Models\Task::class)
-                            <flux:sidebar.item icon="check-circle" :href="route('admin.tasks.index')" :current="request()->routeIs('admin.tasks.*')" wire:navigate>
-                                {{ __('Tasks') }}
-                            </flux:sidebar.item>
-                        @endcan
-                        @can('viewAny', \App\Domains\Tasks\Models\TaskCategory::class)
-                            <flux:sidebar.item icon="folder" :href="route('admin.task-categories.index')" :current="request()->routeIs('admin.task-categories.*')" wire:navigate>
-                                {{ __('Categories') }}
-                            </flux:sidebar.item>
-                        @endcan
-                        @can('viewAny', \App\Domains\Tasks\Models\TaskTemplate::class)
-                            <flux:sidebar.item icon="clipboard-list" :href="route('admin.task-templates.index')" :current="request()->routeIs('admin.task-templates.*')" wire:navigate>
-                                {{ __('Templates') }}
-                            </flux:sidebar.item>
-                        @endcan
-                    </flux:sidebar.group>
+                    <flux:sidebar.item icon="check-circle" :href="route('admin.tasks.index')" :current="request()->routeIs('admin.tasks.*') || request()->routeIs('admin.task-categories.*') || request()->routeIs('admin.task-templates.*')" wire:navigate>
+                        {{ __('Tasks') }}
+                    </flux:sidebar.item>
                 @endif
 
-                <flux:sidebar.group expandable heading="Time" class="grid">
-                    <flux:sidebar.item href="#" icon="clock" :current="false">{{ __('My Timecards') }}</flux:sidebar.item>
-                    <flux:sidebar.item href="#" icon="calendar" :current="false">{{ __('Daily') }}</flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group expandable heading="Stock" class="grid">
-                    <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Create Order') }}</flux:sidebar.item>
-                    <flux:sidebar.item href="#" icon="clipboard-type" :current="false">{{ __('My Templates') }}</flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group expandable heading="Documents" class="grid">
-                    <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('My Documents') }}</flux:sidebar.item>
-                    <flux:sidebar.item href="#" icon="clipboard-type" :current="false">{{ __('Upload') }}</flux:sidebar.item>
-                </flux:sidebar.group>
+                <flux:sidebar.item href="#" icon="clock" :current="false">{{ __('Time') }}</flux:sidebar.item>
+                <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Stock') }}</flux:sidebar.item>
+                <flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>
 
             </flux:sidebar.nav>
             <flux:spacer />

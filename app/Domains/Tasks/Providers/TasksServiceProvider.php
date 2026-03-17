@@ -40,6 +40,7 @@ class TasksServiceProvider extends ServiceProvider
         Livewire::component('app.domains.tasks.livewire.admin.task-categories.form', \App\Domains\Tasks\Livewire\Admin\TaskCategories\Form::class);
         Livewire::component('app.domains.tasks.livewire.admin.task-templates', \App\Domains\Tasks\Livewire\Admin\TaskTemplates\Index::class);
         Livewire::component('app.domains.tasks.livewire.admin.task-templates.form', \App\Domains\Tasks\Livewire\Admin\TaskTemplates\Form::class);
+        Livewire::component('app.domains.tasks.livewire.admin.projects.task-hierarchy-widget', \App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget::class);
 
         Route::prefix('admin')
             ->name('admin.')
