@@ -20,6 +20,11 @@ class SettingsGroupList extends Component
     use AuthorizesRequests;
 
     /**
+     * Render group selector as top navbar items.
+     */
+    public bool $asNavbar = false;
+
+    /**
      * Selected setting group
      */
     public string $selectedGroup = '';
@@ -88,6 +93,7 @@ class SettingsGroupList extends Component
         return view('core::livewire.settings-group-list', [
             'groups' => $this->settingGroups,
             'selectedGroup' => $this->selectedGroup,
+            'asNavbar' => $this->asNavbar,
         ]);
     }
 }

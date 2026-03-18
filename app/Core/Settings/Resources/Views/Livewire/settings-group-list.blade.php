@@ -1,4 +1,20 @@
 <div class="space-y-3">
+    @if ($asNavbar)
+        @if ($groups->isNotEmpty())
+            <flux:navbar class="flex flex-wrap items-center gap-2">
+                @foreach ($groups as $group)
+                    @php($isActive = $selectedGroup === $group->group)
+                    <flux:navbar.item
+                        href="#"
+                        :current="$isActive"
+                        wire:click.prevent="selectGroup('{{ $group->group }}')"
+                    >
+                        {{ $this->getGroupDisplayName($group->group) }}
+                    </flux:navbar.item>
+                @endforeach
+            </flux:navbar>
+        @endif
+    @else
     @if ($groups->isNotEmpty())
         <div class="lg:hidden">
             <label for="settings-group-select" class="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -39,5 +55,6 @@
         <div class="rounded-lg border border-dashed border-zinc-300 px-4 py-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
             {{ __('No setting groups found.') }}
         </div>
+    @endif
     @endif
 </div>
