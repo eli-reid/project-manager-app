@@ -6,6 +6,9 @@ use App\Core\Settings\Traits\EncryptableSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @mixin IdeHelperSettingsSqlite
+ */
 class SettingsSqlite extends Model
 {
     use EncryptableSettings;

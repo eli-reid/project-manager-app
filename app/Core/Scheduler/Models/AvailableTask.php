@@ -2,14 +2,18 @@
 
 namespace App\Core\Scheduler\Models;
 
+use App\Core\Scheduler\Database\Factories\AvailableTaskFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @mixin IdeHelperAvailableTask
+ */
 class AvailableTask extends Model
 {
-    /** @use HasFactory<\App\Core\Scheduler\Database\Factories\AvailableTaskFactory> */
+    /** @use HasFactory<AvailableTaskFactory> */
     use HasFactory;
 
     use HasUlids;
@@ -39,6 +43,6 @@ class AvailableTask extends Model
      */
     protected static function newFactory()
     {
-        return \App\Core\Scheduler\Database\Factories\AvailableTaskFactory::new();
+        return AvailableTaskFactory::new();
     }
 }

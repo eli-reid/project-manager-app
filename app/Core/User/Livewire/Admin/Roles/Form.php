@@ -4,6 +4,7 @@ namespace App\Core\User\Livewire\Admin\Roles;
 
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
+use App\Core\User\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -108,7 +109,7 @@ class Form extends Component
         }
 
         $role->permissions()->sync($validated['selectedPermissionIds']);
-        \App\Core\User\Models\User::bumpPermissionCacheVersion();
+        User::bumpPermissionCacheVersion();
 
         session()->flash('success', $this->isEdit ? 'Role updated successfully.' : 'Role created successfully.');
 

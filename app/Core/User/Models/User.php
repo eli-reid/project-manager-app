@@ -3,6 +3,7 @@
 namespace App\Core\User\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,13 +14,16 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Throwable;
 
+/**
+ * @mixin IdeHelperUser
+ */
 class User extends Authenticatable
 {
     private const SESSION_PERMISSION_SNAPSHOT_PREFIX = 'auth.permission_snapshot.';
 
     private const PERMISSION_CACHE_VERSION_KEY = 'auth.permission_cache.version';
 
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, HasUlids, Notifiable, TwoFactorAuthenticatable;
 
     /**
