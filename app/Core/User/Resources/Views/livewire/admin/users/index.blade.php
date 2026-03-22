@@ -59,23 +59,46 @@
                                 <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold {{ $user->is_active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' }}">{{ $user->is_active ? 'Active' : 'Inactive' }}</span>
                             </td>
                             <td class="px-4 py-3 align-top">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
+                                <x-ui.row-actions-dropdown label="User actions" width="w-48" :menu-height="220">
+                                    <a
+                                        href="{{ route('admin.users.edit', $user) }}"
+                                        class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        @click="closeMenu()"
+                                    >
+                                        Edit
+                                    </a>
+
                                     @can('manage-email-accounts')
                                         <form method="POST" action="{{ route('admin.users.generate-company-email', $user) }}">
                                             @csrf
-                                            <button type="submit" class="rounded-md border border-sky-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-sky-700 hover:bg-sky-50 dark:border-sky-800 dark:text-sky-300 dark:hover:bg-sky-900/20">
+                                            <button
+                                                type="submit"
+                                                class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                                @click="closeMenu()"
+                                            >
                                                 {{ $user->company_email ? 'Regenerate Email' : 'Generate Email' }}
                                             </button>
                                         </form>
                                     @endcan
-                                    <button type="button" wire:click="toggleActive('{{ $user->id }}')" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+
+                                    <button
+                                        type="button"
+                                        wire:click="toggleActive('{{ $user->id }}')"
+                                        class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        @click="closeMenu()"
+                                    >
                                         {{ $user->is_active ? 'Disable' : 'Enable' }}
                                     </button>
-                                    <button type="button" wire:click="deleteUser('{{ $user->id }}')" class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20">
+
+                                    <button
+                                        type="button"
+                                        wire:click="deleteUser('{{ $user->id }}')"
+                                        class="block w-full px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30"
+                                        @click="closeMenu()"
+                                    >
                                         Delete
                                     </button>
-                                </div>
+                                </x-ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

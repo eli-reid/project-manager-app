@@ -49,16 +49,47 @@
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $role->users_count }}</td>
                             <td class="px-4 py-3 align-top">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('admin.roles.edit', $role) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
-                                    <a href="{{ route('admin.roles.users', $role) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Users</a>
-                                    <button type="button" wire:click="toggleStatus('{{ $role->id }}')" wire:confirm="Are you sure you want to {{ $role->is_active ? 'disable' : 'enable' }} this role?" wire:loading.attr="disabled" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" @disabled($role->built_in)>
+                                <x-ui.row-actions-dropdown label="Role actions" width="w-44" :menu-height="220">
+                                    <a
+                                        href="{{ route('admin.roles.edit', $role) }}"
+                                        class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        @click="closeMenu()"
+                                    >
+                                        Edit
+                                    </a>
+
+                                    <a
+                                        href="{{ route('admin.roles.users', $role) }}"
+                                        class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        @click="closeMenu()"
+                                    >
+                                        Users
+                                    </a>
+
+                                    <button
+                                        type="button"
+                                        wire:click="toggleStatus('{{ $role->id }}')"
+                                        wire:confirm="Are you sure you want to {{ $role->is_active ? 'disable' : 'enable' }} this role?"
+                                        wire:loading.attr="disabled"
+                                        class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        @disabled($role->built_in)
+                                        @click="closeMenu()"
+                                    >
                                         {{ $role->is_active ? 'Disable' : 'Enable' }}
                                     </button>
-                                    <button type="button" wire:click="deleteRole('{{ $role->id }}')" wire:confirm="Are you sure you want to delete this role? This action cannot be undone." wire:loading.attr="disabled" class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20" @disabled($role->built_in)>
+
+                                    <button
+                                        type="button"
+                                        wire:click="deleteRole('{{ $role->id }}')"
+                                        wire:confirm="Are you sure you want to delete this role? This action cannot be undone."
+                                        wire:loading.attr="disabled"
+                                        class="block w-full px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-900/30"
+                                        @disabled($role->built_in)
+                                        @click="closeMenu()"
+                                    >
                                         Delete
                                     </button>
-                                </div>
+                                </x-ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

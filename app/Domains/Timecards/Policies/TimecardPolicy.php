@@ -29,7 +29,7 @@ class TimecardPolicy
     public function update(User $user, Timecard $timecard): bool
     {
         if ($user->hasPermission('timecards.edit') && $user->hasPermission('timecards.view-all')) {
-            return true;
+            return $timecard->status !== Timecard::STATUS_APPROVED;
         }
 
         return $timecard->user_id === $user->id
@@ -40,7 +40,7 @@ class TimecardPolicy
     public function delete(User $user, Timecard $timecard): bool
     {
         if ($user->hasPermission('timecards.delete') && $user->hasPermission('timecards.view-all')) {
-            return true;
+            return $timecard->status !== Timecard::STATUS_APPROVED;
         }
 
         return $timecard->user_id === $user->id
@@ -65,5 +65,21 @@ class TimecardPolicy
         return $timecard->user_id === $user->id
             && $timecard->status === Timecard::STATUS_DRAFT
             && $user->hasPermission('timecards.submit');
+    }
+
+    public function reset(User $user, Timecard $timecard): bool
+    {
+        if ($user->hasPermission('timecards.edit') && $user->hasPermission('timecards.view-all')) {
+            return $timecard->status === Timecard::STATUS_REJECTED;
+        }
+
+        return $timecard->user_id === $user->id
+            && $timecard->status === Timecard::STATUS_REJECTED
+            && $user->hasPermission('timecards.edit');
+    }
+
+    public function viewReports(User $user): bool
+    {
+        return $user->hasPermission('timecards.view-reports');
     }
 }

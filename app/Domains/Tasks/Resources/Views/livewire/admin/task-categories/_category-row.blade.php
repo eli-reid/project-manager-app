@@ -14,14 +14,14 @@
             </span>
         </td>
         <td class="px-4 py-3 align-top">
-            <div class="flex items-center justify-end gap-2">
+            <x-ui.row-actions-dropdown label="Category actions" width="w-36" :menu-height="130">
                 @can('update', $category)
-                    <a href="{{ route('admin.task-categories.edit', $category) }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
+                    <a href="{{ route('admin.task-categories.edit', $category) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
                 @endcan
                 @can('delete', $category)
-                    <button type="button" wire:click="deleteCategory('{{ $category->id }}')" wire:confirm="Delete this category? This will fail if it has children or tasks." class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20">Delete</button>
+                    <button type="button" wire:click="deleteCategory('{{ $category->id }}')" wire:confirm="Delete this category? This will fail if it has children or tasks." class="block w-full px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30" @click="closeMenu()">Delete</button>
                 @endcan
-            </div>
+            </x-ui.row-actions-dropdown>
         </td>
     </tr>
     @if ($category->childrenRecursive->isNotEmpty())

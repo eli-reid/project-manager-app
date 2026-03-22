@@ -52,6 +52,12 @@ class TimecardPermissions
         'description' => 'Reject timecards',
     ];
 
+    public const VIEW_REPORTS = [
+        'resource' => 'timecards',
+        'action' => 'view-reports',
+        'description' => 'View timecard reports',
+    ];
+
     public static function all(): array
     {
         return [
@@ -63,6 +69,7 @@ class TimecardPermissions
             self::SUBMIT,
             self::APPROVE,
             self::REJECT,
+            self::VIEW_REPORTS,
         ];
     }
 }

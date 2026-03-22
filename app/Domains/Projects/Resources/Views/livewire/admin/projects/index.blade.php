@@ -43,38 +43,17 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 align-top" @click.stop>
-                                <div class="flex items-center justify-end" x-data="{ open: false }">
-                                    <button
-                                        type="button"
-                                        @click.stop="open = ! open"
-                                        @keydown.escape.window="open = false"
-                                        class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                                        aria-label="Project actions"
-                                    >
-                                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <circle cx="4" cy="10" r="1.5" />
-                                            <circle cx="10" cy="10" r="1.5" />
-                                            <circle cx="16" cy="10" r="1.5" />
-                                        </svg>
-                                    </button>
-
-                                    <div
-                                        x-show="open"
-                                        x-cloak
-                                        @click.away="open = false"
-                                        class="absolute right-4 z-20 mt-9 w-36 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-                                    >
-                                        @can('view', $project)
-                                            <a href="{{ route('admin.projects.show', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">View</a>
-                                        @endcan
-                                        @can('viewAny', \App\Domains\Tasks\Models\Task::class)
-                                            <a href="{{ route('admin.tasks.index', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Tasks</a>
-                                        @endcan
-                                        @can('update', $project)
-                                            <a href="{{ route('admin.projects.edit', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
-                                        @endcan
-                                    </div>
-                                </div>
+                                <x-ui.row-actions-dropdown label="Project actions" width="w-36" :menu-height="160" @click.stop>
+                                    @can('view', $project)
+                                        <a href="{{ route('admin.projects.show', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
+                                    @endcan
+                                    @can('viewAny', \App\Domains\Tasks\Models\Task::class)
+                                        <a href="{{ route('admin.tasks.index', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Tasks</a>
+                                    @endcan
+                                    @can('update', $project)
+                                        <a href="{{ route('admin.projects.edit', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
+                                    @endcan
+                                </x-ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

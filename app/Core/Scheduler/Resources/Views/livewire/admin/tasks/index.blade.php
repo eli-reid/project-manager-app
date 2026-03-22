@@ -77,14 +77,12 @@
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $task->run_count }}</td>
                             <td class="px-4 py-3 align-top">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('admin.scheduler.tasks.edit', $task) }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
-                                    <button type="button" wire:click="runNow('{{ $task->id }}')" wire:confirm="Run this task now?" wire:loading.attr="disabled" class="rounded-md border border-blue-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20">Run</button>
-                                    <button type="button" wire:click="toggleEnabled('{{ $task->id }}')" wire:loading.attr="disabled" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                                        {{ $task->is_enabled ? 'Disable' : 'Enable' }}
-                                    </button>
-                                    <button type="button" wire:click="deleteTask('{{ $task->id }}')" wire:confirm="Delete this task? This action cannot be undone." wire:loading.attr="disabled" class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20">Delete</button>
-                                </div>
+                                <x-ui.row-actions-dropdown label="Scheduler task actions" width="w-44" :menu-height="220">
+                                    <a href="{{ route('admin.scheduler.tasks.edit', $task) }}" class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
+                                    <button type="button" wire:click="runNow('{{ $task->id }}')" wire:confirm="Run this task now?" wire:loading.attr="disabled" class="block w-full px-3 py-2 text-left text-sm text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-900/30" @click="closeMenu()">Run</button>
+                                    <button type="button" wire:click="toggleEnabled('{{ $task->id }}')" wire:loading.attr="disabled" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">{{ $task->is_enabled ? 'Disable' : 'Enable' }}</button>
+                                    <button type="button" wire:click="deleteTask('{{ $task->id }}')" wire:confirm="Delete this task? This action cannot be undone." wire:loading.attr="disabled" class="block w-full px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30" @click="closeMenu()">Delete</button>
+                                </x-ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

@@ -3,8 +3,15 @@
 namespace App\Domains\Timecards\Providers;
 
 use App\Core\User\Services\PermissionRegistry;
+use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
+use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
+use App\Domains\Timecards\Livewire\User\Timecards\Form as UserForm;
+use App\Domains\Timecards\Livewire\User\Timecards\Index as UserIndex;
+use App\Domains\Timecards\Livewire\User\Timecards\Show as UserShow;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Models\TimecardEntry;
+use App\Domains\Timecards\Observers\TimecardEntryObserver;
 use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -24,16 +31,33 @@ class TimecardsServiceProvider extends ServiceProvider
         $this->registerPermissions($permissionRegistry);
 
         Gate::policy(Timecard::class, TimecardPolicy::class);
+        TimecardEntry::observe(TimecardEntryObserver::class);
 
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'timecards');
 
         Livewire::component('app.domains.timecards.livewire.admin.timecards', Index::class);
+        Livewire::component('app.domains.timecards.livewire.admin.timecards.form', AdminForm::class);
+        Livewire::component('app.domains.timecards.livewire.admin.timecards.show', AdminShow::class);
+        Livewire::component('app.domains.timecards.livewire.user.timecards', UserIndex::class);
+        Livewire::component('app.domains.timecards.livewire.user.timecards.form', UserForm::class);
+        Livewire::component('app.domains.timecards.livewire.user.timecards.show', UserShow::class);
 
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])
             ->group(__DIR__.'/../Routes/admin.php');
+
+        Route::middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/mobile.php');
+
+        Route::middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/web.php');
+
+        Route::prefix('api')
+            ->name('api.')
+            ->middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/api.php');
     }
 
     private function registerPermissions(PermissionRegistry $permissionRegistry): void

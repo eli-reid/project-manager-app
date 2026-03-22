@@ -13,6 +13,30 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
+
+                @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
+                    <flux:navbar.item
+                        icon="clock"
+                        :href="auth()->user()?->hasPermission('timecards.view-all') ? route('admin.timecards.index') : route('timecards.index')"
+                        :current="request()->routeIs('admin.timecards.*') || request()->routeIs('timecards.*')"
+                        wire:navigate
+                        data-test="timecards-navbar-link"
+                    >
+                        {{ __('My Timecards') }}
+                    </flux:navbar.item>
+                @endcan
+
+                @can('create', \App\Domains\Timecards\Models\Timecard::class)
+                    <flux:navbar.item
+                        icon="plus"
+                        :href="route('timecards.create')"
+                        :current="request()->routeIs('timecards.create')"
+                        wire:navigate
+                        data-test="timecards-create-navbar-link"
+                    >
+                        {{ __('New Timecard') }}
+                    </flux:navbar.item>
+                @endcan
             </flux:navbar>
 
             <flux:spacer />
@@ -56,6 +80,31 @@
                     <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard')  }}
                     </flux:sidebar.item>
+
+                    @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
+                        <flux:sidebar.item
+                            icon="clock"
+                            :href="auth()->user()?->hasPermission('timecards.view-all') ? route('admin.timecards.index') : route('timecards.index')"
+                            :current="request()->routeIs('admin.timecards.*') || request()->routeIs('timecards.*')"
+                            wire:navigate
+                            data-test="timecards-sidebar-link-mobile"
+                        >
+                            {{ __('My Timecards') }}
+                        </flux:sidebar.item>
+                    @endcan
+
+                    @can('create', \App\Domains\Timecards\Models\Timecard::class)
+                        <flux:sidebar.item
+                            icon="plus"
+                            :href="route('timecards.create')"
+                            :current="request()->routeIs('timecards.create')"
+                            wire:navigate
+                            data-test="timecards-create-sidebar-link-mobile"
+                        >
+                            {{ __('New Timecard') }}
+                        </flux:sidebar.item>
+                    @endcan
+
                     @can('admin')
                         <flux:sidebar.group expandable heading="Admin" class="grid">
                             <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>

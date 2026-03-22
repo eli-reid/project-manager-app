@@ -51,7 +51,30 @@
                     </flux:sidebar.item>
                 @endif
 
-                <flux:sidebar.item href="#" icon="clock" :current="false">{{ __('Time') }}</flux:sidebar.item>
+                @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
+                    <flux:sidebar.item
+                        icon="clock"
+                        :href="auth()->user()?->hasPermission('timecards.view-all') ? route('admin.timecards.index') : route('timecards.index')"
+                        :current="request()->routeIs('admin.timecards.*') || request()->routeIs('timecards.*')"
+                        wire:navigate
+                        data-test="timecards-sidebar-main-link"
+                    >
+                        {{ __('My Timecards') }}
+                    </flux:sidebar.item>
+                @endcan
+
+                @can('create', \App\Domains\Timecards\Models\Timecard::class)
+                    <flux:sidebar.item
+                        icon="plus"
+                        :href="route('timecards.create')"
+                        :current="request()->routeIs('timecards.create')"
+                        wire:navigate
+                        data-test="timecards-create-sidebar-main-link"
+                    >
+                        {{ __('New Timecard') }}
+                    </flux:sidebar.item>
+                @endcan
+
                 <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Stock') }}</flux:sidebar.item>
                 <flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>
 
@@ -125,6 +148,28 @@
                             @can('viewAny', \App\Core\Announcement\Models\Announcement::class)
                                 <flux:menu.item :href="route('admin.announcements.index')" icon="megaphone" wire:navigate data-test="admin-announcements-link-mobile">
                                     {{ __('Announcements') }}
+                                </flux:menu.item>
+                            @endcan
+
+                            @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
+                                <flux:menu.item
+                                    :href="auth()->user()?->hasPermission('timecards.view-all') ? route('admin.timecards.index') : route('timecards.index')"
+                                    icon="clock"
+                                    wire:navigate
+                                    data-test="timecards-link-mobile"
+                                >
+                                    {{ __('My Timecards') }}
+                                </flux:menu.item>
+                            @endcan
+
+                            @can('create', \App\Domains\Timecards\Models\Timecard::class)
+                                <flux:menu.item
+                                    :href="route('timecards.create')"
+                                    icon="plus"
+                                    wire:navigate
+                                    data-test="timecards-create-link-mobile"
+                                >
+                                    {{ __('New Timecard') }}
                                 </flux:menu.item>
                             @endcan
                         </flux:menu.radio.group>
