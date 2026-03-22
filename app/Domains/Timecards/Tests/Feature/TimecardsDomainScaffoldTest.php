@@ -382,7 +382,7 @@ it('updates a timecard through the admin form component', function (): void {
         ->set('week_starting', '2026-05-03')
         ->set('notes', 'Adjusted by admin')
         ->set('entries.0.id', (string) $entry->id)
-        ->set('entries.0.date', '2026-05-04')
+        ->set('entries.0.day_of_week', 1)
         ->set('entries.0.hours', '9')
         ->set('entries.0.notes', 'Adjusted entry')
         ->call('save')
@@ -392,6 +392,47 @@ it('updates a timecard through the admin form component', function (): void {
         ->and($timecard->fresh()->notes)->toBe('Adjusted by admin')
         ->and($timecard->fresh()->total_hours)->toBe(9.0)
         ->and($timecard->fresh()->entries()->first()?->notes)->toBe('Adjusted entry');
+});
+
+it('updates an existing entry day without duplicating rows or inflating total hours', function (): void {
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit']);
+    $timecard = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+        'week_starting' => '2026-05-10',
+        'week_ending' => '2026-05-16',
+        'total_hours' => 8,
+    ]);
+
+    $entry = $timecard->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => null,
+        'custom_project_name' => 'Field Work',
+        'date' => '2026-05-11',
+        'start_time' => '07:00:00',
+        'hours' => 8,
+        'notes' => 'Initial day',
+    ]);
+
+    actingAs($user);
+
+    Livewire::test(UserForm::class, ['timecard' => $timecard])
+        ->set('entries.0.id', (string) $entry->id)
+        ->set('entries.0.day_of_week', 3)
+        ->set('entries.0.hours', '8')
+        ->set('entries.0.notes', 'Moved day')
+        ->call('save')
+        ->assertRedirect();
+
+    $freshTimecard = $timecard->fresh();
+    $freshEntry = $freshTimecard?->entries()->first();
+
+    expect($freshTimecard)->not->toBeNull()
+        ->and($freshTimecard?->entries()->count())->toBe(1)
+        ->and($freshTimecard?->total_hours)->toBe(8.0)
+        ->and((string) $freshEntry?->id)->toBe((string) $entry->id)
+        ->and($freshEntry?->date?->toDateString())->toBe('2026-05-13')
+        ->and($freshEntry?->notes)->toBe('Moved day');
 });
 
 it('prevents updates to approved timecards through the lifecycle service', function (): void {

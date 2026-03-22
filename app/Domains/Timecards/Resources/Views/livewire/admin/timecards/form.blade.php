@@ -53,7 +53,7 @@
             <div class="space-y-4">
                 @foreach ($entries as $index => $entry)
                     @if (! ($entry['delete'] ?? false))
-                        <div wire:key="admin-timecard-entry-form-row-{{ $index }}" class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div wire:key="admin-timecard-entry-form-row-{{ $entry['row_key'] ?? $index }}" class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                             <div class="grid gap-4 lg:grid-cols-6">
                                 <div>
                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Day of Week') }}</label>

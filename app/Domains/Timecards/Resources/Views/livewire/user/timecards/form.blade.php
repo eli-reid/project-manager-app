@@ -34,7 +34,7 @@
             <div class="space-y-4">
                 @foreach ($entries as $index => $entry)
                     @if (! ($entry['delete'] ?? false))
-                        <div wire:key="timecard-entry-form-row-{{ $index }}" class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div wire:key="timecard-entry-form-row-{{ $entry['row_key'] ?? $index }}" class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                             <div class="grid gap-4 lg:grid-cols-6">
                                 <div>
                                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Day of Week') }}</label>
@@ -49,8 +49,8 @@
                                        </select>
                                        @error('entries.'.$index.'.day_of_week') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                     </div>
-                                </div>
 
+                                
                                 <div>
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Start') }}</label>
                                     <input type="time" wire:model="entries.{{ $index }}.start_time" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
@@ -75,7 +75,7 @@
                                 </div>
 
                                 <div class="flex items-end justify-end">
-                                    <button type="button" wire:click="removeEntry({{ $index }})" class="rounded-md border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/20">{{ __('Remove') }}</button>
+                                    <button type="button" wire:click="removeEntry({{ $index }})" class="rounded-md border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/20"><flux:icon.trash/></button>
                                 </div>
 
                                 <div class="lg:col-span-3">

@@ -9,6 +9,7 @@ use App\Domains\Timecards\Services\TimecardLifecycleService;
 use App\Domains\Timecards\Services\TimecardWeekService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -30,24 +31,9 @@ class Form extends Component
     public ?string $notes = null;
 
     /**
-     * @var array<int, array{id:?string,date:string,start_time:?string,project_id:?string,custom_project_name:?string,hours:string,notes:?string,delete:bool}>
+     * @var array<int, array{id:?string,row_key:string,day_of_week:int,start_time:?string,project_id:?string,custom_project_name:?string,hours:string,notes:?string,delete:bool}>
      */
     public array $entries = [];
-
-    /**
-     * Days of the week as mapping for display
-     *
-     * @var array{0:string, 1:string, 2:string, 3:string, 4:string, 5:string, 6:string}
-     */
-    private array $daysOfWeek = [
-        0 => 'Sunday',
-        1 => 'Monday',
-        2 => 'Tuesday',
-        3 => 'Wednesday',
-        4 => 'Thursday',
-        5 => 'Friday',
-        6 => 'Saturday',
-    ];
 
     public function mount(?Timecard $timecard = null): void
     {
@@ -66,6 +52,7 @@ class Form extends Component
                 ->get()
                 ->map(fn ($entry): array => [
                     'id' => (string) $entry->id,
+                    'row_key' => 'entry-'.$entry->id,
                     'day_of_week' => (int) optional($entry->date)->dayOfWeek,
                     'start_time' => $entry->start_time ? substr((string) $entry->start_time, 0, 5) : null,
                     'project_id' => $entry->project_id ? (string) $entry->project_id : null,
@@ -97,6 +84,8 @@ class Form extends Component
             'week_starting' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
             'entries' => ['array'],
+            'entries.*.id' => ['nullable', 'string', 'exists:timecard_entries,id'],
+            'entries.*.row_key' => ['required', 'string'],
             'entries.*.day_of_week' => ['required', 'integer', 'between:0,6'],
             'entries.*.start_time' => ['nullable', 'date_format:H:i'],
             'entries.*.project_id' => ['nullable', 'exists:projects,id'],
@@ -111,6 +100,7 @@ class Form extends Component
     {
         $this->entries[] = [
             'id' => null,
+            'row_key' => 'entry-'.(string) Str::ulid(),
             'day_of_week' => 1, // Default to Monday
             'start_time' => null,
             'project_id' => null,
@@ -143,12 +133,7 @@ class Form extends Component
 
     public function updatedWeekStarting(string $value): void
     {
-        foreach ($this->entries as $index => $entry) {
-            if (($entry['id'] ?? null) === null) {
-                // Keep existing day_of_week when week changes
-                continue;
-            }
-        }
+        unset($value);
     }
 
     public function save(): void
@@ -202,29 +187,9 @@ class Form extends Component
         return array_map(function (array $entry) use ($weekStart) {
             $entry['date'] = $weekStart->copy()->addDays((int) $entry['day_of_week'])->toDateString();
             unset($entry['day_of_week']);
+            unset($entry['row_key']);
 
             return $entry;
         }, $entries);
-    }
-
-    /**
-     * Get the week dates for display
-     *
-     * @return array{start: Carbon, end: Carbon, dates: array<int, Carbon>}
-     */
-    public function getWeekDates(): array
-    {
-        $weekStart = Carbon::parse($this->week_starting);
-        $dates = [];
-
-        for ($i = 0; $i <= 6; $i++) {
-            $dates[$i] = $weekStart->copy()->addDays($i);
-        }
-
-        return [
-            'start' => $weekStart,
-            'end' => $weekStart->copy()->addDays(6),
-            'dates' => $dates,
-        ];
     }
 }
