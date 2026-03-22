@@ -56,10 +56,20 @@
                         <div wire:key="admin-timecard-entry-form-row-{{ $index }}" class="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                             <div class="grid gap-4 lg:grid-cols-6">
                                 <div>
-                                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Date') }}</label>
-                                    <input type="date" wire:model="entries.{{ $index }}.date" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                                    @error('entries.'.$index.'.date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                                </div>
+                                       <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Day of Week') }}</label>
+                                       <select wire:model="entries.{{ $index }}.day_of_week" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                           <option value="0">{{ __('Sunday') }}</option>
+                                           <option value="1">{{ __('Monday') }}</option>
+                                           <option value="2">{{ __('Tuesday') }}</option>
+                                           <option value="3">{{ __('Wednesday') }}</option>
+                                           <option value="4">{{ __('Thursday') }}</option>
+                                           <option value="5">{{ __('Friday') }}</option>
+                                           <option value="6">{{ __('Saturday') }}</option>
+                                       </select>
+                                       @error('entries.'.$index.'.day_of_week') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    </div>
+
+
 
                                 <div>
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Start') }}</label>

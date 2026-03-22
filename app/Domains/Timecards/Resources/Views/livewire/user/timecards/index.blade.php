@@ -44,12 +44,27 @@
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ str($timecard->status)->replace('-', ' ')->headline() }}</td>
                             <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ number_format((float) $timecard->total_hours, 2) }}</td>
                             <td class="px-4 py-3 text-right text-sm">
-                                <div class="flex justify-end gap-2">
-                                    <a href="{{ route('timecards.show', $timecard) }}" class="text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white" wire:navigate>{{ __('View') }}</a>
+                                <x-ui.row-actions-dropdown label="Timecard actions" width="w-36" :menu-height="130">
+                                    <a
+                                        href="{{ route('timecards.show', $timecard) }}"
+                                        class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        wire:navigate
+                                        @click="closeMenu()"
+                                    >
+                                        {{ __('View') }}
+                                    </a>
+
                                     @if ($timecard->status === \App\Domains\Timecards\Models\Timecard::STATUS_DRAFT)
-                                        <a href="{{ route('timecards.edit', $timecard) }}" class="text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white" wire:navigate>{{ __('Edit') }}</a>
+                                        <a
+                                            href="{{ route('timecards.edit', $timecard) }}"
+                                            class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                            wire:navigate
+                                            @click="closeMenu()"
+                                        >
+                                            {{ __('Edit') }}
+                                        </a>
                                     @endif
-                                </div>
+                                </x-ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

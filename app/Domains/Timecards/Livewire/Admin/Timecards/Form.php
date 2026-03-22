@@ -8,6 +8,7 @@ use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
 use App\Domains\Timecards\Services\TimecardWeekService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -33,6 +34,21 @@ class Form extends Component
      */
     public array $entries = [];
 
+    /**
+     * Days of the week as mapping for display
+     *
+     * @var array{0:string, 1:string, 2:string, 3:string, 4:string, 5:string, 6:string}
+     */
+    private array $daysOfWeek = [
+        0 => 'Sunday',
+        1 => 'Monday',
+        2 => 'Tuesday',
+        3 => 'Wednesday',
+        4 => 'Thursday',
+        5 => 'Friday',
+        6 => 'Saturday',
+    ];
+
     public function mount(?Timecard $timecard = null): void
     {
         $timecardWeekService = app(TimecardWeekService::class);
@@ -50,7 +66,7 @@ class Form extends Component
                 ->get()
                 ->map(fn ($entry): array => [
                     'id' => (string) $entry->id,
-                    'date' => (string) optional($entry->date)->toDateString(),
+                    'day_of_week' => (int) optional($entry->date)->dayOfWeek,
                     'start_time' => $entry->start_time ? substr((string) $entry->start_time, 0, 5) : null,
                     'project_id' => $entry->project_id ? (string) $entry->project_id : null,
                     'custom_project_name' => $entry->custom_project_name,
@@ -81,7 +97,7 @@ class Form extends Component
             'week_starting' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
             'entries' => ['array'],
-            'entries.*.date' => ['required', 'date'],
+            'entries.*.day_of_week' => ['required', 'integer', 'between:0,6'],
             'entries.*.start_time' => ['nullable', 'date_format:H:i'],
             'entries.*.project_id' => ['nullable', 'exists:projects,id'],
             'entries.*.custom_project_name' => ['nullable', 'string', 'max:255'],
@@ -95,7 +111,7 @@ class Form extends Component
     {
         $this->entries[] = [
             'id' => null,
-            'date' => $this->week_starting,
+            'day_of_week' => 1, // Default to Monday
             'start_time' => null,
             'project_id' => null,
             'custom_project_name' => null,
@@ -128,8 +144,9 @@ class Form extends Component
     public function updatedWeekStarting(string $value): void
     {
         foreach ($this->entries as $index => $entry) {
-            if (($entry['id'] ?? null) === null && (($entry['date'] ?? '') === '' || ($entry['date'] ?? '') === $this->week_starting)) {
-                $this->entries[$index]['date'] = $value;
+            if (($entry['id'] ?? null) === null) {
+                // Keep existing day_of_week when week changes
+                continue;
             }
         }
     }
@@ -137,6 +154,10 @@ class Form extends Component
     public function save(): void
     {
         $validated = $this->validate();
+        // Convert day_of_week to actual dates
+        $entries = $this->convertDayOfWeekToDate($validated['entries'] ?? []);
+        $validated['entries'] = $entries;
+
         $user = User::query()->findOrFail($validated['user_id']);
         $lifecycleService = app(TimecardLifecycleService::class);
 
@@ -166,5 +187,44 @@ class Form extends Component
             'users' => User::query()->orderBy('first_name')->orderBy('last_name')->get(['id', 'first_name', 'last_name']),
             'projects' => Project::query()->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /**
+     * Convert day_of_week values to actual dates based on week_starting
+     *
+     * @param  array<int, array<string, mixed>>  $entries
+     * @return array<int, array<string, mixed>>
+     */
+    private function convertDayOfWeekToDate(array $entries): array
+    {
+        $weekStart = Carbon::parse($this->week_starting);
+
+        return array_map(function (array $entry) use ($weekStart) {
+            $entry['date'] = $weekStart->copy()->addDays((int) $entry['day_of_week'])->toDateString();
+            unset($entry['day_of_week']);
+
+            return $entry;
+        }, $entries);
+    }
+
+    /**
+     * Get the week dates for display
+     *
+     * @return array{start: Carbon, end: Carbon, dates: array<int, Carbon>}
+     */
+    public function getWeekDates(): array
+    {
+        $weekStart = Carbon::parse($this->week_starting);
+        $dates = [];
+
+        for ($i = 0; $i <= 6; $i++) {
+            $dates[$i] = $weekStart->copy()->addDays($i);
+        }
+
+        return [
+            'start' => $weekStart,
+            'end' => $weekStart->copy()->addDays(6),
+            'dates' => $dates,
+        ];
     }
 }

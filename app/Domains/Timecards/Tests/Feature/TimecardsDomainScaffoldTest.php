@@ -315,7 +315,7 @@ it('creates a timecard with entries through the user form component', function (
     Livewire::test(UserForm::class)
         ->set('week_starting', '2026-04-12')
         ->set('notes', 'Weekly draft')
-        ->set('entries.0.date', '2026-04-13')
+        ->set('entries.0.day_of_week', 1) // Monday
         ->set('entries.0.hours', '8')
         ->set('entries.0.custom_project_name', 'Field Work')
         ->set('entries.0.notes', 'Crew setup')
@@ -339,7 +339,7 @@ it('creates a timecard for another user through the admin form component', funct
         ->set('user_id', (string) $employee->id)
         ->set('week_starting', '2026-04-19')
         ->set('notes', 'Created by admin')
-        ->set('entries.0.date', '2026-04-20')
+        ->set('entries.0.day_of_week', 1) // Monday
         ->set('entries.0.hours', '7.5')
         ->set('entries.0.custom_project_name', 'Warehouse Work')
         ->call('save')
