@@ -15,68 +15,9 @@
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
 
-                @can('admin')
-                    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
-                        {{ __('Access') }}
-                    </flux:sidebar.item>
-                @endcan
+                @include('partials.nav.sidebar-admin-nav')
 
-                @can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)
-                    <flux:sidebar.item icon="clock" :href="route('admin.scheduler.tasks.index')" :current="request()->routeIs('admin.scheduler.tasks.*')" wire:navigate data-test="admin-scheduler-sidebar-main-link">
-                        {{ __('Scheduler') }}
-                    </flux:sidebar.item>
-                @endcan
-
-                @can('viewAny', \App\Core\Announcement\Models\Announcement::class)
-                    <flux:sidebar.item icon="megaphone" :href="route('admin.announcements.index')" :current="request()->routeIs('admin.announcements.*')" wire:navigate data-test="admin-announcements-sidebar-main-link">
-                        {{ __('Announcements') }}
-                    </flux:sidebar.item>
-                @endcan
-
-                @can('viewAny', \App\Domains\Projects\Models\Project::class)
-                    <flux:sidebar.item icon="drafting-compass" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
-                        {{ __('Projects') }}
-                    </flux:sidebar.item>
-                @endcan
-
-                @can('viewAny', \App\Domains\Clients\Models\Client::class)
-                    <flux:sidebar.item icon="building-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*')" wire:navigate>
-                        {{ __('Clients') }}
-                    </flux:sidebar.item>
-                @endcan
-
-                @if (auth()->user()?->hasPermission('tasks.view') || auth()->user()?->hasPermission('task-categories.view') || auth()->user()?->hasPermission('task-templates.view'))
-                    <flux:sidebar.item icon="check-circle" :href="route('admin.tasks.index')" :current="request()->routeIs('admin.tasks.*') || request()->routeIs('admin.task-categories.*') || request()->routeIs('admin.task-templates.*')" wire:navigate>
-                        {{ __('Tasks') }}
-                    </flux:sidebar.item>
-                @endif
-
-                @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
-                    <flux:sidebar.item
-                        icon="clock"
-                        :href="auth()->user()?->hasPermission('timecards.view-all') ? route('admin.timecards.index') : route('timecards.index')"
-                        :current="request()->routeIs('admin.timecards.*') || request()->routeIs('timecards.*')"
-                        wire:navigate
-                        data-test="timecards-sidebar-main-link"
-                    >
-                        {{ __('My Timecards') }}
-                    </flux:sidebar.item>
-                @endcan
-
-                @can('create', \App\Domains\Timecards\Models\Timecard::class)
-                    <flux:sidebar.item
-                        icon="plus"
-                        :href="route('timecards.create')"
-                        :current="request()->routeIs('timecards.create')"
-                        wire:navigate
-                        data-test="timecards-create-sidebar-main-link"
-                    >
-                        {{ __('New Timecard') }}
-                    </flux:sidebar.item>
-                @endcan
-
-                <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Stock') }}</flux:sidebar.item>
-                <flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>
+                @include('partials.nav.sidebar-user-nav')
 
             </flux:sidebar.nav>
             <flux:spacer />
@@ -152,24 +93,14 @@
                             @endcan
 
                             @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
-                                <flux:menu.item
-                                    :href="auth()->user()?->hasPermission('timecards.view-all') ? route('admin.timecards.index') : route('timecards.index')"
-                                    icon="clock"
-                                    wire:navigate
-                                    data-test="timecards-link-mobile"
-                                >
+                                <flux:menu.item :href="route('timecards.index')" icon="clock" wire:navigate>
                                     {{ __('My Timecards') }}
                                 </flux:menu.item>
                             @endcan
 
-                            @can('create', \App\Domains\Timecards\Models\Timecard::class)
-                                <flux:menu.item
-                                    :href="route('timecards.create')"
-                                    icon="plus"
-                                    wire:navigate
-                                    data-test="timecards-create-link-mobile"
-                                >
-                                    {{ __('New Timecard') }}
+                            @can('viewAll', \App\Domains\Timecards\Models\Timecard::class)
+                                <flux:menu.item :href="route('admin.timecards.index')" icon="clock" wire:navigate data-test="timecards-link-mobile">
+                                    {{ __('All Timecards') }}
                                 </flux:menu.item>
                             @endcan
                         </flux:menu.radio.group>

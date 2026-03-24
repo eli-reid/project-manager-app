@@ -31,7 +31,7 @@ class TimecardEntryObserver
 
     private function recalculate(TimecardEntry $timecardEntry): void
     {
-        $timecard = $timecardEntry->timecard()->withTrashed()->first();
+        $timecard = $timecardEntry->timecard()->first();
 
         if ($timecard === null) {
             return;

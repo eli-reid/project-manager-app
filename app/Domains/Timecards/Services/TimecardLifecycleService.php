@@ -222,10 +222,7 @@ class TimecardLifecycleService
             ]);
         }
 
-        DB::transaction(function () use ($timecard): void {
-            $timecard->entries()->delete();
-            $timecard->delete();
-        });
+        $timecard->delete();
     }
 
     /**

@@ -12,6 +12,11 @@ class TimecardPolicy
         return $user->hasPermission('timecards.view') || $user->hasPermission('timecards.view-all');
     }
 
+    public function viewAll(User $user): bool
+    {
+        return $user->hasPermission('timecards.view-all');
+    }
+
     public function view(User $user, Timecard $timecard): bool
     {
         if ($user->hasPermission('timecards.view-all')) {

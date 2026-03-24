@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('timecards')
     ->name('timecards.')
-    ->middleware('can:viewAny,'.Timecard::class)
+    ->middleware('can:viewAll,'.Timecard::class)
     ->group(function (): void {
         Route::get('/', Index::class)->name('index');
 

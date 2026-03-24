@@ -96,7 +96,7 @@ class Index extends Component
 
     public function mount(): void
     {
-        $this->authorize('viewAny', Timecard::class);
+        $this->authorize('viewAll', Timecard::class);
     }
 
     public function clearFilters(): void

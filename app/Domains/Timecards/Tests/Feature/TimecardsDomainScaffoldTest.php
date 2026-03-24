@@ -33,8 +33,8 @@ it('forbids authenticated users without timecard view permissions', function ():
         ->assertForbidden();
 });
 
-it('allows users with timecard view permissions to access index', function (): void {
-    $viewer = userWithTimecardDomainPermissions(['timecards.view']);
+it('allows users with timecards.view-all to access admin timecards index', function (): void {
+    $reviewer = userWithTimecardDomainPermissions(['timecards.view-all']);
     $owner = User::factory()->create();
 
     Timecard::factory()->create([
@@ -43,10 +43,19 @@ it('allows users with timecard view permissions to access index', function (): v
         'total_hours' => 32.5,
     ]);
 
-    actingAs($viewer);
+    actingAs($reviewer);
 
     Livewire::test(Index::class)
         ->assertSee('Timecards');
+});
+
+it('forbids users with only timecards.view from admin timecards index', function (): void {
+    $viewer = userWithTimecardDomainPermissions(['timecards.view']);
+
+    actingAs($viewer);
+
+    get(route('admin.timecards.index'))
+        ->assertForbidden();
 });
 
 it('filters admin timecards index by status and employee', function (): void {
@@ -173,11 +182,8 @@ it('bulk deletes non-approved timecards and keeps approved rows', function (): v
         ->call('applyBulkAction')
         ->assertHasNoErrors();
 
-    $this->assertSoftDeleted('timecards', ['id' => $draft->id]);
-    $this->assertDatabaseHas('timecards', [
-        'id' => $approved->id,
-        'deleted_at' => null,
-    ]);
+    $this->assertDatabaseMissing('timecards', ['id' => $draft->id]);
+    $this->assertDatabaseHas('timecards', ['id' => $approved->id]);
 });
 
 it('redirects guests from user timecards routes', function (): void {
@@ -504,7 +510,23 @@ it('allows admins to delete non-approved timecards from review', function (): vo
         ->call('delete')
         ->assertRedirect(route('admin.timecards.index'));
 
-    $this->assertSoftDeleted('timecards', ['id' => $timecard->id]);
+    $this->assertDatabaseMissing('timecards', ['id' => $timecard->id]);
+});
+
+it('allows a user to create a new timecard for the same week after the previous was deleted', function (): void {
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit', 'timecards.delete']);
+    $service = app(TimecardLifecycleService::class);
+
+    $original = $service->createDraftForUser($user, '2026-08-03');
+
+    $service->delete($original);
+
+    $this->assertDatabaseMissing('timecards', ['id' => $original->id]);
+
+    $replacement = $service->createDraftForUser($user, '2026-08-03');
+
+    expect($replacement->week_starting?->toDateString())->toBe($original->week_starting?->toDateString())
+        ->and($replacement->status)->toBe(Timecard::STATUS_DRAFT);
 });
 
 it('denies delete ability for approved timecards even for admin reviewers', function (): void {
@@ -518,10 +540,7 @@ it('denies delete ability for approved timecards even for admin reviewers', func
 
     expect(Gate::forUser($admin)->allows('delete', $timecard))->toBeFalse();
 
-    $this->assertDatabaseHas('timecards', [
-        'id' => $timecard->id,
-        'deleted_at' => null,
-    ]);
+    $this->assertDatabaseHas('timecards', ['id' => $timecard->id]);
 });
 
 it('recalculates timecard total hours through the entry observer', function (): void {
