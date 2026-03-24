@@ -76,7 +76,12 @@
                 @endcan
 
                 <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Stock') }}</flux:sidebar.item>
-                <flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>
+                    @can('viewAny', \App\Domains\Invoices\Models\Invoice::class)
+                        <flux:sidebar.item icon="receipt-percent" :href="route('admin.invoices.index')" :current="request()->routeIs('admin.invoices.*')" wire:navigate>
+                            {{ __('Invoices') }}
+                        </flux:sidebar.item>
+                    @endcan
+                    <flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>
 
             </flux:sidebar.nav>
             <flux:spacer />
