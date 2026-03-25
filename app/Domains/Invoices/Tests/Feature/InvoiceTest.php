@@ -68,6 +68,28 @@ it('filters invoices by status', function (): void {
         ->assertDontSee('Paid Vendor');
 });
 
+it('filters invoices by project', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view']);
+    $selectedProject = Project::factory()->create();
+    $otherProject = Project::factory()->create();
+
+    Invoice::factory()->for($selectedProject)->create([
+        'vendor_name' => 'Selected Project Vendor',
+        'created_by' => $user->id,
+    ]);
+
+    Invoice::factory()->for($otherProject)->create([
+        'vendor_name' => 'Other Project Vendor',
+        'created_by' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.invoices.index', ['project' => $selectedProject->id]))
+        ->assertSuccessful()
+        ->assertSee('Selected Project Vendor')
+        ->assertDontSee('Other Project Vendor');
+});
+
 // ---------------------------------------------------------------------------
 // Create / Store
 // ---------------------------------------------------------------------------

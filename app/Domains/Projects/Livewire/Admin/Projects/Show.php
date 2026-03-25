@@ -2,6 +2,7 @@
 
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
+use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -53,14 +54,37 @@ class Show extends Component
             $tabs[] = 'tasks';
         }
 
+        if ($user?->can('viewAny', Invoice::class)) {
+            $tabs[] = 'invoices';
+        }
+
         return $tabs;
     }
 
     public function render()
     {
+        $invoiceCount = 0;
+        $projectInvoices = collect();
+
+        if (in_array('invoices', $this->tabs(), true)) {
+            $invoiceCount = Invoice::query()
+                ->where('project_id', $this->project->id)
+                ->count();
+
+            if ($this->activeTab === 'invoices') {
+                $projectInvoices = Invoice::query()
+                    ->where('project_id', $this->project->id)
+                    ->latest('invoice_date')
+                    ->limit(15)
+                    ->get();
+            }
+        }
+
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $this->tabs(),
             'taskCount' => Task::query()->where('project_id', $this->project->id)->count(),
+            'invoiceCount' => $invoiceCount,
+            'projectInvoices' => $projectInvoices,
         ]);
     }
 }

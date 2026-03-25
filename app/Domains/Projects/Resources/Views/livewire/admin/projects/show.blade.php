@@ -22,6 +22,13 @@
             @if (in_array('tasks', $tabs, true))
                 <button type="button" wire:click="setTab('tasks')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'tasks' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Tasks</button>
             @endif
+
+            @if (in_array('invoices', $tabs, true))
+                <button type="button" wire:click="setTab('invoices')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'invoices' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    Invoices
+                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $invoiceCount }}</span>
+                </button>
+            @endif
         </div>
     </div>
 
@@ -50,5 +57,13 @@
 
     @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))
         <livewire:app.domains.tasks.livewire.admin.projects.task-hierarchy-widget :project="$project" :key="'project-task-widget-'.$project->id" />
+    @endif
+
+    @if ($activeTab === 'invoices' && in_array('invoices', $tabs, true))
+        @include('invoices::components.project-tab', [
+            'project' => $project,
+            'invoices' => $projectInvoices,
+            'invoiceCount' => $invoiceCount,
+        ])
     @endif
 </div>

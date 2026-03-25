@@ -4,6 +4,7 @@ use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Services\DomainPermissionSynchronizer;
+use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
@@ -151,6 +152,38 @@ it('shows the livewire tabbed project page and supports tab query state', functi
         ->assertSee('Project Work Breakdown')
         ->assertSee('Add Task')
         ->assertSee('Task Templates');
+});
+
+it('shows invoices tab on project view when user can view invoices', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'invoices.view',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Invoices',
+        'project_number' => 'PRJ-INV-1',
+    ]);
+
+    Invoice::factory()->for($project)->create([
+        'vendor_name' => 'Vendor On Project',
+    ]);
+
+    Invoice::factory()->for(Project::factory())->create([
+        'vendor_name' => 'Vendor Other Project',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Invoices');
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=invoices')
+        ->assertSuccessful()
+        ->assertSee('Project Invoices')
+        ->assertSee('Vendor On Project')
+        ->assertDontSee('Vendor Other Project');
 });
 
 it('auto generates project numbers with configured prefix when enabled', function (): void {
