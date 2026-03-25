@@ -8,27 +8,27 @@
 		}
 	],
 	"settings": {
-		"scm.alwaysShowActions": false
+		"scm.alwaysShowActions": false,
+		"chat.tools.terminal.autoApprove": {
+			"/^php artisan test --compact app/Domains/Invoices/Tests/Feature/InvoiceTest\\.php$/": {
+				"approve": true,
+				"matchCommandLine": true
+			}
+		}
 	},
-
 	"editor.quickSuggestions": {
-    "strings": "on"
-	},	
-
-	
-    "files.associations": {
-        "*.volt.php": "php",
-        "*.volt": "php",
-        "*.blade.php": "blade"
-    },
-	"[php]": {
-    	"editor.defaultFormatter": "robsontenorio.voltage"
+		"strings": "on"
 	},
-    "blade.format.enable": true,
-    "blade.format.enableVolt": true,
-    "blade.format.wrapAttributes": "force-expand-multiline",
-    "blade.format.sortTailwindcssClasses": true
-
+	"files.associations": {
+		"*.volt.php": "php",
+		"*.volt": "php",
+		"*.blade.php": "blade"
+	},
+	"[php]": {
+		"editor.defaultFormatter": "robsontenorio.voltage"
+	},
+	"blade.format.enable": true,
+	"blade.format.enableVolt": true,
+	"blade.format.wrapAttributes": "force-expand-multiline",
+	"blade.format.sortTailwindcssClasses": true
 }
-
-

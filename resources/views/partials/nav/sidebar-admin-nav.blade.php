@@ -39,3 +39,9 @@
         {{ __('Timecards') }}
     </flux:sidebar.item>
 @endcan
+
+@can('viewAny', \App\Domains\Invoices\Models\Invoice::class)
+    <flux:sidebar.item icon="document-text" :href="route('admin.invoices.index')" :current="request()->routeIs('admin.invoices.*')" wire:navigate data-test="admin-invoices-sidebar-main-link">
+        {{ __('Invoices') }}
+    </flux:sidebar.item>
+@endcan

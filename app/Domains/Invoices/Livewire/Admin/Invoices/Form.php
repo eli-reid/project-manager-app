@@ -73,7 +73,7 @@ class Form extends Component
         }
 
         $this->authorize('create', Invoice::class);
-        $this->lineItems = [$this->blankLineItem()];
+        $this->lineItems = [];
     }
 
     /**
@@ -91,29 +91,55 @@ class Form extends Component
 
     public function removeLineItem(int $index): void
     {
-        if (count($this->lineItems) <= 1) {
+        array_splice($this->lineItems, $index, 1);
+        $this->lineItems = array_values($this->lineItems);
+
+        if (! empty($this->lineItems)) {
+            $this->recalculateTotalsFromLineItems();
+
             return;
         }
 
-        array_splice($this->lineItems, $index, 1);
-        $this->lineItems = array_values($this->lineItems);
-        $this->recalculateTotals();
+        $this->recalculateTotalAmount();
     }
 
     public function updatedLineItems(mixed $value, ?string $key): void
     {
         if ($key !== null && (str_ends_with($key, '.quantity') || str_ends_with($key, '.unit_price'))) {
-            $this->recalculateTotals();
+            $this->recalculateTotalsFromLineItems();
         }
+    }
+
+    public function updatedSubtotal(): void
+    {
+        if (! empty($this->lineItems)) {
+            $this->recalculateTotalsFromLineItems();
+
+            return;
+        }
+
+        $this->recalculateTotalAmount();
     }
 
     public function updatedTaxAmount(): void
     {
-        $this->recalculateTotals();
+        if (! empty($this->lineItems)) {
+            $this->recalculateTotalsFromLineItems();
+
+            return;
+        }
+
+        $this->recalculateTotalAmount();
     }
 
-    private function recalculateTotals(): void
+    private function recalculateTotalsFromLineItems(): void
     {
+        if (empty($this->lineItems)) {
+            $this->recalculateTotalAmount();
+
+            return;
+        }
+
         foreach ($this->lineItems as $i => $item) {
             $qty = (float) ($item['quantity'] ?? 1);
             $price = (float) ($item['unit_price'] ?? 0);
@@ -122,7 +148,26 @@ class Form extends Component
 
         $subtotal = array_sum(array_column($this->lineItems, 'total'));
         $this->subtotal = number_format($subtotal, 2, '.', '');
-        $this->total_amount = number_format($subtotal + (float) ($this->tax_amount ?? 0), 2, '.', '');
+        $this->recalculateTotalAmount();
+    }
+
+    private function recalculateTotalAmount(): void
+    {
+        $subtotal = (float) ($this->subtotal ?: 0);
+        $taxAmount = (float) ($this->tax_amount ?: 0);
+        $this->total_amount = number_format($subtotal + $taxAmount, 2, '.', '');
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizedLineItems(): array
+    {
+        return array_values(array_filter(
+            $this->lineItems,
+            fn (array $item): bool => filled(trim((string) ($item['description'] ?? '')))
+                || filled((string) ($item['unit_price'] ?? ''))
+        ));
     }
 
     protected function rules(): array
@@ -138,7 +183,7 @@ class Form extends Component
             'subtotal' => ['required', 'numeric', 'min:0'],
             'tax_amount' => ['required', 'numeric', 'min:0'],
             'total_amount' => ['required', 'numeric', 'min:0'],
-            'lineItems' => ['required', 'array', 'min:1'],
+            'lineItems' => ['nullable', 'array'],
             'lineItems.*.description' => ['required', 'string', 'max:255'],
             'lineItems.*.quantity' => ['required', 'numeric', 'min:0.01'],
             'lineItems.*.unit_price' => ['required', 'numeric', 'min:0'],
@@ -148,7 +193,14 @@ class Form extends Component
 
     public function save(): void
     {
-        $this->recalculateTotals();
+        $this->lineItems = $this->normalizedLineItems();
+
+        if (! empty($this->lineItems)) {
+            $this->recalculateTotalsFromLineItems();
+        } else {
+            $this->recalculateTotalAmount();
+        }
+
         $validated = $this->validate();
 
         $invoiceData = [

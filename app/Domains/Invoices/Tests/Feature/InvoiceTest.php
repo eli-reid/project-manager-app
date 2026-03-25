@@ -110,6 +110,30 @@ it('creates an invoice with line items via livewire form', function (): void {
     expect($lineItem->description)->toBe('Lumber');
 });
 
+it('creates an invoice using totals only without line items', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.create']);
+    $project = Project::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Form::class)
+        ->set('project_id', $project->id)
+        ->set('vendor_name', 'Totals Only Vendor')
+        ->set('invoice_number', 'INV-TOTALS-01')
+        ->set('invoice_date', '2026-03-24')
+        ->set('status', 'pending')
+        ->set('lineItems', [])
+        ->set('subtotal', '250.00')
+        ->set('tax_amount', '25.00')
+        ->call('save');
+
+    $invoice = Invoice::query()->where('invoice_number', 'INV-TOTALS-01')->first();
+    expect($invoice)->not->toBeNull();
+    expect((float) $invoice->subtotal)->toBe(250.00);
+    expect((float) $invoice->tax_amount)->toBe(25.00);
+    expect((float) $invoice->total_amount)->toBe(275.00);
+    expect(InvoiceLineItem::query()->where('invoice_id', $invoice->id)->count())->toBe(0);
+});
+
 it('validates required fields on create', function (): void {
     $user = userWithInvoicePermissions(['invoices.view', 'invoices.create']);
 

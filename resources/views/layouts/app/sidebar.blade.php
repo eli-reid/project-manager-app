@@ -103,6 +103,12 @@
                                     {{ __('All Timecards') }}
                                 </flux:menu.item>
                             @endcan
+
+                            @can('viewAny', \App\Domains\Invoices\Models\Invoice::class)
+                                <flux:menu.item :href="route('admin.invoices.index')" icon="document-text" wire:navigate data-test="admin-invoices-link-mobile">
+                                    {{ __('Invoices') }}
+                                </flux:menu.item>
+                            @endcan
                         </flux:menu.radio.group>
 
                         <flux:menu.separator />
