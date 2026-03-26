@@ -24,6 +24,7 @@ return new class extends Migration
                 $table->json('safety_issues')->nullable();
                 $table->json('delays')->nullable();
                 $table->json('visitors')->nullable();
+                $table->json('onsite_employees')->nullable();
                 $table->string('weather_condition')->nullable();
                 $table->decimal('temperature', 8, 2)->nullable();
                 $table->string('temperature_unit', 5)->default('F');

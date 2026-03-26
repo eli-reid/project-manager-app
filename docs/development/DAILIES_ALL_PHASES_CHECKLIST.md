@@ -16,43 +16,43 @@
 - [ ] Define acceptance criteria for each phase.
 
 ## Phase 1 - Domain Foundation (Scaffold)
-- [ ] Create `app/Domains/Dailies/Providers/DailiesServiceProvider.php`.
-- [ ] Register policy for `DailyReport` model.
-- [ ] Load Dailies migrations and views from domain.
-- [ ] Register Dailies Livewire components (admin + user placeholders).
-- [ ] Wire `web`, `mobile`, `admin`, and `api` route groups.
-- [ ] Create `DailyPermissions` definitions.
-- [ ] Register Dailies permissions through `PermissionRegistry`.
-- [ ] Create `DailyReport` model with status constants and casts.
-- [ ] Create initial `DailyReportPolicy` using policy-first authorization.
-- [ ] Create initial migration for `daily_reports` table.
-- [ ] Add baseline domain tests for route auth and component access.
-- [ ] Run Pest tests for Dailies scaffold.
-- [ ] Run Pint on changed PHP files.
+- [x] Create `app/Domains/Dailies/Providers/DailiesServiceProvider.php`.
+- [x] Register policy for `DailyReport` model.
+- [x] Load Dailies migrations and views from domain.
+- [x] Register Dailies Livewire components (admin + user placeholders).
+- [x] Wire `web`, `mobile`, `admin`, and `api` route groups.
+- [x] Create `DailyPermissions` definitions.
+- [x] Register Dailies permissions through `PermissionRegistry`.
+- [x] Create `DailyReport` model with status constants and casts.
+- [x] Create initial `DailyReportPolicy` using policy-first authorization.
+- [x] Create initial migration for `daily_reports` table.
+- [x] Add baseline domain tests for route auth and component access.
+- [x] Run Pest tests for Dailies scaffold.
+- [x] Run Pint on changed PHP files.
 
 ## Phase 2 - Data Model and Domain Rules Hardening
-- [ ] Normalize daily report status lifecycle (`draft`, `submitted`, `approved`, `rejected`).
-- [ ] Ensure status naming consistency in all queries and metrics.
-- [ ] Define final handling for custom project reports (`project_id` nullable + `custom_project_name`).
+- [x] Normalize daily report status lifecycle (`draft`, `submitted`, `approved`, `rejected`).
+- [x] Ensure status naming consistency in all queries and metrics.
+- [x] Define final handling for custom project reports (`project_id` nullable + `custom_project_name`).
 - [ ] Add/confirm uniqueness constraints for report duplication rules.
 - [ ] Finalize required nullable/non-nullable fields.
 - [ ] Define weather storage strategy (single source of truth).
 - [ ] Define attachment/photo schema strategy.
-- [ ] Add domain services for report lifecycle and validations.
-- [ ] Replace controller-style rule sprawl with Form Request or validated action patterns.
+- [x] Add domain services for report lifecycle and validations.
+- [x] Replace controller-style rule sprawl with Form Request or validated action patterns.
 - [ ] Add unit tests for key rule edge cases.
 - [ ] Add migration tests for fresh install and schema integrity.
 
 ## Phase 3 - Core User Workflows
-- [ ] Implement user index/list with filters.
-- [ ] Implement create report flow.
-- [ ] Implement edit report flow with status guards.
-- [ ] Implement draft vs submit actions.
-- [ ] Implement show/details view.
-- [ ] Implement safe delete rules.
+- [x] Implement user index/list with filters.
+- [x] Implement create report flow.
+- [x] Implement edit report flow with status guards.
+- [x] Implement draft vs submit actions.
+- [x] Implement show/details view.
+- [x] Implement safe delete rules.
 - [ ] Implement project-user selection behavior.
 - [ ] Add Livewire validation and loading/error states.
-- [ ] Add tests for create/edit/submit/delete happy and failure paths.
+- [x] Add tests for create/edit/submit/delete happy and failure paths.
 
 ## Phase 4 - Admin and Approval Workflows
 - [ ] Implement admin index with filters.
@@ -93,16 +93,16 @@
 - [ ] Decommission legacy daily routes once stable.
 
 ## Cross-Phase Quality Gates
-- [ ] Use policy-first authorization only.
-- [ ] Avoid N+1 queries and load related data at the right level.
-- [ ] Keep domain boundaries clean (model/service/action/policy separation).
-- [ ] Ensure every change is covered by minimum targeted Pest tests.
-- [ ] Keep migrations safe for fresh installs.
-- [ ] Keep permissions synchronized and verifiable.
-- [ ] Run `vendor/bin/pint --dirty --format agent` on changed PHP files.
+- [x] Use policy-first authorization only.
+- [x] Avoid N+1 queries and load related data at the right level.
+- [x] Keep domain boundaries clean (model/service/action/policy separation).
+- [x] Ensure every change is covered by minimum targeted Pest tests.
+- [x] Keep migrations safe for fresh installs.
+- [x] Keep permissions synchronized and verifiable.
+- [x] Run `vendor/bin/pint --dirty --format agent` on changed PHP files.
 
 ## Tracking
-- Current active phase: [ ] 0 [x] 1 [ ] 2 [ ] 3 [ ] 4 [ ] 5 [ ] 6 [ ] 7
-- Overall progress (%): [x] 0-25 [ ] 26-50 [ ] 51-75 [ ] 76-99 [ ] 100
+- Current active phase: [ ] 0 [ ] 1 [ ] 2 [x] 3 [ ] 4 [ ] 5 [ ] 6 [ ] 7
+- Overall progress (%): [ ] 0-25 [x] 26-50 [ ] 51-75 [ ] 76-99 [ ] 100
 - Blockers:
 - Notes:

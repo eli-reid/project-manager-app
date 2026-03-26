@@ -22,5 +22,17 @@
     </flux:sidebar.item>
 @endcan
 
+@can('viewAny', \App\Domains\Dailies\Models\DailyReport::class)
+    <flux:sidebar.item
+        icon="clipboard-document-list"
+        :href="route('dailies.index')"
+        :current="request()->routeIs('dailies.*')"
+        wire:navigate
+        data-test="dailies-sidebar-main-link"
+    >
+        {{ __('My Dailies') }}
+    </flux:sidebar.item>
+@endcan
+
 <flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Stock') }}</flux:sidebar.item>
 <flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>

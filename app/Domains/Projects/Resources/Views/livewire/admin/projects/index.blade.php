@@ -26,7 +26,7 @@
                         <tr
                             wire:key="project-{{ $project->id }}"
                             class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
-                            onclick="window.location='{{ route('admin.projects.show', $project) }}'"
+                            onclick="window.location='{{ route('admin.projects.show', $project) }}';"
                         >
                             <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->project_number ?? 'N/A' }}</td>

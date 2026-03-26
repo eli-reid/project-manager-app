@@ -19,6 +19,13 @@
         <div class="flex min-w-max gap-2">
             <button type="button" wire:click="setTab('overview')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'overview' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Overview</button>
 
+            @if (in_array('dailies', $tabs, true))
+                <button type="button" wire:click="setTab('dailies')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'dailies' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    Dailies
+                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $dailyCount }}</span>
+                </button>
+            @endif
+
             @if (in_array('tasks', $tabs, true))
                 <button type="button" wire:click="setTab('tasks')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'tasks' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Tasks</button>
             @endif
@@ -53,6 +60,14 @@
                 <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $taskCount }}</p>
             </div>
         </div>
+    @endif
+
+    @if ($activeTab === 'dailies' && in_array('dailies', $tabs, true))
+        @include('dailies::components.project-tab', [
+            'project' => $project,
+            'dailies' => $projectDailies,
+            'dailyCount' => $dailyCount,
+        ])
     @endif
 
     @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))

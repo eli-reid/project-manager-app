@@ -1,12 +1,8 @@
 <flux:sidebar.spacer />
-<flux:separator />
-<flux:sidebar.header >
-    <div class="flex flex-1 items-center justify-center px-4 py-2 text-lg font-semibold text-zinc-500 dark:text-zinc-400 in-data-flux-sidebar-collapsed-desktop:px-0">
-        <span class="text-center in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Administration') }}</span>
-        <span class="hidden size-8 items-center justify-center rounded-md border border-zinc-300 text-sm font-semibold dark:border-zinc-600 in-data-flux-sidebar-collapsed-desktop:inline-flex">A</span>
-    </div>
+
+<flux:sidebar.header class="in-data-flux-sidebar-collapsed-desktop:hidden">
+    <flux:separator  data-flux-separator="admin-header" text="{{ __('Administration') }}" class="text-lg" />
 </flux:sidebar.header>
-<flux:separator />
 @can('admin')
     <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-link">
         {{ __('Settings') }}
@@ -47,6 +43,12 @@
         {{ __('Tasks') }}
     </flux:sidebar.item>
 @endif
+
+@can('viewAll', \App\Domains\Dailies\Models\DailyReport::class)
+    <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.dailies.index')" :current="request()->routeIs('admin.dailies.*')" wire:navigate data-test="admin-dailies-sidebar-main-link">
+        {{ __('Dailies') }}
+    </flux:sidebar.item>
+@endcan
 
 @can('viewAll', \App\Domains\Timecards\Models\Timecard::class)
     <flux:sidebar.item icon="clock" :href="route('admin.timecards.index')" :current="request()->routeIs('admin.timecards.*')" wire:navigate data-test="admin-timecards-sidebar-main-link">

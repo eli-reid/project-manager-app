@@ -5,6 +5,7 @@ namespace App\Domains\Projects\Models;
 use App\Core\User\Models\User;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
+use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Projects\Database\Factories\ProjectFactory;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -131,6 +132,11 @@ class Project extends Model
     public function availableClientAddresses(): HasMany
     {
         return $this->hasMany(Address::class, 'client_id', 'client_id');
+    }
+
+    public function dailyReports(): HasMany
+    {
+        return $this->hasMany(DailyReport::class);
     }
 
     protected static function newFactory(): ProjectFactory

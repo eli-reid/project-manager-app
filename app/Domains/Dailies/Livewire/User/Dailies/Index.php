@@ -17,6 +17,27 @@ class Index extends Component
     use AuthorizesRequests;
     use WithPagination;
 
+    public string $status = '';
+
+    public ?string $from_date = null;
+
+    public ?string $to_date = null;
+
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFromDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedToDate(): void
+    {
+        $this->resetPage();
+    }
+
     public function mount(): void
     {
         $this->authorize('viewAny', DailyReport::class);
@@ -27,12 +48,31 @@ class Index extends Component
         $user = Auth::user();
         abort_unless($user !== null, 401);
 
+        $query = DailyReport::query()
+            ->where('user_id', $user->id)
+            ->with(['project', 'submittedBy'])
+            ->latest('report_date');
+
+        if ($this->status !== '') {
+            $query->where('status', $this->status);
+        }
+
+        if (filled($this->from_date)) {
+            $query->whereDate('report_date', '>=', $this->from_date);
+        }
+
+        if (filled($this->to_date)) {
+            $query->whereDate('report_date', '<=', $this->to_date);
+        }
+
         return view('dailies::livewire.user.dailies.index', [
-            'reports' => DailyReport::query()
-                ->where('user_id', $user->id)
-                ->with(['project', 'submittedBy'])
-                ->latest('report_date')
-                ->paginate(15),
+            'reports' => $query->paginate(15),
+            'statuses' => [
+                DailyReport::STATUS_DRAFT,
+                DailyReport::STATUS_SUBMITTED,
+                DailyReport::STATUS_APPROVED,
+                DailyReport::STATUS_REJECTED,
+            ],
         ]);
     }
 }

@@ -32,6 +32,7 @@ class DailyReportFactory extends Factory
             'safety_issues' => [],
             'delays' => [],
             'visitors' => [],
+            'onsite_employees' => [],
             'weather_condition' => fake()->optional()->word(),
             'temperature' => fake()->optional()->randomFloat(2, 20, 95),
             'temperature_unit' => 'F',

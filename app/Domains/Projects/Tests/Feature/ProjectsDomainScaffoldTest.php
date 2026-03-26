@@ -4,6 +4,7 @@ use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Services\DomainPermissionSynchronizer;
+use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Models\Project;
@@ -184,6 +185,41 @@ it('shows invoices tab on project view when user can view invoices', function ()
         ->assertSee('Project Invoices')
         ->assertSee('Vendor On Project')
         ->assertDontSee('Vendor Other Project');
+});
+
+it('shows dailies tab on project view when user can view all dailies', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'dailies.view-all',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Dailies',
+        'project_number' => 'PRJ-DLY-1',
+    ]);
+
+    DailyReport::factory()->for($project)->create([
+        'status' => DailyReport::STATUS_SUBMITTED,
+        'total_hours' => 8,
+    ]);
+
+    DailyReport::factory()->for(Project::factory())->create([
+        'status' => DailyReport::STATUS_APPROVED,
+        'total_hours' => 12,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Dailies');
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=dailies')
+        ->assertSuccessful()
+        ->assertSee('Project Dailies')
+        ->assertSee('Submitted')
+        ->assertSee('8.00')
+        ->assertDontSee('12.00');
 });
 
 it('auto generates project numbers with configured prefix when enabled', function (): void {

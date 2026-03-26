@@ -7,5 +7,6 @@ it('centers the administration header in the admin sidebar partial', function ()
     expect($view)->toContain("<span class=\"text-center in-data-flux-sidebar-collapsed-desktop:hidden\">{{ __('Administration') }}</span>");
     expect($view)->toContain('in-data-flux-sidebar-collapsed-desktop:inline-flex">A</span>');
     expect($view)->toContain('<flux:sidebar.item icon="cog" :href="route(\'admin.settings.index\')" :current="request()->routeIs(\'admin.settings.*\')" wire:navigate data-test="admin-settings-link">');
+    expect($view)->toContain('<flux:sidebar.item icon="clipboard-document-list" :href="route(\'admin.dailies.index\')" :current="request()->routeIs(\'admin.dailies.*\')" wire:navigate data-test="admin-dailies-sidebar-main-link">');
     expect($view)->not->toContain('request()->routeIs(\'admin.users.*\') || request()->routeIs(\'admin.roles.*\') || request()->routeIs(\'admin.settings.*\')');
 });

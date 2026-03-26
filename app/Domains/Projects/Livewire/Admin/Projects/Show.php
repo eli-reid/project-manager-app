@@ -2,6 +2,7 @@
 
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
+use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
@@ -50,6 +51,10 @@ class Show extends Component
         $tabs = ['overview'];
         $user = Auth::user();
 
+        if ($user?->can('viewAll', DailyReport::class)) {
+            $tabs[] = 'dailies';
+        }
+
         if ($user?->hasPermission('tasks.view') || $user?->hasPermission('task-categories.view')) {
             $tabs[] = 'tasks';
         }
@@ -63,8 +68,22 @@ class Show extends Component
 
     public function render()
     {
+        $dailyCount = 0;
+        $projectDailies = collect();
         $invoiceCount = 0;
         $projectInvoices = collect();
+
+        if (in_array('dailies', $this->tabs(), true)) {
+            $dailyCount = $this->project->dailyReports()->count();
+
+            if ($this->activeTab === 'dailies') {
+                $projectDailies = $this->project->dailyReports()
+                    ->with(['user', 'submittedBy'])
+                    ->latest('report_date')
+                    ->limit(15)
+                    ->get();
+            }
+        }
 
         if (in_array('invoices', $this->tabs(), true)) {
             $invoiceCount = Invoice::query()
@@ -82,6 +101,8 @@ class Show extends Component
 
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $this->tabs(),
+            'dailyCount' => $dailyCount,
+            'projectDailies' => $projectDailies,
             'taskCount' => Task::query()->where('project_id', $this->project->id)->count(),
             'invoiceCount' => $invoiceCount,
             'projectInvoices' => $projectInvoices,

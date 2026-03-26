@@ -30,6 +30,15 @@ return [
         'order' => 30,
     ],
     [
+        'key' => 'weatherapi.default_location',
+        'default_value' => env('WEATHERAPI_DEFAULT_LOCATION', ''),
+        'display_name' => 'Weather Default Address',
+        'description' => 'Fallback address/location for weather lookups when a project address is unavailable.',
+        'type' => 'text',
+        'group' => 'weather',
+        'order' => 35,
+    ],
+    [
         'key' => 'weatherapi.timeout',
         'default_value' => env('WEATHERAPI_TIMEOUT', 10),
         'display_name' => 'Weather Request Timeout',
