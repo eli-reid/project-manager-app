@@ -21,16 +21,6 @@
                         {{ __('Roles') }}
                     </flux:navbar.item>
                 @endcan
-
-                @can('viewAny', \App\Core\Settings\Models\SettingsSqlite::class)
-                    <flux:navbar.item
-                        :href="route('admin.settings.index')"
-                        :current="request()->routeIs('admin.settings.*')"
-                        wire:navigate
-                    >
-                        {{ __('Settings Groups') }}
-                    </flux:navbar.item>
-                @endcan
             </flux:navbar>
         </div>
     </x-slot:domainNavbar>

@@ -1,5 +1,19 @@
+<flux:sidebar.spacer />
+<flux:separator />
+<flux:sidebar.header >
+    <div class="flex flex-1 items-center justify-center px-4 py-2 text-lg font-semibold text-zinc-500 dark:text-zinc-400 in-data-flux-sidebar-collapsed-desktop:px-0">
+        <span class="text-center in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Administration') }}</span>
+        <span class="hidden size-8 items-center justify-center rounded-md border border-zinc-300 text-sm font-semibold dark:border-zinc-600 in-data-flux-sidebar-collapsed-desktop:inline-flex">A</span>
+    </div>
+</flux:sidebar.header>
+<flux:separator />
 @can('admin')
-    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
+    <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-link">
+        {{ __('Settings') }}
+    </flux:sidebar.item>
+@endcan
+@can('admin')
+    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
         {{ __('Access') }}
     </flux:sidebar.item>
 @endcan

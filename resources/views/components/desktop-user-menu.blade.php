@@ -29,11 +29,7 @@
             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                 {{ __('Settings') }}
             </flux:menu.item>
-            @can('admin')
-                <flux:menu.item :href="route('admin.settings.index')" icon="cog" data-test="admin-settings-link">
-                    {{ __('Admin Settings') }}
-                </flux:menu.item>
-            @endcan
+
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <flux:menu.item
