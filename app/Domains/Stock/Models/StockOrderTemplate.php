@@ -57,6 +57,29 @@ class StockOrderTemplate extends Model
         return $query->where('is_active', true);
     }
 
+    public function scopeGlobal(Builder $query): Builder
+    {
+        return $query->where('is_global', true);
+    }
+
+    public function scopeAvailableToUser(Builder $query, string $userId): Builder
+    {
+        return $query->where(function (Builder $innerQuery) use ($userId): void {
+            $innerQuery->where('is_global', true)
+                ->orWhere('created_by', $userId);
+        });
+    }
+
+    public function isOwnedBy(string $userId): bool
+    {
+        return (string) $this->created_by === $userId;
+    }
+
+    public function isAvailableTo(string $userId): bool
+    {
+        return $this->is_active && ($this->is_global || $this->isOwnedBy($userId));
+    }
+
     protected static function newFactory(): StockOrderTemplateFactory
     {
         return StockOrderTemplateFactory::new();

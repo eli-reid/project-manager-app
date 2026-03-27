@@ -15,11 +15,11 @@ class StockOrderTemplatePolicy
     public function view(User $user, StockOrderTemplate $stockOrderTemplate): bool
     {
         if ($user->hasPermission('stock-order-templates.view-any')) {
-            return true;
+            return $stockOrderTemplate->is_active;
         }
 
         return $user->hasPermission('stock-order-templates.view')
-            && ($stockOrderTemplate->is_global || (string) $stockOrderTemplate->created_by === (string) $user->id);
+            && $stockOrderTemplate->isAvailableTo((string) $user->id);
     }
 
     public function create(User $user): bool
@@ -29,6 +29,10 @@ class StockOrderTemplatePolicy
 
     public function update(User $user, StockOrderTemplate $stockOrderTemplate): bool
     {
+        if (! $stockOrderTemplate->is_active) {
+            return false;
+        }
+
         if ($user->hasPermission('stock-order-templates.view-any')) {
             return $user->hasPermission('stock-order-templates.update');
         }
@@ -40,6 +44,10 @@ class StockOrderTemplatePolicy
 
     public function delete(User $user, StockOrderTemplate $stockOrderTemplate): bool
     {
+        if (! $stockOrderTemplate->is_active) {
+            return false;
+        }
+
         if ($user->hasPermission('stock-order-templates.view-any')) {
             return $user->hasPermission('stock-order-templates.delete');
         }

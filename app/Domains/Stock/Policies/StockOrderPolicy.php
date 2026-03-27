@@ -29,6 +29,10 @@ class StockOrderPolicy
 
     public function update(User $user, StockOrder $stockOrder): bool
     {
+        if (! $stockOrder->isMutable()) {
+            return false;
+        }
+
         if ($user->hasPermission('stock-orders.update') && $user->hasPermission('stock-orders.view-any')) {
             return true;
         }
@@ -39,6 +43,10 @@ class StockOrderPolicy
 
     public function delete(User $user, StockOrder $stockOrder): bool
     {
+        if (! $stockOrder->isMutable()) {
+            return false;
+        }
+
         if ($user->hasPermission('stock-orders.delete') && $user->hasPermission('stock-orders.view-any')) {
             return true;
         }
@@ -49,6 +57,12 @@ class StockOrderPolicy
 
     public function process(User $user, StockOrder $stockOrder): bool
     {
-        return $user->hasPermission('stock-orders.process');
+        return $user->hasPermission('stock-orders.process')
+            && (
+                $stockOrder->canTransitionTo(StockOrder::STATUS_APPROVED)
+                || $stockOrder->canTransitionTo(StockOrder::STATUS_ORDERED)
+                || $stockOrder->canTransitionTo(StockOrder::STATUS_RECEIVED)
+                || $stockOrder->canTransitionTo(StockOrder::STATUS_CANCELLED)
+            );
     }
 }
