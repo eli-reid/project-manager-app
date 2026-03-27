@@ -72,7 +72,7 @@
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ trim(($report->user?->first_name ?? '').' '.($report->user?->last_name ?? '')) ?: '—' }}
                             </td>
-                            <td class="max-w-[160px] truncate px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
+                            <td class="max-w-40 truncate px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ $report->project?->name ?? $report->custom_project_name ?? '—' }}
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">

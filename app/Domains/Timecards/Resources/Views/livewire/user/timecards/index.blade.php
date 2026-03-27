@@ -37,7 +37,11 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($timecards as $timecard)
-                        <tr wire:key="timecard-{{ $timecard->id }}">
+                        <tr wire:key="timecard-{{ $timecard->id }}"
+                        wire:navigate
+                        href="{{ route('timecards.show', $timecard) }}"
+                        class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                        >
                             <td class="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">
                                 {{ optional($timecard->week_starting)->format('M j, Y') }} - {{ optional($timecard->week_ending)->format('M j, Y') }}
                             </td>

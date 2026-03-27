@@ -68,7 +68,11 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($reports as $report)
-                        <tr wire:key="user-daily-report-{{ $report->id }}">
+                        <tr wire:key="user-daily-report-{{ $report->id }}"
+                        wire:navigate
+                        href="{{ route('dailies.show', $report) }}"
+                        class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                        >
                             <td class="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">{{ optional($report->report_date)->format('M j, Y') }}</td>
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $report->project?->name ?? ($report->custom_project_name ?: '—') }}</td>
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ str($report->status)->headline() }}</td>

@@ -1,14 +1,25 @@
 <?php
 
+use App\Core\Announcement\Providers\AnnouncementServiceProvider;
+use App\Core\Cpanel\Providers\CpanelServiceProvider;
+use App\Core\Scheduler\Providers\SchedulerServiceProvider;
+use App\Core\Settings\Providers\SettingServiceProvider;
+use App\Core\User\Providers\FortifyServiceProvider;
+use App\Core\User\Providers\UserServiceProvider;
+use App\Core\WeatherApi\Providers\WeatherApiServiceProvider;
+use App\Domains\Providers\DomainServiceProvider;
+use App\Providers\AppServiceProvider;
+use App\Providers\TelescopeServiceProvider;
+
 return [
-    App\Domains\Providers\DomainServiceProvider::class,
-    App\Core\Cpanel\Providers\CpanelServiceProvider::class,
-    App\Core\Scheduler\Providers\SchedulerServiceProvider::class,
-    App\Core\WeatherApi\Providers\WeatherApiServiceProvider::class,
-    App\Core\Settings\Providers\SettingServiceProvider::class,
-    App\Core\User\Providers\FortifyServiceProvider::class,
-    App\Core\User\Providers\UserServiceProvider::class,
-    App\Core\Announcement\Providers\AnnouncementServiceProvider::class,
-    App\Providers\AppServiceProvider::class,
-    App\Providers\TelescopeServiceProvider::class,
+    AnnouncementServiceProvider::class,
+    CpanelServiceProvider::class,
+    SchedulerServiceProvider::class,
+    SettingServiceProvider::class,
+    FortifyServiceProvider::class,
+    UserServiceProvider::class,
+    WeatherApiServiceProvider::class,
+    DomainServiceProvider::class,
+    AppServiceProvider::class,
+    TelescopeServiceProvider::class,
 ];
