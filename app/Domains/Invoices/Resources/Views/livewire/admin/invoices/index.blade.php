@@ -61,9 +61,11 @@
                     @forelse ($invoices as $invoice)
                         <tr
                             wire:key="invoice-{{ $invoice->id }}"
+                            wire:navigate
+                            href="{{ route('admin.invoices.show', $invoice) }}"
                             class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
-                            onclick="window.location='{{ route('admin.invoices.show', $invoice) }}'"
                         >
+
                             <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->vendor_name }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-500 dark:text-zinc-400">{{ $invoice->invoice_number ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->project?->name ?? '—' }}</td>
