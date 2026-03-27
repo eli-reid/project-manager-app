@@ -8,7 +8,7 @@ use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Stock\Models\StockOrderTemplate;
 
 it('enforces stock order mutability for update and delete policy checks', function (): void {
-    $owner = userWithStockDomainPermissions([
+    $owner = userWithStockPolicyPermissions([
         'stock-orders.update',
         'stock-orders.delete',
         'stock-orders.view',
@@ -31,7 +31,7 @@ it('enforces stock order mutability for update and delete policy checks', functi
 });
 
 it('allows process policy only when a valid transition exists', function (): void {
-    $processor = userWithStockDomainPermissions(['stock-orders.process']);
+    $processor = userWithStockPolicyPermissions(['stock-orders.process']);
 
     $pendingOrder = StockOrder::factory()->create([
         'status' => StockOrder::STATUS_PENDING,
@@ -46,7 +46,7 @@ it('allows process policy only when a valid transition exists', function (): voi
 });
 
 it('enforces template availability and ownership policy rules', function (): void {
-    $owner = userWithStockDomainPermissions([
+    $owner = userWithStockPolicyPermissions([
         'stock-order-templates.view',
         'stock-order-templates.update',
         'stock-order-templates.delete',
@@ -113,7 +113,7 @@ it('supports stock order transition helpers and template availability scopes', f
 /**
  * @param  array<int, string>  $permissions
  */
-function userWithStockDomainPermissions(array $permissions): User
+function userWithStockPolicyPermissions(array $permissions): User
 {
     app(DomainPermissionSynchronizer::class)->sync();
 
