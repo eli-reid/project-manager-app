@@ -54,7 +54,7 @@ it('allows users with stock view-any permission to access all phase 0 scaffold r
 
     get(route('stock-orders.index'))
         ->assertSuccessful()
-        ->assertSee('Stock Orders (Scaffold)');
+        ->assertSee('My Stock Orders');
 
     get(route('stock-orders.mobile.index'))
         ->assertSuccessful()

@@ -27,6 +27,7 @@ pest()->extend(Tests\TestCase::class)
 */
 
 expect()->extend('toBeOne', function () {
+    /** @var \Pest\Expectations\Expectation<int> $this */
     return $this->toBe(1);
 });
 

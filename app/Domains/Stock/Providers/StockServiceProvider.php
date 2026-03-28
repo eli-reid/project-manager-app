@@ -3,6 +3,11 @@
 namespace App\Domains\Stock\Providers;
 
 use App\Core\User\Services\PermissionRegistry;
+use App\Domains\Stock\Livewire\User\StockOrders\Form;
+use App\Domains\Stock\Livewire\User\StockOrders\Index;
+use App\Domains\Stock\Livewire\User\StockOrders\Show;
+use App\Domains\Stock\Livewire\User\Templates\Browse;
+use App\Domains\Stock\Livewire\User\Templates\FromTemplate;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Stock\Models\StockOrderTemplate;
 use App\Domains\Stock\Permissions\StockOrderPermissions;
@@ -12,6 +17,7 @@ use App\Domains\Stock\Policies\StockOrderTemplatePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class StockServiceProvider extends ServiceProvider
 {
@@ -26,6 +32,12 @@ class StockServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'stock');
+
+        Livewire::component('app.domains.stock.livewire.user.stock-orders.index', Index::class);
+        Livewire::component('app.domains.stock.livewire.user.stock-orders.form', Form::class);
+        Livewire::component('app.domains.stock.livewire.user.stock-orders.show', Show::class);
+        Livewire::component('app.domains.stock.livewire.user.templates.browse', Browse::class);
+        Livewire::component('app.domains.stock.livewire.user.templates.from-template', FromTemplate::class);
 
         Route::prefix('admin')
             ->name('admin.')
