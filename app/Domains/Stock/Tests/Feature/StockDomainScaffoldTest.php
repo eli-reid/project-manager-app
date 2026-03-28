@@ -50,7 +50,7 @@ it('allows users with stock view-any permission to access all phase 0 scaffold r
 
     get(route('admin.stock-orders.index'))
         ->assertSuccessful()
-        ->assertSee('Stock Orders Admin (Scaffold)');
+        ->assertSee('Stock Orders Queue');
 
     get(route('stock-orders.index'))
         ->assertSuccessful()
@@ -65,6 +65,32 @@ it('allows users with stock view-any permission to access all phase 0 scaffold r
         ->assertJson([
             'message' => 'Stock Orders API Scaffold',
         ]);
+});
+
+it('renders the admin stock templates page', function (): void {
+    $user = userWithStockDomainPermissions([
+        'stock-order-templates.view-any',
+        'stock-order-templates.update',
+        'stock-order-templates.delete',
+    ]);
+
+    actingAs($user);
+
+    get(route('admin.stock-order-templates.index'))
+        ->assertSuccessful()
+        ->assertSee('Stock Order Templates');
+});
+
+it('renders the user stock templates browse page', function (): void {
+    $user = userWithStockDomainPermissions([
+        'stock-order-templates.view-any',
+    ]);
+
+    actingAs($user);
+
+    get(route('stock-orders.templates.browse'))
+        ->assertSuccessful()
+        ->assertSee('Stock Order Templates');
 });
 
 /**

@@ -5,6 +5,7 @@ namespace App\Domains\Projects\Livewire\Admin\Projects;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Tasks\Models\Task;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -63,6 +64,10 @@ class Show extends Component
             $tabs[] = 'invoices';
         }
 
+        if ($user?->can('viewAny', StockOrder::class)) {
+            $tabs[] = 'stock';
+        }
+
         return $tabs;
     }
 
@@ -72,6 +77,8 @@ class Show extends Component
         $projectDailies = collect();
         $invoiceCount = 0;
         $projectInvoices = collect();
+        $stockOrderCount = 0;
+        $projectStockOrders = collect();
 
         if (in_array('dailies', $this->tabs(), true)) {
             $dailyCount = $this->project->dailyReports()->count();
@@ -99,6 +106,22 @@ class Show extends Component
             }
         }
 
+        if (in_array('stock', $this->tabs(), true)) {
+            $stockOrderCount = StockOrder::query()
+                ->where('project_id', $this->project->id)
+                ->count();
+
+            if ($this->activeTab === 'stock') {
+                $projectStockOrders = StockOrder::query()
+                    ->with(['user:id,first_name,last_name'])
+                    ->withCount('items')
+                    ->where('project_id', $this->project->id)
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+            }
+        }
+
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $this->tabs(),
             'dailyCount' => $dailyCount,
@@ -106,6 +129,8 @@ class Show extends Component
             'taskCount' => Task::query()->where('project_id', $this->project->id)->count(),
             'invoiceCount' => $invoiceCount,
             'projectInvoices' => $projectInvoices,
+            'stockOrderCount' => $stockOrderCount,
+            'projectStockOrders' => $projectStockOrders,
         ]);
     }
 }

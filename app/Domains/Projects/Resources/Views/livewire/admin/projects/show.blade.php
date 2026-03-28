@@ -36,6 +36,13 @@
                     <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $invoiceCount }}</span>
                 </button>
             @endif
+
+            @if (in_array('stock', $tabs, true))
+                <button type="button" wire:click="setTab('stock')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'stock' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    Stock
+                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $stockOrderCount }}</span>
+                </button>
+            @endif
         </div>
     </div>
 
@@ -79,6 +86,14 @@
             'project' => $project,
             'invoices' => $projectInvoices,
             'invoiceCount' => $invoiceCount,
+        ])
+    @endif
+
+    @if ($activeTab === 'stock' && in_array('stock', $tabs, true))
+        @include('stock::components.project-tab', [
+            'project' => $project,
+            'stockOrders' => $projectStockOrders,
+            'stockOrderCount' => $stockOrderCount,
         ])
     @endif
 </div>

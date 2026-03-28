@@ -1,6 +1,9 @@
 @foreach ($categories as $category)
+    @php
+        $categoryIndent = ($depth * 24) + 16;
+    @endphp
     <tr wire:key="category-{{ $category->id }}">
-        <td class="py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100" style="padding-left: {{ ($depth * 24) + 16 }}px">
+        <td class="py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100" @style(["padding-left: {$categoryIndent}px"] )>
             @if ($depth > 0)
                 <span class="mr-1 text-zinc-400">↳</span>
             @endif

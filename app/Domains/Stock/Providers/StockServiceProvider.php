@@ -3,6 +3,10 @@
 namespace App\Domains\Stock\Providers;
 
 use App\Core\User\Services\PermissionRegistry;
+use App\Domains\Stock\Livewire\Admin\StockOrders\Index as AdminStockOrdersIndex;
+use App\Domains\Stock\Livewire\Admin\StockOrders\Show as AdminStockOrdersShow;
+use App\Domains\Stock\Livewire\Admin\Templates\Form as AdminTemplatesForm;
+use App\Domains\Stock\Livewire\Admin\Templates\Index as AdminTemplatesIndex;
 use App\Domains\Stock\Livewire\User\StockOrders\Form;
 use App\Domains\Stock\Livewire\User\StockOrders\Index;
 use App\Domains\Stock\Livewire\User\StockOrders\Show;
@@ -38,6 +42,11 @@ class StockServiceProvider extends ServiceProvider
         Livewire::component('app.domains.stock.livewire.user.stock-orders.show', Show::class);
         Livewire::component('app.domains.stock.livewire.user.templates.browse', Browse::class);
         Livewire::component('app.domains.stock.livewire.user.templates.from-template', FromTemplate::class);
+
+        Livewire::component('app.domains.stock.livewire.admin.stock-orders.index', AdminStockOrdersIndex::class);
+        Livewire::component('app.domains.stock.livewire.admin.stock-orders.show', AdminStockOrdersShow::class);
+        Livewire::component('app.domains.stock.livewire.admin.templates.index', AdminTemplatesIndex::class);
+        Livewire::component('app.domains.stock.livewire.admin.templates.form', AdminTemplatesForm::class);
 
         Route::prefix('admin')
             ->name('admin.')

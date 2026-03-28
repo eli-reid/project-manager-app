@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Domains\Stock\Livewire\User\StockOrders;
+namespace App\Domains\Stock\Livewire\Admin\StockOrders;
 
+use App\Core\User\Models\User;
+use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Models\StockOrder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.app')]
-#[Title('My Stock Orders')]
+#[Layout('layouts.admin')]
+#[Title('Stock Orders Queue')]
 class Index extends Component
 {
     use AuthorizesRequests;
@@ -23,6 +24,12 @@ class Index extends Component
 
     #[Url(as: 'urgency')]
     public string $filterUrgency = '';
+
+    #[Url(as: 'project')]
+    public string $filterProject = '';
+
+    #[Url(as: 'user')]
+    public string $filterUser = '';
 
     public function mount(): void
     {
@@ -39,14 +46,21 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatingFilterProject(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterUser(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $user = Auth::user();
-
         $query = StockOrder::query()
-            ->with(['project:id,name,project_number'])
+            ->with(['project:id,name,project_number', 'user:id,first_name,last_name'])
             ->withCount('items')
-            ->ownedBy((string) $user->id)
             ->latest();
 
         if ($this->filterStatus !== '') {
@@ -57,8 +71,24 @@ class Index extends Component
             $query->where('urgency', $this->filterUrgency);
         }
 
-        return view('stock::livewire.user.stock-orders.index', [
-            'orders' => $query->paginate(15),
+        if ($this->filterProject !== '') {
+            $query->where('project_id', $this->filterProject);
+        }
+
+        if ($this->filterUser !== '') {
+            $query->where('user_id', $this->filterUser);
+        }
+
+        $pendingCount = StockOrder::query()->where('status', StockOrder::STATUS_PENDING)->count();
+        $highUrgencyCount = StockOrder::query()
+            ->whereIn('status', [StockOrder::STATUS_PENDING, StockOrder::STATUS_APPROVED])
+            ->where('urgency', StockOrder::URGENCY_HIGH)
+            ->count();
+
+        return view('stock::livewire.admin.stock-orders.index', [
+            'orders' => $query->paginate(20),
+            'pendingCount' => $pendingCount,
+            'highUrgencyCount' => $highUrgencyCount,
             'statuses' => [
                 StockOrder::STATUS_PENDING => 'Pending',
                 StockOrder::STATUS_APPROVED => 'Approved',
@@ -71,6 +101,8 @@ class Index extends Component
                 StockOrder::URGENCY_MEDIUM => 'Medium',
                 StockOrder::URGENCY_HIGH => 'High',
             ],
+            'projects' => Project::query()->orderBy('name')->get(['id', 'name']),
+            'users' => User::query()->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
     }
 }

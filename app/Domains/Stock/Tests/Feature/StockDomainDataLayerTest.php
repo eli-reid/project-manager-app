@@ -22,6 +22,21 @@ it('creates stock orders and related items via factories', function (): void {
         ->and($stockOrder->fresh()->user)->not->toBeNull();
 });
 
+it('can load stock order item counts without hydrating item rows', function (): void {
+    $stockOrder = StockOrder::factory()->create();
+
+    StockOrderItem::factory()->count(3)->create([
+        'stock_order_id' => $stockOrder->id,
+    ]);
+
+    $countedOrder = StockOrder::query()
+        ->withCount('items')
+        ->findOrFail($stockOrder->id);
+
+    expect($countedOrder->items_count)->toBe(3)
+        ->and($countedOrder->relationLoaded('items'))->toBeFalse();
+});
+
 it('creates stock order templates with casted template items', function (): void {
     $template = StockOrderTemplate::factory()->create([
         'is_active' => true,

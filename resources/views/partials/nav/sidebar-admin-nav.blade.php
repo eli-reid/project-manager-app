@@ -44,6 +44,12 @@
     </flux:sidebar.item>
 @endif
 
+@if (auth()->user()?->hasPermission('stock-orders.view-any') || auth()->user()?->hasPermission('stock-order-templates.view'))
+    <flux:sidebar.item icon="archive-box" :href="route('admin.stock-orders.index')" :current="request()->routeIs('admin.stock-orders.*') || request()->routeIs('admin.stock-order-templates.*')" wire:navigate>
+        {{ __('Stock Orders') }}
+    </flux:sidebar.item>
+@endif
+
 @can('viewAll', \App\Domains\Dailies\Models\DailyReport::class)
     <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.dailies.index')" :current="request()->routeIs('admin.dailies.*')" wire:navigate data-test="admin-dailies-sidebar-main-link">
         {{ __('Dailies') }}

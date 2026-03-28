@@ -1,4 +1,29 @@
-<div x-data="{ actionsOpen: false, showCopyModal: false, showCopyCategoryModal: false }" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+<div x-data="{
+    showCopyModal: false,
+    showCopyCategoryModal: false,
+    buildMenuState(menuHeight, offset = 4) {
+        return {
+            open: false,
+            menuStyle: '',
+            toggleMenu(event) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const right = window.innerWidth - rect.right;
+
+                if (spaceBelow < menuHeight) {
+                    this.menuStyle = 'bottom: ' + (window.innerHeight - rect.top + offset) + 'px; right: ' + right + 'px;';
+                } else {
+                    this.menuStyle = 'top: ' + (rect.bottom + offset) + 'px; right: ' + right + 'px;';
+                }
+
+                this.open = !this.open;
+            },
+            closeMenu() {
+                this.open = false;
+            },
+        };
+    },
+}" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
     @if (session('success'))
         <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{{ session('success') }}</div>
     @endif
@@ -10,8 +35,8 @@
         <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Project Work Breakdown</h2>
         <div
             class="relative"
-            x-data="{ menuStyle: '', toggleMenu(event) { const rect = event.currentTarget.getBoundingClientRect(); const menuHeight = 220; const spaceBelow = window.innerHeight - rect.bottom; const right = window.innerWidth - rect.right; if (spaceBelow < menuHeight) { this.menuStyle = 'bottom: ' + (window.innerHeight - rect.top + 6) + 'px; right: ' + right + 'px;'; } else { this.menuStyle = 'top: ' + (rect.bottom + 6) + 'px; right: ' + right + 'px;'; } actionsOpen = !actionsOpen; } }"
-            @click.away="actionsOpen = false"
+            x-data="buildMenuState(220, 6)"
+            @click.away="closeMenu()"
         >
             <button type="button" @click="toggleMenu($event)" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" aria-label="Task actions">
                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -21,12 +46,12 @@
                 </svg>
             </button>
 
-            <div x-show="actionsOpen" x-cloak class="fixed z-30 w-56 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
+            <div x-show="open" x-cloak class="fixed z-30 w-56 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
                 @can('create', \App\Domains\Tasks\Models\Task::class)
-                    <button type="button" @click="actionsOpen = false" wire:click="startInlineTaskForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Task</button>
+                    <button type="button" @click="closeMenu()" wire:click="startInlineTaskForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Task</button>
                 @endcan
                 @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
-                    <button type="button" @click="actionsOpen = false" wire:click="startInlineCategoryForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Category</button>
+                    <button type="button" @click="closeMenu()" wire:click="startInlineCategoryForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Category</button>
                 @endcan
                 @can('create', \App\Domains\Tasks\Models\Task::class)
                     <div class="my-1 border-t border-zinc-200 dark:border-zinc-700"></div>
@@ -36,10 +61,10 @@
                     <a href="{{ route('admin.task-categories.create', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Add Category</a>
                 @endcan
                 @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
-                    <button type="button" @click="actionsOpen = false; showCopyCategoryModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category</button>
+                    <button type="button" @click="closeMenu(); showCopyCategoryModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category</button>
                 @endcan
                 @can('create', \App\Domains\Tasks\Models\Task::class)
-                    <button type="button" @click="actionsOpen = false; showCopyModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category Tasks</button>
+                    <button type="button" @click="closeMenu(); showCopyModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category Tasks</button>
                 @endcan
             </div>
         </div>
@@ -237,7 +262,7 @@
                             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ str($task->status)->replace('_', ' ')->headline() }}</td>
                             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ $task->assignedTo ? $task->assignedTo->first_name.' '.$task->assignedTo->last_name : '—' }}</td>
                             <td class="px-3 py-2 align-top text-right">
-                                <div class="relative inline-block text-left" x-data="{ open: false, menuStyle: '', toggleMenu(event) { const rect = event.currentTarget.getBoundingClientRect(); const menuHeight = 120; const spaceBelow = window.innerHeight - rect.bottom; const right = window.innerWidth - rect.right; if (spaceBelow < menuHeight) { this.menuStyle = 'bottom: ' + (window.innerHeight - rect.top + 4) + 'px; right: ' + right + 'px;'; } else { this.menuStyle = 'top: ' + (rect.bottom + 4) + 'px; right: ' + right + 'px;'; } this.open = !this.open; } }" @click.away="open = false">
+                                <div class="relative inline-block text-left" x-data="buildMenuState(120)" @click.away="closeMenu()">
                                     <button type="button" @click="toggleMenu($event)" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-300 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Task actions">
                                         <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                             <circle cx="4" cy="10" r="1.5" />

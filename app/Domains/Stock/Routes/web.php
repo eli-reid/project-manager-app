@@ -20,6 +20,18 @@ Route::prefix('stock-orders')
             ->middleware('can:create,'.StockOrder::class)
             ->name('create');
 
+        Route::prefix('templates')
+            ->name('templates.')
+            ->group(function (): void {
+                Route::get('/', TemplateBrowse::class)
+                    ->middleware('can:viewAny,'.StockOrderTemplate::class)
+                    ->name('browse');
+
+                Route::get('/{stockOrderTemplate}/order', FromTemplate::class)
+                    ->middleware('can:view,stockOrderTemplate')
+                    ->name('from');
+            });
+
         Route::get('/{stockOrder}', StockOrderShow::class)
             ->middleware('can:view,stockOrder')
             ->name('show');
@@ -27,16 +39,4 @@ Route::prefix('stock-orders')
         Route::get('/{stockOrder}/edit', StockOrderForm::class)
             ->middleware('can:update,stockOrder')
             ->name('edit');
-
-        Route::prefix('templates')
-            ->name('templates.')
-            ->group(function (): void {
-                Route::get('/', TemplateBrowse::class)
-                    ->middleware('can:view,'.StockOrderTemplate::class)
-                    ->name('browse');
-
-                Route::get('/{stockOrderTemplate}/order', FromTemplate::class)
-                    ->middleware('can:view,stockOrderTemplate')
-                    ->name('from');
-            });
     });

@@ -55,11 +55,9 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($orders as $order)
-                        <tr wire:key="order-{{ $order->id }}" class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40" 
-                        :href="`{{ route('stock-orders.show', $order) }}`" wire:navigate>
-                
+                        <tr wire:key="order-{{ $order->id }}" class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                             <td class="px-4 py-3 align-top text-sm">
-                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $order->po_number ?? 'No PO' }}</span>
+                                <a href="{{ route('stock-orders.show', $order) }}" wire:navigate class="font-medium text-zinc-900 hover:text-zinc-700 dark:text-zinc-100 dark:hover:text-zinc-300">{{ $order->po_number ?? 'No PO' }}</a>
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ $order->project?->name ?? '—' }}
@@ -93,12 +91,12 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ $order->items->count() }}
+                                {{ $order->items_count }}
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-500 dark:text-zinc-400">
                                 {{ $order->created_at->format('M j, Y') }}
                             </td>
-                            <td class="px-4 py-3 align-top" onclick="event.stopPropagation()">
+                            <td class="px-4 py-3 align-top">
                                 <x-ui.row-actions-dropdown label="Order actions" width="w-36" :menu-height="120">
                                     <a href="{{ route('stock-orders.show', $order) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
                                     @can('update', $order)

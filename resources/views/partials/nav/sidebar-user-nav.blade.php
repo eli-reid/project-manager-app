@@ -34,5 +34,25 @@
     </flux:sidebar.item>
 @endcan
 
-<flux:sidebar.item href="#" icon="clipboard-pen-line" :current="false">{{ __('Stock') }}</flux:sidebar.item>
+@can('viewAny', \App\Domains\Stock\Models\StockOrder::class)
+    <flux:sidebar.item
+        icon="archive-box"
+        :href="route('stock-orders.index')"
+        :current="request()->routeIs('stock-orders.index') || request()->routeIs('stock-orders.show') || request()->routeIs('stock-orders.create') || request()->routeIs('stock-orders.edit')"
+        wire:navigate
+    >
+        {{ __('My Stock Orders') }}
+    </flux:sidebar.item>
+@endcan
+
+@can('create', \App\Domains\Stock\Models\StockOrder::class)
+    <flux:sidebar.item
+        icon="archive-box-arrow-down"
+        :href="route('stock-orders.templates.browse')"
+        :current="request()->routeIs('stock-orders.templates.*')"
+        wire:navigate
+    >
+        {{ __('Order Templates') }}
+    </flux:sidebar.item>
+@endcan
 <flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>
