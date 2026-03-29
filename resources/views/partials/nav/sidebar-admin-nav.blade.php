@@ -50,6 +50,12 @@
     </flux:sidebar.item>
 @endif
 
+@can('deleteAny', \App\Domains\Documents\Models\Document::class)
+    <flux:sidebar.item icon="folder" :href="route('admin.documents.index')" :current="request()->routeIs('admin.documents.*')" wire:navigate>
+        {{ __('Documents') }}
+    </flux:sidebar.item>
+@endcan
+
 @can('viewAll', \App\Domains\Dailies\Models\DailyReport::class)
     <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.dailies.index')" :current="request()->routeIs('admin.dailies.*')" wire:navigate data-test="admin-dailies-sidebar-main-link">
         {{ __('Dailies') }}

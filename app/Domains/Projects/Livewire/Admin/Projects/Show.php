@@ -3,6 +3,7 @@
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Models\StockOrder;
@@ -68,6 +69,10 @@ class Show extends Component
             $tabs[] = 'stock';
         }
 
+        if ($user?->can('viewAny', Document::class)) {
+            $tabs[] = 'documents';
+        }
+
         return $tabs;
     }
 
@@ -79,6 +84,7 @@ class Show extends Component
         $projectInvoices = collect();
         $stockOrderCount = 0;
         $projectStockOrders = collect();
+        $documentCount = 0;
 
         if (in_array('dailies', $this->tabs(), true)) {
             $dailyCount = $this->project->dailyReports()->count();
@@ -122,6 +128,13 @@ class Show extends Component
             }
         }
 
+        if (in_array('documents', $this->tabs(), true)) {
+            $documentCount = Document::query()
+                ->projectOwned()
+                ->ownedByProject((string) $this->project->id)
+                ->count();
+        }
+
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $this->tabs(),
             'dailyCount' => $dailyCount,
@@ -131,6 +144,7 @@ class Show extends Component
             'projectInvoices' => $projectInvoices,
             'stockOrderCount' => $stockOrderCount,
             'projectStockOrders' => $projectStockOrders,
+            'documentCount' => $documentCount,
         ]);
     }
 }

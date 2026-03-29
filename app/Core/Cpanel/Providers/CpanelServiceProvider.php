@@ -2,6 +2,7 @@
 
 namespace App\Core\Cpanel\Providers;
 
+use App\Core\Cpanel\Commands\SyncEmailAccounts;
 use App\Core\Cpanel\Data\CpanelConfig;
 use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
@@ -33,6 +34,7 @@ class CpanelServiceProvider extends ServiceProvider
     {
         $this->registerPermissions();
         $this->registerAuthorizationGates();
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
         Route::middleware(['web', 'auth'])
             ->group(__DIR__.'/../Routes/web.php');
@@ -41,6 +43,10 @@ class CpanelServiceProvider extends ServiceProvider
             ->name('admin.')
             ->middleware(['web', 'auth', 'can:manage-email-accounts'])
             ->group(__DIR__.'/../Routes/admin.php');
+
+        $this->commands([
+            SyncEmailAccounts::class,
+        ]);
     }
 
     private function registerPermissions(): void

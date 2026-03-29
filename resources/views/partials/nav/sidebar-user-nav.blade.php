@@ -55,4 +55,13 @@
         {{ __('Order Templates') }}
     </flux:sidebar.item>
 @endcan
-<flux:sidebar.item href="#" icon="folder" :current="false">{{ __('Documents') }}</flux:sidebar.item>
+@can('viewAny', \App\Domains\Documents\Models\Document::class)
+    <flux:sidebar.item
+        icon="folder"
+        :href="route('documents.index')"
+        :current="request()->routeIs('documents.*')"
+        wire:navigate
+    >
+        {{ __('Documents') }}
+    </flux:sidebar.item>
+@endcan

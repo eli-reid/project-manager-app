@@ -81,6 +81,11 @@
                                 <flux:menu.item :href="route('admin.roles.index')" icon="shield-check" wire:navigate>
                                     {{ __('Admin Roles') }}
                                 </flux:menu.item>
+                                @can('deleteAny', \App\Domains\Documents\Models\Document::class)
+                                    <flux:menu.item :href="route('admin.documents.index')" icon="folder" wire:navigate>
+                                        {{ __('Admin Documents') }}
+                                    </flux:menu.item>
+                                @endcan
                             @endcan
 
                             @can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)

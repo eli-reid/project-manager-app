@@ -12,6 +12,7 @@ it('defines default document settings keys', function () {
     expect($keys)->toContain('documents.allowed_types');
     expect($keys)->toContain('documents.max_file_size');
     expect($keys)->toContain('documents.enable_versioning');
+    expect($keys)->toContain('documents.replace_behavior');
     expect($keys)->toContain('documents.storage_disk');
 });
 
