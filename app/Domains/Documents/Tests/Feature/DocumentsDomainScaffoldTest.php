@@ -44,7 +44,9 @@ it('allows users with documents view permission to access user-facing documents 
 
     get(route('documents.index'))
         ->assertSuccessful()
-        ->assertSee('My Documents');
+        ->assertSee('My Documents')
+        ->assertSee('Upload a document')
+        ->assertSee('Search your library');
 
     get(route('documents.mobile.index'))
         ->assertSuccessful()
