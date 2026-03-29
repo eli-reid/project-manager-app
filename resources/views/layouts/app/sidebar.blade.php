@@ -4,6 +4,12 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
+        @php
+            $showWebmailLink = auth()->check()
+                && app(\App\Core\Cpanel\Services\CpanelService::class)->isConfigured()
+                && filled(trim((string) (auth()->user()?->company_email ?? auth()->user()?->username ?? '')));
+        @endphp
+
         <flux:sidebar sticky collapsible class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -68,6 +74,12 @@
                         <flux:menu.separator />
 
                         <flux:menu.radio.group>
+                            @if ($showWebmailLink)
+                                <flux:menu.item :href="route('webmail.redirect')" icon="envelope" target="_blank" rel="noopener noreferrer" data-test="user-webmail-menu-link-mobile">
+                                    {{ __('Webmail') }}
+                                </flux:menu.item>
+                            @endif
+
                             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                                 {{ __('Settings') }}
                             </flux:menu.item>

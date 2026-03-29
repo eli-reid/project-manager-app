@@ -1,4 +1,9 @@
 <flux:dropdown position="bottom" align="start">
+    @php
+        $showWebmailLink = app(\App\Core\Cpanel\Services\CpanelService::class)->isConfigured()
+            && filled(trim((string) (auth()->user()?->company_email ?? auth()->user()?->username ?? '')));
+    @endphp
+
     <flux:sidebar.profile
         :name="auth()->user()->name"
         :initials="auth()->user()->initials()"
@@ -26,6 +31,12 @@
         
         <flux:menu.separator />
         <flux:menu.radio.group>
+            @if ($showWebmailLink)
+                <flux:menu.item :href="route('webmail.redirect')" icon="envelope" target="_blank" rel="noopener noreferrer" data-test="user-webmail-menu-link">
+                    {{ __('Webmail') }}
+                </flux:menu.item>
+            @endif
+
             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                 {{ __('Settings') }}
             </flux:menu.item>

@@ -26,6 +26,12 @@
     </flux:sidebar.item>
 @endcan
 
+@can('manage-email-accounts')
+    <flux:sidebar.item icon="envelope" :href="route('admin.cpanel.manage.dashboard')" :current="request()->routeIs('admin.cpanel.manage.*')" wire:navigate>
+        {{ __('Email Management') }}
+    </flux:sidebar.item>
+@endcan
+
 @can('viewAny', \App\Domains\Projects\Models\Project::class)
     <flux:sidebar.item icon="drafting-compass" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
         {{ __('Projects') }}

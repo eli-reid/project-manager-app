@@ -282,6 +282,342 @@ class CpanelService
     }
 
     /**
+     * @return array{success: bool, message: string, autoresponders?: array<int, array<string, mixed>>, count?: int, data?: array<string, mixed>}
+     */
+    public function listAutoresponders(?string $email = null): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        $params = [
+            'domain' => $this->config->domain,
+        ];
+
+        if ($email !== null && trim($email) !== '') {
+            if (! filter_var(trim($email), FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'success' => false,
+                    'message' => 'Valid email is required.',
+                ];
+            }
+
+            $params['regex'] = trim($email);
+        }
+
+        try {
+            $result = $this->request('Email', 'list_autoresponders', 'get', $params);
+
+            $autoresponders = collect($result['data'] ?? [])
+                ->map(function (array $record): array {
+                    return [
+                        'email' => (string) ($record['email'] ?? ''),
+                        'subject' => (string) ($record['subject'] ?? ''),
+                        'body' => (string) ($record['body'] ?? ''),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return [
+                'success' => true,
+                'message' => 'Autoresponders retrieved successfully.',
+                'autoresponders' => $autoresponders,
+                'count' => count($autoresponders),
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to list autoresponders.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function createAutoresponder(string $email, string $subject, string $body): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        $subject = trim($subject);
+        $body = trim($body);
+
+        if ($localPart === '' || $subject === '' || $body === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid email, subject, and body are required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'add_autoresponder', 'post', [
+                'email' => $localPart,
+                'domain' => $domain,
+                'subject' => $subject,
+                'body' => $body,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Autoresponder created successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to create autoresponder.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function deleteAutoresponder(string $email): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        if ($localPart === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid email is required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'delete_autoresponder', 'post', [
+                'email' => $localPart,
+                'domain' => $domain,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Autoresponder deleted successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to delete autoresponder.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, filters?: array<int, array<string, mixed>>, count?: int, data?: array<string, mixed>}
+     */
+    public function listEmailFilters(string $email): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        if ($localPart === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid email is required.',
+            ];
+        }
+
+        try {
+            $result = $this->request('Email', 'list_filters', 'get', [
+                'account' => $localPart,
+                'domain' => $domain,
+            ]);
+
+            $filters = collect($result['data'] ?? [])
+                ->map(function (array $record): array {
+                    return [
+                        'name' => (string) ($record['filtername'] ?? $record['filter'] ?? ''),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return [
+                'success' => true,
+                'message' => 'Email filters retrieved successfully.',
+                'filters' => $filters,
+                'count' => count($filters),
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to list email filters.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function createEmailFilter(string $email, string $filterName, string $fromContains, string $forwardTo): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        $filterName = trim($filterName);
+        $fromContains = trim($fromContains);
+        $forwardTo = trim($forwardTo);
+
+        if ($localPart === '' || $filterName === '' || $fromContains === '' || ! filter_var($forwardTo, FILTER_VALIDATE_EMAIL)) {
+            return [
+                'success' => false,
+                'message' => 'Valid filter details are required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'store_filter', 'post', [
+                'account' => $localPart,
+                'domain' => $domain,
+                'filtername' => $filterName,
+                'part1' => '$header_from:',
+                'opt1' => 'contains',
+                'val1' => $fromContains,
+                'action1' => 'redirect',
+                'dest1' => $forwardTo,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Email filter created successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to create email filter.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function deleteEmailFilter(string $email, string $filterName): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        [$localPart, $domain] = $this->extractMailboxParts($email);
+        $filterName = trim($filterName);
+
+        if ($localPart === '' || $filterName === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid email and filter name are required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'delete_filter', 'post', [
+                'account' => $localPart,
+                'domain' => $domain,
+                'filtername' => $filterName,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Email filter deleted successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to delete email filter.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, forwarders?: array<int, array<string, mixed>>, count?: int, data?: array<string, mixed>}
+     */
+    public function listDomainForwarders(): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        try {
+            $result = $this->request('Email', 'list_domain_forwarders', 'get');
+
+            $forwarders = collect($result['data'] ?? [])
+                ->map(function (array $record): array {
+                    return [
+                        'domain' => (string) ($record['domain'] ?? ''),
+                        'destination' => (string) ($record['destdomain'] ?? $record['destination'] ?? ''),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return [
+                'success' => true,
+                'message' => 'Domain forwarders retrieved successfully.',
+                'forwarders' => $forwarders,
+                'count' => count($forwarders),
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to list domain forwarders.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function addDomainForwarder(string $domain, string $destinationDomain): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        $domain = $this->sanitizeDomain($domain);
+        $destinationDomain = $this->sanitizeDomain($destinationDomain);
+
+        if ($domain === '' || $destinationDomain === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid source and destination domains are required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'add_domain_forwarder', 'post', [
+                'domain' => $domain,
+                'destdomain' => $destinationDomain,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Domain forwarder created successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to create domain forwarder.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function deleteDomainForwarder(string $domain): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        $domain = $this->sanitizeDomain($domain);
+        if ($domain === '') {
+            return [
+                'success' => false,
+                'message' => 'Valid domain is required.',
+            ];
+        }
+
+        try {
+            $this->request('Email', 'delete_domain_forwarder', 'post', [
+                'domain' => $domain,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Domain forwarder deleted successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to delete domain forwarder.');
+        }
+    }
+
+    /**
      * @return array{success: bool, message: string, url?: string, data?: array<string, mixed>}
      */
     public function createWebmailSession(string $email): array

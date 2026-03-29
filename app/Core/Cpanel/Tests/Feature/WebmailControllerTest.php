@@ -54,3 +54,38 @@ it('returns to dashboard with an error when user has no company email', function
         ->assertRedirect(route('dashboard', absolute: false))
         ->assertSessionHas('error', 'No company email is configured for your account.');
 });
+
+it('shows the user webmail link on the dashboard', function () {
+    config()->set('services.cpanel', [
+        'url' => 'https://cpanel.example.test',
+        'username' => 'root',
+        'api_token' => 'token-123',
+        'domain' => 'example.test',
+    ]);
+
+    $user = User::factory()->create([
+        'username' => 'john',
+        'company_email' => 'john@example.test',
+    ]);
+
+    actingAs($user)
+        ->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('Webmail')
+        ->assertSee(route('webmail.redirect', absolute: false), false);
+});
+
+it('hides the user webmail link when cpanel is not configured', function () {
+    config()->set('services.cpanel', []);
+
+    $user = User::factory()->create([
+        'username' => 'john',
+        'company_email' => 'john@example.test',
+    ]);
+
+    actingAs($user)
+        ->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertDontSee('Webmail')
+        ->assertDontSee(route('webmail.redirect', absolute: false), false);
+});

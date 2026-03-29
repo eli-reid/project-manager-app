@@ -65,3 +65,20 @@
         {{ __('Documents') }}
     </flux:sidebar.item>
 @endcan
+
+@php
+    $showWebmailLink = app(\App\Core\Cpanel\Services\CpanelService::class)->isConfigured()
+        && filled(trim((string) (auth()->user()?->company_email ?? auth()->user()?->username ?? '')));
+@endphp
+
+@if ($showWebmailLink)
+    <flux:sidebar.item
+        icon="envelope"
+        :href="route('webmail.redirect')"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-test="user-webmail-sidebar-link"
+    >
+        {{ __('Webmail') }}
+    </flux:sidebar.item>
+@endif
