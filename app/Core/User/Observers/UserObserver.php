@@ -4,7 +4,6 @@ namespace App\Core\User\Observers;
 
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\User\Models\User;
-use App\Core\User\Notifications\UserInvitationNotification;
 
 class UserObserver
 {
@@ -21,9 +20,7 @@ class UserObserver
 
     public function created(User $user): void
     {
-        $this->mailboxManager->provisionForUser($user);
-
-        $user->notify(new UserInvitationNotification);
+        $this->mailboxManager->provisionForUser($user, $user->mailboxProvisioningPassword);
     }
 
     public function updating(User $user): void

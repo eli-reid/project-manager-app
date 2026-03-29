@@ -54,15 +54,19 @@ it('allows creating users and roles through livewire forms', function () {
         ->set('last_name', 'Jones')
         ->set('username', 'casey.jones')
         ->set('email', 'casey@example.com')
-        ->set('password', 'password123')
-        ->set('password_confirmation', 'password123')
         ->set('selectedRoleIds', [$activeRoleId])
-        ->call('save');
+        ->call('save')
+        ->assertHasNoErrors();
 
     expect(User::query()->where('email', 'casey@example.com')->exists())->toBeTrue();
 
     $createdUser = User::query()->where('email', 'casey@example.com')->firstOrFail();
-    Notification::assertSentTo($createdUser, UserInvitationNotification::class);
+    expect($createdUser->password_change_required)->toBeTrue()
+        ->and($createdUser->roles()->whereKey($activeRoleId)->exists())->toBeTrue();
+
+    Notification::assertSentTo($createdUser, function (UserInvitationNotification $notification, array $channels): bool {
+        return $channels === ['mail'];
+    });
 
     Livewire::test(App\Core\User\Livewire\Admin\Roles\Form::class)
         ->set('name', 'Field Manager')

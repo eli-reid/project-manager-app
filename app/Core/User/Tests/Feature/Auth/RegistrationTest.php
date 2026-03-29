@@ -1,5 +1,9 @@
 <?php
 
+use App\Core\User\Models\User;
+use App\Core\User\Notifications\UserInvitationNotification;
+use Illuminate\Support\Facades\Notification;
+
 test('registration screen can be rendered', function () {
     $response = $this->get(route('register'));
 
@@ -7,6 +11,8 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    Notification::fake();
+
     $response = $this->post(route('register.store'), [
         'first_name' => 'John',
         'last_name' => 'Doe',
@@ -20,4 +26,8 @@ test('new users can register', function () {
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
+
+    $user = User::query()->where('email', 'test@example.com')->firstOrFail();
+
+    Notification::assertNotSentTo($user, UserInvitationNotification::class);
 });

@@ -41,7 +41,9 @@ test('reset password screen can be rendered', function () {
 test('password can be reset with valid token', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'password_change_required' => true,
+    ]);
 
     $this->post(route('password.request'), ['email' => $user->email]);
 
@@ -56,6 +58,8 @@ test('password can be reset with valid token', function () {
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('login', absolute: false));
+
+        expect($user->fresh()->password_change_required)->toBeFalse();
 
         return true;
     });

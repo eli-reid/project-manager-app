@@ -6,13 +6,18 @@ use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Services\NotificationPreferenceService;
 use App\Core\User\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class UserInvitationNotification extends Notification implements ShouldQueue
+class UserInvitationNotification extends Notification implements ShouldBeEncrypted, ShouldQueue
 {
     use Queueable;
+
+    public function __construct(
+        protected ?string $temporaryPassword = null
+    ) {}
 
     /**
      * @return array<int, string>
@@ -21,6 +26,10 @@ class UserInvitationNotification extends Notification implements ShouldQueue
     {
         if (! $notifiable instanceof User) {
             return [];
+        }
+
+        if (is_string($this->temporaryPassword) && $this->temporaryPassword !== '') {
+            return ['mail'];
         }
 
         return app(NotificationPreferenceService::class)->resolveChannels(
@@ -33,9 +42,12 @@ class UserInvitationNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Your Account Is Ready')
+            ->subject(is_string($this->temporaryPassword) && $this->temporaryPassword !== ''
+                ? 'Your Account Is Ready'
+                : 'Welcome to '.config('app.name'))
             ->markdown('core-user::emails.notifications.user-invitation', [
                 'loginUrl' => route('login'),
+                'temporaryPassword' => $this->temporaryPassword,
                 'user' => $notifiable,
             ]);
     }

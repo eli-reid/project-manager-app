@@ -10,6 +10,7 @@ use Livewire\Livewire;
 test('password can be updated', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
+        'password_change_required' => true,
     ]);
 
     $this->actingAs($user);
@@ -22,7 +23,8 @@ test('password can be updated', function () {
 
     $response->assertHasNoErrors();
 
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue()
+        ->and($user->refresh()->password_change_required)->toBeFalse();
 });
 
 test('correct password must be provided to update password', function () {

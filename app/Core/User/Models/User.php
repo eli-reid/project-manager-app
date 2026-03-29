@@ -25,6 +25,8 @@ class User extends Authenticatable
 
     private const PERMISSION_CACHE_VERSION_KEY = 'auth.permission_cache.version';
 
+    public ?string $mailboxProvisioningPassword = null;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasUlids, Notifiable, TwoFactorAuthenticatable;
 

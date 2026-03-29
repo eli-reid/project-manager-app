@@ -2,6 +2,7 @@
 
 namespace App\Core\User\Livewire\Admin\Users;
 
+use App\Core\User\Actions\Admin\CreateInvitedUser;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -60,20 +61,21 @@ class Form extends Component
      */
     protected function rules(): array
     {
-        $passwordRules = $this->isEdit
-            ? ['nullable', 'string', 'min:8', 'confirmed']
-            : ['required', 'string', 'min:8', 'confirmed'];
-
-        return [
+        $rules = [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($this->user?->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user?->id)],
-            'password' => $passwordRules,
             'is_active' => ['boolean'],
             'selectedRoleIds' => ['required', 'array', 'min:1'],
             'selectedRoleIds.*' => ['exists:roles,id'],
         ];
+
+        if ($this->isEdit) {
+            $rules['password'] = ['nullable', 'string', 'min:8', 'confirmed'];
+        }
+
+        return $rules;
     }
 
     public function save(): void
@@ -90,10 +92,6 @@ class Form extends Component
             'is_active' => (bool) $validated['is_active'],
         ];
 
-        if ($validated['password'] !== null && $validated['password'] !== '') {
-            $payload['password'] = $validated['password'];
-        }
-
         if ($this->isEdit) {
             $user = $this->user;
 
@@ -101,19 +99,24 @@ class Form extends Component
                 return;
             }
 
+            if (($validated['password'] ?? null) !== null && $validated['password'] !== '') {
+                $payload['password'] = $validated['password'];
+            }
+
             $user->update($payload);
         } else {
-            $payload['password_change_required'] = true;
-            $payload['is_admin'] = false;
-            $payload['is_built_in'] = false;
-            $user = User::query()->create($payload);
+            $user = app(CreateInvitedUser::class)->handle($payload, $validated['selectedRoleIds']);
         }
 
-        $user->roles()->sync($validated['selectedRoleIds']);
-        $user->flushAuthorizationCache();
-        User::bumpPermissionCacheVersion();
+        if ($this->isEdit) {
+            $user->roles()->sync($validated['selectedRoleIds']);
+            $user->flushAuthorizationCache();
+            User::bumpPermissionCacheVersion();
+        }
 
-        session()->flash('success', $this->isEdit ? 'User updated successfully.' : 'User created successfully.');
+        session()->flash('success', $this->isEdit
+            ? 'User updated successfully.'
+            : 'User created and invitation email sent successfully.');
 
         $this->redirectRoute('admin.users.index', navigate: true);
     }

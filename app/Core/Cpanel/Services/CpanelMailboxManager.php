@@ -36,7 +36,7 @@ class CpanelMailboxManager
         return $username.'@'.$domain;
     }
 
-    public function provisionForUser(User $user): void
+    public function provisionForUser(User $user, ?string $password = null): void
     {
         $configuration = $this->cpanelService->configuration();
         if (! $configuration->autoCreateEmails) {
@@ -57,6 +57,7 @@ class CpanelMailboxManager
             payload: [
                 'user_id' => (string) $user->id,
                 'username' => $username,
+                'password' => $password,
             ],
             idempotencyKey: 'provision:'.(string) $user->id.':'.$username,
         );
@@ -224,7 +225,7 @@ class CpanelMailboxManager
         $result = match ($operation) {
             self::OPERATION_PROVISION => $this->cpanelService->createEmailAccount(
                 emailUsername: (string) ($payload['username'] ?? ''),
-                password: Str::password(24),
+                password: (string) ($payload['password'] ?? Str::password(24)),
             ),
             self::OPERATION_DELETE => $this->cpanelService->deleteEmailAccount((string) ($payload['email'] ?? '')),
             self::OPERATION_SYNC_PASSWORD => $this->cpanelService->updateEmailPassword(

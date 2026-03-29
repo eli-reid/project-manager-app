@@ -33,16 +33,25 @@
                 @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
-            <div>
-                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Password {{ $isEdit ? '(optional)' : '' }}</label>
-                <input type="password" wire:model.live="password" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
-                @error('password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            </div>
+            @if ($isEdit)
+                <div>
+                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Password (optional)</label>
+                    <input type="password" wire:model.live="password" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                    @error('password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
 
-            <div>
-                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Confirm Password</label>
-                <input type="password" wire:model.live="password_confirmation" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
-            </div>
+                <div>
+                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Confirm Password</label>
+                    <input type="password" wire:model.live="password_confirmation" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                </div>
+            @else
+                <div class="md:col-span-2">
+                    <div class="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-100">
+                        <p class="font-semibold">Invitation-based setup</p>
+                        <p class="mt-1 text-sky-800 dark:text-sky-200">A temporary password will be generated automatically and emailed to this user after you create the account.</p>
+                    </div>
+                </div>
+            @endif
 
             <div class="md:col-span-2">
                 <label class="inline-flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">

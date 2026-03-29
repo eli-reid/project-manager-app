@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\User\Livewire\Auth\ForcePasswordChange;
 use App\Core\User\Livewire\Settings\Appearance;
 use App\Core\User\Livewire\Settings\Password;
 use App\Core\User\Livewire\Settings\Profile;
@@ -8,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
 Route::middleware(['auth'])->group(function () {
+    Route::livewire('password/change', ForcePasswordChange::class)->name('password.change');
     Route::redirect('settings', 'settings/profile');
 
     Route::livewire('settings/profile', Profile::class)->name('profile.edit');
