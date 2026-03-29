@@ -4,6 +4,9 @@ namespace App\Domains\Timecards\Services;
 
 use App\Core\User\Models\User;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Notifications\TimecardApprovedNotification;
+use App\Domains\Timecards\Notifications\TimecardRejectedNotification;
+use App\Domains\Timecards\Notifications\TimecardSubmittedNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -13,6 +16,7 @@ class TimecardLifecycleService
     public function __construct(
         private readonly TimecardWeekService $timecardWeekService,
         private readonly TimecardEntrySyncService $timecardEntrySyncService,
+        private readonly TimecardNotificationRecipientService $timecardNotificationRecipientService,
     ) {}
 
     /**
@@ -155,7 +159,15 @@ class TimecardLifecycleService
             'submitted_at' => now(),
         ]);
 
-        return $timecard->fresh();
+        $freshTimecard = $timecard->fresh(['user']);
+
+        $this->timecardNotificationRecipientService
+            ->approversForSubmittedTimecard($freshTimecard)
+            ->each(function (User $recipient) use ($freshTimecard): void {
+                $recipient->notify(new TimecardSubmittedNotification($freshTimecard));
+            });
+
+        return $freshTimecard;
     }
 
     public function approve(Timecard $timecard, User $approver): Timecard
@@ -172,7 +184,10 @@ class TimecardLifecycleService
             'approved_at' => now(),
         ]);
 
-        return $timecard->fresh();
+        $freshTimecard = $timecard->fresh(['user']);
+        $freshTimecard->user?->notify(new TimecardApprovedNotification($freshTimecard));
+
+        return $freshTimecard;
     }
 
     public function reject(Timecard $timecard, User $rejector, ?string $reason = null): Timecard
@@ -190,7 +205,10 @@ class TimecardLifecycleService
             'rejection_reason' => $reason,
         ]);
 
-        return $timecard->fresh();
+        $freshTimecard = $timecard->fresh(['user']);
+        $freshTimecard->user?->notify(new TimecardRejectedNotification($freshTimecard));
+
+        return $freshTimecard;
     }
 
     public function resetToDraft(Timecard $timecard): Timecard

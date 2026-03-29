@@ -52,6 +52,65 @@ namespace App\Core\Announcement\Models{
 	class IdeHelperAnnouncement {}
 }
 
+namespace App\Core\Cpanel\Models{
+/**
+ * @property string $id
+ * @property string $email
+ * @property string|null $domain
+ * @property bool $suspended
+ * @property int $quota
+ * @property int $usage
+ * @property numeric $usage_percentage
+ * @property array<array-key, mixed>|null $raw_data
+ * @property string|null $user_id
+ * @property \Carbon\CarbonImmutable|null $last_synced_at
+ * @property bool $sync_failed
+ * @property string|null $sync_error
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Core\User\Models\User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount active()
+ * @method static \App\Core\Cpanel\Database\Factories\CachedEmailAccountFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount forDomain(string $domain)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount highUsage(float $threshold = 80)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount suspended()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount syncFailed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereDomain($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereLastSyncedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereQuota($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereRawData($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereSuspended($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereSyncError($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereSyncFailed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereUsage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereUsagePercentage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereUserId($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperCachedEmailAccount {}
+}
+
+namespace App\Core\Notification\Models{
+/**
+ * @property-read \App\Core\User\Models\User|null $user
+ * @method static \App\Core\Notification\Database\Factories\UserNotificationPreferenceFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference query()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperUserNotificationPreference {}
+}
+
 namespace App\Core\Scheduler\Models{
 /**
  * @property string $id
@@ -86,8 +145,8 @@ namespace App\Core\Scheduler\Models{
 /**
  * @property string $id
  * @property string $name
+ * @property string $feature_type
  * @property string|null $description
- * @property string $available_task_id
  * @property string $schedule_type
  * @property string $time
  * @property string $timezone
@@ -109,7 +168,8 @@ namespace App\Core\Scheduler\Models{
  * @property string|null $updated_by
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read \App\Core\Scheduler\Models\AvailableTask $availableTask
+ * @property string|null $available_task_id
+ * @property-read \App\Core\Scheduler\Models\AvailableTask|null $availableTask
  * @property-read \App\Core\User\Models\User|null $creator
  * @property-read \App\Core\User\Models\User|null $updater
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask active()
@@ -125,6 +185,7 @@ namespace App\Core\Scheduler\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDayOfMonth($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDaysOfWeek($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereFeatureType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereIsActive($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereIsEnabled($value)
@@ -259,7 +320,6 @@ namespace App\Core\User\Models{
  * @property string $last_name
  * @property string $username
  * @property string $email
- * @property string|null $company_email
  * @property \Carbon\CarbonImmutable|null $email_verified_at
  * @property string $password
  * @property bool $is_admin
@@ -272,6 +332,8 @@ namespace App\Core\User\Models{
  * @property string|null $remember_token
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Notification\Models\UserNotificationPreference> $notificationPreferences
+ * @property-read int|null $notification_preferences_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\Role> $roles
@@ -280,7 +342,6 @@ namespace App\Core\User\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCompanyEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
@@ -383,6 +444,224 @@ namespace App\Domains\Clients\Models{
 	class IdeHelperClient {}
 }
 
+namespace App\Domains\Dailies\Models{
+/**
+ * @property string $id
+ * @property string|null $project_id
+ * @property string|null $custom_project_name
+ * @property string $user_id
+ * @property string|null $submitted_by_id
+ * @property \Carbon\CarbonImmutable $report_date
+ * @property string $status
+ * @property array<array-key, mixed>|null $work_performed
+ * @property array<array-key, mixed>|null $materials_used
+ * @property array<array-key, mixed>|null $equipment_used
+ * @property array<array-key, mixed>|null $safety_issues
+ * @property array<array-key, mixed>|null $delays
+ * @property array<array-key, mixed>|null $visitors
+ * @property array<array-key, mixed>|null $onsite_employees
+ * @property string|null $weather_condition
+ * @property float|null $temperature
+ * @property string $temperature_unit
+ * @property float $total_regular_hours
+ * @property float $total_overtime_hours
+ * @property float $total_hours
+ * @property string|null $additional_notes
+ * @property string|null $rejection_reason
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Core\User\Models\User|null $submittedBy
+ * @property-read \App\Core\User\Models\User $user
+ * @method static \App\Domains\Dailies\Database\Factories\DailyReportFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereAdditionalNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereCustomProjectName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereDelays($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereEquipmentUsed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereMaterialsUsed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereOnsiteEmployees($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereRejectionReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereReportDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereSafetyIssues($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereSubmittedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereTemperature($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereTemperatureUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereTotalHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereTotalOvertimeHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereTotalRegularHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereVisitors($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereWeatherCondition($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereWorkPerformed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperDailyReport {}
+}
+
+namespace App\Domains\Documents\Models{
+/**
+ * @property string $id
+ * @property string $title
+ * @property string|null $description
+ * @property string $original_name
+ * @property string $stored_name
+ * @property string|null $extension
+ * @property string $mime_type
+ * @property int $file_size
+ * @property string $storage_disk
+ * @property string $storage_path
+ * @property string $owner_scope
+ * @property string $visibility
+ * @property string $replace_mode
+ * @property string|null $uploaded_by_id
+ * @property \Carbon\CarbonImmutable|null $last_replaced_at
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\Project> $ownerProjects
+ * @property-read int|null $owner_projects_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\User> $ownerUsers
+ * @property-read int|null $owner_users_count
+ * @property-read \App\Core\User\Models\User|null $uploadedBy
+ * @method static \App\Domains\Documents\Database\Factories\DocumentFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document global()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document ownedByProject(string $projectId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document ownedByUser(string $userId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document projectOwned()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document userOwned()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereExtension($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereFileSize($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereLastReplacedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereMimeType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereOriginalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereOwnerScope($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereReplaceMode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereStorageDisk($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereStoragePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereStoredName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereUploadedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereVisibility($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperDocument {}
+}
+
+namespace App\Domains\Invoices\Models{
+/**
+ * @property string $id
+ * @property string $project_id
+ * @property string $vendor_name
+ * @property string|null $invoice_number
+ * @property \Carbon\CarbonImmutable $invoice_date
+ * @property \Carbon\CarbonImmutable|null $due_date
+ * @property \Carbon\CarbonImmutable|null $payment_date
+ * @property numeric $subtotal
+ * @property numeric $tax_amount
+ * @property numeric $total_amount
+ * @property \App\Domains\Invoices\Enums\InvoiceStatusEnum $status
+ * @property string|null $notes
+ * @property string $created_by
+ * @property string|null $verified_by
+ * @property \Carbon\CarbonImmutable|null $verified_at
+ * @property \Carbon\CarbonImmutable|null $paid_at
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Core\User\Models\User $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Invoices\Models\InvoiceLineItem> $lineItems
+ * @property-read int|null $line_items_count
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Core\User\Models\User|null $verifier
+ * @method static \App\Domains\Invoices\Database\Factories\InvoiceFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereDueDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereInvoiceDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereInvoiceNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice wherePaidAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice wherePaymentDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereSubtotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereTaxAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereTotalAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereVendorName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereVerifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereVerifiedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperInvoice {}
+}
+
+namespace App\Domains\Invoices\Models{
+/**
+ * @property string $id
+ * @property string $invoice_id
+ * @property string $description
+ * @property numeric $quantity
+ * @property numeric $unit_price
+ * @property numeric $total
+ * @property int $sort_order
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Domains\Invoices\Models\Invoice|null $invoice
+ * @method static \App\Domains\Invoices\Database\Factories\InvoiceLineItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereInvoiceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereSortOrder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereUnitPrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperInvoiceLineItem {}
+}
+
 namespace App\Domains\Projects\Models{
 /**
  * @property string $id
@@ -403,6 +682,8 @@ namespace App\Domains\Projects\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Addresses\Models\Address> $availableClientAddresses
  * @property-read int|null $available_client_addresses_count
  * @property-read \App\Domains\Clients\Models\Client|null $client
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Dailies\Models\DailyReport> $dailyReports
+ * @property-read int|null $daily_reports_count
  * @property-read \App\Core\User\Models\User|null $projectManager
  * @method static \App\Domains\Projects\Database\Factories\ProjectFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
@@ -429,6 +710,120 @@ namespace App\Domains\Projects\Models{
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperProject {}
+}
+
+namespace App\Domains\Stock\Models{
+/**
+ * @property string $id
+ * @property string|null $user_id
+ * @property string|null $project_id
+ * @property string|null $po_number
+ * @property string $status
+ * @property string $urgency
+ * @property string|null $notes
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Stock\Models\StockOrderItem> $items
+ * @property-read int|null $items_count
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Core\User\Models\User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder byStatus(string $status)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder byUrgency(string $urgency)
+ * @method static \App\Domains\Stock\Database\Factories\StockOrderFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder ownedBy(string $userId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder wherePoNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereUrgency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperStockOrder {}
+}
+
+namespace App\Domains\Stock\Models{
+/**
+ * @property string $id
+ * @property string $stock_order_id
+ * @property int $quantity
+ * @property string $item_name
+ * @property string $status
+ * @property string|null $notes
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Domains\Stock\Models\StockOrder|null $stockOrder
+ * @method static \App\Domains\Stock\Database\Factories\StockOrderItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereItemName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereStockOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperStockOrderItem {}
+}
+
+namespace App\Domains\Stock\Models{
+/**
+ * @property string $id
+ * @property string $name
+ * @property string|null $description
+ * @property string $urgency
+ * @property string|null $notes
+ * @property array<array-key, mixed> $template_items
+ * @property bool $is_active
+ * @property bool $is_global
+ * @property string|null $created_by
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Core\User\Models\User|null $createdBy
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate availableToUser(string $userId)
+ * @method static \App\Domains\Stock\Database\Factories\StockOrderTemplateFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate global()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereIsGlobal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereTemplateItems($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereUrgency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperStockOrderTemplate {}
 }
 
 namespace App\Domains\Tasks\Models{
@@ -570,5 +965,89 @@ namespace App\Domains\Tasks\Models{
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperTaskTemplate {}
+}
+
+namespace App\Domains\Timecards\Models{
+/**
+ * @property string $id
+ * @property string $user_id
+ * @property \Carbon\CarbonImmutable $week_starting
+ * @property \Carbon\CarbonImmutable $week_ending
+ * @property string $status
+ * @property float $total_hours
+ * @property string|null $notes
+ * @property \Carbon\CarbonImmutable|null $submitted_at
+ * @property \Carbon\CarbonImmutable|null $approved_at
+ * @property string|null $approved_by
+ * @property \Carbon\CarbonImmutable|null $rejected_at
+ * @property string|null $rejected_by
+ * @property string|null $rejection_reason
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Core\User\Models\User|null $approver
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Timecards\Models\TimecardEntry> $entries
+ * @property-read int|null $entries_count
+ * @property-read \App\Core\User\Models\User|null $rejector
+ * @property-read \App\Core\User\Models\User $user
+ * @method static \App\Domains\Timecards\Database\Factories\TimecardFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereApprovedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereApprovedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereRejectedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereRejectedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereRejectionReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereSubmittedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereTotalHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereWeekEnding($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereWeekStarting($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperTimecard {}
+}
+
+namespace App\Domains\Timecards\Models{
+/**
+ * @property string $id
+ * @property string $timecard_id
+ * @property string $user_id
+ * @property string|null $project_id
+ * @property string|null $custom_project_name
+ * @property \Carbon\CarbonImmutable $date
+ * @property string|null $start_time
+ * @property float $hours
+ * @property string|null $notes
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Domains\Timecards\Models\Timecard $timecard
+ * @property-read \App\Core\User\Models\User $user
+ * @method static \App\Domains\Timecards\Database\Factories\TimecardEntryFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereCustomProjectName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereStartTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereTimecardId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereUserId($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperTimecardEntry {}
 }
 

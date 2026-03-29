@@ -3,10 +3,12 @@
 namespace App\Core\User\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Core\Notification\Models\UserNotificationPreference;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
@@ -93,6 +95,25 @@ class User extends Authenticatable
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')->withTimestamps();
+    }
+
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(UserNotificationPreference::class);
+    }
+
+    public function notificationPreferenceFor(string $notificationKey, string $channel): ?bool
+    {
+        $preference = $this->notificationPreferences()
+            ->where('notification_key', $notificationKey)
+            ->where('channel', $channel)
+            ->first();
+
+        if ($preference === null) {
+            return null;
+        }
+
+        return (bool) $preference->enabled;
     }
 
     public function hasPermission(string $permission): bool

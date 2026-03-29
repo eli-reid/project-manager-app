@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @mixin IdeHelperCachedEmailAccount
+ */
 class CachedEmailAccount extends Model
 {
     /** @use HasFactory<CachedEmailAccountFactory> */

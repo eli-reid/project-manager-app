@@ -1,8 +1,14 @@
 <?php
 
+use App\Core\User\Livewire\Admin\Roles\Users;
+use App\Core\User\Livewire\Admin\Users\Form;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
+use App\Core\User\Notifications\UserInvitationNotification;
 use App\Core\User\Services\DomainPermissionSynchronizer;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
+use Livewire\Livewire;
 
 it('renders admin users and roles pages for admin users', function () {
     app(DomainPermissionSynchronizer::class)->sync();
@@ -34,13 +40,16 @@ it('forbids non-admin users from admin users and roles pages', function () {
 
 it('allows creating users and roles through livewire forms', function () {
     app(DomainPermissionSynchronizer::class)->sync();
+    Notification::fake();
+    settings()->set('notifications.enabled', 'true');
+    settings()->set('notifications.default_channels', '["mail", "database"]');
 
     $admin = User::factory()->create(['is_admin' => true]);
     $activeRoleId = Role::query()->where('is_active', true)->value('id');
 
     $this->actingAs($admin);
 
-    \Livewire\Livewire::test(\App\Core\User\Livewire\Admin\Users\Form::class)
+    Livewire::test(Form::class)
         ->set('first_name', 'Casey')
         ->set('last_name', 'Jones')
         ->set('username', 'casey.jones')
@@ -52,7 +61,10 @@ it('allows creating users and roles through livewire forms', function () {
 
     expect(User::query()->where('email', 'casey@example.com')->exists())->toBeTrue();
 
-    \Livewire\Livewire::test(\App\Core\User\Livewire\Admin\Roles\Form::class)
+    $createdUser = User::query()->where('email', 'casey@example.com')->firstOrFail();
+    Notification::assertSentTo($createdUser, UserInvitationNotification::class);
+
+    Livewire::test(App\Core\User\Livewire\Admin\Roles\Form::class)
         ->set('name', 'Field Manager')
         ->set('description', 'Can manage field operations')
         ->set('access_level', 45)
@@ -81,7 +93,7 @@ it('allows assigning and removing users from a role through livewire', function 
 
     $this->actingAs($admin);
 
-    \Livewire\Livewire::test(\App\Core\User\Livewire\Admin\Roles\Users::class, ['role' => $role])
+    Livewire::test(Users::class, ['role' => $role])
         ->set('selectedUserIds', [$userA->id, $userB->id])
         ->call('assignSelectedUsers')
         ->assertHasNoErrors();
@@ -89,7 +101,7 @@ it('allows assigning and removing users from a role through livewire', function 
     expect($role->users()->whereKey($userA->id)->exists())->toBeTrue()
         ->and($role->users()->whereKey($userB->id)->exists())->toBeTrue();
 
-    \Livewire\Livewire::test(\App\Core\User\Livewire\Admin\Roles\Users::class, ['role' => $role])
+    Livewire::test(Users::class, ['role' => $role])
         ->call('removeUser', $userA->id)
         ->assertHasNoErrors();
 
@@ -104,10 +116,10 @@ it('forbids non-admin users from mutating roles via direct livewire requests', f
     $admin = User::factory()->create(['is_admin' => true]);
 
     expect(
-        \Illuminate\Support\Facades\Gate::forUser($nonAdmin)->allows('create', Role::class)
+        Gate::forUser($nonAdmin)->allows('create', Role::class)
     )->toBeFalse();
 
     expect(
-        \Illuminate\Support\Facades\Gate::forUser($admin)->allows('create', Role::class)
+        Gate::forUser($admin)->allows('create', Role::class)
     )->toBeTrue();
 });

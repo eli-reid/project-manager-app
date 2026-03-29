@@ -24270,6 +24270,32 @@ namespace App\Core\User\Livewire\Admin\Roles {
             }
     }
 
+namespace App\Core\Cpanel\Livewire\Admin\EmailManagement {
+    /**
+     */
+    class Dashboard extends \Livewire\Component {
+            }
+    /**
+     */
+    class DomainForwarders extends \Livewire\Component {
+            }
+    }
+
+namespace App\Core\Cpanel\Livewire\Admin\EmailAccounts {
+    /**
+     */
+    class Create extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Addresses\Livewire\Admin\Addresses {
     /**
      */
@@ -24292,6 +24318,69 @@ namespace App\Domains\Clients\Livewire\Admin\Clients {
             }
     }
 
+namespace App\Domains\Dailies\Livewire\Admin\Dailies {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Dailies\Livewire\User\Dailies {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Documents\Livewire\Admin\Documents {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Documents\Livewire\User\Documents {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class GlobalIndex extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Invoices\Livewire\Admin\Invoices {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Projects\Livewire\Admin\Projects {
     /**
      */
@@ -24304,6 +24393,54 @@ namespace App\Domains\Projects\Livewire\Admin\Projects {
     /**
      */
     class Show extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Stock\Livewire\Admin\StockOrders {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Stock\Livewire\Admin\Templates {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Stock\Livewire\User\StockOrders {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Stock\Livewire\User\Templates {
+    /**
+     */
+    class Browse extends \Livewire\Component {
+            }
+    /**
+     */
+    class FromTemplate extends \Livewire\Component {
             }
     }
 
@@ -24337,6 +24474,36 @@ namespace App\Domains\Tasks\Livewire\Admin\TaskTemplates {
     /**
      */
     class Form extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Timecards\Livewire\Admin\Timecards {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Timecards\Livewire\User\Timecards {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
             }
     }
 
