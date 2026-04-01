@@ -12,6 +12,8 @@ class AppSettings implements DomainSettingsProvider
             ...self::applicationSettings(),
             ...self::sessionSettings(),
             ...self::systemSettings(),
+            ...self::mailSettings(),
+            ...self::baselineFeatureSettings(),
         ];
     }
 
@@ -268,7 +270,168 @@ class AppSettings implements DomainSettingsProvider
         ];
     }
 
-    
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function mailSettings(): array
+    {
+        return [
+            [
+                'key' => 'mail.mailer',
+                'value' => self::value('mail.mailer'),
+                'display_name' => 'Mail Driver',
+                'description' => 'Default mailer used for outgoing emails.',
+                'type' => 'select',
+                'group' => 'mail',
+                'options' => [
+                    'smtp' => 'SMTP',
+                    'sendmail' => 'Sendmail',
+                    'log' => 'Log',
+                    'array' => 'Array (Testing)',
+                    'ses' => 'Amazon SES',
+                    'postmark' => 'Postmark',
+                    'resend' => 'Resend',
+                ],
+                'order' => 1,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => true,
+                'encrypted' => false,
+            ],
+            [
+                'key' => 'mail.host',
+                'value' => self::value('mail.host'),
+                'display_name' => 'SMTP Host',
+                'description' => 'SMTP server hostname.',
+                'type' => 'text',
+                'group' => 'mail',
+                'order' => 2,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => false,
+                'encrypted' => false,
+            ],
+            [
+                'key' => 'mail.port',
+                'value' => self::value('mail.port'),
+                'display_name' => 'SMTP Port',
+                'description' => 'SMTP server port.',
+                'type' => 'number',
+                'group' => 'mail',
+                'order' => 3,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => false,
+                'encrypted' => false,
+            ],
+            [
+                'key' => 'mail.encryption',
+                'value' => self::value('mail.encryption'),
+                'display_name' => 'Encryption',
+                'description' => 'Transport encryption (tls, ssl, or empty).',
+                'type' => 'select',
+                'group' => 'mail',
+                'options' => [
+                    '' => 'None',
+                    'tls' => 'TLS',
+                    'ssl' => 'SSL',
+                ],
+                'order' => 4,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => false,
+                'encrypted' => false,
+            ],
+            [
+                'key' => 'mail.username',
+                'value' => self::value('mail.username'),
+                'display_name' => 'SMTP Username',
+                'description' => 'Username for SMTP authentication.',
+                'type' => 'text',
+                'group' => 'mail',
+                'order' => 5,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => false,
+                'encrypted' => false,
+            ],
+            [
+                'key' => 'mail.password',
+                'value' => self::value('mail.password'),
+                'display_name' => 'SMTP Password',
+                'description' => 'Password for SMTP authentication.',
+                'type' => 'password',
+                'group' => 'mail',
+                'order' => 6,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => false,
+                'encrypted' => true,
+            ],
+            [
+                'key' => 'mail.from_address',
+                'value' => self::value('mail.from_address'),
+                'display_name' => 'From Address',
+                'description' => 'Default sender email address.',
+                'type' => 'email',
+                'group' => 'mail',
+                'order' => 7,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => true,
+                'encrypted' => false,
+            ],
+            [
+                'key' => 'mail.from_name',
+                'value' => self::value('mail.from_name'),
+                'display_name' => 'From Name',
+                'description' => 'Default sender display name.',
+                'type' => 'text',
+                'group' => 'mail',
+                'order' => 8,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => true,
+                'encrypted' => false,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function baselineFeatureSettings(): array
+    {
+        return [
+            [
+                'key' => 'security.session_timeout',
+                'value' => self::value('security.session_timeout', '120'),
+                'display_name' => 'Session Timeout (minutes)',
+                'description' => 'Maximum idle session duration before logout.',
+                'type' => 'number',
+                'group' => 'security',
+                'order' => 1,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => false,
+                'encrypted' => false,
+            ],
+            [
+                'key' => 'features.maintenance_mode',
+                'value' => self::value('features.maintenance_mode', 'false'),
+                'display_name' => 'Maintenance Mode',
+                'description' => 'Enable maintenance mode banner/behavior for the application.',
+                'type' => 'select',
+                'group' => 'features',
+                'options' => ['true' => 'Enabled', 'false' => 'Disabled'],
+                'order' => 1,
+                'is_visible' => true,
+                'is_public' => false,
+                'is_required' => false,
+                'encrypted' => false,
+            ],
+        ];
+    }
 
     /**
      * @return array<string, string>
@@ -297,8 +460,8 @@ class AppSettings implements DomainSettingsProvider
         ];
     }
 
-    private static function value(string $path): string
+    private static function value(string $path, string $default = ''): string
     {
-        return (string) config('settings.'.$path, '');
+        return (string) config('settings.'.$path, $default);
     }
 }

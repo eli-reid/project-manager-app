@@ -12,6 +12,8 @@ it('discovers core app settings definitions', function () {
     expect($keys)->toContain('app.name');
     expect($keys)->toContain('session.driver');
     expect($keys)->toContain('system.locale');
+    expect($keys)->toContain('mail.mailer');
+    expect($keys)->toContain('mail.from_address');
     expect($keys)->toContain('security.session_timeout');
     expect($keys)->toContain('features.maintenance_mode');
 });

@@ -22,6 +22,17 @@ return [
         'log_changes' => env('SETTINGS_LOG_CHANGES', false) ? 'true' : 'false',
     ],
 
+    'mail' => [
+        'mailer' => env('MAIL_MAILER', 'log'),
+        'host' => env('MAIL_HOST', '127.0.0.1'),
+        'port' => (string) env('MAIL_PORT', 2525),
+        'username' => env('MAIL_USERNAME', ''),
+        'password' => env('MAIL_PASSWORD', ''),
+        'encryption' => env('MAIL_ENCRYPTION', ''),
+        'from_address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        'from_name' => env('MAIL_FROM_NAME', 'Example'),
+    ],
+
     'security' => [
         'session_timeout' => '120',
         'password_min_length' => '8',
