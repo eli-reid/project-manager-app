@@ -206,3 +206,99 @@ it('masks sensitive data in cpanel request error response context and logs', fun
             && $requestPassword === '[REDACTED]';
     });
 });
+
+it('lists cron jobs from cpanel', function () {
+    $service = new CpanelService(CpanelConfig::fromServicesConfig([
+        'url' => 'https://cpanel.example.test',
+        'username' => 'root',
+        'api_token' => 'secret-token',
+        'domain' => 'example.test',
+    ]));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Cron/listcron*' => Http::response([
+            'status' => 1,
+            'data' => [
+                [
+                    'linekey' => '123',
+                    'minute' => '*',
+                    'hour' => '*',
+                    'day' => '*',
+                    'month' => '*',
+                    'weekday' => '*',
+                    'command' => 'php artisan schedule:run',
+                ],
+            ],
+        ]),
+    ]);
+
+    $result = $service->listCronJobs();
+
+    expect($result['success'])->toBeTrue();
+    expect($result['count'])->toBe(1);
+    expect($result['cron_jobs'][0]['linekey'])->toBe('123');
+    expect($result['cron_jobs'][0]['command'])->toBe('php artisan schedule:run');
+});
+
+it('ensures cron job by adding missing entry', function () {
+    $service = new CpanelService(CpanelConfig::fromServicesConfig([
+        'url' => 'https://cpanel.example.test',
+        'username' => 'root',
+        'api_token' => 'secret-token',
+        'domain' => 'example.test',
+    ]));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Cron/listcron*' => Http::response([
+            'status' => 1,
+            'data' => [],
+        ]),
+        'https://cpanel.example.test:2083/execute/Cron/add_line' => Http::response([
+            'status' => 1,
+            'data' => [],
+        ]),
+    ]);
+
+    $result = $service->ensureCronJob('*', '*', '*', '*', '*', 'php artisan schedule:run');
+
+    expect($result['success'])->toBeTrue();
+    expect($result['action'])->toBe('added');
+
+    Http::assertSent(function (Request $request): bool {
+        return $request->method() === 'POST'
+            && $request->url() === 'https://cpanel.example.test:2083/execute/Cron/add_line';
+    });
+});
+
+it('ensures cron job without adding when already present', function () {
+    $service = new CpanelService(CpanelConfig::fromServicesConfig([
+        'url' => 'https://cpanel.example.test',
+        'username' => 'root',
+        'api_token' => 'secret-token',
+        'domain' => 'example.test',
+    ]));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Cron/listcron*' => Http::response([
+            'status' => 1,
+            'data' => [
+                [
+                    'minute' => '*',
+                    'hour' => '*',
+                    'day' => '*',
+                    'month' => '*',
+                    'weekday' => '*',
+                    'command' => 'php artisan schedule:run',
+                ],
+            ],
+        ]),
+    ]);
+
+    $result = $service->ensureCronJob('*', '*', '*', '*', '*', 'php artisan schedule:run');
+
+    expect($result['success'])->toBeTrue();
+    expect($result['action'])->toBe('exists');
+});

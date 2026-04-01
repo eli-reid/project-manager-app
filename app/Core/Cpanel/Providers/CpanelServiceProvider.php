@@ -2,6 +2,7 @@
 
 namespace App\Core\Cpanel\Providers;
 
+use App\Core\Cpanel\Commands\EnsureLaravelCronJobs;
 use App\Core\Cpanel\Commands\SyncEmailAccounts;
 use App\Core\Cpanel\Data\CpanelConfig;
 use App\Core\Cpanel\Livewire\Admin\EmailAccounts\Create as EmailAccountsCreate;
@@ -53,6 +54,7 @@ class CpanelServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/admin.php');
 
         $this->commands([
+            EnsureLaravelCronJobs::class,
             SyncEmailAccounts::class,
         ]);
     }

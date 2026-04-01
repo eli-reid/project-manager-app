@@ -652,6 +652,106 @@ class CpanelService
         }
     }
 
+    /**
+     * @return array{success: bool, message: string, cron_jobs?: array<int, array<string, mixed>>, count?: int, data?: array<string, mixed>}
+     */
+    public function listCronJobs(): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        try {
+            $result = $this->request('Cron', 'listcron');
+            $jobs = $this->normalizeCronJobs($result['data'] ?? []);
+
+            return [
+                'success' => true,
+                'message' => 'Cron jobs retrieved successfully.',
+                'cron_jobs' => $jobs,
+                'count' => count($jobs),
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to list cron jobs.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, data?: array<string, mixed>}
+     */
+    public function addCronJob(string $minute, string $hour, string $day, string $month, string $weekday, string $command): array
+    {
+        if (! $this->isConfigured()) {
+            return $this->configurationErrorResponse();
+        }
+
+        if (trim($command) === '') {
+            return [
+                'success' => false,
+                'message' => 'Cron command is required.',
+            ];
+        }
+
+        try {
+            $this->request('Cron', 'add_line', 'post', [
+                'minute' => $minute,
+                'hour' => $hour,
+                'day' => $day,
+                'month' => $month,
+                'weekday' => $weekday,
+                'command' => $command,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Cron job added successfully.',
+            ];
+        } catch (CpanelRequestException $exception) {
+            return $this->requestErrorResponse($exception, 'Failed to add cron job.');
+        }
+    }
+
+    /**
+     * @return array{success: bool, message: string, action?: string, data?: array<string, mixed>}
+     */
+    public function ensureCronJob(string $minute, string $hour, string $day, string $month, string $weekday, string $command): array
+    {
+        $listResult = $this->listCronJobs();
+        if (! ($listResult['success'] ?? false)) {
+            return $listResult;
+        }
+
+        $jobs = $listResult['cron_jobs'] ?? [];
+
+        $alreadyExists = collect($jobs)->contains(function (array $job) use ($minute, $hour, $day, $month, $weekday, $command): bool {
+            return trim((string) ($job['minute'] ?? '')) === $minute
+                && trim((string) ($job['hour'] ?? '')) === $hour
+                && trim((string) ($job['day'] ?? '')) === $day
+                && trim((string) ($job['month'] ?? '')) === $month
+                && trim((string) ($job['weekday'] ?? '')) === $weekday
+                && trim((string) ($job['command'] ?? '')) === trim($command);
+        });
+
+        if ($alreadyExists) {
+            return [
+                'success' => true,
+                'message' => 'Cron job already exists.',
+                'action' => 'exists',
+            ];
+        }
+
+        $addResult = $this->addCronJob($minute, $hour, $day, $month, $weekday, $command);
+        if (! ($addResult['success'] ?? false)) {
+            return $addResult;
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Cron job added.',
+            'action' => 'added',
+        ];
+    }
+
     public function webmailRedirectUrl(string $email): string
     {
         return $this->config->webmailBaseUrl().'/?user='.urlencode($email);
@@ -766,6 +866,28 @@ class CpanelService
                     'quota' => $this->toInteger($account['txtdiskquota'] ?? $account['diskquota'] ?? $account['quota'] ?? null),
                     'usage' => $this->toInteger($account['diskused'] ?? $account['txtdiskused'] ?? $account['humandiskused'] ?? null),
                     'suspended' => (bool) ($account['suspended_login'] ?? $account['suspended'] ?? false),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $records
+     * @return array<int, array<string, mixed>>
+     */
+    protected function normalizeCronJobs(array $records): array
+    {
+        return collect($records)
+            ->map(function (array $record): array {
+                return [
+                    'linekey' => (string) ($record['linekey'] ?? ''),
+                    'minute' => (string) ($record['minute'] ?? ''),
+                    'hour' => (string) ($record['hour'] ?? ''),
+                    'day' => (string) ($record['day'] ?? ''),
+                    'month' => (string) ($record['month'] ?? ''),
+                    'weekday' => (string) ($record['weekday'] ?? ''),
+                    'command' => (string) ($record['command'] ?? ''),
                 ];
             })
             ->values()
