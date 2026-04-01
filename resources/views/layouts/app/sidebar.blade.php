@@ -106,6 +106,12 @@
                                 </flux:menu.item>
                             @endcan
 
+                            @can('queue.viewAny')
+                                <flux:menu.item :href="route('admin.queue.index')" icon="server-stack" wire:navigate data-test="admin-queue-link-mobile">
+                                    {{ __('Queue') }}
+                                </flux:menu.item>
+                            @endcan
+
                             @can('viewAny', \App\Core\Announcement\Models\Announcement::class)
                                 <flux:menu.item :href="route('admin.announcements.index')" icon="megaphone" wire:navigate data-test="admin-announcements-link-mobile">
                                     {{ __('Announcements') }}

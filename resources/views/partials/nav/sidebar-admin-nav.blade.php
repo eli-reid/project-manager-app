@@ -20,6 +20,12 @@
     </flux:sidebar.item>
 @endcan
 
+@can('queue.viewAny')
+    <flux:sidebar.item icon="server-stack" :href="route('admin.queue.index')" :current="request()->routeIs('admin.queue.*')" wire:navigate data-test="admin-queue-sidebar-main-link">
+        {{ __('Queue') }}
+    </flux:sidebar.item>
+@endcan
+
 @can('viewAny', \App\Core\Announcement\Models\Announcement::class)
     <flux:sidebar.item icon="megaphone" :href="route('admin.announcements.index')" :current="request()->routeIs('admin.announcements.*')" wire:navigate data-test="admin-announcements-sidebar-main-link">
         {{ __('Announcements') }}
