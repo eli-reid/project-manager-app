@@ -2,6 +2,7 @@
 
 namespace App\Domains\Timecards\Providers;
 
+use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
@@ -14,6 +15,7 @@ use App\Domains\Timecards\Models\TimecardEntry;
 use App\Domains\Timecards\Observers\TimecardEntryObserver;
 use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
+use App\Domains\Timecards\Tasks\TimecardReminderTask;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +31,7 @@ class TimecardsServiceProvider extends ServiceProvider
     public function boot(PermissionRegistry $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerSchedulerTasks();
 
         Gate::policy(Timecard::class, TimecardPolicy::class);
         TimecardEntry::observe(TimecardEntryObserver::class);
@@ -73,5 +76,24 @@ class TimecardsServiceProvider extends ServiceProvider
                 'description' => $definition['description'] ?? '',
             ];
         }, TimecardPermissions::all()));
+    }
+
+    private function registerSchedulerTasks(): void
+    {
+        if (! $this->app->bound(TaskTypeRegistry::class)) {
+            return;
+        }
+
+        $this->app->make(TaskTypeRegistry::class)->register('timecard_reminders', TimecardReminderTask::class, [
+            'name' => 'Timecard Reminders',
+            'description' => 'Sends reminders to users with pending timecards.',
+            'task_config' => [
+                'days_after_week_end' => 0,
+                'statuses' => [
+                    'draft',
+                    'rejected',
+                ],
+            ],
+        ]);
     }
 }
