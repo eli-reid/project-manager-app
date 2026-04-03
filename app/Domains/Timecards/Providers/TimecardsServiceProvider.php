@@ -51,7 +51,6 @@ class TimecardsServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'timecards');
-
     }
 
     private function registerUIComponents(): void
@@ -62,7 +61,6 @@ class TimecardsServiceProvider extends ServiceProvider
         Livewire::component('app.domains.timecards.livewire.user.timecards', UserIndex::class);
         Livewire::component('app.domains.timecards.livewire.user.timecards.form', UserForm::class);
         Livewire::component('app.domains.timecards.livewire.user.timecards.show', UserShow::class);
-
     }
 
     private function registerRoutes(): void
