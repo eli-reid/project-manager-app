@@ -2,6 +2,8 @@
 
 namespace App\Core\User\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class PermissionRegistry
 {
     /**
@@ -28,6 +30,15 @@ class PermissionRegistry
             }
 
             $key = $resource.'.'.$action;
+
+            if (array_key_exists($key, $this->permissions)) {
+                Log::warning('PermissionRegistry: duplicate key ignored during registerPermissions.', [
+                    'key' => $key,
+                    'existing_label' => $this->permissions[$key]['label'],
+                ]);
+
+                continue;
+            }
 
             $this->permissions[$key] = [
                 'resource' => $resource,

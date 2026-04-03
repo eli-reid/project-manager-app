@@ -35,13 +35,27 @@ class TimecardsServiceProvider extends ServiceProvider
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerSchedulerTasks();
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
 
+    private function registerAuthorization(): void
+    {
         Gate::policy(Timecard::class, TimecardPolicy::class);
         TimecardEntry::observe(TimecardEntryObserver::class);
+    }
 
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'timecards');
 
+    }
+
+    private function registerUIComponents(): void
+    {
         Livewire::component('app.domains.timecards.livewire.admin.timecards', Index::class);
         Livewire::component('app.domains.timecards.livewire.admin.timecards.form', AdminForm::class);
         Livewire::component('app.domains.timecards.livewire.admin.timecards.show', AdminShow::class);
@@ -49,6 +63,10 @@ class TimecardsServiceProvider extends ServiceProvider
         Livewire::component('app.domains.timecards.livewire.user.timecards.form', UserForm::class);
         Livewire::component('app.domains.timecards.livewire.user.timecards.show', UserShow::class);
 
+    }
+
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])

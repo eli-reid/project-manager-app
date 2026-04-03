@@ -17,6 +17,7 @@ class DomainServiceProvider extends ServiceProvider
         }
 
         $providerFiles = File::glob($domainProvidersPath.'/*/Providers/*ServiceProvider.php') ?: [];
+        sort($providerFiles);
 
         foreach ($providerFiles as $providerFile) {
             $relativePath = ltrim(Str::after((string) $providerFile, app_path()), '/\\');

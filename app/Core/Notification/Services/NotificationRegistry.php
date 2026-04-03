@@ -2,6 +2,8 @@
 
 namespace App\Core\Notification\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class NotificationRegistry
 {
     /**
@@ -26,6 +28,15 @@ class NotificationRegistry
                 ->unique()
                 ->values()
                 ->all();
+
+            if (array_key_exists($key, $this->definitions)) {
+                Log::warning('NotificationRegistry: duplicate key ignored during registerDefinitions.', [
+                    'key' => $key,
+                    'existing_label' => $this->definitions[$key]['label'],
+                ]);
+
+                continue;
+            }
 
             $this->definitions[$key] = [
                 'key' => $key,
