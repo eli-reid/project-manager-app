@@ -2,12 +2,14 @@
 
 namespace App\Core\Settings\Livewire;
 
+use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\SettingsCacheService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
@@ -72,7 +74,7 @@ class SettingsEditor extends Component
     /**
      * Load settings for selected group
      */
-    #[\Livewire\Attributes\On('group-selected')]
+    #[On('group-selected')]
     public function loadSettings(string $group): void
     {
         $this->authorize('viewAny', SettingsSqlite::class);
@@ -91,6 +93,10 @@ class SettingsEditor extends Component
             ->get();
 
         foreach ($settings as $setting) {
+            if ($this->shouldHideSetting($setting->key, $group)) {
+                continue;
+            }
+
             $fieldId = $this->fieldIdForKey($setting->key);
 
             $this->keyMap[$fieldId] = $setting->key;
@@ -255,6 +261,16 @@ class SettingsEditor extends Component
     private function cacheService(): SettingsCacheService
     {
         return app(SettingsCacheService::class);
+    }
+
+    private function shouldHideSetting(string $key, string $group): bool
+    {
+        if ($group !== NotificationSettings::GROUP) {
+            return false;
+        }
+
+        return in_array($key, ['notifications.enabled', 'notifications.default_channels'], true)
+            || str_starts_with($key, NotificationSettings::allowedChannelsSettingKey(''));
     }
 
     private function fieldIdForKey(string $key): string

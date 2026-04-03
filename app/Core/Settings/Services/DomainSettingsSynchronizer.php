@@ -172,14 +172,7 @@ class DomainSettingsSynchronizer
 
     protected function definitionsHash(): string
     {
-        $segments = [];
-
-        foreach ($this->settingsConfigFiles() as $filePath) {
-            $mtime = @filemtime($filePath) ?: 0;
-            $segments[] = $filePath.'|'.$mtime;
-        }
-
-        return hash('sha256', implode(';', $segments));
+        return hash('sha256', json_encode($this->loadDefinitions(), JSON_THROW_ON_ERROR));
     }
 
     /**

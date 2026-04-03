@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Notification\Livewire\Settings\Preferences as NotificationPreferences;
 use App\Core\User\Livewire\Auth\ForcePasswordChange;
 use App\Core\User\Livewire\Settings\Appearance;
 use App\Core\User\Livewire\Settings\Password;
@@ -18,6 +19,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('settings/password', Password::class)->name('user-password.edit');
     Route::livewire('settings/appearance', Appearance::class)->name('appearance.edit');
+    Route::livewire('settings/notifications', NotificationPreferences::class)->name('notifications.edit');
 
     Route::livewire('settings/two-factor', TwoFactor::class)
         ->middleware(

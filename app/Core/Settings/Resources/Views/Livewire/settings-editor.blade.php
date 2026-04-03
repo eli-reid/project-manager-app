@@ -23,6 +23,15 @@
             </div>
         </div>
 
+        @if ($group === 'notifications')
+            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+                <livewire:app.core.notification.livewire.admin.channel-matrix />
+            </div>
+        @endif
+
+        @php($shouldRenderGenericForm = ! ($group === 'notifications' && empty($settingsMetadata)))
+
+        @if ($shouldRenderGenericForm)
         <form wire:submit="updateAllSettings" class="space-y-3">
             @forelse($settingsMetadata as $key => $meta)
                 <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
@@ -148,5 +157,6 @@
                 </div>
             @endif
         </form>
+        @endif
     @endif
 </div>

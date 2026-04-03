@@ -11,4 +11,9 @@ class NotificationServiceProvider extends ServiceProvider
     {
         $this->app->singleton(NotificationRegistry::class, fn (): NotificationRegistry => new NotificationRegistry);
     }
+
+    public function boot(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-notification');
+    }
 }

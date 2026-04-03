@@ -2,8 +2,13 @@
 
 namespace App\Domains\Projects\Providers;
 
+use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\User\Services\PermissionRegistry;
+use App\Domains\Projects\Livewire\Admin\Projects\Form;
+use App\Domains\Projects\Livewire\Admin\Projects\Index;
+use App\Domains\Projects\Livewire\Admin\Projects\Show;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
 use App\Domains\Projects\Policies\ProjectPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -18,16 +23,17 @@ class ProjectsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry): void
+    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerNotifications($notificationRegistry);
         Gate::policy(Project::class, ProjectPolicy::class);
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'projects');
 
-        Livewire::component('app.domains.projects.livewire.admin.projects', \App\Domains\Projects\Livewire\Admin\Projects\Index::class);
-        Livewire::component('app.domains.projects.livewire.admin.projects.form', \App\Domains\Projects\Livewire\Admin\Projects\Form::class);
-        Livewire::component('app.domains.projects.livewire.admin.projects.show', \App\Domains\Projects\Livewire\Admin\Projects\Show::class);
+        Livewire::component('app.domains.projects.livewire.admin.projects', Index::class);
+        Livewire::component('app.domains.projects.livewire.admin.projects.form', Form::class);
+        Livewire::component('app.domains.projects.livewire.admin.projects.show', Show::class);
 
         Route::prefix('admin')
             ->name('admin.')
@@ -48,5 +54,10 @@ class ProjectsServiceProvider extends ServiceProvider
                 'description' => $definition['description'] ?? '',
             ];
         }, ProjectPermissions::all()));
+    }
+
+    private function registerNotifications(NotificationRegistry $notificationRegistry): void
+    {
+        $notificationRegistry->registerDefinitions(ProjectNotificationDefinitions::definitions());
     }
 }

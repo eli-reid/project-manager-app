@@ -1,11 +1,13 @@
 <?php
 
+use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Notifications\TimecardApprovedNotification;
+use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use App\Domains\Timecards\Notifications\TimecardRejectedNotification;
 use App\Domains\Timecards\Notifications\TimecardSubmittedNotification;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
@@ -79,6 +81,22 @@ it('sends rejected notification with reason to the timecard owner', function ():
     Notification::assertSentTo($owner, TimecardRejectedNotification::class, function (TimecardRejectedNotification $notification): bool {
         return $notification->timecard->rejection_reason === 'Missing notes';
     });
+});
+
+it('uses admin-configured allowed channels for timecard approval notifications', function (): void {
+    settings()->set('notifications.enabled', 'true');
+    settings()->set('notifications.default_channels', '["mail", "database", "sms"]');
+    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
+
+    $owner = User::factory()->create(['is_admin' => false]);
+    $timecard = Timecard::factory()->create([
+        'user_id' => $owner->id,
+        'status' => Timecard::STATUS_SUBMITTED,
+    ]);
+
+    $channels = (new TimecardApprovedNotification($timecard))->via($owner);
+
+    expect($channels)->toBe(['database']);
 });
 
 function userWithNotificationPermission(string $permissionKey): User

@@ -1,6 +1,8 @@
 <?php
 
 use App\Core\Notification\Support\NotificationEventCatalog;
+use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
+use App\Domains\Tasks\Notifications\TaskNotificationDefinitions;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 
 it('returns unique notification event keys', function (): void {
@@ -20,6 +22,18 @@ it('contains core timecard notification events', function (): void {
         ->toContain(TimecardNotificationDefinitions::SUBMITTED)
         ->toContain(TimecardNotificationDefinitions::REJECTED)
         ->toContain(TimecardNotificationDefinitions::REMINDER);
+});
+
+it('contains project and task notification events from their domains', function (): void {
+    $keys = NotificationEventCatalog::keys();
+
+    expect($keys)
+        ->toContain(ProjectNotificationDefinitions::ACCESS_GRANTED)
+        ->toContain(ProjectNotificationDefinitions::ACCESS_REVOKED)
+        ->toContain(TaskNotificationDefinitions::ASSIGNED)
+        ->toContain(TaskNotificationDefinitions::STATUS_UPDATED)
+        ->toContain(TaskNotificationDefinitions::DUE_REMINDER)
+        ->toContain(TaskNotificationDefinitions::COMMENT_ADDED);
 });
 
 it('can check registration of known and unknown event keys', function (): void {
