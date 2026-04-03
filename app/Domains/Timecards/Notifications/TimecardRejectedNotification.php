@@ -81,6 +81,6 @@ class TimecardRejectedNotification extends Notification implements ShouldQueue
 
     private function notificationKey(): string
     {
-        return 'timecards.rejected';
+        return TimecardNotificationDefinitions::REJECTED;
     }
 }

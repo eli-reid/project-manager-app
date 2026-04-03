@@ -2,6 +2,7 @@
 
 namespace App\Domains\Timecards\Providers;
 
+use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
@@ -12,6 +13,7 @@ use App\Domains\Timecards\Livewire\User\Timecards\Index as UserIndex;
 use App\Domains\Timecards\Livewire\User\Timecards\Show as UserShow;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
+use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use App\Domains\Timecards\Observers\TimecardEntryObserver;
 use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
@@ -28,9 +30,10 @@ class TimecardsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry): void
+    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerNotifications($notificationRegistry);
         $this->registerSchedulerTasks();
 
         Gate::policy(Timecard::class, TimecardPolicy::class);
@@ -76,6 +79,11 @@ class TimecardsServiceProvider extends ServiceProvider
                 'description' => $definition['description'] ?? '',
             ];
         }, TimecardPermissions::all()));
+    }
+
+    private function registerNotifications(NotificationRegistry $notificationRegistry): void
+    {
+        $notificationRegistry->registerDefinitions(TimecardNotificationDefinitions::definitions());
     }
 
     private function registerSchedulerTasks(): void

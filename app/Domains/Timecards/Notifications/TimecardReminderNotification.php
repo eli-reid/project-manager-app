@@ -81,6 +81,6 @@ class TimecardReminderNotification extends Notification implements ShouldQueue
 
     private function notificationKey(): string
     {
-        return 'timecards.reminder';
+        return TimecardNotificationDefinitions::REMINDER;
     }
 }

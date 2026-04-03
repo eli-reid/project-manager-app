@@ -4,6 +4,7 @@ namespace App\Core\Notification\Database\Factories;
 
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\User\Models\User;
+use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +21,7 @@ class UserNotificationPreferenceFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'notification_key' => 'timecards.approved',
+            'notification_key' => TimecardNotificationDefinitions::APPROVED,
             'channel' => 'mail',
             'enabled' => true,
         ];

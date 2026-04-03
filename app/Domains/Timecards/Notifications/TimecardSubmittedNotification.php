@@ -82,6 +82,6 @@ class TimecardSubmittedNotification extends Notification implements ShouldQueue
 
     private function notificationKey(): string
     {
-        return 'timecards.submitted';
+        return TimecardNotificationDefinitions::SUBMITTED;
     }
 }

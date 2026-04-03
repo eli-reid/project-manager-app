@@ -80,6 +80,6 @@ class TimecardApprovedNotification extends Notification implements ShouldQueue
 
     private function notificationKey(): string
     {
-        return 'timecards.approved';
+        return TimecardNotificationDefinitions::APPROVED;
     }
 }

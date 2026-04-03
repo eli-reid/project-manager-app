@@ -1,7 +1,9 @@
 <?php
 
 use App\Core\Announcement\Providers\AnnouncementServiceProvider;
+use App\Core\Audit\Providers\AuditServiceProvider;
 use App\Core\Cpanel\Providers\CpanelServiceProvider;
+use App\Core\Notification\Providers\NotificationServiceProvider;
 use App\Core\Queue\Providers\QueueManagerServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
 use App\Core\Settings\Providers\SettingServiceProvider;
@@ -14,7 +16,9 @@ use App\Providers\TelescopeServiceProvider;
 
 return [
     AnnouncementServiceProvider::class,
+    AuditServiceProvider::class,
     CpanelServiceProvider::class,
+    NotificationServiceProvider::class,
     QueueManagerServiceProvider::class,
     SchedulerServiceProvider::class,
     SettingServiceProvider::class,
