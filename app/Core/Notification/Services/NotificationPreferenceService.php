@@ -7,6 +7,7 @@ use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Settings\NotificationSettings;
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -121,7 +122,7 @@ class NotificationPreferenceService
      */
     public function resolveChannels(User $user, string $notificationKey, array $supportedChannels): array
     {
-        if (! setting_bool('notifications.enabled', true)) {
+        if (! Settings::get('notifications.enabled', true)->toBool(true)) {
             return [];
         }
 
@@ -159,7 +160,7 @@ class NotificationPreferenceService
      */
     public function defaultEnabledChannels(): array
     {
-        return collect(setting_json('notifications.default_channels', ['mail', 'database']))
+        return collect(Settings::get('notifications.default_channels', ['mail', 'database'])->toArray(['mail', 'database']))
             ->filter(fn (mixed $channel): bool => is_string($channel) && $channel !== '')
             ->map(fn (string $channel): string => $this->normalizeChannel($channel))
             ->unique()
@@ -262,10 +263,12 @@ class NotificationPreferenceService
             ->unique()
             ->values();
 
-        $configuredChannels = collect(setting_json(
-            NotificationSettings::allowedChannelsSettingKey($notificationKey),
-            $normalizedFallback->all(),
-        ))
+        $configuredChannels = collect(
+            Settings::get(
+                NotificationSettings::allowedChannelsSettingKey($notificationKey),
+                $normalizedFallback->all(),
+            )->toArray($normalizedFallback->all())
+        )
             ->filter(fn (mixed $channel): bool => is_string($channel) && $channel !== '')
             ->map(fn (string $channel): string => $this->normalizeChannel($channel))
             ->filter(fn (string $channel): bool => in_array($channel, $this->availableChannels(), true))

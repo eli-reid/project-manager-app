@@ -3,12 +3,13 @@
 use App\Core\Notification\Livewire\Settings\Preferences;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Settings\NotificationSettings;
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
 });
 
 it('registers the notification settings route for authenticated users', function (): void {
@@ -26,8 +27,8 @@ it('renders the notification settings page for authenticated users', function ()
 });
 
 it('persists notification preference updates through the livewire settings component', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $formKey = Preferences::notificationFormKey(TimecardNotificationDefinitions::APPROVED);
@@ -56,9 +57,9 @@ it('persists notification preference updates through the livewire settings compo
 });
 
 it('does not persist channels disabled by admin notification settings', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database", "sms"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database", "sms"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $formKey = Preferences::notificationFormKey(TimecardNotificationDefinitions::APPROVED);

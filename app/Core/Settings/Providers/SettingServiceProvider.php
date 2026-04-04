@@ -10,6 +10,7 @@ use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
 use App\Core\Settings\Services\SettingsRegistry;
 use App\Core\Settings\Services\SettingsSqliteService;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
@@ -47,6 +48,8 @@ class SettingServiceProvider extends ServiceProvider
         $this->app->singleton(DomainSettingsSynchronizer::class, function ($app): DomainSettingsSynchronizer {
             return new DomainSettingsSynchronizer($app->make(SettingsRegistry::class));
         });
+
+        $this->app->alias(SettingsSqliteService::class, 'Settings');
     }
 
     /**
@@ -71,6 +74,14 @@ class SettingServiceProvider extends ServiceProvider
     private function registerAuthorization(): void
     {
         Gate::policy(SettingsSqlite::class, SettingPolicy::class);
+
+        Gate::define('settings.view', function (Authenticatable $user): bool {
+            return Gate::forUser($user)->allows('viewAny', SettingsSqlite::class);
+        });
+
+        Gate::define('settings.edit', function (Authenticatable $user): bool {
+            return Gate::forUser($user)->allows('update', SettingsSqlite::class);
+        });
     }
 
     private function registerInfrastructure(): void

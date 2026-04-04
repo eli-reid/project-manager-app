@@ -126,6 +126,18 @@ it('supports fluent typed reads for boolean values', function () {
     expect($service->get('missing.key', 'no')->toBool(true))->toBeFalse();
 });
 
+it('supports fluent typed reads for json array values', function () {
+    $service = app(SettingsSqliteService::class);
+    $service->clearAllCache();
+
+    $key = 'typed.json.'.Str::lower(Str::random(8));
+    expect($service->set($key, '["mail","database"]'))->toBeTrue();
+
+    expect($service->get($key)->toArray())->toBe(['mail', 'database']);
+    expect($service->get('missing.key', '["sms"]')->toArray())->toBe(['sms']);
+    expect($service->get('missing.invalid.json', 'not-json')->toArray(['fallback']))->toBe(['fallback']);
+});
+
 it('rejects invalid values for settings with registered type metadata', function () {
     $service = app(SettingsSqliteService::class);
     $service->clearAllCache();

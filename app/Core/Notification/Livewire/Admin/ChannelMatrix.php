@@ -4,8 +4,7 @@ namespace App\Core\Notification\Livewire\Admin;
 
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Notification\Settings\NotificationSettings;
-use App\Core\Settings\Models\SettingsSqlite;
-use App\Core\Settings\Services\SettingsCacheService;
+use App\Core\Settings\Facades\Settings;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Arr;
 use Livewire\Component;
@@ -40,14 +39,14 @@ class ChannelMatrix extends Component
 
     public function mount(NotificationRegistry $notificationRegistry): void
     {
-        $this->authorize('viewAny', SettingsSqlite::class);
+        $this->authorize('settings.view');
 
         $this->loadDefinitions($notificationRegistry);
     }
 
     public function save(): void
     {
-        $this->authorize('update', SettingsSqlite::class);
+        $this->authorize('settings.edit');
 
         $this->persistGlobalSettings();
 
@@ -66,13 +65,7 @@ class ChannelMatrix extends Component
                 ->values()
                 ->all();
 
-            SettingsSqlite::query()->updateOrCreate(
-                ['key' => $settingKey],
-                ['value' => json_encode($enabledChannels, JSON_THROW_ON_ERROR)]
-            );
-
-            app(SettingsCacheService::class)->forget($settingKey);
-            app(SettingsCacheService::class)->flushNamespace(NotificationSettings::GROUP);
+            Settings::set($settingKey, json_encode($enabledChannels, JSON_THROW_ON_ERROR));
         }
 
         $this->successMessage = 'Notification channel rules updated.';
@@ -100,7 +93,8 @@ class ChannelMatrix extends Component
     {
         $availableChannels = $this->availableChannels();
 
-        $this->notificationsEnabled = setting_bool('notifications.enabled', true);
+        $this->notificationsEnabled = Settings::get('notifications.enabled', true)->toBool(true);
+
         $this->defaultChannels = collect($availableChannels)
             ->mapWithKeys(function (string $channel): array {
                 return [$channel => in_array($channel, $this->defaultEnabledChannels(), true)];
@@ -114,10 +108,12 @@ class ChannelMatrix extends Component
                     ->filter(fn (mixed $channel): bool => is_string($channel) && $channel !== '')
                     ->values()
                     ->all();
-                $enabledChannels = collect(setting_json(
-                    NotificationSettings::allowedChannelsSettingKey($notificationKey),
-                    $supportedChannels,
-                ))
+                $enabledChannels = collect(
+                    Settings::get(
+                        NotificationSettings::allowedChannelsSettingKey($notificationKey),
+                        $supportedChannels,
+                    )->toArray($supportedChannels)
+                )
                     ->filter(fn (mixed $channel): bool => is_string($channel) && $channel !== '')
                     ->values();
 
@@ -178,7 +174,7 @@ class ChannelMatrix extends Component
      */
     private function defaultEnabledChannels(): array
     {
-        return collect(setting_json('notifications.default_channels', ['mail', 'database']))
+        return collect(Settings::get('notifications.default_channels', ['mail', 'database'])->toArray(['mail', 'database']))
             ->filter(fn (mixed $channel): bool => is_string($channel) && $channel !== '')
             ->values()
             ->all();
@@ -198,14 +194,7 @@ class ChannelMatrix extends Component
         ];
 
         foreach ($settings as $key => $value) {
-            SettingsSqlite::query()->updateOrCreate(
-                ['key' => $key],
-                ['value' => $value]
-            );
-
-            app(SettingsCacheService::class)->forget($key);
+            Settings::set($key, $value);
         }
-
-        app(SettingsCacheService::class)->flushNamespace(NotificationSettings::GROUP);
     }
 }

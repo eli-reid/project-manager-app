@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
@@ -223,8 +224,8 @@ it('shows dailies tab on project view when user can view all dailies', function 
 });
 
 it('auto generates project numbers with configured prefix when enabled', function (): void {
-    settings()->set('projects.auto_generate_numbers', 'true');
-    settings()->set('projects.number_prefix', 'JOB-');
+    Settings::set('projects.auto_generate_numbers', 'true');
+    Settings::set('projects.number_prefix', 'JOB-');
 
     Project::factory()->create(['project_number' => 'JOB-0007']);
     Project::factory()->create(['project_number' => 'PRJ-9999']);
@@ -235,8 +236,8 @@ it('auto generates project numbers with configured prefix when enabled', functio
 });
 
 it('does not auto generate project numbers when disabled', function (): void {
-    settings()->set('projects.auto_generate_numbers', 'false');
-    settings()->set('projects.number_prefix', 'JOB-');
+    Settings::set('projects.auto_generate_numbers', 'false');
+    Settings::set('projects.number_prefix', 'JOB-');
 
     $project = Project::factory()->create(['project_number' => null]);
 
@@ -244,8 +245,8 @@ it('does not auto generate project numbers when disabled', function (): void {
 });
 
 it('keeps manually entered project number when auto generation is enabled', function (): void {
-    settings()->set('projects.auto_generate_numbers', 'true');
-    settings()->set('projects.number_prefix', 'JOB-');
+    Settings::set('projects.auto_generate_numbers', 'true');
+    Settings::set('projects.number_prefix', 'JOB-');
 
     $project = Project::factory()->create(['project_number' => 'CUSTOM-42']);
 

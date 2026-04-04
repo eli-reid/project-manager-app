@@ -2,6 +2,7 @@
 
 namespace App\Core\WeatherApi\Services;
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -228,7 +229,7 @@ class WeatherApiService implements WeatherApiContract
 
     protected function stringSetting(string $settingKey, string $configKey, string $default): string
     {
-        $value = setting($settingKey, null);
+        $value = Settings::get($settingKey, null)->raw();
 
         if (is_string($value) && trim($value) !== '') {
             return $value;
@@ -239,7 +240,7 @@ class WeatherApiService implements WeatherApiContract
 
     protected function positiveIntSetting(string $settingKey, string $configKey, int $default): int
     {
-        $value = setting($settingKey, null);
+        $value = Settings::get($settingKey, null)->raw();
 
         if (is_numeric($value) && (int) $value > 0) {
             return (int) $value;

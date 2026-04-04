@@ -2,6 +2,7 @@
 
 namespace App\Domains\Tasks\Services;
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Tasks\Models\TaskCategory;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -40,11 +41,11 @@ class TaskTreeService
 
     private function maxCategoryDepth(): int
     {
-        return max((int) setting('tasks.max_category_depth', 3), 1);
+        return max((int) Settings::get('tasks.max_category_depth', 3)->toInt(), 1);
     }
 
     private function maxTaskDepth(): int
     {
-        return max((int) setting('tasks.max_task_depth', 2), 1);
+        return max((int) Settings::get('tasks.max_task_depth', 2)->toInt(), 1);
     }
 }

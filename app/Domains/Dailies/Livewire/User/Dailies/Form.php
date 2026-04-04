@@ -2,6 +2,7 @@
 
 namespace App\Domains\Dailies\Livewire\User\Dailies;
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use App\Domains\Dailies\Models\DailyReport;
@@ -448,7 +449,7 @@ class Form extends Component
 
     private function resolveWeatherLocation(): ?string
     {
-        $defaultLocation = trim((string) setting('weatherapi.default_location', ''));
+        $defaultLocation = trim(Settings::get('weatherapi.default_location', '')->toString(''));
 
         if (blank($this->project_id)) {
             return $defaultLocation !== '' ? $defaultLocation : null;

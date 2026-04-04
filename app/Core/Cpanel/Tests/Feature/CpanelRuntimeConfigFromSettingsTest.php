@@ -1,15 +1,16 @@
 <?php
 
 use App\Core\Cpanel\Data\CpanelConfig;
+use App\Core\Settings\Facades\Settings;
 
 it('resolves cpanel runtime config from saved settings', function (): void {
 
-    settings()->set('cpanel.url', 'https://cpanel.runtime.test');
-    settings()->set('cpanel.username', 'runtime-user');
-    settings()->set('cpanel.api_token', 'runtime-token');
-    settings()->set('cpanel.domain', 'runtime.test');
-    settings()->set('cpanel.port', '2087');
-    settings()->set('cpanel.verify_ssl', 'false');
+    Settings::set('cpanel.url', 'https://cpanel.runtime.test');
+    Settings::set('cpanel.username', 'runtime-user');
+    Settings::set('cpanel.api_token', 'runtime-token');
+    Settings::set('cpanel.domain', 'runtime.test');
+    Settings::set('cpanel.port', '2087');
+    Settings::set('cpanel.verify_ssl', 'false');
 
     app()->forgetInstance(CpanelConfig::class);
 
@@ -22,10 +23,10 @@ it('resolves cpanel runtime config from saved settings', function (): void {
         ->and($cpanelConfig->port)->toBe(2087)
         ->and($cpanelConfig->verifySsl)->toBeFalse();
 
-    settings()->set('cpanel.url', '');
-    settings()->set('cpanel.username', '');
-    settings()->set('cpanel.api_token', '');
-    settings()->set('cpanel.domain', '');
-    settings()->set('cpanel.port', '');
-    settings()->set('cpanel.verify_ssl', '');
+    Settings::set('cpanel.url', '');
+    Settings::set('cpanel.username', '');
+    Settings::set('cpanel.api_token', '');
+    Settings::set('cpanel.domain', '');
+    Settings::set('cpanel.port', '');
+    Settings::set('cpanel.verify_ssl', '');
 });

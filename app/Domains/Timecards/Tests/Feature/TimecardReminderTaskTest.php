@@ -3,6 +3,7 @@
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Notifications\TimecardReminderNotification;
@@ -17,8 +18,8 @@ it('registers timecard reminder task type in the scheduler registry', function (
 it('sends reminder notifications for pending timecards', function (): void {
     Notification::fake();
 
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
 
     $user = User::factory()->create(['is_active' => true]);
 
@@ -61,8 +62,8 @@ it('sends reminder notifications for pending timecards', function (): void {
 it('does not send duplicate reminders on the same day', function (): void {
     Notification::fake();
 
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
 
     $user = User::factory()->create(['is_active' => true]);
 

@@ -2,6 +2,7 @@
 
 namespace App\Domains\Documents\Services;
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
@@ -117,7 +118,7 @@ class DocumentService
      */
     public function validationRules(): array
     {
-        $rawAllowedTypes = (string) setting('documents.allowed_types', 'pdf,doc,docx,jpg,jpeg,png');
+        $rawAllowedTypes = Settings::get('documents.allowed_types', 'pdf,doc,docx,jpg,jpeg,png')->toString('pdf,doc,docx,jpg,jpeg,png');
         $allowedExtensions = collect(explode(',', $rawAllowedTypes))
             ->map(fn (string $extension): string => trim(strtolower($extension)))
             ->filter()
@@ -125,19 +126,19 @@ class DocumentService
             ->all();
 
         return [
-            'max_kilobytes' => (int) setting('documents.max_file_size', 10240),
+            'max_kilobytes' => Settings::get('documents.max_file_size', 10240)->toInt(10240),
             'allowed_extensions' => $allowedExtensions,
         ];
     }
 
     private function storageDisk(): string
     {
-        return (string) setting('documents.storage_disk', 'local');
+        return Settings::get('documents.storage_disk', 'local')->toString('local');
     }
 
     private function replaceBehavior(): string
     {
-        $replaceBehavior = (string) setting('documents.replace_behavior', Document::REPLACE_MODE_REPLACE);
+        $replaceBehavior = Settings::get('documents.replace_behavior', Document::REPLACE_MODE_REPLACE)->toString(Document::REPLACE_MODE_REPLACE);
 
         return in_array($replaceBehavior, [Document::REPLACE_MODE_REPLACE, Document::REPLACE_MODE_KEEP_HISTORY], true)
             ? $replaceBehavior

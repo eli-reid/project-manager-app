@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Notification\Settings\NotificationSettings;
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
@@ -16,8 +17,8 @@ use Illuminate\Support\Facades\Notification;
 it('sends submitted notifications to users with timecards approve permission', function (): void {
     Notification::fake();
 
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
 
     $submitter = User::factory()->create(['is_admin' => false]);
     $approver = userWithNotificationPermission('timecards.approve');
@@ -45,8 +46,8 @@ it('sends submitted notifications to users with timecards approve permission', f
 it('sends approved notification to the timecard owner', function (): void {
     Notification::fake();
 
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
 
     $owner = User::factory()->create(['is_admin' => false]);
     $approver = User::factory()->create(['is_admin' => false]);
@@ -65,8 +66,8 @@ it('sends approved notification to the timecard owner', function (): void {
 it('sends rejected notification with reason to the timecard owner', function (): void {
     Notification::fake();
 
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
 
     $owner = User::factory()->create(['is_admin' => false]);
     $rejector = User::factory()->create(['is_admin' => false]);
@@ -84,9 +85,9 @@ it('sends rejected notification with reason to the timecard owner', function ():
 });
 
 it('uses admin-configured allowed channels for timecard approval notifications', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database", "sms"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database", "sms"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
 
     $owner = User::factory()->create(['is_admin' => false]);
     $timecard = Timecard::factory()->create([

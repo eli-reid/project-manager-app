@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Livewire\Admin\Roles\Users;
 use App\Core\User\Livewire\Admin\Users\Form;
 use App\Core\User\Models\Role;
@@ -41,8 +42,8 @@ it('forbids non-admin users from admin users and roles pages', function () {
 it('allows creating users and roles through livewire forms', function () {
     app(DomainPermissionSynchronizer::class)->sync();
     Notification::fake();
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
 
     $admin = User::factory()->create(['is_admin' => true]);
     $activeRoleId = Role::query()->where('is_active', true)->value('id');

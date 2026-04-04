@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
@@ -76,7 +77,7 @@ it('allows admins to access the documents admin queue with disk insights', funct
 
 it('supports project tab full crud for project-owned documents', function (): void {
     Storage::fake('local');
-    settings()->set('documents.storage_disk', 'local');
+    Settings::set('documents.storage_disk', 'local');
 
     $user = userWithDocumentDomainPermissions([
         'projects.view',
@@ -152,7 +153,7 @@ it('supports user promote and demote livewire interactions for user-owned docume
 
 it('allows admins to delete any document from the admin queue', function (): void {
     Storage::fake('local');
-    settings()->set('documents.storage_disk', 'local');
+    Settings::set('documents.storage_disk', 'local');
 
     $owner = userWithDocumentDomainPermissions(['documents.view']);
     $admin = User::factory()->create([

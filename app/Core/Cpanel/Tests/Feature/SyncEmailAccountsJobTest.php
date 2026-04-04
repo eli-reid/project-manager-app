@@ -2,6 +2,7 @@
 
 use App\Core\Cpanel\Jobs\SyncEmailAccountsJob;
 use App\Core\Cpanel\Models\CachedEmailAccount;
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -9,18 +10,18 @@ use Illuminate\Support\Facades\Queue;
 
 function resetCpanelSettingsForTest(): void
 {
-    settings()->set('cpanel.url', '');
-    settings()->set('cpanel.username', '');
-    settings()->set('cpanel.api_token', '');
-    settings()->set('cpanel.domain', '');
+    Settings::set('cpanel.url', '');
+    Settings::set('cpanel.username', '');
+    Settings::set('cpanel.api_token', '');
+    Settings::set('cpanel.domain', '');
 }
 
 function setCpanelSettingsForTest(): void
 {
-    settings()->set('cpanel.url', 'https://cpanel.example.test');
-    settings()->set('cpanel.username', 'root');
-    settings()->set('cpanel.api_token', 'token-123');
-    settings()->set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
 }
 
 it('syncs cpanel mailbox accounts into cached_email_accounts', function () {

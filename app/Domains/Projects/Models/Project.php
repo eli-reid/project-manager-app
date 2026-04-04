@@ -2,6 +2,7 @@
 
 namespace App\Domains\Projects\Models;
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
@@ -57,7 +58,7 @@ class Project extends Model
                 return;
             }
 
-            if (! setting_bool('projects.auto_generate_numbers', true)) {
+            if (! Settings::get('projects.auto_generate_numbers', true)->toBool(true)) {
                 return;
             }
 
@@ -67,7 +68,7 @@ class Project extends Model
 
     protected static function nextAutoProjectNumber(): string
     {
-        $prefix = (string) setting('projects.number_prefix', 'PRJ-');
+        $prefix = Settings::get('projects.number_prefix', 'PRJ-')->toString('PRJ-');
         $highestSequence = self::highestSequenceForPrefix($prefix);
         $nextSequence = $highestSequence + 1;
 

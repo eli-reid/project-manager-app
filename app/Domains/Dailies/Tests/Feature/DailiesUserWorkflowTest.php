@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
@@ -229,7 +230,7 @@ it('auto loads weather fields from weather api during save', function (): void {
 it('uses weather default location when project address is unavailable', function (): void {
     $user = userWithDailiesPermissions(['dailies.create', 'dailies.view']);
 
-    settings()->set('weatherapi.default_location', 'Phoenix, AZ');
+    Settings::set('weatherapi.default_location', 'Phoenix, AZ');
 
     app()->instance(WeatherApiContract::class, new class implements WeatherApiContract
     {

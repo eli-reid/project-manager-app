@@ -86,4 +86,19 @@ class SettingValue
 
         return $normalized !== '' ? $normalized : null;
     }
+
+    public function toArray(array $default = []): array
+    {
+        if (is_array($this->value)) {
+            return $this->value;
+        }
+
+        if (is_string($this->value)) {
+            $decoded = json_decode($this->value, true);
+
+            return is_array($decoded) ? $decoded : $default;
+        }
+
+        return $default;
+    }
 }

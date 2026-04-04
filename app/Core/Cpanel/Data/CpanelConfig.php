@@ -2,7 +2,7 @@
 
 namespace App\Core\Cpanel\Data;
 
-use App\Core\Settings\Services\SettingsSqliteService;
+use App\Core\Settings\Facades\Settings;
 
 class CpanelConfig
 {
@@ -48,29 +48,29 @@ class CpanelConfig
 
     public readonly int $connectTimeout;
 
-    public function __construct(SettingsSqliteService $settingsService)
+    public function __construct()
     {
-        $this->url = self::normalizeNullableString($settingsService->get('cpanel.url', null));
-        $this->username = self::normalizeNullableString($settingsService->get('cpanel.username', null));
-        $this->apiToken = self::normalizeNullableString($settingsService->get('cpanel.api_token', null));
-        $this->domain = self::normalizeNullableString($settingsService->get('cpanel.domain', null));
-        $this->port = self::toInt($settingsService->get('cpanel.port', 2083), 2083);
-        $this->webmailPort = self::toInt($settingsService->get('cpanel.webmail_port', 2096), 2096);
-        $this->webmailUrl = self::normalizeNullableString($settingsService->get('cpanel.webmail_url', null));
-        $this->defaultEmailQuota = self::toInt($settingsService->get('cpanel.default_email_quota', 250), 250);
-        $this->autoCreateEmails = self::toBool($settingsService->get('cpanel.auto_create_emails', false), false);
-        $this->autoDeleteEmails = self::toBool($settingsService->get('cpanel.auto_delete_emails', true), true);
-        $this->syncUserPasswords = self::toBool($settingsService->get('cpanel.sync_user_passwords', false), false);
-        $this->queueWriteOperations = self::toBool($settingsService->get('cpanel.queue_write_operations', false), false);
-        $this->idempotencyTtlSeconds = self::toInt($settingsService->get('cpanel.idempotency_ttl_seconds', 120), 120);
-        $this->queueTries = self::toInt($settingsService->get('cpanel.queue_tries', 3), 3);
-        $this->queueBackoff = self::toString($settingsService->get('cpanel.queue_backoff', '10,30,60'), '10,30,60');
-        $this->failureThreshold = self::toInt($settingsService->get('cpanel.failure_threshold', 5), 5);
-        $this->cooldownSeconds = self::toInt($settingsService->get('cpanel.cooldown_seconds', 300), 300);
-        $this->telemetryKeyPrefix = self::toString($settingsService->get('cpanel.telemetry_key_prefix', 'cpanel.telemetry'), 'cpanel.telemetry');
-        $this->verifySsl = self::toBool($settingsService->get('cpanel.verify_ssl', true), true);
-        $this->timeout = self::toInt($settingsService->get('cpanel.timeout', 30), 30);
-        $this->connectTimeout = self::toInt($settingsService->get('cpanel.connect_timeout', 10), 10);
+        $this->url = Settings::get('cpanel.url', null)->toNullableString();
+        $this->username = Settings::get('cpanel.username', null)->toNullableString();
+        $this->apiToken = Settings::get('cpanel.api_token', null)->toNullableString();
+        $this->domain = Settings::get('cpanel.domain', null)->toNullableString();
+        $this->port = Settings::get('cpanel.port', 2083)->toInt(2083);
+        $this->webmailPort = Settings::get('cpanel.webmail_port', 2096)->toInt(2096);
+        $this->webmailUrl = Settings::get('cpanel.webmail_url', null)->toNullableString();
+        $this->defaultEmailQuota = Settings::get('cpanel.default_email_quota', 250)->toInt(250);
+        $this->autoCreateEmails = Settings::get('cpanel.auto_create_emails', false)->toBool(false);
+        $this->autoDeleteEmails = Settings::get('cpanel.auto_delete_emails', true)->toBool(true);
+        $this->syncUserPasswords = Settings::get('cpanel.sync_user_passwords', false)->toBool(false);
+        $this->queueWriteOperations = Settings::get('cpanel.queue_write_operations', false)->toBool(false);
+        $this->idempotencyTtlSeconds = Settings::get('cpanel.idempotency_ttl_seconds', 120)->toInt(120);
+        $this->queueTries = Settings::get('cpanel.queue_tries', 3)->toInt(3);
+        $this->queueBackoff = Settings::get('cpanel.queue_backoff', '10,30,60')->toString('10,30,60');
+        $this->failureThreshold = Settings::get('cpanel.failure_threshold', 5)->toInt(5);
+        $this->cooldownSeconds = Settings::get('cpanel.cooldown_seconds', 300)->toInt(300);
+        $this->telemetryKeyPrefix = Settings::get('cpanel.telemetry_key_prefix', 'cpanel.telemetry')->toString('cpanel.telemetry');
+        $this->verifySsl = Settings::get('cpanel.verify_ssl', true)->toBool(true);
+        $this->timeout = Settings::get('cpanel.timeout', 30)->toInt(30);
+        $this->connectTimeout = Settings::get('cpanel.connect_timeout', 10)->toInt(10);
     }
 
     public function isConfigured(): bool
@@ -112,61 +112,5 @@ class CpanelConfig
         $baseUrl = preg_replace('/:\\d+$/', '', $baseUrl) ?: $baseUrl;
 
         return $baseUrl.':'.$this->webmailPort;
-    }
-
-    private static function normalizeNullableString(mixed $value): ?string
-    {
-        if (! is_string($value)) {
-            return null;
-        }
-
-        $normalized = trim($value);
-
-        return $normalized === '' ? null : $normalized;
-    }
-
-    private static function toInt(mixed $value, int $default): int
-    {
-        if (is_numeric($value)) {
-            return (int) $value;
-        }
-
-        return $default;
-    }
-
-    private static function toString(mixed $value, string $default): string
-    {
-        if (is_string($value) && trim($value) !== '') {
-            return trim($value);
-        }
-
-        return $default;
-    }
-
-    private static function toBool(mixed $value, bool $default): bool
-    {
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        if (is_int($value)) {
-            return match ($value) {
-                1 => true,
-                0 => false,
-                default => $default,
-            };
-        }
-
-        if (is_string($value)) {
-            $normalized = strtolower(trim($value));
-
-            return match ($normalized) {
-                '1', 'true', 'yes', 'on' => true,
-                '0', 'false', 'no', 'off' => false,
-                default => $default,
-            };
-        }
-
-        return $default;
     }
 }

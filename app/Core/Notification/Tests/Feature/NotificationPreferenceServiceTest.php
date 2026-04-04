@@ -6,13 +6,14 @@ use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
 use App\Core\Notification\Settings\NotificationSettings;
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\User;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 
 it('resolves default channels when no user preference exists', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $channels = app(NotificationPreferenceService::class)->resolveChannels(
@@ -28,9 +29,9 @@ it('resolves default channels when no user preference exists', function (): void
 });
 
 it('respects user channel preference overrides', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
 
     $user = User::factory()->create(['is_admin' => false]);
 
@@ -53,9 +54,9 @@ it('respects user channel preference overrides', function (): void {
 });
 
 it('returns no channels when notifications are globally disabled', function (): void {
-    settings()->set('notifications.enabled', 'false');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
+    Settings::set('notifications.enabled', 'false');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database", "sms"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $channels = app(NotificationPreferenceService::class)->resolveChannels(
@@ -68,9 +69,9 @@ it('returns no channels when notifications are globally disabled', function (): 
 });
 
 it('resolves only admin-allowed channels for a notification type', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database", "sms"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database", "sms"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $channels = app(NotificationPreferenceService::class)->resolveChannels(
@@ -86,9 +87,9 @@ it('resolves only admin-allowed channels for a notification type', function (): 
 });
 
 it('marks admin-disabled channels as unsupported in the preference matrix', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database", "sms"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database", "sms"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $definition = collect(app(NotificationPreferenceService::class)->preferenceMatrixFor($user))
@@ -104,9 +105,9 @@ it('marks admin-disabled channels as unsupported in the preference matrix', func
 });
 
 it('resolves push channel to the custom push channel class', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["push", "database"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database", "push"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["push", "database"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database", "push"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $channels = app(NotificationPreferenceService::class)->resolveChannels(
@@ -122,9 +123,9 @@ it('resolves push channel to the custom push channel class', function (): void {
 });
 
 it('writes an audit log when user preferences are synced', function (): void {
-    settings()->set('notifications.enabled', 'true');
-    settings()->set('notifications.default_channels', '["mail", "database"]');
-    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database"]');
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database"]');
 
     $user = User::factory()->create(['is_admin' => false]);
     $this->actingAs($user);
