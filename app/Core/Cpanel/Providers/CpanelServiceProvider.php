@@ -14,7 +14,6 @@ use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
 use App\Core\Settings\Services\SettingsRegistry;
-use App\Core\Settings\Services\SettingsSqliteService;
 use App\Core\User\Models\User;
 use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -26,9 +25,7 @@ class CpanelServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(CpanelConfig::class, function ($app): CpanelConfig {
-            return new CpanelConfig($app->make(SettingsSqliteService::class));
-        });
+        $this->app->singleton(CpanelConfig::class);
 
         $this->app->singleton(CpanelService::class, function ($app): CpanelService {
             return new CpanelService($app->make(CpanelConfig::class));
