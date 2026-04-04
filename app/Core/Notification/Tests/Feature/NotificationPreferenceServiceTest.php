@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Audit\Models\AuditLog;
+use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
@@ -99,4 +101,50 @@ it('marks admin-disabled channels as unsupported in the preference matrix', func
     expect($channels['database']['supported'])->toBeTrue()
         ->and($channels['mail']['supported'])->toBeFalse()
         ->and($channels['sms']['supported'])->toBeFalse();
+});
+
+it('resolves push channel to the custom push channel class', function (): void {
+    settings()->set('notifications.enabled', 'true');
+    settings()->set('notifications.default_channels', '["push", "database"]');
+    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database", "push"]');
+
+    $user = User::factory()->create(['is_admin' => false]);
+    $channels = app(NotificationPreferenceService::class)->resolveChannels(
+        $user,
+        TimecardNotificationDefinitions::APPROVED,
+        ['database', 'push'],
+    );
+
+    expect($channels)
+        ->toContain('database')
+        ->toContain(PushChannel::class)
+        ->not->toContain('push');
+});
+
+it('writes an audit log when user preferences are synced', function (): void {
+    settings()->set('notifications.enabled', 'true');
+    settings()->set('notifications.default_channels', '["mail", "database"]');
+    settings()->set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database"]');
+
+    $user = User::factory()->create(['is_admin' => false]);
+    $this->actingAs($user);
+
+    app(NotificationPreferenceService::class)->syncPreferences($user, [
+        TimecardNotificationDefinitions::APPROVED => [
+            'mail' => false,
+            'database' => true,
+        ],
+    ]);
+
+    $auditLog = AuditLog::query()->where('action', 'notifications.preferences.updated')->first();
+
+    expect($auditLog)->not->toBeNull()
+        ->and($auditLog->target_type)->toBe($user->getMorphClass())
+        ->and($auditLog->target_id)->toBe((string) $user->getKey())
+        ->and($auditLog->after)->toBe([
+            TimecardNotificationDefinitions::APPROVED => [
+                'database' => true,
+                'mail' => false,
+            ],
+        ]);
 });

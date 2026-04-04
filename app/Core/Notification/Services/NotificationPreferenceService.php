@@ -2,6 +2,8 @@
 
 namespace App\Core\Notification\Services;
 
+use App\Core\Audit\Services\AuditLogger;
+use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Settings\NotificationSettings;
@@ -64,9 +66,12 @@ class NotificationPreferenceService
         $definitions = collect(app(NotificationRegistry::class)->definitions())
             ->keyBy('key');
         $registeredKeys = $definitions->keys()->all();
-        $allowedChannels = $this->availableChannels();
         $rows = [];
         $now = now();
+        $existingPreferences = UserNotificationPreference::query()
+            ->where('user_id', $user->id)
+            ->whereIn('notification_key', array_keys($preferences))
+            ->get();
 
         foreach ($preferences as $notificationKey => $channels) {
             if (! in_array($notificationKey, $registeredKeys, true) || ! is_array($channels)) {
@@ -102,6 +107,12 @@ class NotificationPreferenceService
             ->delete();
 
         UserNotificationPreference::query()->insert($rows);
+
+        app(AuditLogger::class)->record('notifications.preferences.updated', $user, [
+            'before' => $this->mapPreferencesForAudit($existingPreferences->all()),
+            'after' => $this->mapPreferencesForAudit($rows),
+            'notification_keys' => array_values(array_unique(array_keys($preferences))),
+        ]);
     }
 
     /**
@@ -180,6 +191,10 @@ class NotificationPreferenceService
             return 'sms';
         }
 
+        if ($channel === PushChannel::class) {
+            return 'push';
+        }
+
         return $channel;
     }
 
@@ -189,7 +204,50 @@ class NotificationPreferenceService
             return SmsChannel::class;
         }
 
+        if ($channel === 'push') {
+            return PushChannel::class;
+        }
+
         return $channel;
+    }
+
+    /**
+     * @param  iterable<int, array<string, mixed>|UserNotificationPreference>  $rows
+     * @return array<string, array<string, bool>>
+     */
+    private function mapPreferencesForAudit(iterable $rows): array
+    {
+        $mapped = [];
+
+        foreach ($rows as $row) {
+            if ($row instanceof UserNotificationPreference) {
+                $notificationKey = $row->notification_key;
+                $channel = $row->channel;
+                $enabled = (bool) $row->enabled;
+            } else {
+                $notificationKey = (string) ($row['notification_key'] ?? '');
+                $channel = (string) ($row['channel'] ?? '');
+                $enabled = (bool) ($row['enabled'] ?? false);
+            }
+
+            if ($notificationKey === '' || $channel === '') {
+                continue;
+            }
+
+            if (! array_key_exists($notificationKey, $mapped)) {
+                $mapped[$notificationKey] = [];
+            }
+
+            $mapped[$notificationKey][$channel] = $enabled;
+        }
+
+        ksort($mapped);
+        foreach ($mapped as &$channels) {
+            ksort($channels);
+        }
+        unset($channels);
+
+        return $mapped;
     }
 
     /**
