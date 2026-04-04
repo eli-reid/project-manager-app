@@ -2,10 +2,11 @@
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
-use App\Domains\Documents\Settings\DocumentsSettings;
 
 it('defines default document settings keys', function () {
-    $keys = collect(DocumentsSettings::settings())
+    $definitions = app(DomainSettingsSynchronizer::class)->loadDefinitions();
+
+    $keys = collect($definitions)
         ->pluck('key')
         ->all();
 

@@ -1,5 +1,34 @@
 <?php
 
-use App\Domains\Projects\Settings\ProjectsSettings;
-
-return ProjectsSettings::class;
+return [
+    [
+        'key' => 'projects.auto_generate_numbers',
+        'value' => env('PROJECTS_AUTO_GENERATE_NUMBERS', true) ? 'true' : 'false',
+        'display_name' => 'Auto Generate Project Numbers',
+        'description' => 'Automatically assign a project number when one is not entered manually.',
+        'type' => 'select',
+        'group' => 'projects',
+        'options' => [
+            'true' => 'Yes',
+            'false' => 'No',
+        ],
+        'order' => 1,
+        'is_visible' => true,
+        'is_public' => false,
+        'is_required' => false,
+        'encrypted' => false,
+    ],
+    [
+        'key' => 'projects.number_prefix',
+        'value' => env('PROJECTS_NUMBER_PREFIX', 'PRJ-'),
+        'display_name' => 'Project Number Prefix',
+        'description' => 'Prefix prepended to auto-generated project numbers.',
+        'type' => 'text',
+        'group' => 'projects',
+        'order' => 2,
+        'is_visible' => true,
+        'is_public' => false,
+        'is_required' => false,
+        'encrypted' => false,
+    ],
+];

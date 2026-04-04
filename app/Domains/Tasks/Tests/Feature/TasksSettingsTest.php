@@ -2,10 +2,11 @@
 
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
-use App\Domains\Tasks\Settings\TasksSettings;
 
 it('defines default task depth settings keys', function (): void {
-    $keys = collect(TasksSettings::settings())
+    $definitions = app(DomainSettingsSynchronizer::class)->loadDefinitions();
+
+    $keys = collect($definitions)
         ->pluck('key')
         ->all();
 
