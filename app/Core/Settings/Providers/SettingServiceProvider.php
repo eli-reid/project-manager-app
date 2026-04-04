@@ -49,16 +49,9 @@ class SettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->registerAuthorizationGates();
-
-        // Load views from the Settings module
-        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core');
-
-        // Load routes from the Settings module
-        $this->loadRoutesFrom(__DIR__.'/../Routes/admin.php');
-
-        // Register the settings observer for auto cache clearing
-        SettingsSqlite::observe(SettingsObserver::class);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerObservers();
 
         // Initialize settings database early (no database config needed)
         $this->initializeSettingsDatabase();
@@ -67,9 +60,20 @@ class SettingServiceProvider extends ServiceProvider
         $this->syncDomainSettings();
     }
 
-    private function registerAuthorizationGates(): void
+    private function registerAuthorization(): void
     {
         Gate::policy(SettingsSqlite::class, SettingPolicy::class);
+    }
+
+    private function registerInfrastructure(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core');
+        $this->loadRoutesFrom(__DIR__.'/../Routes/admin.php');
+    }
+
+    private function registerObservers(): void
+    {
+        SettingsSqlite::observe(SettingsObserver::class);
     }
 
     /**

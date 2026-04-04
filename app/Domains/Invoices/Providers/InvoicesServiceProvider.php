@@ -24,14 +24,32 @@ class InvoicesServiceProvider extends ServiceProvider
     public function boot(PermissionRegistry $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
+
+    private function registerAuthorization(): void
+    {
         Gate::policy(Invoice::class, InvoicePolicy::class);
+    }
+
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'invoices');
+    }
 
+    private function registerUIComponents(): void
+    {
         Livewire::component('app.domains.invoices.livewire.admin.invoices', Index::class);
         Livewire::component('app.domains.invoices.livewire.admin.invoices.form', Form::class);
         Livewire::component('app.domains.invoices.livewire.admin.invoices.show', Show::class);
+    }
 
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])

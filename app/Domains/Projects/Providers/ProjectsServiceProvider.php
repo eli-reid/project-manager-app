@@ -27,14 +27,32 @@ class ProjectsServiceProvider extends ServiceProvider
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
+
+    private function registerAuthorization(): void
+    {
         Gate::policy(Project::class, ProjectPolicy::class);
+    }
+
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'projects');
+    }
 
+    private function registerUIComponents(): void
+    {
         Livewire::component('app.domains.projects.livewire.admin.projects', Index::class);
         Livewire::component('app.domains.projects.livewire.admin.projects.form', Form::class);
         Livewire::component('app.domains.projects.livewire.admin.projects.show', Show::class);
+    }
 
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])

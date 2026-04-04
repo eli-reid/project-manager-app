@@ -17,22 +17,41 @@ use Livewire\Livewire;
 
 class DocumentsServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        //
+    }
 
     public function boot(PermissionRegistry $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
 
+    private function registerAuthorization(): void
+    {
         Gate::policy(Document::class, DocumentPolicy::class);
+    }
 
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'documents');
+    }
 
+    private function registerUIComponents(): void
+    {
         Livewire::component('app.domains.documents.livewire.admin.documents.index', AdminDocumentsIndex::class);
         Livewire::component('app.domains.documents.livewire.user.documents.index', UserDocumentsIndex::class);
         Livewire::component('app.domains.documents.livewire.user.documents.global-index', GlobalIndex::class);
         Livewire::component('app.domains.documents.livewire.admin.projects.documents-tab', DocumentsTab::class);
+    }
 
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])

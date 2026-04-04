@@ -27,19 +27,35 @@ class DailiesServiceProvider extends ServiceProvider
     public function boot(PermissionRegistry $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
 
+    private function registerAuthorization(): void
+    {
         Gate::policy(DailyReport::class, DailyReportPolicy::class);
+    }
 
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'dailies');
+    }
 
+    private function registerUIComponents(): void
+    {
         Livewire::component('app.domains.dailies.livewire.admin.dailies', AdminIndex::class);
         Livewire::component('app.domains.dailies.livewire.admin.dailies.form', AdminForm::class);
         Livewire::component('app.domains.dailies.livewire.admin.dailies.show', AdminShow::class);
         Livewire::component('app.domains.dailies.livewire.user.dailies', UserIndex::class);
         Livewire::component('app.domains.dailies.livewire.user.dailies.form', UserForm::class);
         Livewire::component('app.domains.dailies.livewire.user.dailies.show', UserShow::class);
+    }
 
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])

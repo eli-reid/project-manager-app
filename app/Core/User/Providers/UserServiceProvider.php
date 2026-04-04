@@ -6,6 +6,8 @@ use App\Core\Settings\Permissions\SettingsPermissions;
 use App\Core\User\Livewire\Admin\Roles\Form;
 use App\Core\User\Livewire\Admin\Roles\Index;
 use App\Core\User\Livewire\Admin\Roles\Users;
+use App\Core\User\Livewire\Admin\Users\Form as UserForm;
+use App\Core\User\Livewire\Admin\Users\Index as UserIndex;
 use App\Core\User\Livewire\Settings\Appearance;
 use App\Core\User\Livewire\Settings\DeleteUserForm;
 use App\Core\User\Livewire\Settings\Password;
@@ -43,24 +45,29 @@ class UserServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-user');
-        $this->registerLivewireComponents();
-        $this->registerCorePermissions();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerPermissions();
         $this->app->booted(function (): void {
             $this->syncRegisteredPermissions();
         });
-        $this->registerAuthorizationGates();
-        User::observe(UserObserver::class);
-        $this->configureRoutes();
+        $this->registerAuthorization();
+        $this->registerObservers();
+        $this->registerRoutes();
     }
 
-    private function registerLivewireComponents(): void
+    private function registerInfrastructure(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-user');
+    }
+
+    private function registerUIComponents(): void
     {
         Livewire::component('app.core.user.livewire.admin.roles', Index::class);
         Livewire::component('app.core.user.livewire.admin.roles.form', Form::class);
         Livewire::component('app.core.user.livewire.admin.roles.users', Users::class);
-        Livewire::component('app.core.user.livewire.admin.users', \App\Core\User\Livewire\Admin\Users\Index::class);
-        Livewire::component('app.core.user.livewire.admin.users.form', \App\Core\User\Livewire\Admin\Users\Form::class);
+        Livewire::component('app.core.user.livewire.admin.users', UserIndex::class);
+        Livewire::component('app.core.user.livewire.admin.users.form', UserForm::class);
         Livewire::component('settings.profile', Profile::class);
         Livewire::component('settings.password', Password::class);
         Livewire::component('settings.appearance', Appearance::class);
@@ -69,7 +76,7 @@ class UserServiceProvider extends ServiceProvider
         Livewire::component('settings.two-factor.recovery-codes', RecoveryCodes::class);
     }
 
-    private function registerCorePermissions(): void
+    private function registerPermissions(): void
     {
         /** @var PermissionRegistry $registry */
         $registry = $this->app->make(PermissionRegistry::class);
@@ -102,7 +109,7 @@ class UserServiceProvider extends ServiceProvider
         $synchronizer->syncIfChanged();
     }
 
-    private function registerAuthorizationGates(): void
+    private function registerAuthorization(): void
     {
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
@@ -112,7 +119,12 @@ class UserServiceProvider extends ServiceProvider
         });
     }
 
-    private function configureRoutes(): void
+    private function registerObservers(): void
+    {
+        User::observe(UserObserver::class);
+    }
+
+    private function registerRoutes(): void
     {
         Route::prefix('admin')
             ->name('admin.')

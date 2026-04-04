@@ -13,12 +13,15 @@ use Livewire\Livewire;
 
 class ReportsServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        //
+    }
 
     public function boot(PermissionRegistry $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
-        $this->registerAuthorizationGates();
+        $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -39,7 +42,7 @@ class ReportsServiceProvider extends ServiceProvider
         }, ReportPermissions::all()));
     }
 
-    private function registerAuthorizationGates(): void
+    private function registerAuthorization(): void
     {
         Gate::define('reports.financial.view', fn ($user): bool => app(ReportPolicy::class)->viewFinancial($user));
         Gate::define('reports.financial.export', fn ($user): bool => app(ReportPolicy::class)->exportFinancial($user));

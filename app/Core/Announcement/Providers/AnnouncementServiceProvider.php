@@ -2,6 +2,9 @@
 
 namespace App\Core\Announcement\Providers;
 
+use App\Core\Announcement\Livewire\Admin\Announcements\Form;
+use App\Core\Announcement\Livewire\Admin\Announcements\Index;
+use App\Core\Announcement\Livewire\Dashboard\Widget;
 use App\Core\Announcement\Models\Announcement;
 use App\Core\Announcement\Permissions\AnnouncementPermissions;
 use App\Core\Announcement\Policies\AnnouncementPolicy;
@@ -20,22 +23,21 @@ class AnnouncementServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->registerAuthorizationGates();
+        $this->registerAuthorization();
         $this->registerPermissions();
-        $this->configureMigrations();
-        $this->configureViews();
-        $this->registerLivewireComponents();
-        $this->configureRoutes();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
     }
 
-    private function registerLivewireComponents(): void
+    private function registerUIComponents(): void
     {
-        Livewire::component('app.core.announcement.livewire.admin.announcements', \App\Core\Announcement\Livewire\Admin\Announcements\Index::class);
-        Livewire::component('app.core.announcement.livewire.admin.announcements.form', \App\Core\Announcement\Livewire\Admin\Announcements\Form::class);
-        Livewire::component('app.core.announcement.livewire.dashboard.widget', \App\Core\Announcement\Livewire\Dashboard\Widget::class);
+        Livewire::component('app.core.announcement.livewire.admin.announcements', Index::class);
+        Livewire::component('app.core.announcement.livewire.admin.announcements.form', Form::class);
+        Livewire::component('app.core.announcement.livewire.dashboard.widget', Widget::class);
     }
 
-    private function registerAuthorizationGates(): void
+    private function registerAuthorization(): void
     {
         Gate::policy(Announcement::class, AnnouncementPolicy::class);
     }
@@ -58,17 +60,13 @@ class AnnouncementServiceProvider extends ServiceProvider
         }, AnnouncementPermissions::all()));
     }
 
-    private function configureMigrations(): void
+    private function registerInfrastructure(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
-    }
-
-    private function configureViews(): void
-    {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'announcement');
     }
 
-    private function configureRoutes(): void
+    private function registerRoutes(): void
     {
         Route::prefix('admin')
             ->name('admin.')

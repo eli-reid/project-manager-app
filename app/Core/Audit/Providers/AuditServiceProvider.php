@@ -16,8 +16,13 @@ class AuditServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+        $this->registerInfrastructure();
         $this->registerPermissions();
+    }
+
+    private function registerInfrastructure(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 
     private function registerPermissions(): void

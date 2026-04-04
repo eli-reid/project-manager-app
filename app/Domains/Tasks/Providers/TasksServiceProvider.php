@@ -5,8 +5,12 @@ namespace App\Domains\Tasks\Providers;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
+use App\Domains\Tasks\Livewire\Admin\TaskCategories\Form as TaskCategoryForm;
+use App\Domains\Tasks\Livewire\Admin\TaskCategories\Index as TaskCategoryIndex;
 use App\Domains\Tasks\Livewire\Admin\Tasks\Form;
 use App\Domains\Tasks\Livewire\Admin\Tasks\Index;
+use App\Domains\Tasks\Livewire\Admin\TaskTemplates\Form as TaskTemplateForm;
+use App\Domains\Tasks\Livewire\Admin\TaskTemplates\Index as TaskTemplateIndex;
 use App\Domains\Tasks\Livewire\User\Tasks\Index as UserTaskIndex;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
@@ -26,30 +30,49 @@ use Livewire\Livewire;
 
 class TasksServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        //
+    }
 
     public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
 
+    private function registerAuthorization(): void
+    {
         Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(TaskCategory::class, TaskCategoryPolicy::class);
         Gate::policy(TaskTemplate::class, TaskTemplatePolicy::class);
         TaskCategory::observe(TaskCategoryObserver::class);
+    }
 
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'tasks');
+    }
 
+    private function registerUIComponents(): void
+    {
         Livewire::component('app.domains.tasks.livewire.admin.tasks', Index::class);
         Livewire::component('app.domains.tasks.livewire.admin.tasks.form', Form::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-categories', \App\Domains\Tasks\Livewire\Admin\TaskCategories\Index::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-categories.form', \App\Domains\Tasks\Livewire\Admin\TaskCategories\Form::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-templates', \App\Domains\Tasks\Livewire\Admin\TaskTemplates\Index::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-templates.form', \App\Domains\Tasks\Livewire\Admin\TaskTemplates\Form::class);
+        Livewire::component('app.domains.tasks.livewire.admin.task-categories', TaskCategoryIndex::class);
+        Livewire::component('app.domains.tasks.livewire.admin.task-categories.form', TaskCategoryForm::class);
+        Livewire::component('app.domains.tasks.livewire.admin.task-templates', TaskTemplateIndex::class);
+        Livewire::component('app.domains.tasks.livewire.admin.task-templates.form', TaskTemplateForm::class);
         Livewire::component('app.domains.tasks.livewire.admin.projects.task-hierarchy-widget', TaskHierarchyWidget::class);
         Livewire::component('app.domains.tasks.livewire.user.tasks', UserTaskIndex::class);
+    }
 
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])

@@ -4,6 +4,8 @@ namespace App\Core\Scheduler\Providers;
 
 use App\Core\Scheduler\Commands\DeployUpgradeCommand;
 use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
+use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
+use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Permissions\SchedulerPermissions;
 use App\Core\Scheduler\Policies\ScheduledTaskPolicy;
@@ -48,20 +50,15 @@ class SchedulerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->registerAuthorizationGates();
+        $this->registerAuthorization();
         $this->registerPermissions();
-        $this->configureMigrations();
-        $this->configureRoutes();
-        $this->configureViews();
-        $this->configureComponents();
-        $this->registerLivewireComponents();
-        $this->commands([
-            SyncSchedulerTasksCommand::class,
-            DeployUpgradeCommand::class,
-        ]);
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+        $this->registerCommands();
     }
 
-    private function registerAuthorizationGates(): void
+    private function registerAuthorization(): void
     {
         Gate::policy(ScheduledTask::class, ScheduledTaskPolicy::class);
     }
@@ -84,31 +81,24 @@ class SchedulerServiceProvider extends ServiceProvider
         }, SchedulerPermissions::all()));
     }
 
-    private function registerLivewireComponents(): void
+    private function registerUIComponents(): void
     {
-        Livewire::component('app.core.scheduler.livewire.admin.tasks', \App\Core\Scheduler\Livewire\Admin\Tasks\Index::class);
-        Livewire::component('app.core.scheduler.livewire.admin.tasks.form', \App\Core\Scheduler\Livewire\Admin\Tasks\Form::class);
+        Livewire::component('app.core.scheduler.livewire.admin.tasks', Index::class);
+        Livewire::component('app.core.scheduler.livewire.admin.tasks.form', Form::class);
     }
 
-    private function configureMigrations(): void
+    private function registerInfrastructure(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
-    }
-
-    private function configureViews(): void
-    {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'scheduler');
-    }
 
-    private function configureComponents(): void
-    {
         Blade::componentNamespace(
             'App\\Core\\Scheduler\\View\\Components',
             'scheduler'
         );
     }
 
-    private function configureRoutes(): void
+    private function registerRoutes(): void
     {
         Route::prefix('admin')
             ->name('admin.')
@@ -124,5 +114,13 @@ class SchedulerServiceProvider extends ServiceProvider
         Route::prefix('api')
             ->middleware(['api', 'auth:sanctum'])
             ->group(__DIR__.'/../Routes/api.php');
+    }
+
+    private function registerCommands(): void
+    {
+        $this->commands([
+            SyncSchedulerTasksCommand::class,
+            DeployUpgradeCommand::class,
+        ]);
     }
 }

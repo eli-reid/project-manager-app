@@ -29,17 +29,15 @@ class QueueManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->registerAuthorizationGates();
+        $this->registerAuthorization();
         $this->registerPermissions();
-        $this->configureMigrations();
-        $this->configureRoutes();
-        $this->configureViews();
-        $this->configureComponents();
-        $this->registerLivewireComponents();
-        $this->registerQueueEventListeners();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+        $this->registerEventListeners();
     }
 
-    private function registerAuthorizationGates(): void
+    private function registerAuthorization(): void
     {
         Gate::define('queue.viewAny', fn ($user) => app(QueuePolicy::class)->viewAny($user));
         Gate::define('queue.manage', fn ($user) => app(QueuePolicy::class)->manage($user));
@@ -63,37 +61,30 @@ class QueueManagerServiceProvider extends ServiceProvider
         }, QueuePermissions::all()));
     }
 
-    private function registerQueueEventListeners(): void
+    private function registerEventListeners(): void
     {
         Event::listen(JobProcessing::class, [RecordQueueJobHistory::class, 'onProcessing']);
         Event::listen(JobProcessed::class, [RecordQueueJobHistory::class, 'onProcessed']);
         Event::listen(JobFailed::class, [RecordQueueJobHistory::class, 'onFailed']);
     }
 
-    private function registerLivewireComponents(): void
+    private function registerUIComponents(): void
     {
         Livewire::component('app.core.queue.livewire.admin.queue.dashboard', Dashboard::class);
     }
 
-    private function configureMigrations(): void
+    private function registerInfrastructure(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
-    }
-
-    private function configureViews(): void
-    {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'queue-manager');
-    }
 
-    private function configureComponents(): void
-    {
         Blade::componentNamespace(
             'App\\Core\\Queue\\View\\Components',
             'queue-manager'
         );
     }
 
-    private function configureRoutes(): void
+    private function registerRoutes(): void
     {
         Route::prefix('admin')
             ->name('admin.')

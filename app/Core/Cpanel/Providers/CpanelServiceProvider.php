@@ -40,11 +40,30 @@ class CpanelServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPermissions();
-        $this->registerAuthorizationGates();
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+        $this->registerCommands();
+    }
+
+    private function registerUIComponents(): void
+    {
+        Livewire::component('app.core.cpanel.livewire.admin.email-management.dashboard', EmailManagementDashboard::class);
+        Livewire::component('app.core.cpanel.livewire.admin.email-management.domain-forwarders', EmailManagementDomainForwarders::class);
+        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.index', EmailAccountsIndex::class);
+        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.create', EmailAccountsCreate::class);
+        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.show', EmailAccountsShow::class);
+    }
+
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'cpanel');
-        $this->registerLivewireComponents();
+    }
 
+    private function registerRoutes(): void
+    {
         Route::middleware(['web', 'auth'])
             ->group(__DIR__.'/../Routes/web.php');
 
@@ -52,20 +71,14 @@ class CpanelServiceProvider extends ServiceProvider
             ->name('admin.')
             ->middleware(['web', 'auth', 'can:manage-email-accounts'])
             ->group(__DIR__.'/../Routes/admin.php');
+    }
 
+    private function registerCommands(): void
+    {
         $this->commands([
             EnsureLaravelCronJobs::class,
             SyncEmailAccounts::class,
         ]);
-    }
-
-    private function registerLivewireComponents(): void
-    {
-        Livewire::component('app.core.cpanel.livewire.admin.email-management.dashboard', EmailManagementDashboard::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-management.domain-forwarders', EmailManagementDomainForwarders::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.index', EmailAccountsIndex::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.create', EmailAccountsCreate::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.show', EmailAccountsShow::class);
     }
 
     private function registerPermissions(): void
@@ -86,7 +99,7 @@ class CpanelServiceProvider extends ServiceProvider
         }, CpanelPermissions::all()));
     }
 
-    private function registerAuthorizationGates(): void
+    private function registerAuthorization(): void
     {
         Gate::define('manage-email-accounts', function (User $user): bool {
             return $user->isAdmin() || $user->hasPermission('cpanel.manage-email-accounts');

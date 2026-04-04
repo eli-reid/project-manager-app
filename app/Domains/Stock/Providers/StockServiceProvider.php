@@ -25,18 +25,34 @@ use Livewire\Livewire;
 
 class StockServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        //
+    }
 
     public function boot(PermissionRegistry $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
 
+    private function registerAuthorization(): void
+    {
         Gate::policy(StockOrder::class, StockOrderPolicy::class);
         Gate::policy(StockOrderTemplate::class, StockOrderTemplatePolicy::class);
+    }
 
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'stock');
+    }
 
+    private function registerUIComponents(): void
+    {
         Livewire::component('app.domains.stock.livewire.user.stock-orders.index', Index::class);
         Livewire::component('app.domains.stock.livewire.user.stock-orders.form', Form::class);
         Livewire::component('app.domains.stock.livewire.user.stock-orders.show', Show::class);
@@ -47,7 +63,10 @@ class StockServiceProvider extends ServiceProvider
         Livewire::component('app.domains.stock.livewire.admin.stock-orders.show', AdminStockOrdersShow::class);
         Livewire::component('app.domains.stock.livewire.admin.templates.index', AdminTemplatesIndex::class);
         Livewire::component('app.domains.stock.livewire.admin.templates.form', AdminTemplatesForm::class);
+    }
 
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])

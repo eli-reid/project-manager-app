@@ -14,6 +14,11 @@ class NotificationServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerInfrastructure();
+    }
+
+    private function registerInfrastructure(): void
+    {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-notification');
     }
 }

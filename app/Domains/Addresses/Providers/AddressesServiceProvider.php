@@ -3,6 +3,9 @@
 namespace App\Domains\Addresses\Providers;
 
 use App\Core\User\Services\PermissionRegistry;
+use App\Domains\Addresses\Livewire\Admin\Addresses\Form;
+use App\Domains\Addresses\Livewire\Admin\Addresses\Index;
+use App\Domains\Addresses\Livewire\Admin\Addresses\InlineCreateWidget;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Addresses\Permissions\AddressPermissions;
 use App\Domains\Addresses\Policies\AddressPolicy;
@@ -21,15 +24,32 @@ class AddressesServiceProvider extends ServiceProvider
     public function boot(PermissionRegistry $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerAuthorization();
+        $this->registerInfrastructure();
+        $this->registerUIComponents();
+        $this->registerRoutes();
+    }
 
+    private function registerAuthorization(): void
+    {
         Gate::policy(Address::class, AddressPolicy::class);
+    }
+
+    private function registerInfrastructure(): void
+    {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'addresses');
+    }
 
-        Livewire::component('app.domains.addresses.livewire.admin.addresses', \App\Domains\Addresses\Livewire\Admin\Addresses\Index::class);
-        Livewire::component('app.domains.addresses.livewire.admin.addresses.form', \App\Domains\Addresses\Livewire\Admin\Addresses\Form::class);
-        Livewire::component('app.domains.addresses.livewire.admin.addresses.inline-create-widget', \App\Domains\Addresses\Livewire\Admin\Addresses\InlineCreateWidget::class);
+    private function registerUIComponents(): void
+    {
+        Livewire::component('app.domains.addresses.livewire.admin.addresses', Index::class);
+        Livewire::component('app.domains.addresses.livewire.admin.addresses.form', Form::class);
+        Livewire::component('app.domains.addresses.livewire.admin.addresses.inline-create-widget', InlineCreateWidget::class);
+    }
 
+    private function registerRoutes(): void
+    {
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])
