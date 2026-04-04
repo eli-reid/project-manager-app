@@ -55,6 +55,31 @@
         {{ __('Order Templates') }}
     </flux:sidebar.item>
 @endcan
+
+@can('viewAny', \App\Domains\Tasks\Models\Task::class)
+    <flux:sidebar.item
+        icon="check-circle"
+        :href="route('tasks.index')"
+        :current="request()->routeIs('tasks.*')"
+        wire:navigate
+        data-test="tasks-sidebar-main-link"
+    >
+        {{ __('Tasks') }}
+    </flux:sidebar.item>
+@endcan
+
+@can('reports.financial.view')
+    <flux:sidebar.item
+        icon="document-text"
+        :href="route('reports.financial.index')"
+        :current="request()->routeIs('reports.financial.*')"
+        wire:navigate
+        data-test="reports-sidebar-main-link"
+    >
+        {{ __('Reports') }}
+    </flux:sidebar.item>
+@endcan
+
 @can('viewAny', \App\Domains\Documents\Models\Document::class)
     <flux:sidebar.item
         icon="folder"

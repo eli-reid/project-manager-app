@@ -135,6 +135,12 @@
                                     {{ __('Invoices') }}
                                 </flux:menu.item>
                             @endcan
+
+                            @can('reports.financial.view')
+                                <flux:menu.item :href="route('reports.financial.index')" icon="document-text" wire:navigate data-test="reports-link-mobile">
+                                    {{ __('Reports') }}
+                                </flux:menu.item>
+                            @endcan
                         </flux:menu.radio.group>
 
                         <flux:menu.separator />

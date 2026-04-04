@@ -7,6 +7,7 @@ use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Livewire\Admin\Tasks\Form;
 use App\Domains\Tasks\Livewire\Admin\Tasks\Index;
+use App\Domains\Tasks\Livewire\User\Tasks\Index as UserTaskIndex;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
@@ -47,11 +48,23 @@ class TasksServiceProvider extends ServiceProvider
         Livewire::component('app.domains.tasks.livewire.admin.task-templates', \App\Domains\Tasks\Livewire\Admin\TaskTemplates\Index::class);
         Livewire::component('app.domains.tasks.livewire.admin.task-templates.form', \App\Domains\Tasks\Livewire\Admin\TaskTemplates\Form::class);
         Livewire::component('app.domains.tasks.livewire.admin.projects.task-hierarchy-widget', TaskHierarchyWidget::class);
+        Livewire::component('app.domains.tasks.livewire.user.tasks', UserTaskIndex::class);
 
         Route::prefix('admin')
             ->name('admin.')
             ->middleware(['web', 'auth'])
             ->group(__DIR__.'/../Routes/admin.php');
+
+        Route::middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/mobile.php');
+
+        Route::middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/web.php');
+
+        Route::prefix('api')
+            ->name('api.')
+            ->middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/api.php');
     }
 
     private function registerPermissions(PermissionRegistry $permissionRegistry): void

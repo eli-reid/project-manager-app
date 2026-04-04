@@ -4,6 +4,13 @@ use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Services\DomainPermissionSynchronizer;
+use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Invoices\Models\Invoice;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Reports\Livewire\User\FinancialReports\Index;
+use App\Domains\Stock\Models\StockOrder;
+use App\Domains\Timecards\Models\TimecardEntry;
+use Livewire\Livewire;
 
 it('registers the financial reports route', function (): void {
     expect(route('reports.financial.index', absolute: false))->toBe('/reports/financial');
@@ -32,6 +39,78 @@ it('forbids users without financial reports view permission', function (): void 
 
     $this->actingAs($user)
         ->get(route('reports.financial.index'))
+        ->assertForbidden();
+});
+
+it('renders project report metrics for the selected project', function (): void {
+    $user = reportsUserWithPermissions(['financial-reports.view']);
+    $project = Project::factory()->create();
+
+    TimecardEntry::factory()->create([
+        'project_id' => $project->id,
+        'hours' => 8.5,
+    ]);
+
+    DailyReport::factory()->create([
+        'project_id' => $project->id,
+        'report_date' => now()->toDateString(),
+    ]);
+
+    StockOrder::factory()->forProject($project)->create();
+
+    Invoice::factory()->create([
+        'project_id' => $project->id,
+        'invoice_date' => now()->toDateString(),
+        'subtotal' => 200,
+        'tax_amount' => 20,
+        'total_amount' => 220,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Index::class)
+        ->set('projectId', $project->id)
+        ->assertSee('Project Report')
+        ->assertSee('8.50')
+        ->assertSee('220.00');
+});
+
+it('exports selected project report as csv when user has export permission', function (): void {
+    $user = reportsUserWithPermissions(['financial-reports.view', 'financial-reports.export']);
+    $project = Project::factory()->create([
+        'project_number' => 'PRJ-1001',
+    ]);
+
+    TimecardEntry::factory()->create([
+        'project_id' => $project->id,
+        'hours' => 10.25,
+    ]);
+
+    Invoice::factory()->create([
+        'project_id' => $project->id,
+        'invoice_date' => now()->toDateString(),
+        'subtotal' => 500,
+        'tax_amount' => 50,
+        'total_amount' => 550,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Index::class)
+        ->set('projectId', $project->id)
+        ->call('exportProjectReport')
+        ->assertFileDownloaded('project-report-prj-1001.csv');
+});
+
+it('forbids project report export without export permission', function (): void {
+    $user = reportsUserWithPermissions(['financial-reports.view']);
+    $project = Project::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(Index::class)
+        ->set('projectId', $project->id)
+        ->call('exportProjectReport')
         ->assertForbidden();
 });
 
