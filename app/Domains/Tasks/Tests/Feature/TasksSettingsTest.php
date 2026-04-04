@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\Settings\Models\SettingsSqlite;
+use App\Core\Settings\Facades\Settings;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 
 it('defines default task depth settings keys', function (): void {
@@ -23,29 +23,17 @@ it('loads task settings definitions from the settings registry', function (): vo
 });
 
 it('syncs task settings without overwriting existing values by default', function (): void {
-    SettingsSqlite::query()->updateOrCreate(
-        ['key' => 'tasks.max_task_depth'],
-        [
-            'value' => '6',
-            'default_value' => '6',
-            'display_name' => 'Maximum Task Depth',
-            'description' => 'Maximum allowed nesting depth for parent-child task chains.',
-            'type' => 'number',
-            'group' => 'tasks',
-            'options' => null,
-            'order' => 2,
-            'is_public' => false,
-            'is_visible' => true,
-            'is_required' => false,
-            'encrypted' => false,
-        ]
-    );
+    Settings::set('tasks.max_task_depth', '6');
 
-    app(DomainSettingsSynchronizer::class)->sync();
+    $synchronizer = app(DomainSettingsSynchronizer::class);
+    $synchronizer->sync();
 
-    $setting = SettingsSqlite::query()->where('key', 'tasks.max_task_depth')->first();
+    $definitions = collect($synchronizer->loadDefinitions());
+    $taskDepthDefinition = $definitions->firstWhere('key', 'tasks.max_task_depth');
 
-    expect($setting)->not->toBeNull();
-    expect($setting?->value)->toBe('6');
-    expect($setting?->default_value)->toBe('2');
+    $value = Settings::get('tasks.max_task_depth', '2')->toString('2');
+
+    expect($taskDepthDefinition)->not->toBeNull();
+    expect((string) ($taskDepthDefinition['default_value'] ?? ''))->toBe('2');
+    expect($value)->toBe('6');
 });
