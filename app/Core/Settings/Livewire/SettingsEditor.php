@@ -4,7 +4,7 @@ namespace App\Core\Settings\Livewire;
 
 use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Models\SettingsSqlite;
-use App\Core\Settings\Services\SettingsCacheService;
+use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -128,15 +128,11 @@ class SettingsEditor extends Component
             $setting = SettingsSqlite::where('key', $settingKey)->firstOrFail();
             $value = $this->formData[$key] ?? $this->formData[$settingKey] ?? '';
 
-            // Validate input
+            // Validate input (Livewire-friendly ValidationException for field-level UX)
             $this->validateSetting($key, $value, $setting);
 
-            // Update in database
-            $setting->update(['value' => $value]);
-
-            // Clear caches
-            $this->cacheService()->forget($settingKey);
-            $this->cacheService()->flushNamespace($setting->group);
+            // Persist through service — handles encryption, cache invalidation, and type enforcement
+            app(SettingsSqliteService::class)->set($settingKey, $value);
 
             // Show success
             $this->successMessage = "Setting '{$setting->display_name}' updated successfully!";
@@ -173,22 +169,15 @@ class SettingsEditor extends Component
                         continue;
                     }
 
-                    // Validate
+                    // Validate (Livewire-friendly field-level UX) then persist through service
                     $this->validateSetting($settingKey, $value, $setting);
 
-                    // Update
-                    $setting->update(['value' => $value]);
-                    $this->cacheService()->forget($settingKey);
+                    app(SettingsSqliteService::class)->set($settingKey, $value);
                     $updatedCount++;
 
                 } catch (ValidationException $e) {
                     $errors[] = "{$setting->display_name}: ".$e->validator->errors()->first();
                 }
-            }
-
-            // Clear group cache
-            if ($this->group) {
-                $this->cacheService()->flushNamespace($this->group);
             }
 
             if ($errors) {
@@ -256,11 +245,6 @@ class SettingsEditor extends Component
                 ['value' => $setting->display_name]
             )->validate();
         }
-    }
-
-    private function cacheService(): SettingsCacheService
-    {
-        return app(SettingsCacheService::class);
     }
 
     private function shouldHideSetting(string $key, string $group): bool

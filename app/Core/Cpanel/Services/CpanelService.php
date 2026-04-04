@@ -770,6 +770,20 @@ class CpanelService
     {
         $this->ensureConfigured();
 
+        $url = $this->config->buildApiUrl($module, $function);
+        $normalizedMethod = strtolower($method) === 'post' ? 'post' : 'get';
+
+        Log::debug('cPanel API request starting.', [
+            'module' => $module,
+            'function' => $function,
+            'method' => strtoupper($normalizedMethod),
+            'url' => $url,
+            'request' => $this->sanitizeContext($params),
+            'timeout' => $this->config->timeout,
+            'connect_timeout' => $this->config->connectTimeout,
+            'verify_ssl' => $this->config->verifySsl,
+        ]);
+
         try {
             $pending = Http::timeout($this->config->timeout)
                 ->withOptions([
@@ -781,9 +795,7 @@ class CpanelService
                     'Accept' => 'application/json',
                 ]);
 
-            $url = $this->config->buildApiUrl($module, $function);
-
-            $response = $method === 'post'
+            $response = $normalizedMethod === 'post'
                 ? $pending->asForm()->post($url, $params)
                 : $pending->get($url, $params);
 
@@ -792,6 +804,16 @@ class CpanelService
                 $payload = [];
             }
 
+            Log::debug('cPanel API response received.', [
+                'module' => $module,
+                'function' => $function,
+                'method' => strtoupper($normalizedMethod),
+                'url' => $url,
+                'http_status' => $response->status(),
+                'cpanel_status' => (int) ($payload['status'] ?? 0),
+                'data_count' => is_array($payload['data'] ?? null) ? count($payload['data']) : null,
+            ]);
+
             if (! $response->successful()) {
                 throw new CpanelRequestException(
                     message: 'cPanel request failed with HTTP status '.$response->status().'.',
@@ -799,6 +821,8 @@ class CpanelService
                         'http_status' => $response->status(),
                         'module' => $module,
                         'function' => $function,
+                        'method' => strtoupper($normalizedMethod),
+                        'url' => $url,
                         'payload' => $this->sanitizeContext($payload),
                         'request' => $this->sanitizeContext($params),
                     ]
@@ -817,6 +841,8 @@ class CpanelService
                     context: [
                         'module' => $module,
                         'function' => $function,
+                        'method' => strtoupper($normalizedMethod),
+                        'url' => $url,
                         'payload' => $this->sanitizeContext($payload),
                         'request' => $this->sanitizeContext($params),
                     ]
@@ -830,6 +856,9 @@ class CpanelService
                 context: [
                     'module' => $module,
                     'function' => $function,
+                    'method' => strtoupper($normalizedMethod),
+                    'url' => $url,
+                    'request' => $this->sanitizeContext($params),
                     'error' => $this->sanitizeString($exception->getMessage()),
                 ],
                 previous: $exception
@@ -1025,10 +1054,42 @@ class CpanelService
      */
     protected function configurationErrorResponse(): array
     {
+        Log::warning('cPanel API skipped because configuration is incomplete.', [
+            'missing_fields' => $this->missingConfigurationFields(),
+            'url' => $this->config->url,
+            'domain' => $this->config->domain,
+        ]);
+
         return [
             'success' => false,
             'message' => 'cPanel configuration is incomplete.',
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function missingConfigurationFields(): array
+    {
+        $missing = [];
+
+        if ($this->config->url === null) {
+            $missing[] = 'url';
+        }
+
+        if ($this->config->username === null) {
+            $missing[] = 'username';
+        }
+
+        if ($this->config->apiToken === null) {
+            $missing[] = 'api_token';
+        }
+
+        if ($this->config->domain === null) {
+            $missing[] = 'domain';
+        }
+
+        return $missing;
     }
 
     /**

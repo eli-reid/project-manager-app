@@ -103,3 +103,60 @@ it('populates default metadata when creating a new setting through service set',
     expect($setting->is_public)->toBeFalse();
     expect($setting->is_required)->toBeFalse();
 });
+
+it('supports fluent typed reads for integer values', function () {
+    $service = app(SettingsSqliteService::class);
+    $service->clearAllCache();
+
+    $key = 'typed.int.'.Str::lower(Str::random(8));
+    expect($service->set($key, '2083'))->toBeTrue();
+
+    expect($service->get($key)->toInt())->toBe(2083);
+    expect($service->get('missing.key', '42')->toInt())->toBe(42);
+});
+
+it('supports fluent typed reads for boolean values', function () {
+    $service = app(SettingsSqliteService::class);
+    $service->clearAllCache();
+
+    $key = 'typed.bool.'.Str::lower(Str::random(8));
+    expect($service->set($key, 'false'))->toBeTrue();
+
+    expect($service->get($key)->toBool(true))->toBeFalse();
+    expect($service->get('missing.key', 'no')->toBool(true))->toBeFalse();
+});
+
+it('rejects invalid values for settings with registered type metadata', function () {
+    $service = app(SettingsSqliteService::class);
+    $service->clearAllCache();
+
+    $key = 'validation.email.'.Str::lower(Str::random(8));
+
+    DB::connection('settings_sqlite')->table('settings')->insert([
+        'key' => $key,
+        'value' => 'valid@example.com',
+        'display_name' => 'Support Email',
+        'description' => 'Test',
+        'type' => 'email',
+        'group' => 'app',
+        'order' => 1,
+        'is_public' => 0,
+        'is_visible' => 1,
+        'is_required' => 0,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect(fn () => $service->set($key, 'not-an-email'))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+it('allows writing new settings keys that have no registered metadata', function () {
+    $service = app(SettingsSqliteService::class);
+    $service->clearAllCache();
+
+    $key = 'brand.new.key.'.Str::lower(Str::random(8));
+
+    expect($service->set($key, 'some-value'))->toBeTrue();
+    expect($service->get($key)->raw())->toBe('some-value');
+});

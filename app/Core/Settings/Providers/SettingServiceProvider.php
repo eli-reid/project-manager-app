@@ -8,6 +8,7 @@ use App\Core\Settings\Policies\SettingPolicy;
 use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
+use App\Core\Settings\Services\SettingsRegistry;
 use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -39,8 +40,12 @@ class SettingServiceProvider extends ServiceProvider
         });
 
         // Register domain settings synchronizer
-        $this->app->singleton(DomainSettingsSynchronizer::class, function () {
-            return new DomainSettingsSynchronizer;
+        $this->app->singleton(SettingsRegistry::class, function (): SettingsRegistry {
+            return new SettingsRegistry;
+        });
+
+        $this->app->singleton(DomainSettingsSynchronizer::class, function ($app): DomainSettingsSynchronizer {
+            return new DomainSettingsSynchronizer($app->make(SettingsRegistry::class));
         });
     }
 
@@ -52,12 +57,15 @@ class SettingServiceProvider extends ServiceProvider
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerObservers();
+        $this->registerSettings();
 
         // Initialize settings database early (no database config needed)
         $this->initializeSettingsDatabase();
 
-        // Sync domain-defined settings defaults when domain config files change.
-        $this->syncDomainSettings();
+        // Sync settings after all providers have had a chance to register their definitions.
+        $this->app->booted(function (): void {
+            $this->syncDomainSettings();
+        });
     }
 
     private function registerAuthorization(): void
@@ -74,6 +82,13 @@ class SettingServiceProvider extends ServiceProvider
     private function registerObservers(): void
     {
         SettingsSqlite::observe(SettingsObserver::class);
+    }
+
+    private function registerSettings(): void
+    {
+        /** @var SettingsRegistry $registry */
+        $registry = $this->app->make(SettingsRegistry::class);
+        $registry->registerConfigFile('app', config_path('settings.php'));
     }
 
     /**

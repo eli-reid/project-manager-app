@@ -6,6 +6,7 @@ use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Traits\EncryptableSettings;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -53,7 +54,7 @@ class SettingsSqliteService
     {
         // Check if we should use .env file in development mode
         if ($this->shouldUseEnvInDev()) {
-            return $this->getFromEnv($key, $default);
+            return new SettingValue($this->getFromEnv($key, $default));
         }
 
         try {
@@ -61,13 +62,13 @@ class SettingsSqliteService
             return $this->cache->remember("setting.{$key}", function () use ($key, $default) {
                 $setting = $this->repository->find($key);
 
-                return $setting?->value ?? $default;
+                return new SettingValue($setting?->value ?? $default);
             });
         } catch (\Exception $e) {
             $this->safeLog('debug', "SQLite settings error for '{$key}': ".$e->getMessage());
 
             // Final fallback to .env
-            return $this->getFromEnv($key, $default);
+            return new SettingValue($this->getFromEnv($key, $default));
         }
     }
 
@@ -116,7 +117,7 @@ class SettingsSqliteService
     protected function isCacheAvailable(): bool
     {
         try {
-            return app()->bound('cache') && \Illuminate\Support\Facades\Cache::getStore() !== null;
+            return app()->bound('cache') && Cache::getStore() !== null;
         } catch (\Exception $e) {
             return false;
         }
@@ -164,6 +165,8 @@ class SettingsSqliteService
 
     /**
      * Set a setting value
+     *
+     * @throws \InvalidArgumentException when the setting exists and the value fails type/required validation.
      */
     public function set(string $key, mixed $value, ?string $description = null): bool
     {
@@ -172,6 +175,18 @@ class SettingsSqliteService
             $envMappings = config('settings-db.env_mappings', []);
             if (isset($envMappings[$key]) || env($this->normalizeEnvKey($key)) !== null) {
                 $this->safeLog('warning', "Attempting to set '{$key}' in dev mode, but .env file will override this value. Set SETTINGS_USE_ENV_IN_DEV=false to use database settings.");
+            }
+        }
+
+        // Enforce type and required constraints when the setting already has registered metadata.
+        // New/unknown keys bypass validation — they are being created and have no constraints yet.
+        $existingSetting = SettingsSqlite::where('key', $key)->first();
+        if ($existingSetting !== null) {
+            $validation = $this->validate($key, $value);
+            if (! $validation['valid']) {
+                throw new \InvalidArgumentException(
+                    "Invalid value for setting '{$key}': ".implode(', ', $validation['errors'])
+                );
             }
         }
 

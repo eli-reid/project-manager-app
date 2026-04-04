@@ -3,6 +3,7 @@
 namespace App\Domains\Projects\Providers;
 
 use App\Core\Notification\Services\NotificationRegistry;
+use App\Core\Settings\Services\SettingsRegistry;
 use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Livewire\Admin\Projects\Index;
@@ -23,8 +24,9 @@ class ProjectsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry): void
+    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistry $settingsRegistry): void
     {
+        $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerAuthorization();
@@ -77,5 +79,10 @@ class ProjectsServiceProvider extends ServiceProvider
     private function registerNotifications(NotificationRegistry $notificationRegistry): void
     {
         $notificationRegistry->registerDefinitions(ProjectNotificationDefinitions::definitions());
+    }
+
+    private function registerSettings(SettingsRegistry $settingsRegistry): void
+    {
+        $settingsRegistry->registerConfigFile('projects', __DIR__.'/../config/settings.php');
     }
 }

@@ -2,12 +2,20 @@
 
 use App\Core\Cpanel\Data\CpanelConfig;
 use App\Core\Cpanel\Services\CpanelService;
+use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+beforeEach(function (): void {
+    settings()->set('cpanel.url', null);
+    settings()->set('cpanel.username', null);
+    settings()->set('cpanel.api_token', null);
+    settings()->set('cpanel.domain', null);
+});
+
 it('returns a configuration error when cpanel credentials are missing', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([]));
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     $result = $service->listEmailAccounts();
 
@@ -16,14 +24,14 @@ it('returns a configuration error when cpanel credentials are missing', function
 });
 
 it('lists and normalizes mailbox accounts from cpanel', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-        'port' => 2083,
-        'verify_ssl' => true,
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+    settings()->set('cpanel.port', 2083);
+    settings()->set('cpanel.verify_ssl', true);
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([
@@ -58,13 +66,13 @@ it('lists and normalizes mailbox accounts from cpanel', function () {
 });
 
 it('creates a mailbox account with default quota', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-        'default_email_quota' => 250,
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+    settings()->set('cpanel.default_email_quota', 250);
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([
@@ -92,12 +100,12 @@ it('creates a mailbox account with default quota', function () {
 });
 
 it('deletes mailbox account by local-part when full email is provided', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([
@@ -122,13 +130,13 @@ it('deletes mailbox account by local-part when full email is provided', function
 });
 
 it('falls back to webmail redirect url when session api does not return url', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-        'webmail_port' => 2096,
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+    settings()->set('cpanel.webmail_port', 2096);
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([
@@ -145,12 +153,12 @@ it('falls back to webmail redirect url when session api does not return url', fu
 });
 
 it('rejects invalid mailbox local part for write operations', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake();
@@ -163,12 +171,12 @@ it('rejects invalid mailbox local part for write operations', function () {
 });
 
 it('masks sensitive data in cpanel request error response context and logs', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Log::spy();
 
@@ -208,12 +216,12 @@ it('masks sensitive data in cpanel request error response context and logs', fun
 });
 
 it('lists cron jobs from cpanel', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([
@@ -242,12 +250,12 @@ it('lists cron jobs from cpanel', function () {
 });
 
 it('ensures cron job by adding missing entry', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([
@@ -273,12 +281,12 @@ it('ensures cron job by adding missing entry', function () {
 });
 
 it('ensures cron job without adding when already present', function () {
-    $service = new CpanelService(CpanelConfig::fromServicesConfig([
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'secret-token',
-        'domain' => 'example.test',
-    ]));
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'secret-token');
+    settings()->set('cpanel.domain', 'example.test');
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([

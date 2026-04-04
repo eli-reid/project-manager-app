@@ -6,6 +6,7 @@ use App\Core\Cpanel\Jobs\SyncEmailAccountsJob;
 use App\Core\Cpanel\Models\CachedEmailAccount;
 use App\Core\Cpanel\Services\CpanelService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -52,6 +53,15 @@ class Index extends Component
     public function triggerSync(): void
     {
         $this->authorize('manage-email-accounts');
+
+        if (app()->environment('local')) {
+            Log::info('Email account index requested immediate local cPanel sync.');
+            SyncEmailAccountsJob::dispatchSync();
+
+            session()->flash('success', 'Email account sync completed.');
+
+            return;
+        }
 
         SyncEmailAccountsJob::dispatch();
 

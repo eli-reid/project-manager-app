@@ -3,6 +3,7 @@
 namespace App\Domains\Tasks\Providers;
 
 use App\Core\Notification\Services\NotificationRegistry;
+use App\Core\Settings\Services\SettingsRegistry;
 use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Form as TaskCategoryForm;
@@ -35,8 +36,9 @@ class TasksServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry): void
+    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistry $settingsRegistry): void
     {
+        $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerAuthorization();
@@ -114,5 +116,10 @@ class TasksServiceProvider extends ServiceProvider
     private function registerNotifications(NotificationRegistry $notificationRegistry): void
     {
         $notificationRegistry->registerDefinitions(TaskNotificationDefinitions::definitions());
+    }
+
+    private function registerSettings(SettingsRegistry $settingsRegistry): void
+    {
+        $settingsRegistry->registerConfigFile('tasks', __DIR__.'/../config/settings.php');
     }
 }

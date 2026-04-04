@@ -13,6 +13,8 @@ use App\Core\Cpanel\Livewire\Admin\EmailManagement\DomainForwarders as EmailMana
 use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
+use App\Core\Settings\Services\SettingsRegistry;
+use App\Core\Settings\Services\SettingsSqliteService;
 use App\Core\User\Models\User;
 use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -24,8 +26,8 @@ class CpanelServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(CpanelConfig::class, function (): CpanelConfig {
-            return CpanelConfig::fromServicesConfig(config('services.cpanel'));
+        $this->app->singleton(CpanelConfig::class, function ($app): CpanelConfig {
+            return new CpanelConfig($app->make(SettingsSqliteService::class));
         });
 
         $this->app->singleton(CpanelService::class, function ($app): CpanelService {
@@ -37,8 +39,9 @@ class CpanelServiceProvider extends ServiceProvider
         });
     }
 
-    public function boot(): void
+    public function boot(SettingsRegistry $settingsRegistry): void
     {
+        $this->registerSettings($settingsRegistry);
         $this->registerPermissions();
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -79,6 +82,11 @@ class CpanelServiceProvider extends ServiceProvider
             EnsureLaravelCronJobs::class,
             SyncEmailAccounts::class,
         ]);
+    }
+
+    private function registerSettings(SettingsRegistry $settingsRegistry): void
+    {
+        $settingsRegistry->registerConfigFile('cpanel', __DIR__.'/../config/settings.php');
     }
 
     private function registerPermissions(): void

@@ -10,9 +10,7 @@ use Illuminate\Database\Seeder;
 /**
  * Settings domain owns persistence/UI only.
  *
- * Defaults are sourced from:
- * - app/Core/{Module}/config/settings.php
- * - app/Domains/{Domain}/config/settings.php
+ * Defaults are sourced from settings definitions explicitly registered by providers.
  */
 class SettingsSeeder extends Seeder
 {

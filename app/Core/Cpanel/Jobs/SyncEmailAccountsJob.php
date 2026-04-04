@@ -28,6 +28,8 @@ class SyncEmailAccountsJob implements ShouldQueue
 
     public function handle(CpanelService $cpanelService): void
     {
+        Log::info('Starting cPanel email account sync job.');
+
         if (! $cpanelService->isConfigured()) {
             Log::warning('Skipping email account sync because cPanel is not configured.');
 
@@ -45,6 +47,8 @@ class SyncEmailAccountsJob implements ShouldQueue
         }
 
         $syncedAt = now();
+
+        $processedCount = 0;
 
         foreach (($result['emails'] ?? []) as $emailAccount) {
             $email = strtolower(trim((string) ($emailAccount['email'] ?? '')));
@@ -85,6 +89,13 @@ class SyncEmailAccountsJob implements ShouldQueue
                     'sync_error' => null,
                 ]
             );
+
+            $processedCount++;
         }
+
+        Log::info('Completed cPanel email account sync job.', [
+            'remote_count' => (int) ($result['count'] ?? 0),
+            'processed_count' => $processedCount,
+        ]);
     }
 }

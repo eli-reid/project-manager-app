@@ -2,7 +2,6 @@
 
 namespace App\Core\Settings\Services;
 
-use App\Core\Settings\Contracts\DomainSettingsProvider;
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +13,10 @@ class DomainSettingsSynchronizer
     private const CACHE_KEY_HASH = 'settings.domain-definitions.hash';
 
     private const CACHE_KEY_NEXT_CHECK_AT = 'settings.domain-definitions.next-check-at';
+
+    public function __construct(
+        private readonly SettingsRegistry $settingsRegistry
+    ) {}
 
     /**
      * Sync settings when core/domain config definitions change.
@@ -137,12 +140,16 @@ class DomainSettingsSynchronizer
     {
         $definitions = [];
 
-        foreach ($this->settingsConfigFiles() as $configFile) {
-            $domain = $this->domainNameFromPath($configFile);
-            $payload = require $configFile;
-            $domainDefinitions = $this->resolvePayload($payload, $domain);
+        foreach ($this->settingsRegistry->definitionsByDomain() as $domain => $domainDefinitions) {
+            if (! is_string($domain)) {
+                continue;
+            }
 
             foreach ($domainDefinitions as $definition) {
+                if (! is_array($definition)) {
+                    continue;
+                }
+
                 $normalized = $this->normalizeDefinition($definition, $domain);
 
                 if ($normalized !== null) {
@@ -154,51 +161,9 @@ class DomainSettingsSynchronizer
         return $definitions;
     }
 
-    /**
-     * @return array<int, string>
-     */
-    protected function settingsConfigFiles(): array
-    {
-        $files = [
-            ...(file_exists(app_path('config/settings.php')) ? [app_path('config/settings.php')] : []),
-            ...(glob(app_path('Core/*/config/settings.php')) ?: []),
-            ...(glob(app_path('Domains/*/config/settings.php')) ?: []),
-        ];
-
-        sort($files);
-
-        return $files;
-    }
-
     protected function definitionsHash(): string
     {
         return hash('sha256', json_encode($this->loadDefinitions(), JSON_THROW_ON_ERROR));
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    protected function resolvePayload(mixed $payload, string $domain): array
-    {
-        if (is_string($payload) && class_exists($payload) && is_subclass_of($payload, DomainSettingsProvider::class)) {
-            /** @var class-string<DomainSettingsProvider> $payload */
-            return $payload::settings();
-        }
-
-        if (is_array($payload) && isset($payload['settings']) && is_array($payload['settings'])) {
-            return $payload['settings'];
-        }
-
-        if (is_array($payload)) {
-            return $payload;
-        }
-
-        Log::warning('Invalid domain settings payload.', [
-            'domain' => $domain,
-            'payload_type' => gettype($payload),
-        ]);
-
-        return [];
     }
 
     /**
@@ -238,11 +203,6 @@ class DomainSettingsSynchronizer
             'is_required' => (bool) ($definition['is_required'] ?? false),
             'encrypted' => (bool) ($definition['encrypted'] ?? false),
         ];
-    }
-
-    protected function domainNameFromPath(string $path): string
-    {
-        return basename(dirname(dirname($path)));
     }
 
     protected function isCacheStoreReady(): bool

@@ -7,14 +7,25 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
+function resetCpanelSettingsForTest(): void
+{
+    settings()->set('cpanel.url', '');
+    settings()->set('cpanel.username', '');
+    settings()->set('cpanel.api_token', '');
+    settings()->set('cpanel.domain', '');
+}
+
+function setCpanelSettingsForTest(): void
+{
+    settings()->set('cpanel.url', 'https://cpanel.example.test');
+    settings()->set('cpanel.username', 'root');
+    settings()->set('cpanel.api_token', 'token-123');
+    settings()->set('cpanel.domain', 'example.test');
+}
+
 it('syncs cpanel mailbox accounts into cached_email_accounts', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'verify_ssl' => true,
-    ]);
+    resetCpanelSettingsForTest();
+    setCpanelSettingsForTest();
 
     Http::preventStrayRequests();
     Http::fake([
@@ -57,12 +68,8 @@ it('syncs cpanel mailbox accounts into cached_email_accounts', function () {
 });
 
 it('queues cpanel sync command when queue option is used', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-    ]);
+    resetCpanelSettingsForTest();
+    setCpanelSettingsForTest();
 
     Queue::fake();
 
@@ -73,7 +80,7 @@ it('queues cpanel sync command when queue option is used', function () {
 });
 
 it('fails cpanel sync command when cpanel config is missing', function () {
-    config()->set('services.cpanel', []);
+    resetCpanelSettingsForTest();
 
     $this->artisan('cpanel:sync-emails')
         ->assertFailed();

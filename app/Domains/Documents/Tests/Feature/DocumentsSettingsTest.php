@@ -17,7 +17,7 @@ it('defines default document settings keys', function () {
     expect($keys)->toContain('documents.storage_disk');
 });
 
-it('loads domain settings definitions from domain config folders', function () {
+it('loads domain settings definitions from the settings registry', function () {
     $synchronizer = app(DomainSettingsSynchronizer::class);
 
     $definitions = $synchronizer->loadDefinitions();

@@ -14,7 +14,7 @@ it('defines default task depth settings keys', function (): void {
     expect($keys)->toContain('tasks.max_task_depth');
 });
 
-it('loads task settings definitions from domain config folders', function (): void {
+it('loads task settings definitions from the settings registry', function (): void {
     $definitions = app(DomainSettingsSynchronizer::class)->loadDefinitions();
 
     expect($definitions)->not->toBeEmpty();
