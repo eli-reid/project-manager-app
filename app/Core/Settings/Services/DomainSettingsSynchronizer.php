@@ -2,6 +2,7 @@
 
 namespace App\Core\Settings\Services;
 
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,7 @@ class DomainSettingsSynchronizer
     private const CACHE_KEY_NEXT_CHECK_AT = 'settings.domain-definitions.next-check-at';
 
     public function __construct(
-        private readonly SettingsRegistry $settingsRegistry
+        private readonly SettingsRegistryContract $settingsRegistry
     ) {}
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Documents\Providers;
 
-use App\Core\Settings\Services\SettingsRegistry;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\User\Services\PermissionRegistry;
 use App\Domains\Documents\Livewire\Admin\Documents\Index as AdminDocumentsIndex;
 use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
@@ -23,7 +23,7 @@ class DocumentsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry, SettingsRegistry $settingsRegistry): void
+    public function boot(PermissionRegistry $permissionRegistry, SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
@@ -86,7 +86,7 @@ class DocumentsServiceProvider extends ServiceProvider
         }, DocumentPermissions::all()));
     }
 
-    private function registerSettings(SettingsRegistry $settingsRegistry): void
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('documents', __DIR__.'/../config/settings.php');
     }

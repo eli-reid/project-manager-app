@@ -2,6 +2,7 @@
 
 namespace App\Core\Settings\Providers;
 
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;
 use App\Core\Settings\Policies\SettingPolicy;
@@ -41,12 +42,11 @@ class SettingServiceProvider extends ServiceProvider
         });
 
         // Register domain settings synchronizer
-        $this->app->singleton(SettingsRegistry::class, function (): SettingsRegistry {
-            return new SettingsRegistry;
-        });
+        $this->app->singleton(SettingsRegistry::class);
+        $this->app->singleton(SettingsRegistryContract::class, SettingsRegistry::class);
 
         $this->app->singleton(DomainSettingsSynchronizer::class, function ($app): DomainSettingsSynchronizer {
-            return new DomainSettingsSynchronizer($app->make(SettingsRegistry::class));
+            return new DomainSettingsSynchronizer($app->make(SettingsRegistryContract::class));
         });
 
         $this->app->alias(SettingsSqliteService::class, 'Settings');
@@ -97,8 +97,8 @@ class SettingServiceProvider extends ServiceProvider
 
     private function registerSettings(): void
     {
-        /** @var SettingsRegistry $registry */
-        $registry = $this->app->make(SettingsRegistry::class);
+        /** @var SettingsRegistryContract $registry */
+        $registry = $this->app->make(SettingsRegistryContract::class);
         $registry->registerConfigFile('app', config_path('settings.php'));
     }
 

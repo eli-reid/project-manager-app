@@ -3,9 +3,10 @@
 namespace App\Core\Settings\Services;
 
 use App\Core\Settings\Contracts\DomainSettingsProvider;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\Facades\Log;
 
-class SettingsRegistry
+class SettingsRegistry implements SettingsRegistryContract
 {
     /**
      * @var array<string, array<int, array<string, mixed>>>

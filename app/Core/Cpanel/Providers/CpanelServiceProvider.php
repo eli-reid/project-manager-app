@@ -13,7 +13,7 @@ use App\Core\Cpanel\Livewire\Admin\EmailManagement\DomainForwarders as EmailMana
 use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
-use App\Core\Settings\Services\SettingsRegistry;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\User\Models\User;
 use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -26,17 +26,11 @@ class CpanelServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(CpanelConfig::class);
-
-        $this->app->singleton(CpanelService::class, function ($app): CpanelService {
-            return new CpanelService($app->make(CpanelConfig::class));
-        });
-
-        $this->app->singleton(CpanelMailboxManager::class, function ($app): CpanelMailboxManager {
-            return new CpanelMailboxManager($app->make(CpanelService::class));
-        });
+        $this->app->singleton(CpanelService::class);
+        $this->app->singleton(CpanelMailboxManager::class);
     }
 
-    public function boot(SettingsRegistry $settingsRegistry): void
+    public function boot(SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions();
@@ -81,7 +75,7 @@ class CpanelServiceProvider extends ServiceProvider
         ]);
     }
 
-    private function registerSettings(SettingsRegistry $settingsRegistry): void
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('cpanel', __DIR__.'/../config/settings.php');
     }

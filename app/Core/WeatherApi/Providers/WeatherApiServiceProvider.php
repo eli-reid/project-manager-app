@@ -2,7 +2,7 @@
 
 namespace App\Core\WeatherApi\Providers;
 
-use App\Core\Settings\Services\SettingsRegistry;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use App\Core\WeatherApi\Services\WeatherApiService;
 use Illuminate\Support\ServiceProvider;
@@ -14,7 +14,7 @@ class WeatherApiServiceProvider extends ServiceProvider
         $this->app->singleton(WeatherApiContract::class, WeatherApiService::class);
     }
 
-    public function boot(SettingsRegistry $settingsRegistry): void
+    public function boot(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('weather', __DIR__.'/../config/settings.php');
     }

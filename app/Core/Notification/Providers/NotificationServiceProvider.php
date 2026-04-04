@@ -3,7 +3,7 @@
 namespace App\Core\Notification\Providers;
 
 use App\Core\Notification\Services\NotificationRegistry;
-use App\Core\Settings\Services\SettingsRegistry;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\ServiceProvider;
 
 class NotificationServiceProvider extends ServiceProvider
@@ -13,13 +13,13 @@ class NotificationServiceProvider extends ServiceProvider
         $this->app->singleton(NotificationRegistry::class, fn (): NotificationRegistry => new NotificationRegistry);
     }
 
-    public function boot(SettingsRegistry $settingsRegistry): void
+    public function boot(SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerInfrastructure();
     }
 
-    private function registerSettings(SettingsRegistry $settingsRegistry): void
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('notifications', __DIR__.'/../config/settings.php');
     }
