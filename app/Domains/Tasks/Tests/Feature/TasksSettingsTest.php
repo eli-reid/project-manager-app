@@ -31,7 +31,7 @@ it('syncs task settings without overwriting existing values by default', functio
     $definitions = collect($synchronizer->loadDefinitions());
     $taskDepthDefinition = $definitions->firstWhere('key', 'tasks.max_task_depth');
 
-    $value = Settings::get('tasks.max_task_depth', '2')->toString('2');
+    $value = Settings::get('tasks.max_task_depth', '2')->toString();
 
     expect($taskDepthDefinition)->not->toBeNull();
     expect((string) ($taskDepthDefinition['default_value'] ?? ''))->toBe('2');

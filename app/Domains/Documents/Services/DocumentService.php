@@ -118,7 +118,7 @@ class DocumentService
      */
     public function validationRules(): array
     {
-        $rawAllowedTypes = Settings::get('documents.allowed_types', 'pdf,doc,docx,jpg,jpeg,png')->toString('pdf,doc,docx,jpg,jpeg,png');
+        $rawAllowedTypes = Settings::get('documents.allowed_types', 'pdf,doc,docx,jpg,jpeg,png')->toString();
         $allowedExtensions = collect(explode(',', $rawAllowedTypes))
             ->map(fn (string $extension): string => trim(strtolower($extension)))
             ->filter()
@@ -126,19 +126,19 @@ class DocumentService
             ->all();
 
         return [
-            'max_kilobytes' => Settings::get('documents.max_file_size', 10240)->toInt(10240),
+            'max_kilobytes' => Settings::get('documents.max_file_size', 10240)->toInt(),
             'allowed_extensions' => $allowedExtensions,
         ];
     }
 
     private function storageDisk(): string
     {
-        return Settings::get('documents.storage_disk', 'local')->toString('local');
+        return Settings::get('documents.storage_disk', 'local')->toString();
     }
 
     private function replaceBehavior(): string
     {
-        $replaceBehavior = Settings::get('documents.replace_behavior', Document::REPLACE_MODE_REPLACE)->toString(Document::REPLACE_MODE_REPLACE);
+        $replaceBehavior = Settings::get('documents.replace_behavior', Document::REPLACE_MODE_REPLACE)->toString();
 
         return in_array($replaceBehavior, [Document::REPLACE_MODE_REPLACE, Document::REPLACE_MODE_KEEP_HISTORY], true)
             ? $replaceBehavior

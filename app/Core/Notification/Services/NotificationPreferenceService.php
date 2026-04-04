@@ -122,7 +122,7 @@ class NotificationPreferenceService
      */
     public function resolveChannels(User $user, string $notificationKey, array $supportedChannels): array
     {
-        if (! Settings::get('notifications.enabled', true)->toBool(true)) {
+        if (! Settings::get('notifications.enabled', true)->toBool()) {
             return [];
         }
 

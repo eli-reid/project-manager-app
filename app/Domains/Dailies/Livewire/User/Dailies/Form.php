@@ -449,7 +449,7 @@ class Form extends Component
 
     private function resolveWeatherLocation(): ?string
     {
-        $defaultLocation = trim(Settings::get('weatherapi.default_location', '')->toString(''));
+        $defaultLocation = trim(Settings::get('weatherapi.default_location', '')->toString());
 
         if (blank($this->project_id)) {
             return $defaultLocation !== '' ? $defaultLocation : null;

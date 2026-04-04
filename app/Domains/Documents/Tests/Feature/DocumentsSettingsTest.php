@@ -35,7 +35,7 @@ it('syncs domain settings without overwriting existing values by default', funct
     $definitions = collect($synchronizer->loadDefinitions());
     $storageDiskDefinition = $definitions->firstWhere('key', 'documents.storage_disk');
 
-    $value = Settings::get('documents.storage_disk', 'local')->toString('local');
+    $value = Settings::get('documents.storage_disk', 'local')->toString();
 
     expect($storageDiskDefinition)->not->toBeNull();
     expect((string) ($storageDiskDefinition['default_value'] ?? ''))->toBe('local');

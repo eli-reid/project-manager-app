@@ -58,7 +58,7 @@ class Project extends Model
                 return;
             }
 
-            if (! Settings::get('projects.auto_generate_numbers', true)->toBool(true)) {
+            if (! Settings::get('projects.auto_generate_numbers', true)->toBool()) {
                 return;
             }
 
@@ -68,7 +68,7 @@ class Project extends Model
 
     protected static function nextAutoProjectNumber(): string
     {
-        $prefix = Settings::get('projects.number_prefix', 'PRJ-')->toString('PRJ-');
+        $prefix = Settings::get('projects.number_prefix', 'PRJ-')->toString();
         $highestSequence = self::highestSequenceForPrefix($prefix);
         $nextSequence = $highestSequence + 1;
 

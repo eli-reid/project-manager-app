@@ -93,7 +93,7 @@ class ChannelMatrix extends Component
     {
         $availableChannels = $this->availableChannels();
 
-        $this->notificationsEnabled = Settings::get('notifications.enabled', true)->toBool(true);
+        $this->notificationsEnabled = Settings::get('notifications.enabled', true)->toBool();
 
         $this->defaultChannels = collect($availableChannels)
             ->mapWithKeys(function (string $channel): array {

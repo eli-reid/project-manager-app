@@ -11,12 +11,12 @@ class TaskDepthGuardService
 {
     public function maxCategoryDepth(): int
     {
-        return max(Settings::get('tasks.max_category_depth', 3)->toInt(3), 1);
+        return max(Settings::get('tasks.max_category_depth', 3)->toInt(), 1);
     }
 
     public function maxTaskDepth(): int
     {
-        return max(Settings::get('tasks.max_task_depth', 2)->toInt(2), 1);
+        return max(Settings::get('tasks.max_task_depth', 2)->toInt(), 1);
     }
 
     public function categoryDepthFor(?string $parentCategoryId): int
