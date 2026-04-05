@@ -1,11 +1,11 @@
 <?php
 
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\Permission;
-use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
-use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Notifications\TimecardApprovedNotification;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;

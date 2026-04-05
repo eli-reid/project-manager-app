@@ -4,7 +4,7 @@ namespace App\Core\Audit\Providers;
 
 use App\Core\Audit\Permissions\AuditPermissions;
 use App\Core\Audit\Services\AuditLogger;
-use App\Core\User\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use Illuminate\Support\ServiceProvider;
 
 class AuditServiceProvider extends ServiceProvider

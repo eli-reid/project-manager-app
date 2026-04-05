@@ -2,9 +2,9 @@
 
 namespace App\Domains\Tasks\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Form as TaskCategoryForm;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Index as TaskCategoryIndex;

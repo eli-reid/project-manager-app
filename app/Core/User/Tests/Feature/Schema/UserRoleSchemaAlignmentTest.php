@@ -1,7 +1,7 @@
 <?php
 
-use App\Core\User\Models\Role;
-use App\Core\User\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use Illuminate\Support\Facades\Schema;
 
 it('has tables and columns required by user and role models', function () {

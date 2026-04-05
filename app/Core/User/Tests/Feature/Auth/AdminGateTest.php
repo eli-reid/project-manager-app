@@ -1,7 +1,8 @@
 <?php
 
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\User\Models\User;
-use App\Core\User\Services\DomainPermissionSynchronizer;
 use Illuminate\Support\Facades\Gate;
 
 it('allows admin ability checks only for admin users', function () {
@@ -16,8 +17,8 @@ it('allows admin ability checks for users with built-in admin role', function ()
     app(DomainPermissionSynchronizer::class)->sync();
 
     $user = User::factory()->create(['is_admin' => false]);
-    $adminRoleId = \App\Core\User\Models\Role::query()
-        ->where('name', \App\Core\User\Models\Role::BUILT_IN_ADMIN)
+    $adminRoleId = Role::query()
+        ->where('name', Role::BUILT_IN_ADMIN)
         ->value('id');
 
     $user->roles()->sync([$adminRoleId]);

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Dailies\Providers;
 
-use App\Core\User\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Form as AdminForm;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Index as AdminIndex;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Show as AdminShow;

@@ -2,9 +2,9 @@
 
 namespace App\Domains\Projects\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Livewire\Admin\Projects\Index;
 use App\Domains\Projects\Livewire\Admin\Projects\Show;

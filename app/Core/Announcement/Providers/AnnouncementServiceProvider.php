@@ -8,7 +8,7 @@ use App\Core\Announcement\Livewire\Dashboard\Widget;
 use App\Core\Announcement\Models\Announcement;
 use App\Core\Announcement\Permissions\AnnouncementPermissions;
 use App\Core\Announcement\Policies\AnnouncementPolicy;
-use App\Core\User\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;

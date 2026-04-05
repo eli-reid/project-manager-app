@@ -2,8 +2,8 @@
 
 namespace App\Domains\Documents\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Documents\Livewire\Admin\Documents\Index as AdminDocumentsIndex;
 use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
 use App\Domains\Documents\Livewire\User\Documents\GlobalIndex;

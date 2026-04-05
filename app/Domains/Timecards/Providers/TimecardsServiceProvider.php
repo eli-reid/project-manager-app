@@ -2,9 +2,9 @@
 
 namespace App\Domains\Timecards\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
-use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;

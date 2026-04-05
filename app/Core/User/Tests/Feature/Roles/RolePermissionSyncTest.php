@@ -1,10 +1,10 @@
 <?php
 
-use App\Core\User\Contracts\PermissionRegistryContract;
-use App\Core\User\Models\Permission;
-use App\Core\User\Models\Role;
-use App\Core\User\Services\DomainPermissionSynchronizer;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Permission\Services\PermissionRegistry;
+use App\Core\Auth\Role\Models\Role;
 
 it('binds permission registry contract to concrete implementation', function () {
     $registry = app(PermissionRegistryContract::class);

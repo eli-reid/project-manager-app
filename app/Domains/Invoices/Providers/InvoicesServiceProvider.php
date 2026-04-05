@@ -2,7 +2,7 @@
 
 namespace App\Domains\Invoices\Providers;
 
-use App\Core\User\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Form;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Index;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Show;

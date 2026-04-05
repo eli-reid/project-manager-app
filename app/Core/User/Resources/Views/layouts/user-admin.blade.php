@@ -12,7 +12,7 @@
                     </flux:navbar.item>
                 @endcan
 
-                @can('viewAny', \App\Core\User\Models\Role::class)
+                @can('viewAny', \App\Core\Auth\Role\Models\Role::class)
                     <flux:navbar.item
                         :href="route('admin.roles.index')"
                         :current="request()->routeIs('admin.roles.*')"

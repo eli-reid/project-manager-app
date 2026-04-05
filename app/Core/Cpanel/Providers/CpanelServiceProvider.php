@@ -2,6 +2,7 @@
 
 namespace App\Core\Cpanel\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Cpanel\Commands\EnsureLaravelCronJobs;
 use App\Core\Cpanel\Commands\SyncEmailAccounts;
 use App\Core\Cpanel\Data\CpanelConfig;
@@ -14,7 +15,6 @@ use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Core\User\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;

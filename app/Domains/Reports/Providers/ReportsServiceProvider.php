@@ -2,7 +2,7 @@
 
 namespace App\Domains\Reports\Providers;
 
-use App\Core\User\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Reports\Livewire\User\FinancialReports\Index as FinancialReportsIndex;
 use App\Domains\Reports\Permissions\ReportPermissions;
 use App\Domains\Reports\Policies\ReportPolicy;

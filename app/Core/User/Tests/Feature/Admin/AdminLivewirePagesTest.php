@@ -1,12 +1,12 @@
 <?php
 
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Livewire\Admin\Roles\Users;
+use App\Core\Auth\Role\Models\Role;
+use App\Core\Auth\User\Livewire\Admin\Users\Form;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Livewire\Admin\Roles\Users;
-use App\Core\User\Livewire\Admin\Users\Form;
-use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Notifications\UserInvitationNotification;
-use App\Core\User\Services\DomainPermissionSynchronizer;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -69,7 +69,7 @@ it('allows creating users and roles through livewire forms', function () {
         return $channels === ['mail'];
     });
 
-    Livewire::test(App\Core\User\Livewire\Admin\Roles\Form::class)
+    Livewire::test(App\Core\Auth\Role\Livewire\Admin\Roles\Form::class)
         ->set('name', 'Field Manager')
         ->set('description', 'Can manage field operations')
         ->set('access_level', 45)

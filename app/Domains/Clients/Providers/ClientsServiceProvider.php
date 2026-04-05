@@ -2,7 +2,7 @@
 
 namespace App\Domains\Clients\Providers;
 
-use App\Core\User\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Clients\Livewire\Admin\Clients\Form;
 use App\Domains\Clients\Livewire\Admin\Clients\Index;
 use App\Domains\Clients\Livewire\Admin\Clients\InlineCreateWidget;

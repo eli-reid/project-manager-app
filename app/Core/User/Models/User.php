@@ -3,8 +3,10 @@
 namespace App\Core\User\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Role\Models\Role;
+use App\Core\Auth\User\Database\Factories\UserFactory;
 use App\Core\Notification\Models\UserNotificationPreference;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -132,7 +134,7 @@ class User extends Authenticatable
      */
     protected static function newFactory()
     {
-        return \App\Core\User\Database\Factories\UserFactory::new();
+        return UserFactory::new();
     }
 
     /**

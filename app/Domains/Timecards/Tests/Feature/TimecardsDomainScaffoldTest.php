@@ -1,9 +1,9 @@
 <?php
 
-use App\Core\User\Models\Permission;
-use App\Core\User\Models\Role;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\User\Models\User;
-use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;

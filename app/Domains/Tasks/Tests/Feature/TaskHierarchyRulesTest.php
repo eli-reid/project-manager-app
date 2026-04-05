@@ -1,15 +1,16 @@
 <?php
 
-use App\Core\User\Models\Permission;
-use App\Core\User\Models\Role;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\User\Models\User;
-use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Form as TaskCategoryForm;
 use App\Domains\Tasks\Livewire\Admin\Tasks\Form as TaskForm;
 use App\Domains\Tasks\Livewire\Admin\TaskTemplates\Form as TaskTemplateForm;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
+use App\Domains\Tasks\Models\TaskTemplate;
 use Livewire\Livewire;
 
 it('requires a project for task categories', function (): void {
@@ -84,7 +85,7 @@ it('allows global task templates to be created without project context', functio
         ->assertHasNoErrors();
 
     expect(
-        \App\Domains\Tasks\Models\TaskTemplate::query()->where('name', 'Standard Rough-In')->exists()
+        TaskTemplate::query()->where('name', 'Standard Rough-In')->exists()
     )->toBeTrue();
 });
 

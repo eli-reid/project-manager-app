@@ -2,7 +2,7 @@
 
 namespace App\Domains\Stock\Providers;
 
-use App\Core\User\Contracts\PermissionRegistryContract;
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Stock\Livewire\Admin\StockOrders\Index as AdminStockOrdersIndex;
 use App\Domains\Stock\Livewire\Admin\StockOrders\Show as AdminStockOrdersShow;
 use App\Domains\Stock\Livewire\Admin\Templates\Form as AdminTemplatesForm;

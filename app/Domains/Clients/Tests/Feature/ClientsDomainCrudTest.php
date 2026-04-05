@@ -1,9 +1,9 @@
 <?php
 
-use App\Core\User\Models\Permission;
-use App\Core\User\Models\Role;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\User\Models\User;
-use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Domains\Clients\Livewire\Admin\Clients\Form;
 use App\Domains\Clients\Livewire\Admin\Clients\InlineCreateWidget;
 use App\Domains\Clients\Models\Client;

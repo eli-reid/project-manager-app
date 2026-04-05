@@ -2,12 +2,12 @@
 
 namespace App\Core\Queue\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Queue\Listeners\RecordQueueJobHistory;
 use App\Core\Queue\Livewire\Admin\Queue\Dashboard;
 use App\Core\Queue\Permissions\QueuePermissions;
 use App\Core\Queue\Policies\QueuePolicy;
 use App\Core\Queue\Services\QueueManagerService;
-use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;

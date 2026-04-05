@@ -1,7 +1,7 @@
 <?php
 
-use App\Core\User\Models\Permission;
-use App\Core\User\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 
 it('registers sprint zero foundation permission matrix entries', function (): void {
     app(DomainPermissionSynchronizer::class)->sync();

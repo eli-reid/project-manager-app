@@ -2,9 +2,9 @@
 
 namespace App\Core\Database\Seeders;
 
+use App\Core\Auth\Permission\Database\Seeders\RolesAndPermissionsSeeder;
+use App\Core\Auth\User\Database\Seeders\UserSeeder;
 use App\Core\Settings\Database\Seeders\SettingsSeeder;
-use App\Core\User\Database\Seeders\RolesAndPermissionsSeeder;
-use App\Core\User\Database\Seeders\UserSeeder;
 use Illuminate\Database\Seeder;
 
 /**

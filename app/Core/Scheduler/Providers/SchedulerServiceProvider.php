@@ -2,6 +2,7 @@
 
 namespace App\Core\Scheduler\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Scheduler\Commands\DeployUpgradeCommand;
 use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
@@ -14,7 +15,6 @@ use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskDefinitionSyncService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
-use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;

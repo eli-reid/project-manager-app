@@ -264,7 +264,7 @@ namespace App\Core\User\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property-read string $name
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\Role> $roles
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
  * @property-read int|null $roles_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission newQuery()
@@ -292,7 +292,7 @@ namespace App\Core\User\Models{
  * @property int $access_level
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\Permission> $permissions
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Permission\Models\Permission> $permissions
  * @property-read int|null $permissions_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\User> $users
  * @property-read int|null $users_count
@@ -336,7 +336,7 @@ namespace App\Core\User\Models{
  * @property-read int|null $notification_preferences_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\Role> $roles
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
  * @property-read int|null $roles_count
  * @method static \App\Core\User\Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
