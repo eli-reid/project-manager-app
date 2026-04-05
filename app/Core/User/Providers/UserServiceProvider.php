@@ -3,6 +3,7 @@
 namespace App\Core\User\Providers;
 
 use App\Core\Settings\Permissions\SettingsPermissions;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Core\User\Livewire\Admin\Roles\Form;
 use App\Core\User\Livewire\Admin\Roles\Index;
 use App\Core\User\Livewire\Admin\Roles\Users;
@@ -34,13 +35,9 @@ class UserServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(PermissionRegistry::class, function () {
-            return new PermissionRegistry;
-        });
-
-        $this->app->singleton(DomainPermissionSynchronizer::class, function () {
-            return new DomainPermissionSynchronizer;
-        });
+        $this->app->singleton(PermissionRegistry::class);
+        $this->app->singleton(PermissionRegistryContract::class, PermissionRegistry::class);
+        $this->app->singleton(DomainPermissionSynchronizer::class);
     }
 
     public function boot(): void
@@ -78,8 +75,8 @@ class UserServiceProvider extends ServiceProvider
 
     private function registerPermissions(): void
     {
-        /** @var PermissionRegistry $registry */
-        $registry = $this->app->make(PermissionRegistry::class);
+        /** @var PermissionRegistryContract $registry */
+        $registry = $this->app->make(PermissionRegistryContract::class);
 
         $permissionDefinitions = [
             ...SettingsPermissions::all(),

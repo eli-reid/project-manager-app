@@ -4,7 +4,7 @@ namespace App\Domains\Timecards\Providers;
 
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
@@ -30,7 +30,7 @@ class TimecardsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
@@ -82,7 +82,7 @@ class TimecardsServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/api.php');
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

@@ -2,6 +2,7 @@
 
 namespace App\Core\User\Services;
 
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
@@ -13,6 +14,10 @@ class DomainPermissionSynchronizer
 {
     private const CACHE_KEY_HASH = 'permissions.domain-definitions.hash';
 
+    public function __construct(
+        private readonly PermissionRegistryContract $registry
+    ) {}
+
     public function syncIfChanged(): int
     {
         if (! $this->isSchemaReady()) {
@@ -23,10 +28,7 @@ class DomainPermissionSynchronizer
             return 0;
         }
 
-        /** @var PermissionRegistry $registry */
-        $registry = app(PermissionRegistry::class);
-
-        $currentHash = $this->definitionsHash($registry);
+        $currentHash = $this->definitionsHash($this->registry);
         $lastHash = (string) Cache::get(self::CACHE_KEY_HASH, '');
 
         if ($currentHash === $lastHash) {
@@ -45,10 +47,7 @@ class DomainPermissionSynchronizer
             return 0;
         }
 
-        /** @var PermissionRegistry $registry */
-        $registry = app(PermissionRegistry::class);
-
-        $permissionDefinitions = $registry->permissions();
+        $permissionDefinitions = $this->registry->permissions();
 
         if ($permissionDefinitions === []) {
             return 0;
@@ -71,7 +70,7 @@ class DomainPermissionSynchronizer
             ['label', 'description', 'updated_at']
         );
 
-        $this->ensureBuiltInRoles($registry->builtInRolePermissions());
+        $this->ensureBuiltInRoles($this->registry->builtInRolePermissions());
         $this->flushRoleCaches();
         User::bumpPermissionCacheVersion();
 
@@ -182,7 +181,7 @@ class DomainPermissionSynchronizer
             && Schema::hasTable('role_permissions');
     }
 
-    private function definitionsHash(PermissionRegistry $registry): string
+    private function definitionsHash(PermissionRegistryContract $registry): string
     {
         $payload = json_encode([
             'permissions' => $registry->permissions(),

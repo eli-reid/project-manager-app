@@ -7,7 +7,7 @@ use App\Core\Queue\Livewire\Admin\Queue\Dashboard;
 use App\Core\Queue\Permissions\QueuePermissions;
 use App\Core\Queue\Policies\QueuePolicy;
 use App\Core\Queue\Services\QueueManagerService;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -45,8 +45,8 @@ class QueueManagerServiceProvider extends ServiceProvider
 
     private function registerPermissions(): void
     {
-        /** @var PermissionRegistry $registry */
-        $registry = $this->app->make(PermissionRegistry::class);
+        /** @var PermissionRegistryContract $registry */
+        $registry = $this->app->make(PermissionRegistryContract::class);
 
         $registry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

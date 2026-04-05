@@ -14,7 +14,7 @@ use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskDefinitionSyncService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -65,8 +65,8 @@ class SchedulerServiceProvider extends ServiceProvider
 
     private function registerPermissions(): void
     {
-        /** @var PermissionRegistry $registry */
-        $registry = $this->app->make(PermissionRegistry::class);
+        /** @var PermissionRegistryContract $registry */
+        $registry = $this->app->make(PermissionRegistryContract::class);
 
         $registry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

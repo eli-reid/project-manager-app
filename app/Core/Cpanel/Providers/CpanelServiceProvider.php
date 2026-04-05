@@ -14,8 +14,8 @@ use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Core\User\Models\User;
-use App\Core\User\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -82,8 +82,8 @@ class CpanelServiceProvider extends ServiceProvider
 
     private function registerPermissions(): void
     {
-        /** @var PermissionRegistry $registry */
-        $registry = $this->app->make(PermissionRegistry::class);
+        /** @var PermissionRegistryContract $registry */
+        $registry = $this->app->make(PermissionRegistryContract::class);
 
         $registry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

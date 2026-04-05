@@ -2,7 +2,7 @@
 
 namespace App\Domains\Invoices\Providers;
 
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Form;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Index;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Show;
@@ -21,7 +21,7 @@ class InvoicesServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
@@ -56,7 +56,7 @@ class InvoicesServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/admin.php');
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

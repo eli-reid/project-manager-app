@@ -2,7 +2,7 @@
 
 namespace App\Domains\Dailies\Providers;
 
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Form as AdminForm;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Index as AdminIndex;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Show as AdminShow;
@@ -24,7 +24,7 @@ class DailiesServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
@@ -73,7 +73,7 @@ class DailiesServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/api.php');
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

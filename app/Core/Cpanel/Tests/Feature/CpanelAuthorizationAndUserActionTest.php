@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
@@ -51,15 +52,13 @@ it('allows users with manage-email-accounts permission to access admin cpanel en
 });
 
 it('generates company email through admin users action route', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'port' => 2083,
-        'default_email_quota' => 250,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.port', 2083);
+    Settings::set('cpanel.default_email_quota', 250);
+    Settings::set('cpanel.verify_ssl', true);
 
     Http::preventStrayRequests();
     Http::fake([

@@ -4,7 +4,7 @@ namespace App\Core\Audit\Providers;
 
 use App\Core\Audit\Permissions\AuditPermissions;
 use App\Core\Audit\Services\AuditLogger;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Support\ServiceProvider;
 
 class AuditServiceProvider extends ServiceProvider
@@ -27,12 +27,12 @@ class AuditServiceProvider extends ServiceProvider
 
     private function registerPermissions(): void
     {
-        if (! $this->app->bound(PermissionRegistry::class)) {
+        if (! $this->app->bound(PermissionRegistryContract::class)) {
             return;
         }
 
-        /** @var PermissionRegistry $registry */
-        $registry = $this->app->make(PermissionRegistry::class);
+        /** @var PermissionRegistryContract $registry */
+        $registry = $this->app->make(PermissionRegistryContract::class);
 
         $registry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

@@ -4,7 +4,7 @@ namespace App\Domains\Projects\Providers;
 
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Livewire\Admin\Projects\Index;
 use App\Domains\Projects\Livewire\Admin\Projects\Show;
@@ -24,7 +24,7 @@ class ProjectsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
@@ -61,7 +61,7 @@ class ProjectsServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/admin.php');
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

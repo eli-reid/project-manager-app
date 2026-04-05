@@ -3,7 +3,7 @@
 namespace App\Domains\Documents\Providers;
 
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Documents\Livewire\Admin\Documents\Index as AdminDocumentsIndex;
 use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
 use App\Domains\Documents\Livewire\User\Documents\GlobalIndex;
@@ -23,7 +23,7 @@ class DocumentsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry, SettingsRegistryContract $settingsRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
@@ -71,7 +71,7 @@ class DocumentsServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/api.php');
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

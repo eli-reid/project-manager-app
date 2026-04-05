@@ -2,7 +2,7 @@
 
 namespace App\Domains\Reports\Providers;
 
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Reports\Livewire\User\FinancialReports\Index as FinancialReportsIndex;
 use App\Domains\Reports\Permissions\ReportPermissions;
 use App\Domains\Reports\Policies\ReportPolicy;
@@ -18,7 +18,7 @@ class ReportsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
@@ -27,7 +27,7 @@ class ReportsServiceProvider extends ServiceProvider
         $this->registerRoutes();
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

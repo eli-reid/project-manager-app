@@ -8,7 +8,7 @@ use App\Core\Announcement\Livewire\Dashboard\Widget;
 use App\Core\Announcement\Models\Announcement;
 use App\Core\Announcement\Permissions\AnnouncementPermissions;
 use App\Core\Announcement\Policies\AnnouncementPolicy;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -44,8 +44,8 @@ class AnnouncementServiceProvider extends ServiceProvider
 
     private function registerPermissions(): void
     {
-        /** @var PermissionRegistry $registry */
-        $registry = $this->app->make(PermissionRegistry::class);
+        /** @var PermissionRegistryContract $registry */
+        $registry = $this->app->make(PermissionRegistryContract::class);
 
         $registry->registerPermissions(array_map(function (array $definition): array {
             $resource = (string) $definition['resource'];

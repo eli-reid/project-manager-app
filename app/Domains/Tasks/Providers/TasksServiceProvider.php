@@ -4,7 +4,7 @@ namespace App\Domains\Tasks\Providers;
 
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Form as TaskCategoryForm;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Index as TaskCategoryIndex;
@@ -36,7 +36,7 @@ class TasksServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
@@ -92,7 +92,7 @@ class TasksServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/api.php');
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $definitions = [
             ...TaskPermissions::all(),

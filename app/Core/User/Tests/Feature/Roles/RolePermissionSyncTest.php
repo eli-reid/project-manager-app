@@ -1,9 +1,16 @@
 <?php
 
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Core\User\Models\Permission;
 use App\Core\User\Models\Role;
 use App\Core\User\Services\DomainPermissionSynchronizer;
 use App\Core\User\Services\PermissionRegistry;
+
+it('binds permission registry contract to concrete implementation', function () {
+    $registry = app(PermissionRegistryContract::class);
+
+    expect($registry)->toBeInstanceOf(PermissionRegistry::class);
+});
 
 it('synchronizes registered domain permissions and built-in roles', function () {
     app(DomainPermissionSynchronizer::class)->sync();
@@ -15,7 +22,7 @@ it('synchronizes registered domain permissions and built-in roles', function () 
 });
 
 it('supports registering domain permissions before synchronization', function () {
-    $registry = app(PermissionRegistry::class);
+    $registry = app(PermissionRegistryContract::class);
     $registry->registerPermissions([
         [
             'resource' => 'reports',

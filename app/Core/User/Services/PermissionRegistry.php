@@ -2,9 +2,10 @@
 
 namespace App\Core\User\Services;
 
+use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Support\Facades\Log;
 
-class PermissionRegistry
+class PermissionRegistry implements PermissionRegistryContract
 {
     /**
      * @var array<string, array{resource:string, action:string, label:string, description:string}>

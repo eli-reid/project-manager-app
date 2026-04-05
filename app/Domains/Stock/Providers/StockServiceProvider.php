@@ -2,7 +2,7 @@
 
 namespace App\Domains\Stock\Providers;
 
-use App\Core\User\Services\PermissionRegistry;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Domains\Stock\Livewire\Admin\StockOrders\Index as AdminStockOrdersIndex;
 use App\Domains\Stock\Livewire\Admin\StockOrders\Show as AdminStockOrdersShow;
 use App\Domains\Stock\Livewire\Admin\Templates\Form as AdminTemplatesForm;
@@ -30,7 +30,7 @@ class StockServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistry $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
@@ -84,7 +84,7 @@ class StockServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/api.php');
     }
 
-    private function registerPermissions(PermissionRegistry $permissionRegistry): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $definitions = [
             ...StockOrderPermissions::all(),
