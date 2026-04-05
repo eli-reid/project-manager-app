@@ -18,11 +18,17 @@ class AuthUserServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->registerInfrastructure();
         $this->registerPermissions();
         $this->registerAuthorization();
         $this->registerObservers();
         $this->registerUIComponents();
         $this->registerRoutes();
+    }
+
+    private function registerInfrastructure(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'auth-user');
     }
 
     private function registerPermissions(): void

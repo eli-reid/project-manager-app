@@ -125,7 +125,7 @@ class Form extends Component
     {
         $roles = Role::query()->where('is_active', true)->orderBy('name')->get();
 
-        return view('core-user::livewire.admin.users.form', [
+        return view('auth-user::livewire.admin.users.form', [
             'roles' => $roles,
         ])->title($this->isEdit ? 'Edit User' : 'Create User');
     }

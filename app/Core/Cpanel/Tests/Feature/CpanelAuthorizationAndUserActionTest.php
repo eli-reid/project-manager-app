@@ -32,6 +32,8 @@ function assignPermissionsToUser(User $user, array $permissionKeys): void
 
     $role->permissions()->sync(array_filter($permissionIds));
     $user->roles()->sync([$role->id]);
+    $user->flushAuthorizationCache();
+    User::bumpPermissionCacheVersion();
 }
 
 /**
@@ -46,7 +48,7 @@ function setCpanelSettings(array $overrides = []): void
         'cpanel.domain' => 'example.test',
         'cpanel.port' => 2083,
         'cpanel.default_email_quota' => 250,
-        'cpanel.verify_ssl' => true,
+        'cpanel.verify_ssl' => 'true',
     ], $overrides);
 
     foreach ($settings as $key => $value) {
@@ -134,5 +136,5 @@ it('shows the generate email action in admin users page for permitted users', fu
     actingAs($actor)
         ->get(route('admin.users.index'))
         ->assertOk()
-        ->assertSee('Generate Email');
+        ->assertSee('generate-company-email');
 });

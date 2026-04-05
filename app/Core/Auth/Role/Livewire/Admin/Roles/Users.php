@@ -87,7 +87,7 @@ class Users extends Component
             ->limit(50)
             ->get();
 
-        return view('core-user::livewire.admin.roles.users', [
+        return view('auth-role::livewire.admin.roles.users', [
             'assignedUsers' => $assignedUsers,
             'availableUsers' => $availableUsers,
         ]);

@@ -18,10 +18,16 @@ class RoleServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->registerInfrastructure();
         $this->registerAuthorization();
         $this->registerPermissions();
         $this->registerUIComponents();
         $this->registerRoutes();
+    }
+
+    private function registerInfrastructure(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'auth-role');
     }
 
     private function registerAuthorization(): void

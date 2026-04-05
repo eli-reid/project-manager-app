@@ -139,7 +139,7 @@ class Form extends Component
 
     public function render()
     {
-        return view('core-user::livewire.admin.roles.form', [
+        return view('auth-role::livewire.admin.roles.form', [
             'permissionsByResource' => $this->permissionsByResource,
         ])->title($this->isEdit ? 'Edit Role' : 'Create Role');
     }

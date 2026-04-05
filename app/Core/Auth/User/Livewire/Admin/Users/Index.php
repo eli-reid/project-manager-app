@@ -76,7 +76,7 @@ class Index extends Component
             ->orderBy('last_name')
             ->paginate(12);
 
-        return view('core-user::livewire.admin.users.index', [
+        return view('auth-user::livewire.admin.users.index', [
             'users' => $users,
         ]);
     }
