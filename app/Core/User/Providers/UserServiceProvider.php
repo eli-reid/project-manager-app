@@ -2,7 +2,6 @@
 
 namespace App\Core\User\Providers;
 
-use App\Core\Settings\Permissions\SettingsPermissions;
 use App\Core\User\Contracts\PermissionRegistryContract;
 use App\Core\User\Livewire\Admin\Roles\Form;
 use App\Core\User\Livewire\Admin\Roles\Index;
@@ -19,7 +18,6 @@ use App\Core\User\Models\Role;
 use App\Core\User\Models\User;
 use App\Core\User\Observers\UserObserver;
 use App\Core\User\Permissions\FoundationPermissions;
-use App\Core\User\Permissions\PermissionPermissions;
 use App\Core\User\Permissions\RolePermissions;
 use App\Core\User\Permissions\UserPermissions;
 use App\Core\User\Policies\RolePolicy;
@@ -79,10 +77,8 @@ class UserServiceProvider extends ServiceProvider
         $registry = $this->app->make(PermissionRegistryContract::class);
 
         $permissionDefinitions = [
-            ...SettingsPermissions::all(),
             ...UserPermissions::all(),
             ...RolePermissions::all(),
-            ...PermissionPermissions::all(),
             ...FoundationPermissions::all(),
         ];
 

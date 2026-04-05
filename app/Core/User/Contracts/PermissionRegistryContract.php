@@ -5,7 +5,13 @@ namespace App\Core\User\Contracts;
 interface PermissionRegistryContract
 {
     /**
-     * @param  array<int, array<string, mixed>>  $definitions
+     * @param  array<int, array{
+     *     resource:string,
+     *     action:string,
+     *     label?:string,
+     *     description?:string,
+     *     built_in_roles?:array<int, string>
+     * }>  $definitions
      */
     public function registerPermissions(array $definitions): void;
 

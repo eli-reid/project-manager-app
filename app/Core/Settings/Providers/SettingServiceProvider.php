@@ -5,12 +5,14 @@ namespace App\Core\Settings\Providers;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;
+use App\Core\Settings\Permissions\SettingsPermissions;
 use App\Core\Settings\Policies\SettingPolicy;
 use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
 use App\Core\Settings\Services\SettingsRegistry;
 use App\Core\Settings\Services\SettingsSqliteService;
+use App\Core\User\Contracts\PermissionRegistryContract;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -61,6 +63,7 @@ class SettingServiceProvider extends ServiceProvider
         $this->registerInfrastructure();
         $this->registerObservers();
         $this->registerSettings();
+        $this->registerPermissions();
 
         // Initialize settings database early (no database config needed)
         $this->initializeSettingsDatabase();
@@ -68,6 +71,19 @@ class SettingServiceProvider extends ServiceProvider
         // Sync settings after all providers have had a chance to register their definitions.
         $this->app->booted(function (): void {
             $this->syncDomainSettings();
+        });
+    }
+
+    private function registerPermissions(): void
+    {
+        $this->app->booted(function (): void {
+            if (! $this->app->bound(PermissionRegistryContract::class)) {
+                return;
+            }
+
+            /** @var PermissionRegistryContract $registry */
+            $registry = $this->app->make(PermissionRegistryContract::class);
+            $registry->registerPermissions(SettingsPermissions::all());
         });
     }
 
