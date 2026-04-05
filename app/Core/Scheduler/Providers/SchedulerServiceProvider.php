@@ -68,17 +68,7 @@ class SchedulerServiceProvider extends ServiceProvider
         /** @var PermissionRegistryContract $registry */
         $registry = $this->app->make(PermissionRegistryContract::class);
 
-        $registry->registerPermissions(array_map(function (array $definition): array {
-            $resource = (string) $definition['resource'];
-            $action = (string) $definition['action'];
-
-            return [
-                'resource' => $resource,
-                'action' => $action,
-                'label' => $definition['label'] ?? str($resource.' '.$action)->replace(['_', '-'], ' ')->headline()->value(),
-                'description' => $definition['description'] ?? '',
-            ];
-        }, SchedulerPermissions::all()));
+        $registry->registerPermissions(SchedulerPermissions::all());
     }
 
     private function registerUIComponents(): void

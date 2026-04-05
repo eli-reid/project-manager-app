@@ -100,17 +100,7 @@ class TasksServiceProvider extends ServiceProvider
             ...TaskTemplatePermissions::all(),
         ];
 
-        $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
-            $resource = (string) $definition['resource'];
-            $action = (string) $definition['action'];
-
-            return [
-                'resource' => $resource,
-                'action' => $action,
-                'label' => $definition['label'] ?? str($resource.' '.$action)->replace(['_', '-'], ' ')->headline()->value(),
-                'description' => $definition['description'] ?? '',
-            ];
-        }, $definitions));
+        $permissionRegistry->registerPermissions($definitions);
     }
 
     private function registerNotifications(NotificationRegistry $notificationRegistry): void

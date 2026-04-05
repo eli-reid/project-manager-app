@@ -86,17 +86,7 @@ class UserServiceProvider extends ServiceProvider
             ...FoundationPermissions::all(),
         ];
 
-        $registry->registerPermissions(array_map(function (array $definition): array {
-            $resource = (string) $definition['resource'];
-            $action = (string) $definition['action'];
-
-            return [
-                'resource' => $resource,
-                'action' => $action,
-                'label' => $definition['label'] ?? str($resource.' '.$action)->replace(['_', '-'], ' ')->headline()->value(),
-                'description' => $definition['description'] ?? '',
-            ];
-        }, $permissionDefinitions));
+        $registry->registerPermissions($permissionDefinitions);
     }
 
     private function syncRegisteredPermissions(): void

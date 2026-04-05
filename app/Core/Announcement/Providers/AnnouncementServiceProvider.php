@@ -47,17 +47,7 @@ class AnnouncementServiceProvider extends ServiceProvider
         /** @var PermissionRegistryContract $registry */
         $registry = $this->app->make(PermissionRegistryContract::class);
 
-        $registry->registerPermissions(array_map(function (array $definition): array {
-            $resource = (string) $definition['resource'];
-            $action = (string) $definition['action'];
-
-            return [
-                'resource' => $resource,
-                'action' => $action,
-                'label' => $definition['label'] ?? str($resource.' '.$action)->replace(['_', '-'], ' ')->headline()->value(),
-                'description' => $definition['description'] ?? '',
-            ];
-        }, AnnouncementPermissions::all()));
+        $registry->registerPermissions(AnnouncementPermissions::all());
     }
 
     private function registerInfrastructure(): void

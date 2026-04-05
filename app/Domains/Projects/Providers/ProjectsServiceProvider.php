@@ -63,17 +63,7 @@ class ProjectsServiceProvider extends ServiceProvider
 
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        $permissionRegistry->registerPermissions(array_map(function (array $definition): array {
-            $resource = (string) $definition['resource'];
-            $action = (string) $definition['action'];
-
-            return [
-                'resource' => $resource,
-                'action' => $action,
-                'label' => $definition['label'] ?? str($resource.' '.$action)->replace(['_', '-'], ' ')->headline()->value(),
-                'description' => $definition['description'] ?? '',
-            ];
-        }, ProjectPermissions::all()));
+        $permissionRegistry->registerPermissions(ProjectPermissions::all());
     }
 
     private function registerNotifications(NotificationRegistry $notificationRegistry): void
