@@ -34,6 +34,26 @@ function assignPermissionsToUser(User $user, array $permissionKeys): void
     $user->roles()->sync([$role->id]);
 }
 
+/**
+ * @param  array<string, mixed>  $overrides
+ */
+function setCpanelSettings(array $overrides = []): void
+{
+    $settings = array_merge([
+        'cpanel.url' => 'https://cpanel.example.test',
+        'cpanel.username' => 'root',
+        'cpanel.api_token' => 'token-123',
+        'cpanel.domain' => 'example.test',
+        'cpanel.port' => 2083,
+        'cpanel.default_email_quota' => 250,
+        'cpanel.verify_ssl' => true,
+    ], $overrides);
+
+    foreach ($settings as $key => $value) {
+        Settings::set($key, $value);
+    }
+}
+
 it('allows users with manage-email-accounts permission to access admin cpanel endpoints', function () {
     app(DomainPermissionSynchronizer::class)->sync();
 
@@ -52,13 +72,7 @@ it('allows users with manage-email-accounts permission to access admin cpanel en
 });
 
 it('generates company email through admin users action route', function () {
-    Settings::set('cpanel.url', 'https://cpanel.example.test');
-    Settings::set('cpanel.username', 'root');
-    Settings::set('cpanel.api_token', 'token-123');
-    Settings::set('cpanel.domain', 'example.test');
-    Settings::set('cpanel.port', 2083);
-    Settings::set('cpanel.default_email_quota', 250);
-    Settings::set('cpanel.verify_ssl', true);
+    setCpanelSettings();
 
     Http::preventStrayRequests();
     Http::fake([
