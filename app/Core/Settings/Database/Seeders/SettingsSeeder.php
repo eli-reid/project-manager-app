@@ -2,8 +2,8 @@
 
 namespace App\Core\Settings\Database\Seeders;
 
-use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
+use App\Core\Settings\Services\SettingsDatabaseProvisioner;
 use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Database\Seeder;
 
@@ -19,8 +19,7 @@ class SettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        $model = new SettingsSqlite;
-        $model->ensureSettingsDatabase();
+        app(SettingsDatabaseProvisioner::class)->ensureDatabase();
 
         $pruneUndefined = (bool) config('settings-db.sync.prune_undefined_on_seed', true);
         $changes = app(DomainSettingsSynchronizer::class)->sync(pruneUndefined: $pruneUndefined);

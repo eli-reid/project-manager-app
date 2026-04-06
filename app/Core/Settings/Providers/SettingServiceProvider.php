@@ -11,6 +11,7 @@ use App\Core\Settings\Policies\SettingPolicy;
 use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
+use App\Core\Settings\Services\SettingsDatabaseProvisioner;
 use App\Core\Settings\Services\SettingsRegistry;
 use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -35,11 +36,15 @@ class SettingServiceProvider extends ServiceProvider
             return new SettingsRepository;
         });
 
+        // Register provisioner as singleton so the $databaseEnsured flag is shared
+        $this->app->singleton(SettingsDatabaseProvisioner::class);
+
         // Register settings service as singleton with dependencies injected
         $this->app->singleton(SettingsSqliteService::class, function ($app) {
             return new SettingsSqliteService(
                 $app->make(SettingsRepository::class),
-                $app->make(SettingsCacheService::class)
+                $app->make(SettingsCacheService::class),
+                $app->make(SettingsDatabaseProvisioner::class)
             );
         });
 
@@ -124,10 +129,6 @@ class SettingServiceProvider extends ServiceProvider
     private function initializeSettingsDatabase(): void
     {
         try {
-            // Get the settings service
-            $settingsService = $this->app->make(SettingsSqliteService::class);
-
-            // Check if we're using .env in dev mode
             $devModeConfig = config('settings-db.dev_mode', []);
             $useEnvInDev = $devModeConfig['use_env_file'] ?? false;
             $currentEnv = $this->app->environment();
@@ -142,12 +143,8 @@ class SettingServiceProvider extends ServiceProvider
                 return;
             }
 
-            // Initialize the database if it doesn't exist
-            if (! $settingsService->isDatabaseAvailable()) {
-                $settingsService->initializeDatabase();
-            }
+            $this->app->make(SettingsDatabaseProvisioner::class)->ensureDatabase();
         } catch (\Exception $e) {
-            // Log warning but don't break the app if settings initialization fails
             if ($this->app->bound('log')) {
                 Log::warning('Failed to initialize settings database: '.$e->getMessage());
             }

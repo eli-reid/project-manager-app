@@ -41,7 +41,8 @@ class SettingsSqliteService
 
     public function __construct(
         SettingsRepository $repository,
-        SettingsCacheService $cache
+        SettingsCacheService $cache,
+        protected SettingsDatabaseProvisioner $provisioner
     ) {
         $this->repository = $repository;
         $this->cache = $cache;
@@ -359,8 +360,7 @@ class SettingsSqliteService
     public function initializeDatabase(): bool
     {
         try {
-            $model = new SettingsSqlite;
-            $model->ensureSettingsDatabase();
+            $this->provisioner->ensureDatabase();
 
             return true;
         } catch (\Exception $e) {
