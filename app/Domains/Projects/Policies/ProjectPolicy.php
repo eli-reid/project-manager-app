@@ -29,7 +29,7 @@ class ProjectPolicy
             return true;
         }
 
-        return $projectAccessService->hasAccess($project, $user);
+        return $projectAccessService->hasScopedPermission($project, $user, 'projects.view');
     }
 
     public function create(User $user): bool
@@ -39,11 +39,39 @@ class ProjectPolicy
 
     public function update(User $user, Project $project): bool
     {
-        return $user->hasPermission('projects.edit');
+        if (! $user->hasPermission('projects.edit')) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        $projectAccessService = app(ProjectAccessService::class);
+
+        if (! $projectAccessService->projectUsesScopedAccess($project)) {
+            return true;
+        }
+
+        return $projectAccessService->hasScopedPermission($project, $user, 'projects.edit');
     }
 
     public function delete(User $user, Project $project): bool
     {
-        return $user->hasPermission('projects.delete');
+        if (! $user->hasPermission('projects.delete')) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        $projectAccessService = app(ProjectAccessService::class);
+
+        if (! $projectAccessService->projectUsesScopedAccess($project)) {
+            return true;
+        }
+
+        return $projectAccessService->hasScopedPermission($project, $user, 'projects.delete');
     }
 }

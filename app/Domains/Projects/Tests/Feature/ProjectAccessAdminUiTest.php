@@ -59,6 +59,35 @@ it('grants and revokes project access from the admin project show component', fu
         ->exists())->toBeFalse();
 });
 
+it('stores selected project action permissions when granting access from admin ui', function (): void {
+    $manager = userWithProjectAccessUiPermissions([
+        'projects.view',
+        'project-access.view',
+        'project-access.grant',
+    ]);
+
+    $targetUser = User::factory()->create(['is_admin' => false]);
+    $project = Project::factory()->create();
+
+    $this->actingAs($manager);
+
+    Livewire::test(ProjectShow::class, ['project' => $project])
+        ->set('activeTab', 'access')
+        ->set('selectedAccessUserId', (string) $targetUser->id)
+        ->set('selectedAccessPermissionKeys', ['projects.view', 'projects.edit'])
+        ->call('grantProjectAccess')
+        ->assertHasNoErrors();
+
+    $assignment = ProjectUserAccess::query()
+        ->where('project_id', $project->id)
+        ->where('user_id', $targetUser->id)
+        ->first();
+
+    expect($assignment)->not->toBeNull()
+        ->and($assignment?->permission_keys)->toContain('projects.view')
+        ->and($assignment?->permission_keys)->toContain('projects.edit');
+});
+
 /**
  * @param  array<int, string>  $permissions
  */

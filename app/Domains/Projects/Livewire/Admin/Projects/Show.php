@@ -28,6 +28,11 @@ class Show extends Component
 
     public string $selectedAccessUserId = '';
 
+    /**
+     * @var array<int, string>
+     */
+    public array $selectedAccessPermissionKeys = ['projects.view'];
+
     #[Url(as: 'tab')]
     public string $activeTab = 'overview';
 
@@ -92,6 +97,8 @@ class Show extends Component
 
         $validated = $this->validate([
             'selectedAccessUserId' => ['required', 'string', 'exists:users,id'],
+            'selectedAccessPermissionKeys' => ['required', 'array', 'min:1'],
+            'selectedAccessPermissionKeys.*' => ['string', 'in:projects.view,projects.edit,projects.delete'],
         ]);
 
         $userToGrant = User::query()->findOrFail($validated['selectedAccessUserId']);
@@ -102,10 +109,11 @@ class Show extends Component
             $this->project,
             $userToGrant,
             $actor,
-            ['projects.view']
+            $validated['selectedAccessPermissionKeys']
         );
 
         $this->selectedAccessUserId = '';
+        $this->selectedAccessPermissionKeys = ['projects.view'];
     }
 
     public function revokeProjectAccess(string $userId): void
@@ -151,12 +159,15 @@ class Show extends Component
         $accessAssignments = collect();
         $assignableUsers = collect();
 
+        $availableAccessPermissionOptions = [];
         if (in_array('access', $tabs, true)) {
             $accessAssignments = ProjectUserAccess::query()
                 ->with(['user:id,first_name,last_name,email', 'grantedBy:id,first_name,last_name'])
                 ->where('project_id', $this->project->id)
                 ->latest()
                 ->get();
+
+            $availableAccessPermissionOptions = app(ProjectAccessService::class)->availablePermissionOptions();
 
             if ($user->hasPermission('project-access.grant')) {
                 $assignedUserIds = $accessAssignments
@@ -235,6 +246,7 @@ class Show extends Component
             'documentCount' => $documentCount,
             'accessAssignments' => $accessAssignments,
             'assignableUsers' => $assignableUsers,
+            'availableAccessPermissionOptions' => $availableAccessPermissionOptions,
         ]);
     }
 }

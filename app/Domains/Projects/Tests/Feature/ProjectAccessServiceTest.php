@@ -78,6 +78,36 @@ it('enforces scoped access entries on project view route when configured', funct
         ->assertForbidden();
 });
 
+it('enforces scoped edit permission on admin project edit route when project access is scoped', function (): void {
+    $actor = userWithAccessPermissions(['projects.view', 'projects.edit', 'project-access.grant']);
+    $restrictedEditor = userWithAccessPermissions(['projects.view', 'projects.edit']);
+    $project = Project::factory()->create();
+
+    app(ProjectAccessService::class)->grant($project, $restrictedEditor, $actor, ['projects.view']);
+
+    $this->actingAs($restrictedEditor)
+        ->get(route('admin.projects.edit', $project))
+        ->assertForbidden();
+
+    app(ProjectAccessService::class)->grant($project, $restrictedEditor, $actor, ['projects.view', 'projects.edit']);
+
+    $this->actingAs($restrictedEditor)
+        ->get(route('admin.projects.edit', $project))
+        ->assertSuccessful();
+});
+
+it('checks scoped permission keys through service', function (): void {
+    $actor = userWithAccessPermissions(['projects.view', 'project-access.grant']);
+    $member = userWithAccessPermissions(['projects.view']);
+    $project = Project::factory()->create();
+
+    $service = app(ProjectAccessService::class);
+    $service->grant($project, $member, $actor, ['projects.view']);
+
+    expect($service->hasScopedPermission($project, $member, 'projects.view'))->toBeTrue()
+        ->and($service->hasScopedPermission($project, $member, 'projects.edit'))->toBeFalse();
+});
+
 /**
  * @param  array<int, string>  $permissions
  */

@@ -120,16 +120,28 @@
             @if (auth()->user()?->hasPermission('project-access.grant'))
                 <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="grid gap-3 md:grid-cols-[2fr_1fr]">
-                        <flux:field>
-                            <flux:label>Grant Access To User</flux:label>
-                            <flux:select wire:model.live="selectedAccessUserId">
-                                <option value="">Select a user</option>
-                                @foreach ($assignableUsers as $assignableUser)
-                                    <option value="{{ $assignableUser->id }}">{{ trim($assignableUser->first_name.' '.$assignableUser->last_name) }} ({{ $assignableUser->email }})</option>
+                        <div class="space-y-3">
+                            <flux:field>
+                                <flux:label>Grant Access To User</flux:label>
+                                <flux:select wire:model.live="selectedAccessUserId">
+                                    <option value="">Select a user</option>
+                                    @foreach ($assignableUsers as $assignableUser)
+                                        <option value="{{ $assignableUser->id }}">{{ trim($assignableUser->first_name.' '.$assignableUser->last_name) }} ({{ $assignableUser->email }})</option>
+                                    @endforeach
+                                </flux:select>
+                                <flux:error name="selectedAccessUserId" />
+                            </flux:field>
+
+                            <div class="grid gap-2 sm:grid-cols-3">
+                                @foreach ($availableAccessPermissionOptions as $permissionKey => $permissionLabel)
+                                    <flux:field>
+                                        <flux:checkbox wire:model.live="selectedAccessPermissionKeys" value="{{ $permissionKey }}" :label="$permissionLabel" />
+                                    </flux:field>
                                 @endforeach
-                            </flux:select>
-                            <flux:error name="selectedAccessUserId" />
-                        </flux:field>
+                            </div>
+                            <flux:error name="selectedAccessPermissionKeys" />
+                            <flux:error name="selectedAccessPermissionKeys.*" />
+                        </div>
 
                         <div class="flex items-end">
                             <flux:button wire:click="grantProjectAccess" variant="primary" class="w-full">Grant Project Access</flux:button>
@@ -163,6 +175,11 @@
                                     </td>
                                     <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $assignment->created_at?->format('M j, Y g:i A') ?? '—' }}</td>
                                     <td class="px-4 py-3 text-right align-top">
+                                        <div class="mb-2 flex flex-wrap justify-end gap-1">
+                                            @foreach (($assignment->permission_keys ?? []) as $permissionKey)
+                                                <span class="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $permissionKey }}</span>
+                                            @endforeach
+                                        </div>
                                         @if (auth()->user()?->hasPermission('project-access.revoke'))
                                             <flux:button size="sm" variant="ghost" wire:click="revokeProjectAccess('{{ $assignment->user_id }}')">Revoke</flux:button>
                                         @endif
