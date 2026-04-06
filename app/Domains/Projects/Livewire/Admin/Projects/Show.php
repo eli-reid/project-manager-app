@@ -2,10 +2,13 @@
 
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
+use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Models\ProjectUserAccess;
+use App\Domains\Projects\Services\ProjectAccessService;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Tasks\Models\Task;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -22,6 +25,8 @@ class Show extends Component
     use AuthorizesRequests;
 
     public Project $project;
+
+    public string $selectedAccessUserId = '';
 
     #[Url(as: 'tab')]
     public string $activeTab = 'overview';
@@ -73,11 +78,68 @@ class Show extends Component
             $tabs[] = 'documents';
         }
 
+        if ($this->canViewProjectAccessTab()) {
+            $tabs[] = 'access';
+        }
+
         return $tabs;
+    }
+
+    public function grantProjectAccess(): void
+    {
+        $actor = Auth::user();
+        abort_unless($actor instanceof User && $actor->hasPermission('project-access.grant'), 403);
+
+        $validated = $this->validate([
+            'selectedAccessUserId' => ['required', 'string', 'exists:users,id'],
+        ]);
+
+        $userToGrant = User::query()->findOrFail($validated['selectedAccessUserId']);
+
+        $projectAccessService = app(ProjectAccessService::class);
+
+        $projectAccessService->grant(
+            $this->project,
+            $userToGrant,
+            $actor,
+            ['projects.view']
+        );
+
+        $this->selectedAccessUserId = '';
+    }
+
+    public function revokeProjectAccess(string $userId): void
+    {
+        $actor = Auth::user();
+        abort_unless($actor instanceof User && $actor->hasPermission('project-access.revoke'), 403);
+
+        $projectAccessService = app(ProjectAccessService::class);
+
+        $userToRevoke = User::query()->find($userId);
+        if (! $userToRevoke instanceof User) {
+            return;
+        }
+
+        $projectAccessService->revoke($this->project, $userToRevoke, $actor);
+    }
+
+    private function canViewProjectAccessTab(): bool
+    {
+        $user = Auth::user();
+
+        return $user?->hasPermission('project-access.view')
+            || $user?->hasPermission('project-access.grant')
+            || $user?->hasPermission('project-access.revoke')
+            || $user?->hasPermission('project-access.manage');
     }
 
     public function render()
     {
+        $user = Auth::user();
+        abort_unless($user !== null, 401);
+
+        $tabs = $this->tabs();
+
         $dailyCount = 0;
         $projectDailies = collect();
         $invoiceCount = 0;
@@ -86,7 +148,33 @@ class Show extends Component
         $projectStockOrders = collect();
         $documentCount = 0;
 
-        if (in_array('dailies', $this->tabs(), true)) {
+        $accessAssignments = collect();
+        $assignableUsers = collect();
+
+        if (in_array('access', $tabs, true)) {
+            $accessAssignments = ProjectUserAccess::query()
+                ->with(['user:id,first_name,last_name,email', 'grantedBy:id,first_name,last_name'])
+                ->where('project_id', $this->project->id)
+                ->latest()
+                ->get();
+
+            if ($user->hasPermission('project-access.grant')) {
+                $assignedUserIds = $accessAssignments
+                    ->pluck('user_id')
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                $assignableUsers = User::query()
+                    ->where('is_active', true)
+                    ->whereNotIn('id', $assignedUserIds)
+                    ->orderBy('first_name')
+                    ->orderBy('last_name')
+                    ->get(['id', 'first_name', 'last_name', 'email']);
+            }
+        }
+
+        if (in_array('dailies', $tabs, true)) {
             $dailyCount = $this->project->dailyReports()->count();
 
             if ($this->activeTab === 'dailies') {
@@ -98,7 +186,7 @@ class Show extends Component
             }
         }
 
-        if (in_array('invoices', $this->tabs(), true)) {
+        if (in_array('invoices', $tabs, true)) {
             $invoiceCount = Invoice::query()
                 ->where('project_id', $this->project->id)
                 ->count();
@@ -112,7 +200,7 @@ class Show extends Component
             }
         }
 
-        if (in_array('stock', $this->tabs(), true)) {
+        if (in_array('stock', $tabs, true)) {
             $stockOrderCount = StockOrder::query()
                 ->where('project_id', $this->project->id)
                 ->count();
@@ -128,7 +216,7 @@ class Show extends Component
             }
         }
 
-        if (in_array('documents', $this->tabs(), true)) {
+        if (in_array('documents', $tabs, true)) {
             $documentCount = Document::query()
                 ->projectOwned()
                 ->ownedByProject((string) $this->project->id)
@@ -136,7 +224,7 @@ class Show extends Component
         }
 
         return view('projects::livewire.admin.projects.show', [
-            'tabs' => $this->tabs(),
+            'tabs' => $tabs,
             'dailyCount' => $dailyCount,
             'projectDailies' => $projectDailies,
             'taskCount' => Task::query()->where('project_id', $this->project->id)->count(),
@@ -145,6 +233,8 @@ class Show extends Component
             'stockOrderCount' => $stockOrderCount,
             'projectStockOrders' => $projectStockOrders,
             'documentCount' => $documentCount,
+            'accessAssignments' => $accessAssignments,
+            'assignableUsers' => $assignableUsers,
         ]);
     }
 }

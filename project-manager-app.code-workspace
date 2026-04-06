@@ -9,11 +9,10 @@
 	],
 	"settings": {
 		"chat.tools.terminal.autoApprove": {
-
 			"php artisan test": true,
-
 			"vendor/bin/pint": true,
-
+			"Push-Location": true,
+			"Pop-Location": true
 		}
 	}
 }
