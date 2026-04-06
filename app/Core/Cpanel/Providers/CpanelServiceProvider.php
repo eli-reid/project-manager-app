@@ -14,8 +14,8 @@ use App\Core\Cpanel\Livewire\Admin\EmailManagement\DomainForwarders as EmailMana
 use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\User\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;

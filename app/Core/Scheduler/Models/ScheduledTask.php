@@ -2,8 +2,8 @@
 
 namespace App\Core\Scheduler\Models;
 
+use App\Core\Identity\Models\User;
 use App\Core\Scheduler\Services\ScheduledTaskService;
-use App\Core\User\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

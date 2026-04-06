@@ -2,8 +2,8 @@
 
 namespace App\Domains\Dailies\Livewire\User\Dailies;
 
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Services\DailyReportLifecycleService;

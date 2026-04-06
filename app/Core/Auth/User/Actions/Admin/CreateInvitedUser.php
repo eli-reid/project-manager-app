@@ -2,8 +2,8 @@
 
 namespace App\Core\Auth\User\Actions\Admin;
 
-use App\Core\User\Models\User;
-use App\Core\User\Notifications\UserInvitationNotification;
+use App\Core\Identity\Models\User;
+use App\Core\Identity\Notifications\UserInvitationNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 

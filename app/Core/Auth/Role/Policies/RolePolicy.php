@@ -3,7 +3,7 @@
 namespace App\Core\Auth\Role\Policies;
 
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 
 class RolePolicy
 {

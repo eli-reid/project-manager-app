@@ -5,7 +5,7 @@ namespace App\Core\Auth\Permission\Services;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;

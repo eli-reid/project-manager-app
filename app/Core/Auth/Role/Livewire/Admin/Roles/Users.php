@@ -3,7 +3,7 @@
 namespace App\Core\Auth\Role\Livewire\Admin\Roles;
 
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;

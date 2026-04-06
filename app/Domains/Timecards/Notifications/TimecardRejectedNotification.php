@@ -2,9 +2,9 @@
 
 namespace App\Domains\Timecards\Notifications;
 
+use App\Core\Identity\Models\User;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Services\NotificationPreferenceService;
-use App\Core\User\Models\User;
 use App\Domains\Timecards\Models\Timecard;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

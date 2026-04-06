@@ -1,7 +1,7 @@
 <?php
 
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Models\SettingsSqlite;
-use App\Core\User\Models\User;
 use Illuminate\Support\Facades\Gate;
 
 it('allows admins to view and update settings', function () {

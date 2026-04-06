@@ -2,7 +2,7 @@
 
 namespace App\Domains\Dailies\Services;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Models\DailyReport;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;

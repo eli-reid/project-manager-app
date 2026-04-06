@@ -4,7 +4,7 @@ namespace App\Core\Announcement\Database\Factories;
 
 use App\Core\Announcement\Enums\AnnouncementType;
 use App\Core\Announcement\Models\Announcement;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Stock\Models;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Database\Factories\StockOrderFactory;
 use Illuminate\Database\Eloquent\Builder;

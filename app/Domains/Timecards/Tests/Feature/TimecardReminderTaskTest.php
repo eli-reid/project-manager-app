@@ -1,10 +1,10 @@
 <?php
 
+use App\Core\Identity\Models\User;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Notifications\TimecardReminderNotification;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Dailies\Database\Factories;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;

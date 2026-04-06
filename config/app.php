@@ -1,9 +1,9 @@
 <?php
 
 use App\Core\Announcement\Providers\AnnouncementServiceProvider;
+use App\Core\Identity\Providers\FortifyServiceProvider;
+use App\Core\Identity\Providers\UserServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
-use App\Core\User\Providers\FortifyServiceProvider;
-use App\Core\User\Providers\UserServiceProvider;
 use App\Providers\AppServiceProvider;
 use Illuminate\Auth\AuthServiceProvider;
 use Illuminate\Auth\Passwords\PasswordResetServiceProvider;

@@ -2,8 +2,8 @@
 
 namespace App\Domains\Projects\Models;
 
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;

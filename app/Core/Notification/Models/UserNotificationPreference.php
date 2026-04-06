@@ -2,8 +2,8 @@
 
 namespace App\Core\Notification\Models;
 
+use App\Core\Identity\Models\User;
 use App\Core\Notification\Database\Factories\UserNotificationPreferenceFactory;
-use App\Core\User\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

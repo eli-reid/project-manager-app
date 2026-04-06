@@ -2,8 +2,8 @@
 
 namespace App\Domains\Documents\Services;
 
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Http\UploadedFile;

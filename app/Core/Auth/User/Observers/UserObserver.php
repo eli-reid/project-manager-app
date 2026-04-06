@@ -3,7 +3,7 @@
 namespace App\Core\Auth\User\Observers;
 
 use App\Core\Cpanel\Services\CpanelMailboxManager;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 
 class UserObserver
 {

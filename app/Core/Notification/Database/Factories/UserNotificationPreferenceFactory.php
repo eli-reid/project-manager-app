@@ -2,8 +2,8 @@
 
 namespace App\Core\Notification\Database\Factories;
 
+use App\Core\Identity\Models\User;
 use App\Core\Notification\Models\UserNotificationPreference;
-use App\Core\User\Models\User;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

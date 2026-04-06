@@ -2,7 +2,7 @@
 
 namespace App\Domains\Stock\Policies;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Stock\Models\StockOrder;
 
 class StockOrderPolicy

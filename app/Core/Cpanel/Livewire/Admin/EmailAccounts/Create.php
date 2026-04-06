@@ -5,7 +5,7 @@ namespace App\Core\Cpanel\Livewire\Admin\EmailAccounts;
 use App\Core\Cpanel\Models\CachedEmailAccount;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;

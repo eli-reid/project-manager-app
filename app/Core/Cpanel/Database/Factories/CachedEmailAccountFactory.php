@@ -3,7 +3,7 @@
 namespace App\Core\Cpanel\Database\Factories;
 
 use App\Core\Cpanel\Models\CachedEmailAccount;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

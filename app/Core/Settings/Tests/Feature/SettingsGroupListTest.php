@@ -1,8 +1,8 @@
 <?php
 
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Livewire\SettingsGroupList;
 use App\Core\Settings\Models\SettingsSqlite;
-use App\Core\User\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Livewire;

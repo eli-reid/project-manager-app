@@ -8,7 +8,7 @@ use App\Core\Auth\Role\Livewire\Admin\Roles\Index;
 use App\Core\Auth\Role\Livewire\Admin\Roles\Users;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\Role\Policies\RolePolicy;
-use App\Core\User\Permissions\RolePermissions;
+use App\Core\Identity\Permissions\RolePermissions;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;

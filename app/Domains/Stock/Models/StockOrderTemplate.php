@@ -2,7 +2,7 @@
 
 namespace App\Domains\Stock\Models;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Stock\Database\Factories\StockOrderTemplateFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

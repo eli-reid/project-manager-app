@@ -2,7 +2,7 @@
 
 namespace App\Domains\Dailies\Models;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Database\Factories\DailyReportFactory;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

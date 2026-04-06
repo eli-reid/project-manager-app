@@ -7,7 +7,7 @@ use App\Core\Cpanel\Livewire\Admin\EmailAccounts\Show as EmailAccountsShow;
 use App\Core\Cpanel\Livewire\Admin\EmailManagement\Dashboard;
 use App\Core\Cpanel\Livewire\Admin\EmailManagement\DomainForwarders as EmailManagementDomainForwarders;
 use App\Core\Cpanel\Models\CachedEmailAccount;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;

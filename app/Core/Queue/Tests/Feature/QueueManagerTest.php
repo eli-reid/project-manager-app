@@ -1,11 +1,11 @@
 <?php
 
+use App\Core\Identity\Models\User;
 use App\Core\Queue\Listeners\RecordQueueJobHistory;
 use App\Core\Queue\Models\FailedJob;
 use App\Core\Queue\Models\QueueJob;
 use App\Core\Queue\Models\QueueJobHistory;
 use App\Core\Queue\Services\QueueManagerService;
-use App\Core\User\Models\User;
 use Illuminate\Contracts\Queue\Job as QueueContractJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Events\JobProcessed;

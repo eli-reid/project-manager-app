@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Http;
 
 use function Pest\Laravel\actingAs;

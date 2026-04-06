@@ -3,7 +3,7 @@
 namespace App\Core\Cpanel\Http\Controllers\Admin;
 
 use App\Core\Cpanel\Services\CpanelMailboxManager;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 

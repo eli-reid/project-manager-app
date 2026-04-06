@@ -4,7 +4,7 @@ namespace App\Core\Auth\User\Livewire\Admin\Users;
 
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\User\Actions\Admin\CreateInvitedUser;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;

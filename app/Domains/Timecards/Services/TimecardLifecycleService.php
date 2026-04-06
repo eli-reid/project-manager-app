@@ -2,7 +2,7 @@
 
 namespace App\Domains\Timecards\Services;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Notifications\TimecardApprovedNotification;
 use App\Domains\Timecards\Notifications\TimecardRejectedNotification;

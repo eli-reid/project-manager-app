@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 
 it('registers admin settings route names for navigation and browser testing', function () {
     expect(route('admin.settings.index', absolute: false))->toBe('/admin/settings')

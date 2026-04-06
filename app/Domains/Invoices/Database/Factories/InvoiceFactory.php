@@ -2,7 +2,7 @@
 
 namespace App\Domains\Invoices\Database\Factories;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;

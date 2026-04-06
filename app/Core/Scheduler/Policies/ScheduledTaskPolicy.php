@@ -2,8 +2,8 @@
 
 namespace App\Core\Scheduler\Policies;
 
+use App\Core\Identity\Models\User;
 use App\Core\Scheduler\Models\ScheduledTask;
-use App\Core\User\Models\User;
 
 class ScheduledTaskPolicy
 {

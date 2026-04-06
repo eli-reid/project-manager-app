@@ -2,8 +2,8 @@
 
 namespace App\Core\Settings\Policies;
 
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Models\SettingsSqlite;
-use App\Core\User\Models\User;
 
 class SettingPolicy
 {

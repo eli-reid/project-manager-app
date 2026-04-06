@@ -2,7 +2,7 @@
 
 namespace App\Domains\Tasks\Models;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Tasks\Database\Factories\TaskTemplateFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

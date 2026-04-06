@@ -1,10 +1,10 @@
 <?php
 
+use App\Core\Identity\Models\User;
 use App\Core\Notification\Livewire\Settings\Preferences;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use Livewire\Livewire;
 

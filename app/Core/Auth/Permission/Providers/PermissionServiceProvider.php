@@ -5,7 +5,7 @@ namespace App\Core\Auth\Permission\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Permission\Services\PermissionRegistry;
-use App\Core\User\Permissions\FoundationPermissions;
+use App\Core\Identity\Permissions\FoundationPermissions;
 use Illuminate\Support\ServiceProvider;
 
 class PermissionServiceProvider extends ServiceProvider

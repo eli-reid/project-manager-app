@@ -2,7 +2,7 @@
 
 namespace App\Domains\Addresses\Policies;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Addresses\Models\Address;
 
 class AddressPolicy

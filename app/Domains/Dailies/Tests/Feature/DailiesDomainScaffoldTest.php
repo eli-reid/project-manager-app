@@ -3,7 +3,7 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Index as AdminIndex;
 use App\Domains\Dailies\Livewire\User\Dailies\Index as UserIndex;
 use App\Domains\Dailies\Models\DailyReport;
@@ -88,35 +88,37 @@ it('renders user dailies livewire index for authorized users', function (): void
 /**
  * @param  array<int, string>  $permissions
  */
-function userWithDailiesPermissions(array $permissions): User
-{
-    app(DomainPermissionSynchronizer::class)->sync();
+if (! function_exists('userWithDailiesPermissions')) {
+    function userWithDailiesPermissions(array $permissions): User
+    {
+        app(DomainPermissionSynchronizer::class)->sync();
 
-    $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->create(['is_admin' => false]);
 
-    $role = Role::query()->create([
-        'name' => 'Dailies Test Role '.str()->uuid(),
-        'description' => 'Role for dailies domain tests',
-        'is_active' => true,
-        'built_in' => false,
-        'access_level' => 20,
-    ]);
+        $role = Role::query()->create([
+            'name' => 'Dailies Test Role '.str()->uuid(),
+            'description' => 'Role for dailies domain tests',
+            'is_active' => true,
+            'built_in' => false,
+            'access_level' => 20,
+        ]);
 
-    $permissionIds = collect($permissions)
-        ->map(function (string $permission): ?string {
-            [$resource, $action] = explode('.', $permission, 2);
+        $permissionIds = collect($permissions)
+            ->map(function (string $permission): ?string {
+                [$resource, $action] = explode('.', $permission, 2);
 
-            return Permission::query()
-                ->where('resource', $resource)
-                ->where('action', $action)
-                ->value('id');
-        })
-        ->filter()
-        ->values()
-        ->all();
+                return Permission::query()
+                    ->where('resource', $resource)
+                    ->where('action', $action)
+                    ->value('id');
+            })
+            ->filter()
+            ->values()
+            ->all();
 
-    $role->permissions()->sync($permissionIds);
-    $user->roles()->sync([$role->id]);
+        $role->permissions()->sync($permissionIds);
+        $user->roles()->sync([$role->id]);
 
-    return $user->fresh();
+        return $user->fresh();
+    }
 }

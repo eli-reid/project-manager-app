@@ -3,7 +3,7 @@
 namespace App\Core\Auth\User\Database\Seeders;
 
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 

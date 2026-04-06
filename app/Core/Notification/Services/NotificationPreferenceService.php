@@ -3,12 +3,12 @@
 namespace App\Core\Notification\Services;
 
 use App\Core\Audit\Services\AuditLogger;
+use App\Core\Identity\Models\User;
 use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 

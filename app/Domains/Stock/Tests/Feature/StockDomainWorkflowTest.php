@@ -3,7 +3,7 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Livewire\Admin\StockOrders\Show as AdminShow;
 use App\Domains\Stock\Livewire\User\StockOrders\Form as UserForm;

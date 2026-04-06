@@ -3,7 +3,7 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Clients\Livewire\Admin\Clients\Form;
 use App\Domains\Clients\Livewire\Admin\Clients\InlineCreateWidget;
 use App\Domains\Clients\Models\Client;

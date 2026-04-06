@@ -2,7 +2,7 @@
 
 namespace App\Domains\Invoices\Policies;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Invoices\Models\Invoice;
 
 class InvoicePolicy

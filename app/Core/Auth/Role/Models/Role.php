@@ -3,7 +3,7 @@
 namespace App\Core\Auth\Role\Models;
 
 use App\Core\Auth\Permission\Models\Permission;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

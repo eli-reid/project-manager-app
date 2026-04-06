@@ -4,7 +4,7 @@ namespace App\Core\Cpanel\Jobs;
 
 use App\Core\Cpanel\Models\CachedEmailAccount;
 use App\Core\Cpanel\Services\CpanelService;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

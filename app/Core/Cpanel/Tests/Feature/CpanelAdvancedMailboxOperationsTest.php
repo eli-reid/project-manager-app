@@ -3,7 +3,8 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -31,15 +32,13 @@ function grantCpanelPermission(User $user): void
 beforeEach(function () {
     app(DomainPermissionSynchronizer::class)->sync();
 
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'port' => 2083,
-        'verify_ssl' => true,
-        'default_email_quota' => 250,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.port', '2083');
+    Settings::set('cpanel.verify_ssl', 'true');
+    Settings::set('cpanel.default_email_quota', '250');
 });
 
 it('resets mailbox password through admin endpoint', function () {

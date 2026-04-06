@@ -2,7 +2,7 @@
 
 namespace App\Domains\Tasks\Livewire\Admin\Tasks;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;

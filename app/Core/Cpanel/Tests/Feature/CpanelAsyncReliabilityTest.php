@@ -2,23 +2,22 @@
 
 use App\Core\Cpanel\Jobs\PerformMailboxWriteOperation;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
 it('queues write-side lifecycle mailbox operations when queueing is enabled', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'auto_create_emails' => true,
-        'auto_delete_emails' => true,
-        'queue_write_operations' => true,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.auto_create_emails', 'true');
+    Settings::set('cpanel.auto_delete_emails', 'true');
+    Settings::set('cpanel.queue_write_operations', 'true');
+    Settings::set('cpanel.verify_ssl', 'true');
 
     Queue::fake();
 
@@ -41,16 +40,15 @@ it('queues write-side lifecycle mailbox operations when queueing is enabled', fu
 });
 
 it('deduplicates repeated delete operations within idempotency window', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'auto_delete_emails' => true,
-        'queue_write_operations' => false,
-        'idempotency_ttl_seconds' => 300,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.auto_create_emails', 'false');
+    Settings::set('cpanel.auto_delete_emails', 'true');
+    Settings::set('cpanel.queue_write_operations', 'false');
+    Settings::set('cpanel.idempotency_ttl_seconds', '300');
+    Settings::set('cpanel.verify_ssl', 'true');
 
     Http::preventStrayRequests();
     Http::fake([
@@ -84,18 +82,17 @@ it('deduplicates repeated delete operations within idempotency window', function
 it('opens cooldown and tracks telemetry counters on repeated failures', function () {
     $prefix = 'cpanel.telemetry.test.'.uniqid('', true);
 
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'auto_delete_emails' => true,
-        'queue_write_operations' => false,
-        'failure_threshold' => 1,
-        'cooldown_seconds' => 120,
-        'telemetry_key_prefix' => $prefix,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.auto_create_emails', 'false');
+    Settings::set('cpanel.auto_delete_emails', 'true');
+    Settings::set('cpanel.queue_write_operations', 'false');
+    Settings::set('cpanel.failure_threshold', '1');
+    Settings::set('cpanel.cooldown_seconds', '120');
+    Settings::set('cpanel.telemetry_key_prefix', $prefix);
+    Settings::set('cpanel.verify_ssl', 'true');
 
     Http::preventStrayRequests();
     Http::fake([
@@ -129,15 +126,13 @@ it('opens cooldown and tracks telemetry counters on repeated failures', function
 });
 
 it('throws transient mailbox failures in queued execution to trigger retries', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'queue_write_operations' => false,
-        'failure_threshold' => 10,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.queue_write_operations', 'false');
+    Settings::set('cpanel.failure_threshold', '10');
+    Settings::set('cpanel.verify_ssl', 'true');
 
     Http::preventStrayRequests();
     Http::fake([
@@ -154,7 +149,7 @@ it('throws transient mailbox failures in queued execution to trigger retries', f
         operation: CpanelMailboxManager::OPERATION_DELETE,
         payload: ['email' => 'jane@example.test'],
         fromQueue: true,
-    ))->toThrow(\RuntimeException::class);
+    ))->toThrow(RuntimeException::class);
 });
 
 it('uses configured queue tries and backoff values for mailbox jobs', function () {

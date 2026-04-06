@@ -2,8 +2,8 @@
 
 use App\Core\Cpanel\Jobs\SyncEmailAccountsJob;
 use App\Core\Cpanel\Models\CachedEmailAccount;
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;

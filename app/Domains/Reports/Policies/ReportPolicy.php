@@ -2,7 +2,7 @@
 
 namespace App\Domains\Reports\Policies;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 
 class ReportPolicy
 {

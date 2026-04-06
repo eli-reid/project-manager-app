@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\User\Middleware\EnsurePasswordChanged;
+use App\Core\Identity\Middleware\EnsurePasswordChanged;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;

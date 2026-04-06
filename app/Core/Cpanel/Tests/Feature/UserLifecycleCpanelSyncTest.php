@@ -1,14 +1,13 @@
 <?php
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 it('sets company_email from username during user creation', function () {
-    config()->set('services.cpanel', [
-        'domain' => 'example.test',
-        'auto_create_emails' => false,
-    ]);
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.auto_create_emails', 'false');
 
     $user = User::factory()->create([
         'username' => 'jane',
@@ -19,16 +18,14 @@ it('sets company_email from username during user creation', function () {
 });
 
 it('provisions cpanel mailbox when auto-create is enabled', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'auto_create_emails' => true,
-        'auto_delete_emails' => true,
-        'default_email_quota' => 250,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.auto_create_emails', 'true');
+    Settings::set('cpanel.auto_delete_emails', 'true');
+    Settings::set('cpanel.default_email_quota', '250');
+    Settings::set('cpanel.verify_ssl', 'true');
 
     Http::preventStrayRequests();
     Http::fake([
@@ -53,15 +50,13 @@ it('provisions cpanel mailbox when auto-create is enabled', function () {
 });
 
 it('deletes cpanel mailbox when user is deleted and auto-delete is enabled', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'auto_create_emails' => false,
-        'auto_delete_emails' => true,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.auto_create_emails', 'false');
+    Settings::set('cpanel.auto_delete_emails', 'true');
+    Settings::set('cpanel.verify_ssl', 'true');
 
     Http::preventStrayRequests();
     Http::fake([

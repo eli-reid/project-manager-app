@@ -3,8 +3,8 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Core\User\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 

@@ -7,7 +7,7 @@ use App\Core\Announcement\Models\Announcement;
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Livewire\Livewire;
 
 it('allows users with announcement view permission to access the admin index', function (): void {

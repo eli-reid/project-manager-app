@@ -2,7 +2,7 @@
 
 namespace App\Domains\Timecards\Models;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Database\Factories\TimecardEntryFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

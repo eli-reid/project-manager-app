@@ -2,7 +2,7 @@
 
 namespace App\Domains\Documents\Policies;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 

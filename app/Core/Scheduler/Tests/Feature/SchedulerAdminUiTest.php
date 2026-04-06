@@ -3,12 +3,12 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
+use App\Core\Identity\Models\User;
 use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
-use App\Core\User\Models\User;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 

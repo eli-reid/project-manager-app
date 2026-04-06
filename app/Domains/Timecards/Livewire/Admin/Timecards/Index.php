@@ -2,7 +2,7 @@
 
 namespace App\Domains\Timecards\Livewire\Admin\Timecards;
 
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;

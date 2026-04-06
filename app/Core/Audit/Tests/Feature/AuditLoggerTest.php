@@ -2,7 +2,7 @@
 
 use App\Core\Audit\Models\AuditLog;
 use App\Core\Audit\Services\AuditLogger;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 
 use function Pest\Laravel\actingAs;
 

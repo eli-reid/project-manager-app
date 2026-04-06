@@ -4,7 +4,7 @@ namespace App\Core\Auth\Role\Livewire\Admin\Roles;
 
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;

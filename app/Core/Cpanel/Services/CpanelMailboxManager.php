@@ -3,7 +3,7 @@
 namespace App\Core\Cpanel\Services;
 
 use App\Core\Cpanel\Jobs\PerformMailboxWriteOperation;
-use App\Core\User\Models\User;
+use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;

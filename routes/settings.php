@@ -1,11 +1,11 @@
 <?php
 
+use App\Core\Identity\Livewire\Auth\ForcePasswordChange;
+use App\Core\Identity\Livewire\Settings\Appearance;
+use App\Core\Identity\Livewire\Settings\Password;
+use App\Core\Identity\Livewire\Settings\Profile;
+use App\Core\Identity\Livewire\Settings\TwoFactor;
 use App\Core\Notification\Livewire\Settings\Preferences as NotificationPreferences;
-use App\Core\User\Livewire\Auth\ForcePasswordChange;
-use App\Core\User\Livewire\Settings\Appearance;
-use App\Core\User\Livewire\Settings\Password;
-use App\Core\User\Livewire\Settings\Profile;
-use App\Core\User\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
