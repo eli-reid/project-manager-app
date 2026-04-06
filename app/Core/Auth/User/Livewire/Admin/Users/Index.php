@@ -4,6 +4,7 @@ namespace App\Core\Auth\User\Livewire\Admin\Users;
 
 use App\Core\Identity\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -33,7 +34,7 @@ class Index extends Component
         $user = User::query()->findOrFail($userId);
         $this->authorize('update', $user);
 
-        if ((string) $user->id === (string) auth()->id()) {
+        if ((string) $user->id === (string) Auth::id()) {
             session()->flash('error', 'You cannot disable your own account.');
 
             return;
@@ -48,8 +49,10 @@ class Index extends Component
     {
         $user = User::query()->findOrFail($userId);
         $this->authorize('delete', $user);
-
-        if ((string) $user->id === (string) auth()->id()) {
+        /**
+         * Prevent users from deleting their own account to avoid accidental lockout.
+         */
+        if ((string) $user->id === (string) Auth::id()) {
             session()->flash('error', 'You cannot delete your own account.');
 
             return;

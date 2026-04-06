@@ -19,6 +19,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Throwable;
 
 /**
+ * @property string $id
  * @mixin IdeHelperUser
  */
 class User extends Authenticatable
