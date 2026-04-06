@@ -25,6 +25,16 @@ it('redirects guests from domain admin routes', function (): void {
         ->assertRedirect(route('login'));
 });
 
+it('redirects guests from user project routes', function (): void {
+    $project = Project::factory()->create();
+
+    $this->get(route('projects.index'))
+        ->assertRedirect(route('login'));
+
+    $this->get(route('projects.show', $project))
+        ->assertRedirect(route('login'));
+});
+
 it('forbids authenticated users without domain permissions', function (): void {
     $user = User::factory()->create(['is_admin' => false]);
 
@@ -39,6 +49,58 @@ it('forbids authenticated users without domain permissions', function (): void {
     $this->actingAs($user)
         ->get(route('admin.addresses.index'))
         ->assertForbidden();
+});
+
+it('forbids authenticated users without project view permission from user project routes', function (): void {
+    $project = Project::factory()->create();
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertForbidden();
+
+    $this->actingAs($user)
+        ->get(route('projects.show', $project))
+        ->assertForbidden();
+});
+
+it('shows only active and open projects by default on user project list', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    $visibleProject = Project::factory()->create([
+        'name' => 'Open Job Visible',
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $closedProject = Project::factory()->create([
+        'name' => 'Closed Job Hidden',
+        'status' => 'completed',
+        'is_active' => true,
+    ]);
+
+    $inactiveProject = Project::factory()->create([
+        'name' => 'Inactive Job Hidden',
+        'status' => 'active',
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee('Open Job Visible')
+        ->assertDontSee('Closed Job Hidden')
+        ->assertDontSee('Inactive Job Hidden');
+
+    $this->actingAs($user)
+        ->get(route('projects.show', $visibleProject))
+        ->assertSuccessful()
+        ->assertSee('Open Job Visible');
+
+    expect($closedProject->exists)->toBeTrue()
+        ->and($inactiveProject->exists)->toBeTrue();
 });
 
 it('allows users with domain view permissions to access scaffold routes', function (): void {

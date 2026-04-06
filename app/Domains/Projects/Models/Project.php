@@ -140,6 +140,11 @@ class Project extends Model
         return $this->hasMany(DailyReport::class);
     }
 
+    public function userAccesses(): HasMany
+    {
+        return $this->hasMany(ProjectUserAccess::class);
+    }
+
     protected static function newFactory(): ProjectFactory
     {
         return ProjectFactory::new();

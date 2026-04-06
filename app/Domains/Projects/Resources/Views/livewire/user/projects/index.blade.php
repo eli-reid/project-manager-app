@@ -1,0 +1,63 @@
+<section class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <flux:heading size="xl">{{ __('Projects') }}</flux:heading>
+            <flux:text class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                {{ __('Browse active projects and open details for work across tasks, dailies, documents, and costs.') }}
+            </flux:text>
+        </div>
+    </div>
+
+    <div class="grid gap-3 md:grid-cols-[2fr_1fr]">
+        <flux:field>
+            <flux:label>{{ __('Search') }}</flux:label>
+            <flux:input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('Project name or number') }}" />
+        </flux:field>
+
+        <flux:field class="self-end">
+            <flux:checkbox wire:model.live="includeClosed" :label="__('Include closed projects')" />
+        </flux:field>
+    </div>
+
+    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                <thead class="bg-zinc-50 dark:bg-zinc-800/50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Client') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project Manager') }}</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                    @forelse ($projects as $project)
+                        <tr wire:key="user-project-{{ $project->id }}">
+                            <td class="px-4 py-3 align-top">
+                                <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</div>
+                                <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $project->project_number ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->client?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->projectManager?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 text-right align-top">
+                                <flux:button size="sm" variant="ghost" :href="route('projects.show', $project)">
+                                    {{ __('Open') }}
+                                </flux:button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No projects found for the selected filters.') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+            {{ $projects->links() }}
+        </div>
+    </div>
+</section>
