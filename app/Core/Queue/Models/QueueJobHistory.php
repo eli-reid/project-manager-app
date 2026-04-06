@@ -5,6 +5,9 @@ namespace App\Core\Queue\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperQueueJobHistory
+ */
 class QueueJobHistory extends Model
 {
     use HasUlids;

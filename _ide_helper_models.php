@@ -25,7 +25,7 @@ namespace App\Core\Announcement\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
- * @property-read \App\Core\User\Models\User $creator
+ * @property-read \App\Core\Identity\Models\User $creator
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement active()
  * @method static \App\Core\Announcement\Database\Factories\AnnouncementFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement newModelQuery()
@@ -52,6 +52,102 @@ namespace App\Core\Announcement\Models{
 	class IdeHelperAnnouncement {}
 }
 
+namespace App\Core\Audit\Models{
+/**
+ * @property string $id
+ * @property string $action
+ * @property string|null $actor_type
+ * @property string|null $actor_id
+ * @property string|null $target_type
+ * @property string|null $target_id
+ * @property array<array-key, mixed>|null $before
+ * @property array<array-key, mixed>|null $after
+ * @property array<array-key, mixed>|null $metadata
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property \Carbon\CarbonImmutable $created_at
+ * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $actor
+ * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $target
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereAction($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereActorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereActorType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereAfter($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereBefore($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereMetadata($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereTargetId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereTargetType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereUserAgent($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperAuditLog {}
+}
+
+namespace App\Core\Auth\Permission\Models{
+/**
+ * @property string $id
+ * @property string $resource
+ * @property string $action
+ * @property string $label
+ * @property string|null $description
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read string $name
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
+ * @property-read int|null $roles_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereAction($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereLabel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereResource($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperPermission {}
+}
+
+namespace App\Core\Auth\Role\Models{
+/**
+ * @property string $id
+ * @property string $name
+ * @property string|null $description
+ * @property bool $is_active
+ * @property bool $built_in
+ * @property int $access_level
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Permission\Models\Permission> $permissions
+ * @property-read int|null $permissions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Identity\Models\User> $users
+ * @property-read int|null $users_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereAccessLevel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereBuiltIn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperRole {}
+}
+
 namespace App\Core\Cpanel\Models{
 /**
  * @property string $id
@@ -68,7 +164,7 @@ namespace App\Core\Cpanel\Models{
  * @property string|null $sync_error
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read \App\Core\User\Models\User|null $user
+ * @property-read \App\Core\Identity\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount active()
  * @method static \App\Core\Cpanel\Database\Factories\CachedEmailAccountFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount forDomain(string $domain)
@@ -98,17 +194,201 @@ namespace App\Core\Cpanel\Models{
 	class IdeHelperCachedEmailAccount {}
 }
 
+namespace App\Core\Identity\Models{
+/**
+ * @property string $id
+ * @property string $first_name
+ * @property string $last_name
+ * @property string $username
+ * @property string $email
+ * @property \Carbon\CarbonImmutable|null $email_verified_at
+ * @property string $password
+ * @property bool $is_admin
+ * @property bool $is_built_in
+ * @property bool $is_active
+ * @property bool $password_change_required
+ * @property string|null $two_factor_secret
+ * @property string|null $two_factor_recovery_codes
+ * @property string|null $two_factor_confirmed_at
+ * @property string|null $remember_token
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Notification\Models\UserNotificationPreference> $notificationPreferences
+ * @property-read int|null $notification_preferences_count
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
+ * @property-read int|null $roles_count
+ * @method static \App\Core\Auth\User\Database\Factories\UserFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereFirstName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsAdmin($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsBuiltIn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePasswordChangeRequired($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorConfirmedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorRecoveryCodes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorSecret($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperUser {}
+}
+
 namespace App\Core\Notification\Models{
 /**
- * @property-read \App\Core\User\Models\User|null $user
+ * @property string $id
+ * @property string $user_id
+ * @property string $notification_key
+ * @property string $channel
+ * @property bool $enabled
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Core\Identity\Models\User $user
  * @method static \App\Core\Notification\Database\Factories\UserNotificationPreferenceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereChannel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereEnabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereNotificationKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereUserId($value)
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperUserNotificationPreference {}
+}
+
+namespace App\Core\Queue\Models{
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property string $connection
+ * @property string $queue
+ * @property string $payload
+ * @property string $exception
+ * @property string $failed_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereConnection($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereException($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereFailedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob wherePayload($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereQueue($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereUuid($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperFailedJob {}
+}
+
+namespace App\Core\Queue\Models{
+/**
+ * @property int $id
+ * @property string $name
+ * @property int $total_jobs
+ * @property int $pending_jobs
+ * @property int $failed_jobs
+ * @property string $failed_job_ids
+ * @property string|null $options
+ * @property int|null $cancelled_at
+ * @property int $created_at
+ * @property int|null $finished_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereFailedJobIds($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereFailedJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereFinishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereOptions($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch wherePendingJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereTotalJobs($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperJobBatch {}
+}
+
+namespace App\Core\Queue\Models{
+/**
+ * @property int $id
+ * @property string $queue
+ * @property string $payload
+ * @property int $attempts
+ * @property int|null $reserved_at
+ * @property int $available_at
+ * @property int $created_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereAttempts($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereAvailableAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob wherePayload($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereQueue($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereReservedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperQueueJob {}
+}
+
+namespace App\Core\Queue\Models{
+/**
+ * @property string $id
+ * @property string|null $job_uuid
+ * @property string $job_class
+ * @property string $queue
+ * @property string $connection
+ * @property int $attempt
+ * @property string $status
+ * @property \Carbon\CarbonImmutable $started_at
+ * @property \Carbon\CarbonImmutable|null $finished_at
+ * @property int|null $duration_ms
+ * @property string|null $exception
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereAttempt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereConnection($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereDurationMs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereException($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereFinishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereJobClass($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereJobUuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereQueue($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperQueueJobHistory {}
 }
 
 namespace App\Core\Scheduler\Models{
@@ -170,8 +450,8 @@ namespace App\Core\Scheduler\Models{
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property string|null $available_task_id
  * @property-read \App\Core\Scheduler\Models\AvailableTask|null $availableTask
- * @property-read \App\Core\User\Models\User|null $creator
- * @property-read \App\Core\User\Models\User|null $updater
+ * @property-read \App\Core\Identity\Models\User|null $creator
+ * @property-read \App\Core\Identity\Models\User|null $updater
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask due()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask enabled()
@@ -252,117 +532,6 @@ namespace App\Core\Settings\Models{
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperSettingsSqlite {}
-}
-
-namespace App\Core\User\Models{
-/**
- * @property string $id
- * @property string $resource
- * @property string $action
- * @property string $label
- * @property string|null $description
- * @property \Carbon\CarbonImmutable|null $created_at
- * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read string $name
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
- * @property-read int|null $roles_count
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereAction($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereLabel($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereResource($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereUpdatedAt($value)
- * @mixin \Eloquent
- */
-	#[\AllowDynamicProperties]
-	class IdeHelperPermission {}
-}
-
-namespace App\Core\User\Models{
-/**
- * @property string $id
- * @property string $name
- * @property string|null $description
- * @property bool $is_active
- * @property bool $built_in
- * @property int $access_level
- * @property \Carbon\CarbonImmutable|null $created_at
- * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Permission\Models\Permission> $permissions
- * @property-read int|null $permissions_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\User> $users
- * @property-read int|null $users_count
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereAccessLevel($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereBuiltIn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereIsActive($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereUpdatedAt($value)
- * @mixin \Eloquent
- */
-	#[\AllowDynamicProperties]
-	class IdeHelperRole {}
-}
-
-namespace App\Core\User\Models{
-/**
- * @property string $id
- * @property string $first_name
- * @property string $last_name
- * @property string $username
- * @property string $email
- * @property \Carbon\CarbonImmutable|null $email_verified_at
- * @property string $password
- * @property bool $is_admin
- * @property bool $is_built_in
- * @property bool $is_active
- * @property bool $password_change_required
- * @property string|null $two_factor_secret
- * @property string|null $two_factor_recovery_codes
- * @property string|null $two_factor_confirmed_at
- * @property string|null $remember_token
- * @property \Carbon\CarbonImmutable|null $created_at
- * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Notification\Models\UserNotificationPreference> $notificationPreferences
- * @property-read int|null $notification_preferences_count
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
- * @property-read int|null $notifications_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
- * @property-read int|null $roles_count
- * @method static \App\Core\User\Database\Factories\UserFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereFirstName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsActive($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsAdmin($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsBuiltIn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePasswordChangeRequired($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorConfirmedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorRecoveryCodes($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorSecret($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
- * @mixin \Eloquent
- */
-	#[\AllowDynamicProperties]
-	class IdeHelperUser {}
 }
 
 namespace App\Domains\Addresses\Models{
@@ -472,8 +641,8 @@ namespace App\Domains\Dailies\Models{
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
  * @property-read \App\Domains\Projects\Models\Project|null $project
- * @property-read \App\Core\User\Models\User|null $submittedBy
- * @property-read \App\Core\User\Models\User $user
+ * @property-read \App\Core\Identity\Models\User|null $submittedBy
+ * @property-read \App\Core\Identity\Models\User $user
  * @method static \App\Domains\Dailies\Database\Factories\DailyReportFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport newQuery()
@@ -534,9 +703,9 @@ namespace App\Domains\Documents\Models{
  * @property \Carbon\CarbonImmutable|null $deleted_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\Project> $ownerProjects
  * @property-read int|null $owner_projects_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\User\Models\User> $ownerUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Identity\Models\User> $ownerUsers
  * @property-read int|null $owner_users_count
- * @property-read \App\Core\User\Models\User|null $uploadedBy
+ * @property-read \App\Core\Identity\Models\User|null $uploadedBy
  * @method static \App\Domains\Documents\Database\Factories\DocumentFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document global()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newModelQuery()
@@ -594,11 +763,11 @@ namespace App\Domains\Invoices\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
- * @property-read \App\Core\User\Models\User $creator
+ * @property-read \App\Core\Identity\Models\User $creator
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Invoices\Models\InvoiceLineItem> $lineItems
  * @property-read int|null $line_items_count
  * @property-read \App\Domains\Projects\Models\Project|null $project
- * @property-read \App\Core\User\Models\User|null $verifier
+ * @property-read \App\Core\Identity\Models\User|null $verifier
  * @method static \App\Domains\Invoices\Database\Factories\InvoiceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice newQuery()
@@ -684,7 +853,7 @@ namespace App\Domains\Projects\Models{
  * @property-read \App\Domains\Clients\Models\Client|null $client
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Dailies\Models\DailyReport> $dailyReports
  * @property-read int|null $daily_reports_count
- * @property-read \App\Core\User\Models\User|null $projectManager
+ * @property-read \App\Core\Identity\Models\User|null $projectManager
  * @method static \App\Domains\Projects\Database\Factories\ProjectFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newQuery()
@@ -727,7 +896,7 @@ namespace App\Domains\Stock\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Stock\Models\StockOrderItem> $items
  * @property-read int|null $items_count
  * @property-read \App\Domains\Projects\Models\Project|null $project
- * @property-read \App\Core\User\Models\User|null $user
+ * @property-read \App\Core\Identity\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder byStatus(string $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder byUrgency(string $urgency)
  * @method static \App\Domains\Stock\Database\Factories\StockOrderFactory factory($count = null, $state = [])
@@ -797,7 +966,7 @@ namespace App\Domains\Stock\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
- * @property-read \App\Core\User\Models\User|null $createdBy
+ * @property-read \App\Core\Identity\Models\User|null $createdBy
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate availableToUser(string $userId)
  * @method static \App\Domains\Stock\Database\Factories\StockOrderTemplateFactory factory($count = null, $state = [])
@@ -845,7 +1014,7 @@ namespace App\Domains\Tasks\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
- * @property-read \App\Core\User\Models\User|null $assignedTo
+ * @property-read \App\Core\Identity\Models\User|null $assignedTo
  * @property-read \App\Domains\Tasks\Models\TaskCategory|null $category
  * @property-read Task|null $parentTask
  * @property-read \App\Domains\Projects\Models\Project|null $project
@@ -940,7 +1109,7 @@ namespace App\Domains\Tasks\Models{
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
  * @property-read \App\Domains\Tasks\Models\TaskCategory|null $category
- * @property-read \App\Core\User\Models\User|null $creator
+ * @property-read \App\Core\Identity\Models\User|null $creator
  * @method static \App\Domains\Tasks\Database\Factories\TaskTemplateFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskTemplate newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskTemplate newQuery()
@@ -984,11 +1153,11 @@ namespace App\Domains\Timecards\Models{
  * @property string|null $rejection_reason
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read \App\Core\User\Models\User|null $approver
+ * @property-read \App\Core\Identity\Models\User|null $approver
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Timecards\Models\TimecardEntry> $entries
  * @property-read int|null $entries_count
- * @property-read \App\Core\User\Models\User|null $rejector
- * @property-read \App\Core\User\Models\User $user
+ * @property-read \App\Core\Identity\Models\User|null $rejector
+ * @property-read \App\Core\Identity\Models\User $user
  * @method static \App\Domains\Timecards\Database\Factories\TimecardFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard newQuery()
@@ -1029,7 +1198,7 @@ namespace App\Domains\Timecards\Models{
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property-read \App\Domains\Projects\Models\Project|null $project
  * @property-read \App\Domains\Timecards\Models\Timecard $timecard
- * @property-read \App\Core\User\Models\User $user
+ * @property-read \App\Core\Identity\Models\User $user
  * @method static \App\Domains\Timecards\Database\Factories\TimecardEntryFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry newQuery()

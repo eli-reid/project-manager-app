@@ -4,6 +4,9 @@ namespace App\Core\Queue\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperQueueJob
+ */
 class QueueJob extends Model
 {
     protected $table = 'jobs';
