@@ -6,6 +6,8 @@ use App\Core\Audit\Services\AuditLogger;
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectUserAccess;
+use App\Domains\Projects\Notifications\ProjectAccessGrantedNotification;
+use App\Domains\Projects\Notifications\ProjectAccessRevokedNotification;
 
 class ProjectAccessService
 {
@@ -69,6 +71,8 @@ class ProjectAccessService
             'assignee_user_id' => (string) $user->id,
         ], $actor);
 
+        $user->notify(new ProjectAccessGrantedNotification($project));
+
         return $access;
     }
 
@@ -91,6 +95,8 @@ class ProjectAccessService
             'after' => null,
             'assignee_user_id' => (string) $user->id,
         ], $actor);
+
+        $user->notify(new ProjectAccessRevokedNotification($project));
     }
 
     public function hasAccess(Project $project, User $user): bool

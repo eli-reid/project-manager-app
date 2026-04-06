@@ -5,9 +5,13 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectUserAccess;
+use App\Domains\Projects\Notifications\ProjectAccessGrantedNotification;
+use App\Domains\Projects\Notifications\ProjectAccessRevokedNotification;
 use App\Domains\Projects\Services\ProjectAccessService;
+use Illuminate\Support\Facades\Notification;
 
 it('grants project access and records an audit log', function (): void {
     $actor = userWithAccessPermissions(['projects.view', 'project-access.grant']);
@@ -106,6 +110,41 @@ it('checks scoped permission keys through service', function (): void {
 
     expect($service->hasScopedPermission($project, $member, 'projects.view'))->toBeTrue()
         ->and($service->hasScopedPermission($project, $member, 'projects.edit'))->toBeFalse();
+});
+
+it('dispatches a granted notification to the assignee when access is granted', function (): void {
+    Notification::fake();
+
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
+
+    $actor = userWithAccessPermissions(['projects.view', 'project-access.grant']);
+    $assignee = User::factory()->create(['is_admin' => false]);
+    $project = Project::factory()->create();
+
+    app(ProjectAccessService::class)->grant($project, $assignee, $actor, ['projects.view']);
+
+    Notification::assertSentTo($assignee, ProjectAccessGrantedNotification::class, function (ProjectAccessGrantedNotification $notification) use ($project): bool {
+        return $notification->project->id === $project->id;
+    });
+});
+
+it('dispatches a revoked notification to the assignee when access is revoked', function (): void {
+    Notification::fake();
+
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database"]');
+
+    $actor = userWithAccessPermissions(['projects.view', 'project-access.grant', 'project-access.revoke']);
+    $assignee = User::factory()->create(['is_admin' => false]);
+    $project = Project::factory()->create();
+
+    app(ProjectAccessService::class)->grant($project, $assignee, $actor, ['projects.view']);
+    app(ProjectAccessService::class)->revoke($project, $assignee, $actor);
+
+    Notification::assertSentTo($assignee, ProjectAccessRevokedNotification::class, function (ProjectAccessRevokedNotification $notification) use ($project): bool {
+        return $notification->project->id === $project->id;
+    });
 });
 
 /**

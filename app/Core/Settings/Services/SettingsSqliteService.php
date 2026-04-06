@@ -51,7 +51,7 @@ class SettingsSqliteService
     /**
      * Get a specific setting value with .env fallback and decryption
      */
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, mixed $default = null): SettingValue
     {
         // Check if we should use .env file in development mode
         if ($this->shouldUseEnvInDev()) {
@@ -60,11 +60,20 @@ class SettingsSqliteService
 
         try {
             // Use cache to fetch the setting
-            return $this->cache->remember("setting.{$key}", function () use ($key, $default) {
+            $cached = $this->cache->remember("setting.{$key}", function () use ($key, $default) {
                 $setting = $this->repository->find($key);
 
                 return new SettingValue($setting?->value ?? $default);
             });
+
+            // Guard against stale cache entries that stored raw values instead of SettingValue objects
+            if (! $cached instanceof SettingValue) {
+                $this->cache->forget("setting.{$key}");
+
+                return new SettingValue($cached);
+            }
+
+            return $cached;
         } catch (\Exception $e) {
             $this->safeLog('debug', "SQLite settings error for '{$key}': ".$e->getMessage());
 
