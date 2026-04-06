@@ -14,6 +14,20 @@ use Illuminate\Support\Str;
 
 class NotificationPreferenceService
 {
+    public function notificationPreferenceFor(User $user, string $notificationKey, string $channel): ?bool
+    {
+        $preference = $user->notificationPreferences()
+            ->where('notification_key', $notificationKey)
+            ->where('channel', $channel)
+            ->first();
+
+        if ($preference === null) {
+            return null;
+        }
+
+        return (bool) $preference->enabled;
+    }
+
     /**
      * @return array<int, array{key:string,label:string,description:string,channels:array<int, array{key:string,label:string,enabled:bool,supported:bool}>}>
      */
