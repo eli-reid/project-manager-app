@@ -634,18 +634,62 @@ class CpanelService
             ];
         }
 
+        $atPos = strrpos($email, '@');
+        if ($atPos === false) {
+            return [
+                'success' => false,
+                'message' => 'Invalid email address.',
+            ];
+        }
+
+        $loginPart = substr($email, 0, $atPos);
+        $domainPart = substr($email, $atPos + 1);
+
         try {
-            $result = $this->request('Session', 'create_webmail_session_for_self', 'post', ['user' => $email]);
+            $result = $this->request('Session', 'create_webmail_session_for_mail_user', 'get', [
+                'login' => $loginPart,
+                'domain' => $domainPart,
+            ]);
+
             $url = (string) ($result['data']['url'] ?? '');
 
-            if ($url === '') {
-                $url = $this->webmailRedirectUrl($email);
+            if ($url !== '') {
+                return [
+                    'success' => true,
+                    'message' => 'Webmail session created successfully.',
+                    'url' => $url,
+                ];
+            }
+
+            $token = trim((string) ($result['data']['token'] ?? ''));
+            $session = trim((string) ($result['data']['session'] ?? ''));
+
+            if ($token !== '' && $session !== '') {
+                $responseHostname = trim((string) ($result['data']['hostname'] ?? ''));
+
+                if ($responseHostname !== '') {
+                    $baseUrl = 'https://'.$responseHostname.':'.$this->config->webmailPort;
+                } else {
+                    $baseUrl = $this->config->webmailBaseUrl();
+                    if (parse_url($baseUrl, PHP_URL_PORT) === null) {
+                        $baseUrl .= ':'.$this->config->webmailPort;
+                    }
+                }
+
+                $loginUrl = rtrim($baseUrl, '/').'/'.ltrim($token, '/').'/login';
+
+                return [
+                    'success' => true,
+                    'message' => 'Webmail session created successfully.',
+                    'login_url' => $loginUrl,
+                    'session' => $session,
+                ];
             }
 
             return [
                 'success' => true,
                 'message' => 'Webmail session created successfully.',
-                'url' => $url,
+                'url' => $this->webmailRedirectUrl($email),
             ];
         } catch (CpanelRequestException $exception) {
             return $this->requestErrorResponse($exception, 'Failed to create webmail session.');

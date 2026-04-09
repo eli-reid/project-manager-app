@@ -7,6 +7,7 @@ use App\Core\Cpanel\Services\CpanelService;
 use App\Core\Identity\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class WebmailController
 {
@@ -15,7 +16,7 @@ class WebmailController
         protected CpanelMailboxManager $mailboxManager
     ) {}
 
-    public function redirect(Request $request): RedirectResponse
+    public function redirect(Request $request): RedirectResponse|Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -34,6 +35,14 @@ class WebmailController
         }
 
         $result = $this->cpanelService->createWebmailSession($companyEmail);
+
+        if ($result['success'] && isset($result['login_url'], $result['session'])) {
+            return response(view('cpanel::webmail.auto-login', [
+                'loginUrl' => $result['login_url'],
+                'session' => $result['session'],
+            ]));
+        }
+
         if ($result['success'] && isset($result['url'])) {
             return redirect()->away($result['url']);
         }

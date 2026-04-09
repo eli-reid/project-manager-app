@@ -3,8 +3,10 @@
 namespace App\Domains\Projects\Services;
 
 use App\Core\Audit\Services\AuditLogger;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Models\ProjectRoleAccess;
 use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Notifications\ProjectAccessGrantedNotification;
 use App\Domains\Projects\Notifications\ProjectAccessRevokedNotification;
@@ -34,20 +36,7 @@ class ProjectAccessService
 
     public function grant(Project $project, User $user, User $actor, array $permissionKeys = []): ProjectUserAccess
     {
-        $sanitizedPermissionKeys = collect($permissionKeys)
-            ->filter(fn (mixed $permission): bool => is_string($permission) && $permission !== '')
-            ->filter(fn (string $permission): bool => in_array($permission, self::SUPPORTED_PERMISSION_KEYS, true))
-            ->unique()
-            ->values()
-            ->all();
-
-        if ($sanitizedPermissionKeys === []) {
-            $sanitizedPermissionKeys = ['projects.view'];
-        }
-
-        if (! in_array('projects.view', $sanitizedPermissionKeys, true)) {
-            $sanitizedPermissionKeys[] = 'projects.view';
-        }
+        $sanitizedPermissionKeys = $this->sanitizePermissionKeys($permissionKeys);
 
         $existing = ProjectUserAccess::query()
             ->where('project_id', $project->id)
@@ -76,6 +65,35 @@ class ProjectAccessService
         return $access;
     }
 
+    public function grantRole(Project $project, Role $role, User $actor, array $permissionKeys = []): ProjectRoleAccess
+    {
+        $sanitizedPermissionKeys = $this->sanitizePermissionKeys($permissionKeys);
+
+        $existing = ProjectRoleAccess::query()
+            ->where('project_id', $project->id)
+            ->where('role_id', $role->id)
+            ->first();
+
+        $access = ProjectRoleAccess::query()->updateOrCreate(
+            [
+                'project_id' => $project->id,
+                'role_id' => $role->id,
+            ],
+            [
+                'granted_by' => $actor->id,
+                'permission_keys' => $sanitizedPermissionKeys,
+            ]
+        );
+
+        app(AuditLogger::class)->record('project-access.grant-role', $project, [
+            'before' => $existing ? $this->roleSnapshot($existing) : null,
+            'after' => $this->roleSnapshot($access),
+            'assignee_role_id' => (string) $role->id,
+        ], $actor);
+
+        return $access;
+    }
+
     public function revoke(Project $project, User $user, User $actor): void
     {
         $access = ProjectUserAccess::query()
@@ -99,6 +117,27 @@ class ProjectAccessService
         $user->notify(new ProjectAccessRevokedNotification($project));
     }
 
+    public function revokeRole(Project $project, Role $role, User $actor): void
+    {
+        $access = ProjectRoleAccess::query()
+            ->where('project_id', $project->id)
+            ->where('role_id', $role->id)
+            ->first();
+
+        if ($access === null) {
+            return;
+        }
+
+        $before = $this->roleSnapshot($access);
+        $access->delete();
+
+        app(AuditLogger::class)->record('project-access.revoke-role', $project, [
+            'before' => $before,
+            'after' => null,
+            'assignee_role_id' => (string) $role->id,
+        ], $actor);
+    }
+
     public function hasAccess(Project $project, User $user): bool
     {
         return ProjectUserAccess::query()
@@ -109,29 +148,71 @@ class ProjectAccessService
 
     public function hasScopedPermission(Project $project, User $user, string $permissionKey): bool
     {
-        $access = ProjectUserAccess::query()
+        $hasDirectPermission = ProjectUserAccess::query()
             ->where('project_id', $project->id)
             ->where('user_id', $user->id)
-            ->first();
+            ->whereJsonContains('permission_keys', $permissionKey)
+            ->exists();
 
-        if ($access === null) {
+        if ($hasDirectPermission) {
+            return true;
+        }
+
+        $roleIds = $this->activeRoleIdsFor($user);
+        if ($roleIds === []) {
             return false;
         }
 
-        $permissionKeys = collect($access->permission_keys ?? [])
-            ->filter(fn (mixed $permission): bool => is_string($permission) && $permission !== '')
-            ->unique()
-            ->values()
-            ->all();
-
-        return in_array($permissionKey, $permissionKeys, true);
+        return ProjectRoleAccess::query()
+            ->where('project_id', $project->id)
+            ->whereIn('role_id', $roleIds)
+            ->whereJsonContains('permission_keys', $permissionKey)
+            ->exists();
     }
 
     public function projectUsesScopedAccess(Project $project): bool
     {
         return ProjectUserAccess::query()
             ->where('project_id', $project->id)
-            ->exists();
+            ->exists()
+            || ProjectRoleAccess::query()
+                ->where('project_id', $project->id)
+                ->exists();
+    }
+
+    /**
+     * @param  array<int, mixed>  $permissionKeys
+     * @return array<int, string>
+     */
+    private function sanitizePermissionKeys(array $permissionKeys): array
+    {
+        $sanitizedPermissionKeys = collect($permissionKeys)
+            ->filter(fn (mixed $permission): bool => is_string($permission) && $permission !== '')
+            ->filter(fn (string $permission): bool => in_array($permission, self::SUPPORTED_PERMISSION_KEYS, true))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($sanitizedPermissionKeys === []) {
+            $sanitizedPermissionKeys = ['projects.view'];
+        }
+
+        if (! in_array('projects.view', $sanitizedPermissionKeys, true)) {
+            $sanitizedPermissionKeys[] = 'projects.view';
+        }
+
+        return $sanitizedPermissionKeys;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function activeRoleIdsFor(User $user): array
+    {
+        return $user->roles()
+            ->where('is_active', true)
+            ->pluck('roles.id')
+            ->all();
     }
 
     /**
@@ -142,6 +223,19 @@ class ProjectAccessService
         return [
             'project_id' => (string) $access->project_id,
             'user_id' => (string) $access->user_id,
+            'granted_by' => $access->granted_by !== null ? (string) $access->granted_by : null,
+            'permission_keys' => collect($access->permission_keys ?? [])->values()->all(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function roleSnapshot(ProjectRoleAccess $access): array
+    {
+        return [
+            'project_id' => (string) $access->project_id,
+            'role_id' => (string) $access->role_id,
             'granted_by' => $access->granted_by !== null ? (string) $access->granted_by : null,
             'permission_keys' => collect($access->permission_keys ?? [])->values()->all(),
         ];

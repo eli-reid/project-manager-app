@@ -2,11 +2,13 @@
 
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Models\ProjectRoleAccess;
 use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Services\ProjectAccessService;
 use App\Domains\Stock\Models\StockOrder;
@@ -27,6 +29,8 @@ class Show extends Component
     public Project $project;
 
     public string $selectedAccessUserId = '';
+
+    public string $selectedAccessRoleId = '';
 
     /**
      * @var array<int, string>
@@ -131,6 +135,43 @@ class Show extends Component
         $projectAccessService->revoke($this->project, $userToRevoke, $actor);
     }
 
+    public function grantProjectRoleAccess(): void
+    {
+        $actor = Auth::user();
+        abort_unless($actor instanceof User && $actor->hasPermission('project-access.grant'), 403);
+
+        $validated = $this->validate([
+            'selectedAccessRoleId' => ['required', 'string', 'exists:roles,id'],
+            'selectedAccessPermissionKeys' => ['required', 'array', 'min:1'],
+            'selectedAccessPermissionKeys.*' => ['string', 'in:projects.view,projects.edit,projects.delete'],
+        ]);
+
+        $roleToGrant = Role::query()->findOrFail($validated['selectedAccessRoleId']);
+
+        app(ProjectAccessService::class)->grantRole(
+            $this->project,
+            $roleToGrant,
+            $actor,
+            $validated['selectedAccessPermissionKeys']
+        );
+
+        $this->selectedAccessRoleId = '';
+        $this->selectedAccessPermissionKeys = ['projects.view'];
+    }
+
+    public function revokeProjectRoleAccess(string $roleId): void
+    {
+        $actor = Auth::user();
+        abort_unless($actor instanceof User && $actor->hasPermission('project-access.revoke'), 403);
+
+        $roleToRevoke = Role::query()->find($roleId);
+        if (! $roleToRevoke instanceof Role) {
+            return;
+        }
+
+        app(ProjectAccessService::class)->revokeRole($this->project, $roleToRevoke, $actor);
+    }
+
     private function canViewProjectAccessTab(): bool
     {
         $user = Auth::user();
@@ -157,12 +198,20 @@ class Show extends Component
         $documentCount = 0;
 
         $accessAssignments = collect();
+        $roleAccessAssignments = collect();
         $assignableUsers = collect();
+        $assignableRoles = collect();
 
         $availableAccessPermissionOptions = [];
         if (in_array('access', $tabs, true)) {
             $accessAssignments = ProjectUserAccess::query()
                 ->with(['user:id,first_name,last_name,email', 'grantedBy:id,first_name,last_name'])
+                ->where('project_id', $this->project->id)
+                ->latest()
+                ->get();
+
+            $roleAccessAssignments = ProjectRoleAccess::query()
+                ->with(['role:id,name,is_active', 'grantedBy:id,first_name,last_name'])
                 ->where('project_id', $this->project->id)
                 ->latest()
                 ->get();
@@ -182,6 +231,18 @@ class Show extends Component
                     ->orderBy('first_name')
                     ->orderBy('last_name')
                     ->get(['id', 'first_name', 'last_name', 'email']);
+
+                $assignedRoleIds = $roleAccessAssignments
+                    ->pluck('role_id')
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                $assignableRoles = Role::query()
+                    ->where('is_active', true)
+                    ->whereNotIn('id', $assignedRoleIds)
+                    ->orderBy('name')
+                    ->get(['id', 'name']);
             }
         }
 
@@ -245,7 +306,9 @@ class Show extends Component
             'projectStockOrders' => $projectStockOrders,
             'documentCount' => $documentCount,
             'accessAssignments' => $accessAssignments,
+            'roleAccessAssignments' => $roleAccessAssignments,
             'assignableUsers' => $assignableUsers,
+            'assignableRoles' => $assignableRoles,
             'availableAccessPermissionOptions' => $availableAccessPermissionOptions,
         ]);
     }

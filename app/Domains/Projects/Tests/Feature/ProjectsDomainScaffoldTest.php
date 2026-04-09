@@ -64,13 +64,21 @@ it('forbids authenticated users without project view permission from user projec
         ->assertForbidden();
 });
 
-it('shows only active and open projects by default on user project list', function (): void {
+it('shows only assigned active and open projects by default on user project list', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
     ]);
 
     $visibleProject = Project::factory()->create([
         'name' => 'Open Job Visible',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $unassignedOpenProject = Project::factory()->create([
+        'name' => 'Open Job Unassigned Hidden',
+        'project_manager_id' => null,
         'status' => 'in_progress',
         'is_active' => true,
     ]);
@@ -91,6 +99,7 @@ it('shows only active and open projects by default on user project list', functi
         ->get(route('projects.index'))
         ->assertSuccessful()
         ->assertSee('Open Job Visible')
+        ->assertDontSee('Open Job Unassigned Hidden')
         ->assertDontSee('Closed Job Hidden')
         ->assertDontSee('Inactive Job Hidden');
 
@@ -100,7 +109,8 @@ it('shows only active and open projects by default on user project list', functi
         ->assertSee('Open Job Visible');
 
     expect($closedProject->exists)->toBeTrue()
-        ->and($inactiveProject->exists)->toBeTrue();
+        ->and($inactiveProject->exists)->toBeTrue()
+        ->and($unassignedOpenProject->exists)->toBeTrue();
 });
 
 it('allows users with domain view permissions to access scaffold routes', function (): void {

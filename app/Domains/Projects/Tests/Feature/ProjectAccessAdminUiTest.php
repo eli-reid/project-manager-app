@@ -6,6 +6,7 @@ use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Livewire\Admin\Projects\Show as ProjectShow;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Models\ProjectRoleAccess;
 use App\Domains\Projects\Models\ProjectUserAccess;
 use Livewire\Livewire;
 
@@ -86,6 +87,48 @@ it('stores selected project action permissions when granting access from admin u
     expect($assignment)->not->toBeNull()
         ->and($assignment?->permission_keys)->toContain('projects.view')
         ->and($assignment?->permission_keys)->toContain('projects.edit');
+});
+
+it('grants and revokes role-based project access from the admin project show component', function (): void {
+    $manager = userWithProjectAccessUiPermissions([
+        'projects.view',
+        'project-access.view',
+        'project-access.grant',
+        'project-access.revoke',
+    ]);
+
+    $project = Project::factory()->create();
+
+    $role = Role::query()->create([
+        'name' => 'Project Group '.str()->uuid(),
+        'description' => 'Role-based project access group',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 15,
+    ]);
+
+    $this->actingAs($manager);
+
+    $component = Livewire::test(ProjectShow::class, ['project' => $project])
+        ->set('activeTab', 'access')
+        ->set('selectedAccessRoleId', (string) $role->id)
+        ->set('selectedAccessPermissionKeys', ['projects.view', 'projects.edit'])
+        ->call('grantProjectRoleAccess')
+        ->assertHasNoErrors();
+
+    expect(ProjectRoleAccess::query()
+        ->where('project_id', $project->id)
+        ->where('role_id', $role->id)
+        ->exists())->toBeTrue();
+
+    $component
+        ->call('revokeProjectRoleAccess', (string) $role->id)
+        ->assertHasNoErrors();
+
+    expect(ProjectRoleAccess::query()
+        ->where('project_id', $project->id)
+        ->where('role_id', $role->id)
+        ->exists())->toBeFalse();
 });
 
 /**

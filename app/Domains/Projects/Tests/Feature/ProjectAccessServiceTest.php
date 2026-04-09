@@ -7,6 +7,7 @@ use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Models\ProjectRoleAccess;
 use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Notifications\ProjectAccessGrantedNotification;
 use App\Domains\Projects\Notifications\ProjectAccessRevokedNotification;
@@ -82,6 +83,82 @@ it('enforces scoped access entries on project view route when configured', funct
         ->assertForbidden();
 });
 
+it('enforces scoped access entries through role-based project access', function (): void {
+    $actor = userWithAccessPermissions(['projects.view', 'project-access.grant']);
+    $allowedUser = userWithAccessPermissions(['projects.view']);
+    $blockedUser = userWithAccessPermissions(['projects.view']);
+    $project = Project::factory()->create();
+
+    $role = Role::query()->create([
+        'name' => 'Scoped Access Role '.str()->uuid(),
+        'description' => 'Role for scoped project access visibility',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 10,
+    ]);
+
+    $allowedUser->roles()->syncWithoutDetaching([$role->id]);
+
+    app(ProjectAccessService::class)->grantRole($project, $role, $actor, ['projects.view']);
+
+    $this->actingAs($allowedUser)
+        ->get(route('projects.show', $project))
+        ->assertSuccessful();
+
+    $this->actingAs($blockedUser)
+        ->get(route('projects.show', $project))
+        ->assertForbidden();
+});
+
+it('shows assigned projects by default and supports broader permitted visibility filter', function (): void {
+    $user = userWithAccessPermissions(['projects.view']);
+
+    $assignedProject = Project::factory()->create([
+        'name' => 'Assigned Open Project',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $permittedProject = Project::factory()->create([
+        'name' => 'Permitted Open Project',
+        'project_manager_id' => null,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee($assignedProject->name)
+        ->assertDontSee($permittedProject->name);
+
+    $this->actingAs($user)
+        ->get(route('projects.index', ['visibility' => 'permitted']))
+        ->assertSuccessful()
+        ->assertSee($assignedProject->name)
+        ->assertSee($permittedProject->name);
+});
+
+it('hides scoped projects from broader permitted visibility when user has no scoped assignment', function (): void {
+    $actor = userWithAccessPermissions(['projects.view', 'project-access.grant']);
+    $currentUser = userWithAccessPermissions(['projects.view']);
+    $otherUser = userWithAccessPermissions(['projects.view']);
+
+    $scopedProject = Project::factory()->create([
+        'name' => 'Scoped Hidden Project',
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    app(ProjectAccessService::class)->grant($scopedProject, $otherUser, $actor, ['projects.view']);
+
+    $this->actingAs($currentUser)
+        ->get(route('projects.index', ['visibility' => 'permitted']))
+        ->assertSuccessful()
+        ->assertDontSee('Scoped Hidden Project');
+});
+
 it('enforces scoped edit permission on admin project edit route when project access is scoped', function (): void {
     $actor = userWithAccessPermissions(['projects.view', 'projects.edit', 'project-access.grant']);
     $restrictedEditor = userWithAccessPermissions(['projects.view', 'projects.edit']);
@@ -127,6 +204,33 @@ it('dispatches a granted notification to the assignee when access is granted', f
     Notification::assertSentTo($assignee, ProjectAccessGrantedNotification::class, function (ProjectAccessGrantedNotification $notification) use ($project): bool {
         return $notification->project->id === $project->id;
     });
+});
+
+it('stores and revokes role-based project access assignments', function (): void {
+    $actor = userWithAccessPermissions(['projects.view', 'project-access.grant', 'project-access.revoke']);
+    $project = Project::factory()->create();
+
+    $role = Role::query()->create([
+        'name' => 'Project Role Assignment '.str()->uuid(),
+        'description' => 'Role assignment for project access service test',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 10,
+    ]);
+
+    app(ProjectAccessService::class)->grantRole($project, $role, $actor, ['projects.view', 'projects.edit']);
+
+    expect(ProjectRoleAccess::query()
+        ->where('project_id', $project->id)
+        ->where('role_id', $role->id)
+        ->exists())->toBeTrue();
+
+    app(ProjectAccessService::class)->revokeRole($project, $role, $actor);
+
+    expect(ProjectRoleAccess::query()
+        ->where('project_id', $project->id)
+        ->where('role_id', $role->id)
+        ->exists())->toBeFalse();
 });
 
 it('dispatches a revoked notification to the assignee when access is revoked', function (): void {

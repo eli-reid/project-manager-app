@@ -74,7 +74,16 @@ class Show extends Component
         if (! ($result['success'] ?? false)) {
             session()->flash('error', (string) ($result['message'] ?? 'Unable to launch webmail.'));
 
-            return null;
+            return;
+        }
+
+        if (isset($result['login_url'], $result['session'])) {
+            $this->dispatch('webmail-auto-login',
+                loginUrl: $result['login_url'],
+                session: $result['session'],
+            );
+
+            return;
         }
 
         $url = (string) ($result['url'] ?? '');
@@ -82,7 +91,7 @@ class Show extends Component
         if ($url === '') {
             session()->flash('error', 'Unable to launch webmail.');
 
-            return null;
+            return;
         }
 
         return $this->redirect($url, navigate: false);

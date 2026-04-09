@@ -1,5 +1,21 @@
 <div class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-    <div class="flex flex-wrap items-start justify-between gap-4">
+    <div
+        class="flex flex-wrap items-start justify-between gap-4"
+        x-on:webmail-auto-login.window="
+            const f = document.createElement('form');
+            f.method = 'POST';
+            f.action = $event.detail.loginUrl;
+            f.target = '_blank';
+            const s = document.createElement('input');
+            s.type = 'hidden';
+            s.name = 'session';
+            s.value = $event.detail.session;
+            f.appendChild(s);
+            document.body.appendChild(f);
+            f.submit();
+            f.remove();
+        "
+    >
         <div>
             <flux:heading size="xl" level="1">Mailbox Details</flux:heading>
             <flux:text class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Manage password and forwarders for {{ $cachedEmailAccount->email }}.</flux:text>

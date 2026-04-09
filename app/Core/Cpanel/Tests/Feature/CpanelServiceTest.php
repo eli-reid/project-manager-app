@@ -136,12 +136,13 @@ it('falls back to webmail redirect url when session api does not return url', fu
     Settings::set('cpanel.api_token', 'secret-token');
     Settings::set('cpanel.domain', 'example.test');
     Settings::set('cpanel.webmail_port', 2096);
+    Settings::set('cpanel.webmail_url', null);
 
     $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
 
     Http::preventStrayRequests();
     Http::fake([
-        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_self' => Http::response([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => Http::response([
             'status' => 1,
             'data' => [],
         ]),
@@ -151,6 +152,36 @@ it('falls back to webmail redirect url when session api does not return url', fu
 
     expect($result['success'])->toBeTrue();
     expect($result['url'])->toBe('https://cpanel.example.test:2096/?user=john%40example.test');
+});
+
+it('returns login_url and session for browser post handshake when cpanel does not return direct url', function () {
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'secret-token');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.webmail_url', 'https://webmail.example.test');
+    Settings::set('cpanel.webmail_port', 2096);
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => Http::response([
+            'status' => 1,
+            'data' => [
+                'token' => '/cpsess12345',
+                'session' => 'admin@example.test:token:CREATE_WEBMAIL_SESSION_FOR_MAIL_USER,hash',
+            ],
+        ]),
+    ]);
+
+    $result = $service->createWebmailSession('admin@example.test');
+
+    expect($result['success'])->toBeTrue();
+    expect($result)->toHaveKey('login_url');
+    expect($result)->toHaveKey('session');
+    expect($result['login_url'])->toBe('https://webmail.example.test:2096/cpsess12345/login');
+    expect($result['session'])->toBe('admin@example.test:token:CREATE_WEBMAIL_SESSION_FOR_MAIL_USER,hash');
 });
 
 it('rejects invalid mailbox local part for write operations', function () {

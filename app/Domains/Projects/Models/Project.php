@@ -145,6 +145,11 @@ class Project extends Model
         return $this->hasMany(ProjectUserAccess::class);
     }
 
+    public function roleAccesses(): HasMany
+    {
+        return $this->hasMany(ProjectRoleAccess::class);
+    }
+
     protected static function newFactory(): ProjectFactory
     {
         return ProjectFactory::new();

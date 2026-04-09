@@ -18,7 +18,7 @@ it('redirects authenticated users to webmail session url', function () {
 
     Http::preventStrayRequests();
     Http::fake([
-        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_self' => Http::response([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => Http::response([
             'status' => 1,
             'data' => [
                 'url' => 'https://webmail.example.test/session-token',

@@ -90,7 +90,7 @@ class CpanelConfig
     {
         $baseUrl = rtrim((string) $this->url, '/');
 
-        if (! str_contains($baseUrl, ':'.$this->port)) {
+        if (parse_url($baseUrl, PHP_URL_PORT) === null) {
             $baseUrl .= ':'.$this->port;
         }
 

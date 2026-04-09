@@ -15,15 +15,15 @@ Legend:
 - [x] Gate: foundation complete before dependent feature work
 
 ## Sprint 1: Project Shell + Access
-- [ ] User projects list (active/open default)
-- [ ] User project detail page
-- [ ] Assigned + broader permitted visibility filters
-- [ ] Project dashboard shell (cross-domain widget composition)
-- [ ] Project access management (direct and group assignment)
-- [ ] Tiered per-project permissions
-- [ ] Access grant/revoke notifications
-- [ ] Access change audit trail
-- [ ] Gate: permission and visibility tests pass
+- [x] User projects list (active/open default)
+- [x] User project detail page
+- [x] Assigned + broader permitted visibility filters
+- [x] Project dashboard shell (cross-domain widget composition)
+- [x] Project access management (direct and group assignment)
+- [x] Tiered per-project permissions
+- [x] Access grant/revoke notifications
+- [x] Access change audit trail
+- [x] Gate: permission and visibility tests pass
 
 ## Sprint 2: Financial Backbone
 - [ ] Contextual pay rate model with effective-date history
