@@ -201,6 +201,7 @@ namespace App\Core\Identity\Models{
  * @property string $last_name
  * @property string $username
  * @property string $email
+ * @property string|null $company_email
  * @property \Carbon\CarbonImmutable|null $email_verified_at
  * @property string $password
  * @property bool $is_admin
@@ -223,6 +224,7 @@ namespace App\Core\Identity\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCompanyEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
@@ -425,8 +427,8 @@ namespace App\Core\Scheduler\Models{
 /**
  * @property string $id
  * @property string $name
- * @property string $feature_type
  * @property string|null $description
+ * @property string $available_task_id
  * @property string $schedule_type
  * @property string $time
  * @property string $timezone
@@ -448,8 +450,7 @@ namespace App\Core\Scheduler\Models{
  * @property string|null $updated_by
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
- * @property string|null $available_task_id
- * @property-read \App\Core\Scheduler\Models\AvailableTask|null $availableTask
+ * @property-read \App\Core\Scheduler\Models\AvailableTask $availableTask
  * @property-read \App\Core\Identity\Models\User|null $creator
  * @property-read \App\Core\Identity\Models\User|null $updater
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask active()
@@ -465,7 +466,6 @@ namespace App\Core\Scheduler\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDayOfMonth($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDaysOfWeek($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereFeatureType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereIsActive($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereIsEnabled($value)
@@ -628,7 +628,6 @@ namespace App\Domains\Dailies\Models{
  * @property array<array-key, mixed>|null $safety_issues
  * @property array<array-key, mixed>|null $delays
  * @property array<array-key, mixed>|null $visitors
- * @property array<array-key, mixed>|null $onsite_employees
  * @property string|null $weather_condition
  * @property float|null $temperature
  * @property string $temperature_unit
@@ -640,6 +639,7 @@ namespace App\Domains\Dailies\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property array<array-key, mixed>|null $onsite_employees
  * @property-read \App\Domains\Projects\Models\Project|null $project
  * @property-read \App\Core\Identity\Models\User|null $submittedBy
  * @property-read \App\Core\Identity\Models\User $user
@@ -854,6 +854,10 @@ namespace App\Domains\Projects\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Dailies\Models\DailyReport> $dailyReports
  * @property-read int|null $daily_reports_count
  * @property-read \App\Core\Identity\Models\User|null $projectManager
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\ProjectRoleAccess> $roleAccesses
+ * @property-read int|null $role_accesses_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\ProjectUserAccess> $userAccesses
+ * @property-read int|null $user_accesses_count
  * @method static \App\Domains\Projects\Database\Factories\ProjectFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newQuery()
@@ -879,6 +883,48 @@ namespace App\Domains\Projects\Models{
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperProject {}
+}
+
+namespace App\Domains\Projects\Models{
+/**
+ * @property-read \App\Core\Identity\Models\User|null $grantedBy
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Core\Auth\Role\Models\Role|null $role
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess query()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProjectRoleAccess {}
+}
+
+namespace App\Domains\Projects\Models{
+/**
+ * @property int $id
+ * @property string $project_id
+ * @property string $user_id
+ * @property string|null $granted_by
+ * @property array<array-key, mixed>|null $permission_keys
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Core\Identity\Models\User|null $grantedBy
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Core\Identity\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereGrantedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess wherePermissionKeys($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereUserId($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProjectUserAccess {}
 }
 
 namespace App\Domains\Stock\Models{

@@ -24493,6 +24493,17 @@ namespace App\Domains\Projects\Livewire\Admin\Projects {
             }
     }
 
+namespace App\Domains\Projects\Livewire\User\Projects {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Reports\Livewire\User\FinancialReports {
     /**
      */

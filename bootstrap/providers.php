@@ -13,6 +13,7 @@ use App\Core\Queue\Providers\QueueManagerServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
 use App\Core\Settings\Providers\SettingServiceProvider;
 use App\Core\WeatherApi\Providers\WeatherApiServiceProvider;
+use App\Domains\Payroll\Providers\PayrollServiceProvider;
 use App\Domains\Providers\DomainServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\TelescopeServiceProvider;
@@ -20,18 +21,19 @@ use App\Providers\TelescopeServiceProvider;
 return [
     AnnouncementServiceProvider::class,
     AuditServiceProvider::class,
+    PermissionServiceProvider::class,
+    RoleServiceProvider::class,
+    AuthUserServiceProvider::class,
     CpanelServiceProvider::class,
+    FortifyServiceProvider::class,
+    UserServiceProvider::class,
     NotificationServiceProvider::class,
     QueueManagerServiceProvider::class,
     SchedulerServiceProvider::class,
     SettingServiceProvider::class,
-    PermissionServiceProvider::class,
-    RoleServiceProvider::class,
-    AuthUserServiceProvider::class,
-    FortifyServiceProvider::class,
-    UserServiceProvider::class,
     WeatherApiServiceProvider::class,
     DomainServiceProvider::class,
+    PayrollServiceProvider::class,
     AppServiceProvider::class,
     TelescopeServiceProvider::class,
 ];
