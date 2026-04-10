@@ -26,14 +26,14 @@ Legend:
 - [x] Gate: permission and visibility tests pass
 
 ## Sprint 2: Financial Backbone
-- [ ] Contextual pay rate model with effective-date history
-- [ ] Burden rate model (global defaults + user overrides)
-- [ ] Configurable burden components
-- [ ] Payroll weekly period lifecycle
-- [ ] Payroll provisional and final runs
-- [ ] Payroll finalization lock
-- [ ] Payroll corrections (adjustments + controlled reopen)
-- [ ] Payroll on-screen output + CSV/PDF export
+- [x] Contextual pay rate model with effective-date history
+- [x] Burden rate model (global defaults + user overrides)
+- [x] Configurable burden components
+- [x] Payroll weekly period lifecycle
+- [x] Payroll provisional and final runs
+- [x] Payroll finalization lock
+- [~] Payroll corrections (adjustments + controlled reopen)
+- [~] Payroll on-screen output + CSV/PDF export
 - [ ] Payroll-to-project financial sync
 - [~] Core financial reports phase 1
 - [~] Project profitability report
@@ -92,6 +92,7 @@ Legend:
 ## Current Snapshot
 - [x] Notifications preference baseline and channel controls
 - [~] Financial reports foundation (project report + CSV export)
+- [~] Payroll backend scaffold complete (models/services/policy/tests)
 - [~] User-facing tasks list-first baseline
 
 ## Next 10 Recommended Tasks
@@ -103,5 +104,5 @@ Legend:
 6. [ ] Implement material cost analysis report
 7. [ ] Add report drill-down dimensions for phase 1
 8. [ ] Add financial report PDF export
-9. [ ] Implement payroll weekly period model + finalization workflow
+9. [ ] Implement payroll on-screen output + PDF export workflow
 10. [ ] Implement payroll sync into project financial summaries

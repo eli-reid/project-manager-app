@@ -2,7 +2,16 @@
 
 ## Executive Summary
 
-The **project-manager-app** uses a clean domain-driven design with Laravel 12, Livewire 4, and Flux UI. The foundational infrastructure for payroll is partially in place:
+The **project-manager-app** uses a clean domain-driven design with Laravel 12, Livewire 4, and Flux UI. Payroll backend scaffolding is now implemented and validated with passing domain tests.
+
+## Progress Update (2026-04-10)
+
+✅ **Completed in Sprint 2 payroll backbone**:
+- Domain payroll models and migrations (PayRate, BurdenRate, PayrollPeriod, PayRun, PayrollRecord, PayrollCorrection)
+- Payroll permissions registration and policy scaffolding
+- Payroll calculation, processing, and reporting services
+- Payroll CSV generation and period/payrun summary service methods
+- Payroll lifecycle test coverage (28 passing tests in PayrollDomainScaffoldTest)
 
 ✅ **Already Exist**:
 - Timecard tracking (timecards, entries, workflow)
@@ -12,11 +21,11 @@ The **project-manager-app** uses a clean domain-driven design with Laravel 12, L
 - Pest testing infrastructure
 
 ❌ **Need to Build**:
-- Pay rate models and configuration
-- Payroll calculation services
-- Payroll record aggregation
-- Payroll processing workflow
-- Payroll-specific permissions and policies
+- Payroll-to-project financial sync
+- Monthly financial performance report
+- Labor and material cost analysis reports
+- Drill-down dimensions and PDF parity for exports
+- Reconciliation and snapshot stability gate tests
 
 ---
 
