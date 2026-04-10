@@ -243,14 +243,14 @@ it('launches webmail from detail screen', function () {
         ->assertRedirect('https://webmail.example.test/session/abc123');
 
     Http::assertSent(function (Request $request): bool {
-        if ($request->url() !== 'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user') {
+        if (! str_starts_with($request->url(), 'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user')) {
             return false;
         }
 
-        $data = $request->data();
+        parse_str(parse_url($request->url(), PHP_URL_QUERY) ?: '', $query);
 
-        return ($data['login'] ?? null) === 'jane'
-            && ($data['domain'] ?? null) === 'example.test';
+        return ($query['login'] ?? null) === 'jane'
+            && ($query['domain'] ?? null) === 'example.test';
     });
 });
 

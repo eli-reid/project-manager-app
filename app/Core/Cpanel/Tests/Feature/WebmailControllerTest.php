@@ -1,20 +1,18 @@
 <?php
 
 use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use Illuminate\Support\Facades\Http;
 
 use function Pest\Laravel\actingAs;
 
 it('redirects authenticated users to webmail session url', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-        'port' => 2083,
-        'webmail_port' => 2096,
-        'verify_ssl' => true,
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.port', 2083);
+    Settings::set('cpanel.webmail_port', 2096);
 
     Http::preventStrayRequests();
     Http::fake([
@@ -37,16 +35,14 @@ it('redirects authenticated users to webmail session url', function () {
 });
 
 it('returns to dashboard with an error when user has no company email', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => '',
-    ]);
+    Settings::set('cpanel.url', null);
+    Settings::set('cpanel.username', null);
+    Settings::set('cpanel.api_token', null);
+    Settings::set('cpanel.domain', null);
 
     $user = User::factory()->create([
         'company_email' => null,
-        'username' => 'no-company-email',
+        'username' => '',
     ]);
 
     actingAs($user)
@@ -56,12 +52,10 @@ it('returns to dashboard with an error when user has no company email', function
 });
 
 it('shows the user webmail link on the dashboard', function () {
-    config()->set('services.cpanel', [
-        'url' => 'https://cpanel.example.test',
-        'username' => 'root',
-        'api_token' => 'token-123',
-        'domain' => 'example.test',
-    ]);
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
 
     $user = User::factory()->create([
         'username' => 'john',
@@ -76,7 +70,10 @@ it('shows the user webmail link on the dashboard', function () {
 });
 
 it('hides the user webmail link when cpanel is not configured', function () {
-    config()->set('services.cpanel', []);
+    Settings::set('cpanel.url', null);
+    Settings::set('cpanel.username', null);
+    Settings::set('cpanel.api_token', null);
+    Settings::set('cpanel.domain', null);
 
     $user = User::factory()->create([
         'username' => 'john',
