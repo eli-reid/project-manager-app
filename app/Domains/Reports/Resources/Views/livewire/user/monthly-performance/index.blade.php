@@ -56,7 +56,7 @@
                         <td class="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">{{ number_format($row['hours'], 2) }}</td>
                         <td class="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">${{ number_format($row['revenue'], 2) }}</td>
                         <td class="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">${{ number_format($row['stock_cost'], 2) }}</td>
-                        <td class="px-4 py-3 text-right font-semibold @if ($row['margin'] >= 0) text-green-600 dark:text-green-400 @else text-red-600 dark:text-red-400 @endif">
+                        <td class="px-4 py-3 text-right font-semibold @if ($row['margin'] >= 0) text-green-600 dark:text-green-400 @else @endif">
                             ${{ number_format($row['margin'], 2) }}
                         </td>
                     </tr>
