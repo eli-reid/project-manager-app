@@ -13,7 +13,6 @@ use App\Core\Queue\Providers\QueueManagerServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
 use App\Core\Settings\Providers\SettingServiceProvider;
 use App\Core\WeatherApi\Providers\WeatherApiServiceProvider;
-use App\Domains\Payroll\Providers\PayrollServiceProvider;
 use App\Domains\Providers\DomainServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\TelescopeServiceProvider;
@@ -33,7 +32,6 @@ return [
     SettingServiceProvider::class,
     WeatherApiServiceProvider::class,
     DomainServiceProvider::class,
-    PayrollServiceProvider::class,
     AppServiceProvider::class,
     TelescopeServiceProvider::class,
 ];

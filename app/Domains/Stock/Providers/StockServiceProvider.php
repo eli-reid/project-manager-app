@@ -3,6 +3,7 @@
 namespace App\Domains\Stock\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Stock\Livewire\Admin\StockOrders\Index as AdminStockOrdersIndex;
 use App\Domains\Stock\Livewire\Admin\StockOrders\Show as AdminStockOrdersShow;
 use App\Domains\Stock\Livewire\Admin\Templates\Form as AdminTemplatesForm;
@@ -30,9 +31,10 @@ class StockServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerReports($reportRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -92,5 +94,21 @@ class StockServiceProvider extends ServiceProvider
         ];
 
         $permissionRegistry->registerPermissions($definitions);
+    }
+
+    private function registerReports(ReportRegistry $reportRegistry): void
+    {
+        $reportRegistry->registerDefinitions([
+            [
+                'key' => 'financial.material-cost-analysis',
+                'section' => 'financial',
+                'title' => 'Material Cost Analysis',
+                'description' => 'Review material and vendor cost distribution by project and period.',
+                'route' => 'reports.financial.material-cost-analysis.index',
+                'badge_label' => 'Available',
+                'badge_color' => 'green',
+                'sort' => 30,
+            ],
+        ]);
     }
 }

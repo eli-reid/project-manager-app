@@ -5,6 +5,7 @@ namespace App\Domains\Tasks\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Form as TaskCategoryForm;
 use App\Domains\Tasks\Livewire\Admin\TaskCategories\Index as TaskCategoryIndex;
@@ -36,11 +37,12 @@ class TasksServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
+        $this->registerReports($reportRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -106,6 +108,22 @@ class TasksServiceProvider extends ServiceProvider
     private function registerNotifications(NotificationRegistry $notificationRegistry): void
     {
         $notificationRegistry->registerDefinitions(TaskNotificationDefinitions::definitions());
+    }
+
+    private function registerReports(ReportRegistry $reportRegistry): void
+    {
+        $reportRegistry->registerDefinitions([
+            [
+                'key' => 'operational.tasks',
+                'section' => 'operational',
+                'title' => 'Task Operations',
+                'description' => 'Review open work, due tasks, and execution progress.',
+                'route' => 'tasks.index',
+                'badge_label' => 'Operational',
+                'badge_color' => 'sky',
+                'sort' => 40,
+            ],
+        ]);
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void

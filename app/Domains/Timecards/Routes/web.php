@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Reports\Livewire\User\LaborCostAnalysis\Index as LaborCostAnalysisIndex;
 use App\Domains\Timecards\Livewire\User\Timecards\Form;
 use App\Domains\Timecards\Livewire\User\Timecards\Index;
 use App\Domains\Timecards\Livewire\User\Timecards\Show;
@@ -24,4 +25,12 @@ Route::prefix('timecards')
         Route::get('/{timecard}/edit', Form::class)
             ->middleware('can:update,timecard')
             ->name('edit');
+    });
+
+Route::prefix('reports')
+    ->name('reports.')
+    ->group(function (): void {
+        Route::get('/financial/labor-cost-analysis', LaborCostAnalysisIndex::class)
+            ->middleware('can:reports.financial.view')
+            ->name('financial.labor-cost-analysis.index');
     });

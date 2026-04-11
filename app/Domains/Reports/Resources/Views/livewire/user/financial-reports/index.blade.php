@@ -78,17 +78,26 @@
     @endif
 
     <div class="grid gap-4 md:grid-cols-2">
-        @foreach ($phaseOneReports as $report)
-            <article wire:key="report-card-{{ $report['key'] }}" class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+        @foreach ($reportCards as $reportCard)
+            <a href="{{ route($reportCard['route']) }}" wire:navigate class="group rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-500">
                 <div class="space-y-2">
-                    <flux:heading size="lg">{{ $report['label'] }}</flux:heading>
-                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">{{ $report['description'] }}</flux:text>
+                    <flux:heading size="lg" class="group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ __($reportCard['title']) }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">{{ __($reportCard['description']) }}</flux:text>
                 </div>
-
                 <div class="mt-4">
-                    <flux:badge color="amber">{{ __('Coming next in this feature wave') }}</flux:badge>
+                    <flux:badge :color="$reportCard['badge_color']">{{ __($reportCard['badge_label']) }}</flux:badge>
                 </div>
-            </article>
+            </a>
         @endforeach
+
+        <article class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="space-y-2">
+                <flux:heading size="lg">{{ __('Project Profitability') }}</flux:heading>
+                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">{{ __('Analyze revenue, labor, and material totals by project.') }}</flux:text>
+            </div>
+            <div class="mt-4">
+                <flux:badge color="blue">{{ __('Use the project report selector above') }}</flux:badge>
+            </div>
+        </article>
     </div>
 </section>

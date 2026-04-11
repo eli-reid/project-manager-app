@@ -39,6 +39,8 @@ class Form extends Component
 
     public ?string $address_id = null;
 
+    public ?string $leave_category = null;
+
     public bool $is_active = true;
 
     public function mount(?Project $project = null): void
@@ -56,6 +58,7 @@ class Form extends Component
             $this->end_date = $project->end_date?->format('Y-m-d');
             $this->client_id = $project->client_id;
             $this->address_id = $project->address_id;
+            $this->leave_category = $project->leave_category;
             $this->is_active = (bool) $project->is_active;
 
             return;
@@ -80,12 +83,17 @@ class Form extends Component
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'client_id' => ['nullable', 'exists:clients,id'],
             'address_id' => ['nullable', 'exists:addresses,id'],
+            'leave_category' => ['nullable', Rule::in(['sick', 'vacation'])],
             'is_active' => ['boolean'],
         ];
     }
 
     public function save(): void
     {
+        if ($this->leave_category === '') {
+            $this->leave_category = null;
+        }
+
         $validated = $this->validate();
 
         if ($this->isEdit) {

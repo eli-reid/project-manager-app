@@ -83,6 +83,17 @@
                 </select>
                 @error('address_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Leave Tracking</label>
+                <select wire:model="leave_category" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">Standard project</option>
+                    <option value="sick">Sick leave project</option>
+                    <option value="vacation">Vacation leave project</option>
+                </select>
+                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Leave projects are excluded from project labor cost reporting and counted in employee leave usage.</p>
+                @error('leave_category') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">

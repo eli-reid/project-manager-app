@@ -153,6 +153,7 @@ it('shows inline client and address widgets on project create form', function ()
     $this->actingAs($user)
         ->get(route('admin.projects.create'))
         ->assertSuccessful()
+        ->assertSee('Leave Tracking')
         ->assertSee('Quick Add Client')
         ->assertSee('Quick Add Address');
 });
@@ -179,11 +180,13 @@ it('allows authorized users to edit and update a project', function (): void {
         ->set('name', 'Updated Project Name')
         ->set('project_number', 'PRJ-EDIT-1')
         ->set('status', 'in_progress')
+        ->set('leave_category', 'vacation')
         ->call('save')
         ->assertHasNoErrors();
 
     expect($project->fresh()->name)->toBe('Updated Project Name')
-        ->and($project->fresh()->status?->value)->toBe('in_progress');
+        ->and($project->fresh()->status?->value)->toBe('in_progress')
+        ->and($project->fresh()->leave_category)->toBe('vacation');
 });
 
 it('forbids users without edit permission from accessing project edit route', function (): void {

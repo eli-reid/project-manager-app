@@ -12,6 +12,7 @@ use App\Domains\Dailies\Livewire\User\Dailies\Show as UserShow;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;
+use App\Domains\Reports\Services\ReportRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -24,9 +25,10 @@ class DailiesServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerReports($reportRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -76,5 +78,21 @@ class DailiesServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(DailyPermissions::all());
+    }
+
+    private function registerReports(ReportRegistry $reportRegistry): void
+    {
+        $reportRegistry->registerDefinitions([
+            [
+                'key' => 'operational.daily-reports',
+                'section' => 'operational',
+                'title' => 'Daily Reports Workspace',
+                'description' => 'Monitor daily field activity and submitted reports.',
+                'route' => 'dailies.index',
+                'badge_label' => 'Operational',
+                'badge_color' => 'sky',
+                'sort' => 10,
+            ],
+        ]);
     }
 }

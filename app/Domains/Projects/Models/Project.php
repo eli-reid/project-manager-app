@@ -35,6 +35,7 @@ class Project extends Model
         'client_id',
         'address_id',
         'project_manager_id',
+        'leave_category',
         'is_active',
     ];
 
@@ -138,6 +139,11 @@ class Project extends Model
     public function dailyReports(): HasMany
     {
         return $this->hasMany(DailyReport::class);
+    }
+
+    public function isLeaveProject(): bool
+    {
+        return filled($this->leave_category);
     }
 
     public function userAccesses(): HasMany

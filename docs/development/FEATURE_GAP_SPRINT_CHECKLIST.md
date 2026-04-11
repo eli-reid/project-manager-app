@@ -32,18 +32,18 @@ Legend:
 - [x] Payroll weekly period lifecycle
 - [x] Payroll provisional and final runs
 - [x] Payroll finalization lock
-- [~] Payroll corrections (adjustments + controlled reopen)
-- [~] Payroll on-screen output + CSV/PDF export
-- [ ] Payroll-to-project financial sync
-- [~] Core financial reports phase 1
-- [~] Project profitability report
-- [ ] Monthly financial performance report
-- [ ] Labor cost analysis report
-- [ ] Material cost analysis report
-- [ ] Drill-downs (project, month/week, cost type, vendor/supplier)
-- [~] CSV export support
-- [ ] PDF export support
-- [ ] Gate: reconciliation and snapshot stability tests pass
+- [x] Payroll corrections (adjustments + controlled reopen)
+- [x] Payroll on-screen output + CSV/PDF export
+- [x] Payroll-to-project financial sync
+- [x] Core financial reports phase 1
+- [x] Project profitability report
+- [x] Monthly financial performance report
+- [x] Labor cost analysis report
+- [x] Material cost analysis report
+- [x] Drill-downs (project, month/week, cost type, vendor/supplier)
+- [x] CSV export support
+- [x] PDF export support
+- [x] Gate: reconciliation and snapshot stability tests pass
 
 ## Sprint 3: Operations
 - [ ] Change orders full workflow
@@ -91,7 +91,7 @@ Legend:
 
 ## Current Snapshot
 - [x] Notifications preference baseline and channel controls
-- [~] Financial reports foundation (project report + CSV export)
+- [x] Financial reports foundation (project report + CSV export)
 - [~] Payroll backend scaffold complete (models/services/policy/tests)
 - [~] User-facing tasks list-first baseline
 

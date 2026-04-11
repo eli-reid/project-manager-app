@@ -20,6 +20,7 @@ return new class extends Migration
                 $table->foreignUlid('client_id')->nullable()->constrained('clients')->nullOnDelete();
                 $table->foreignUlid('address_id')->nullable()->constrained('addresses')->nullOnDelete();
                 $table->foreignUlid('project_manager_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->string('leave_category')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
                 $table->softDeletes();

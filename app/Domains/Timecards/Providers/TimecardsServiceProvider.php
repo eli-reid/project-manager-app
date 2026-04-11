@@ -5,6 +5,7 @@ namespace App\Domains\Timecards\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
@@ -30,10 +31,11 @@ class TimecardsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
+        $this->registerReports($reportRegistry);
         $this->registerSchedulerTasks();
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -90,6 +92,32 @@ class TimecardsServiceProvider extends ServiceProvider
     private function registerNotifications(NotificationRegistry $notificationRegistry): void
     {
         $notificationRegistry->registerDefinitions(TimecardNotificationDefinitions::definitions());
+    }
+
+    private function registerReports(ReportRegistry $reportRegistry): void
+    {
+        $reportRegistry->registerDefinitions([
+            [
+                'key' => 'financial.labor-cost-analysis',
+                'section' => 'financial',
+                'title' => 'Labor Cost Analysis',
+                'description' => 'Review labor cost distribution by project and period.',
+                'route' => 'reports.financial.labor-cost-analysis.index',
+                'badge_label' => 'Available',
+                'badge_color' => 'green',
+                'sort' => 20,
+            ],
+            [
+                'key' => 'operational.timecard-activity',
+                'section' => 'operational',
+                'title' => 'Timecard Activity',
+                'description' => 'Track submissions, approvals, and workforce activity.',
+                'route' => 'timecards.index',
+                'badge_label' => 'Operational',
+                'badge_color' => 'sky',
+                'sort' => 30,
+            ],
+        ]);
     }
 
     private function registerSchedulerTasks(): void

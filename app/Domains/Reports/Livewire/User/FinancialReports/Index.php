@@ -2,11 +2,12 @@
 
 namespace App\Domains\Reports\Livewire\User\FinancialReports;
 
-use App\Domains\Dailies\Models\DailyReport;
-use App\Domains\Invoices\Models\Invoice;
-use App\Domains\Projects\Models\Project;
-use App\Domains\Stock\Models\StockOrder;
-use App\Domains\Timecards\Models\TimecardEntry;
+use App\Domains\Dailies\Services\DailyReportingService;
+use App\Domains\Invoices\Services\InvoiceReportingService;
+use App\Domains\Projects\Services\ProjectReportingService;
+use App\Domains\Reports\Services\ReportRegistry;
+use App\Domains\Stock\Services\StockReportingService;
+use App\Domains\Timecards\Services\TimecardReportingService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -40,7 +41,7 @@ class Index extends Component
             return;
         }
 
-        if (! Project::query()->whereKey($this->projectId)->exists()) {
+        if (! app(ProjectReportingService::class)->exists($this->projectId)) {
             $this->projectId = '';
         }
     }
@@ -55,9 +56,7 @@ class Index extends Component
             return null;
         }
 
-        $selectedProject = Project::query()
-            ->select(['id', 'name', 'project_number'])
-            ->find($this->projectId);
+        $selectedProject = app(ProjectReportingService::class)->findSummary($this->projectId);
 
         if ($selectedProject === null) {
             $this->addError('projectId', 'The selected project could not be found.');
@@ -98,19 +97,15 @@ class Index extends Component
 
     public function render()
     {
-        $projects = Project::query()
-            ->select(['id', 'name', 'project_number'])
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
+        $projectReportingService = app(ProjectReportingService::class);
+
+        $projects = $projectReportingService->activeProjects();
 
         $projectReport = null;
         $selectedProject = null;
 
         if ($this->projectId !== '') {
-            $selectedProject = Project::query()
-                ->select(['id', 'name', 'project_number', 'status'])
-                ->find($this->projectId);
+            $selectedProject = $projectReportingService->findSummary($this->projectId);
 
             if ($selectedProject !== null) {
                 $projectReport = $this->buildProjectReport($selectedProject->id);
@@ -119,30 +114,9 @@ class Index extends Component
 
         return view('reports::livewire.user.financial-reports.index', [
             'projects' => $projects,
+            'reportCards' => app(ReportRegistry::class)->forSection('financial'),
             'selectedProject' => $selectedProject,
             'projectReport' => $projectReport,
-            'phaseOneReports' => [
-                [
-                    'key' => 'project-profitability',
-                    'label' => 'Project Profitability',
-                    'description' => 'Analyze revenue, labor, and material totals by project.',
-                ],
-                [
-                    'key' => 'monthly-performance',
-                    'label' => 'Monthly Financial Performance',
-                    'description' => 'Track month-over-month financial performance trends.',
-                ],
-                [
-                    'key' => 'labor-cost-analysis',
-                    'label' => 'Labor Cost Analysis',
-                    'description' => 'Review labor cost distribution by project and period.',
-                ],
-                [
-                    'key' => 'material-cost-analysis',
-                    'label' => 'Material Cost Analysis',
-                    'description' => 'Review material and vendor cost distribution by project and period.',
-                ],
-            ],
         ]);
     }
 
@@ -152,35 +126,20 @@ class Index extends Component
     private function buildProjectReport(string $projectId): array
     {
         [$fromDate, $toDate] = $this->normalizedDateRange();
+        $dailyReportingService = app(DailyReportingService::class);
+        $invoiceReportingService = app(InvoiceReportingService::class);
+        $stockReportingService = app(StockReportingService::class);
+        $timecardReportingService = app(TimecardReportingService::class);
 
-        $timecardHoursQuery = TimecardEntry::query()->where('project_id', $projectId);
-        $dailyReportsQuery = DailyReport::query()->where('project_id', $projectId);
-        $stockOrdersQuery = StockOrder::query()->where('project_id', $projectId);
-        $invoicesQuery = Invoice::query()->where('project_id', $projectId);
-
-        if ($fromDate !== null) {
-            $timecardHoursQuery->whereDate('date', '>=', $fromDate);
-            $dailyReportsQuery->whereDate('report_date', '>=', $fromDate);
-            $stockOrdersQuery->whereDate('created_at', '>=', $fromDate);
-            $invoicesQuery->whereDate('invoice_date', '>=', $fromDate);
-        }
-
-        if ($toDate !== null) {
-            $timecardHoursQuery->whereDate('date', '<=', $toDate);
-            $dailyReportsQuery->whereDate('report_date', '<=', $toDate);
-            $stockOrdersQuery->whereDate('created_at', '<=', $toDate);
-            $invoicesQuery->whereDate('invoice_date', '<=', $toDate);
-        }
-
-        $totalInvoiceAmount = (float) ($invoicesQuery->sum('total_amount') ?? 0.0);
-        $invoiceCount = (int) $invoicesQuery->count();
+        $invoiceMetrics = $invoiceReportingService->projectMetrics($projectId, $fromDate, $toDate);
+        $stockMetrics = $stockReportingService->projectMetrics($projectId, $fromDate, $toDate);
 
         return [
-            'timecard_hours' => (float) ($timecardHoursQuery->sum('hours') ?? 0.0),
-            'daily_reports_count' => (int) $dailyReportsQuery->count(),
-            'stock_orders_count' => (int) $stockOrdersQuery->count(),
-            'total_invoice_amount' => $totalInvoiceAmount,
-            'average_invoice_amount' => $invoiceCount > 0 ? $totalInvoiceAmount / $invoiceCount : 0.0,
+            'timecard_hours' => $timecardReportingService->totalProjectHours($projectId, $fromDate, $toDate),
+            'daily_reports_count' => $dailyReportingService->countForProject($projectId, $fromDate, $toDate),
+            'stock_orders_count' => $stockMetrics['count'],
+            'total_invoice_amount' => $invoiceMetrics['total'],
+            'average_invoice_amount' => $invoiceMetrics['average'],
         ];
     }
 

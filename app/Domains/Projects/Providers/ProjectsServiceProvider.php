@@ -14,6 +14,7 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
 use App\Domains\Projects\Policies\ProjectPolicy;
+use App\Domains\Reports\Services\ReportRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -26,11 +27,12 @@ class ProjectsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
+        $this->registerReports($reportRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -84,6 +86,22 @@ class ProjectsServiceProvider extends ServiceProvider
     private function registerNotifications(NotificationRegistry $notificationRegistry): void
     {
         $notificationRegistry->registerDefinitions(ProjectNotificationDefinitions::definitions());
+    }
+
+    private function registerReports(ReportRegistry $reportRegistry): void
+    {
+        $reportRegistry->registerDefinitions([
+            [
+                'key' => 'operational.project-overview',
+                'section' => 'operational',
+                'title' => 'Project Status Overview',
+                'description' => 'Review active projects and current execution status.',
+                'route' => 'projects.index',
+                'badge_label' => 'Operational',
+                'badge_color' => 'sky',
+                'sort' => 20,
+            ],
+        ]);
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void

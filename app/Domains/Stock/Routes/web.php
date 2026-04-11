@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Reports\Livewire\User\MaterialCostAnalysis\Index as MaterialCostAnalysisIndex;
 use App\Domains\Stock\Livewire\User\StockOrders\Form as StockOrderForm;
 use App\Domains\Stock\Livewire\User\StockOrders\Index as StockOrderIndex;
 use App\Domains\Stock\Livewire\User\StockOrders\Show as StockOrderShow;
@@ -39,4 +40,12 @@ Route::prefix('stock-orders')
         Route::get('/{stockOrder}/edit', StockOrderForm::class)
             ->middleware('can:update,stockOrder')
             ->name('edit');
+    });
+
+Route::prefix('reports')
+    ->name('reports.')
+    ->group(function (): void {
+        Route::get('/financial/material-cost-analysis', MaterialCostAnalysisIndex::class)
+            ->middleware('can:reports.financial.view')
+            ->name('financial.material-cost-analysis.index');
     });
