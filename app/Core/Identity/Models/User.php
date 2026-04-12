@@ -10,6 +10,7 @@ use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
+use App\Domains\Payroll\Models\PayRun;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -115,6 +116,16 @@ class User extends Authenticatable
     public function payrollStatements(): HasMany
     {
         return $this->hasMany(PayrollStatement::class);
+    }
+
+    public function createdPayRuns(): HasMany
+    {
+        return $this->hasMany(PayRun::class, 'created_by');
+    }
+
+    public function approvedPayRuns(): HasMany
+    {
+        return $this->hasMany(PayRun::class, 'approved_by');
     }
 
     public function notificationPreferenceFor(string $notificationKey, string $channel): ?bool

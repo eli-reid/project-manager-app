@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories\Domains\Payroll\Models;
+namespace App\Domains\Payroll\Database\Factories;
 
 use App\Domains\Payroll\Models\PayRateType;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -13,8 +13,6 @@ class PayRateTypeFactory extends Factory
     protected $model = PayRateType::class;
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
@@ -35,6 +33,7 @@ class PayRateTypeFactory extends Factory
             'key' => 'standard',
             'name' => 'Standard',
             'description' => 'Default base hourly rate.',
+            'is_active' => true,
             'is_system' => true,
             'sort_order' => 10,
         ]);

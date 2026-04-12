@@ -3,8 +3,8 @@
 namespace App\Domains\Payroll\Models;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Payroll\Database\Factories\PayRateFactory;
 use App\Domains\Projects\Models\Project;
-use Database\Factories\Domains\Payroll\Models\PayRateFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

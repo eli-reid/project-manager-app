@@ -3,7 +3,7 @@
 namespace App\Domains\Payroll\Models;
 
 use App\Core\Identity\Models\User;
-use Database\Factories\Domains\Payroll\Models\PayrollEmployeeProfileFactory;
+use App\Domains\Payroll\Database\Factories\PayrollEmployeeProfileFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -53,6 +53,16 @@ class PayrollEmployeeProfile extends Model
     public function payRates(): HasMany
     {
         return $this->hasMany(PayRate::class);
+    }
+
+    public function payrollStatements(): HasMany
+    {
+        return $this->hasMany(PayrollStatement::class);
+    }
+
+    public function employeeDeductions(): HasMany
+    {
+        return $this->hasMany(EmployeeDeduction::class);
     }
 
     protected static function newFactory(): PayrollEmployeeProfileFactory

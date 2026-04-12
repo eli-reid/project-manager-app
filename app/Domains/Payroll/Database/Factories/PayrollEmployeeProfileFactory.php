@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories\Domains\Payroll\Models;
+namespace App\Domains\Payroll\Database\Factories;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
@@ -14,8 +14,6 @@ class PayrollEmployeeProfileFactory extends Factory
     protected $model = PayrollEmployeeProfile::class;
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array

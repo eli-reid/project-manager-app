@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories\Domains\Payroll\Models;
+namespace App\Domains\Payroll\Database\Factories;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Models\PayRate;
@@ -16,8 +16,6 @@ class PayRateFactory extends Factory
     protected $model = PayRate::class;
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array

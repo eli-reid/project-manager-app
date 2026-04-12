@@ -15,10 +15,16 @@ class PayrollServiceProvider extends ServiceProvider
     public function boot(SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
+        $this->registerInfrastructure();
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('payroll', __DIR__.'/../config/settings.php');
+    }
+
+    private function registerInfrastructure(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 }
