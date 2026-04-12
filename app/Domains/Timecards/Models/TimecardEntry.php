@@ -3,6 +3,7 @@
 namespace App\Domains\Timecards\Models;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Database\Factories\TimecardEntryFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -26,6 +27,14 @@ class TimecardEntry extends Model
         'start_time',
         'hours',
         'notes',
+        'cost_code_id',
+        'regular_hours',
+        'overtime_hours',
+        'double_time_hours',
+        'work_classification',
+        'prevailing_base_rate',
+        'prevailing_fringe_rate',
+        'fringe_payment_method',
     ];
 
     /**
@@ -37,6 +46,11 @@ class TimecardEntry extends Model
             'date' => 'date',
             'start_time' => 'string',
             'hours' => 'float',
+            'regular_hours' => 'float',
+            'overtime_hours' => 'float',
+            'double_time_hours' => 'float',
+            'prevailing_base_rate' => 'decimal:4',
+            'prevailing_fringe_rate' => 'decimal:4',
         ];
     }
 
@@ -53,6 +67,11 @@ class TimecardEntry extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function costCode(): BelongsTo
+    {
+        return $this->belongsTo(CostCode::class);
     }
 
     protected static function newFactory(): TimecardEntryFactory

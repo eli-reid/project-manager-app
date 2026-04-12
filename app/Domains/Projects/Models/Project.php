@@ -25,6 +25,10 @@ class Project extends Model
 
     private const PROJECT_NUMBER_PADDING = 4;
 
+    protected $attributes = [
+        'is_prevailing_wage' => false,
+    ];
+
     protected $fillable = [
         'name',
         'project_number',
@@ -38,6 +42,8 @@ class Project extends Model
         'leave_category',
         'is_active',
         'budget',
+        'is_prevailing_wage',
+        'wage_determination_id',
     ];
 
     /**
@@ -51,6 +57,7 @@ class Project extends Model
             'end_date' => 'date',
             'is_active' => 'boolean',
             'budget' => 'decimal:2',
+            'is_prevailing_wage' => 'boolean',
         ];
     }
 
@@ -156,6 +163,11 @@ class Project extends Model
     public function roleAccesses(): HasMany
     {
         return $this->hasMany(ProjectRoleAccess::class);
+    }
+
+    public function costCodes(): HasMany
+    {
+        return $this->hasMany(CostCode::class);
     }
 
     protected static function newFactory(): ProjectFactory
