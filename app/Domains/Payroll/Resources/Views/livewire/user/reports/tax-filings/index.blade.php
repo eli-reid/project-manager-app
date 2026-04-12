@@ -1,0 +1,12 @@
+<section class="w-full space-y-6">
+    <flux:button icon="arrow-left" :href="route('reports.financial.index')" size="sm">
+        {{ __('Financial Reports') }}
+    </flux:button>
+
+    <div class="space-y-2">
+        <flux:heading size="xl">{{ __('Payroll Tax Filings (941 and W-2)') }}</flux:heading>
+        <flux:text class="text-zinc-600 dark:text-zinc-400">
+            {{ __('Placeholder page. Tax filing datasets and export workflows will be implemented in the next payroll reporting phase.') }}
+        </flux:text>
+    </div>
+</section>

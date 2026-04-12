@@ -1,10 +1,14 @@
 <?php
 
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Domains\Payroll\Models\Deduction;
 use App\Domains\Payroll\Models\EmployeeDeduction;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
+use App\Domains\Payroll\Permissions\PayrollPermissions;
+use App\Domains\Reports\Services\ReportRegistry;
 
 it('keeps payroll persistence classes inside the payroll domain', function () {
     expect(file_exists(app_path('Domains/Payroll/Database/Migrations/2026_04_12_005043_create_payroll_employee_profiles_table.php')))->toBeTrue()
@@ -52,4 +56,34 @@ it('links payroll profiles to payroll statements', function () {
     expect($profile->payrollStatements)->toHaveCount(1)
         ->and($statement->payrollEmployeeProfile->is($profile))->toBeTrue()
         ->and($statement->user->is($profile->user))->toBeTrue();
+});
+
+it('registers payroll report permissions', function () {
+    app(DomainPermissionSynchronizer::class)->sync();
+
+    foreach (PayrollPermissions::all() as $permission) {
+        expect(
+            Permission::query()
+                ->where('resource', $permission['resource'])
+                ->where('action', $permission['action'])
+                ->exists()
+        )->toBeTrue();
+    }
+});
+
+it('registers payroll report cards in financial reports registry', function () {
+    $financialCards = collect(app(ReportRegistry::class)->forSection('financial'));
+
+    expect($financialCards->pluck('key')->all())
+        ->toContain('financial.payroll-certified-wh347')
+        ->toContain('financial.payroll-tax-filings')
+        ->toContain('financial.payroll-labor-cost')
+        ->toContain('financial.payroll-union-remittance');
+});
+
+it('registers payroll report placeholder routes', function () {
+    expect(route('reports.payroll.certified.index', absolute: false))->toBe('/reports/payroll/certified-wh347')
+        ->and(route('reports.payroll.tax-filings.index', absolute: false))->toBe('/reports/payroll/tax-filings')
+        ->and(route('reports.payroll.labor-cost.index', absolute: false))->toBe('/reports/payroll/labor-cost')
+        ->and(route('reports.payroll.union-remittance.index', absolute: false))->toBe('/reports/payroll/union-remittance');
 });
