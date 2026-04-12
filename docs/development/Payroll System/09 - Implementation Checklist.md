@@ -104,20 +104,21 @@
 ## Phase 6 - Pay Runs and Statements
 
 ### 6A - Services
-- [ ] Build PayRunService orchestration
+- [x] Build PayRunService orchestration
 - [ ] Build GrossToNetService
+- [x] Build GrossToNetService
 - [ ] Build TaxWithholdingService with configurable tables
-- [ ] Build PayrollStatementBuilderService
+- [x] Build PayrollStatementBuilderService
 
 ### 6B - Workflow
-- [ ] Create preview pay run flow
-- [ ] Require Controller approval before finalize
-- [ ] Lock finalized runs and statements against in-place mutation
+- [x] Create preview pay run flow
+- [x] Require Controller approval before finalize
+- [x] Lock finalized runs and statements against in-place mutation
 
 ### 6C - UI
-- [ ] Build PayRuns admin index
-- [ ] Build PayRuns create screen
-- [ ] Build PayRuns show screen with approve/finalize/void actions
+- [x] Build PayRuns admin index
+- [x] Build PayRuns create screen
+- [x] Build PayRuns show screen with approve/finalize/void actions
 
 ## Phase 7 - Employee Payroll Experience
 

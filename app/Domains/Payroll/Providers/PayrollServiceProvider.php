@@ -7,6 +7,9 @@ use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Form as AdminPayRateForm;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Index as AdminPayRateIndex;
 use App\Domains\Payroll\Livewire\Admin\PayRateTypes\Index as AdminPayRateTypeIndex;
+use App\Domains\Payroll\Livewire\Admin\PayRuns\Form as AdminPayRunForm;
+use App\Domains\Payroll\Livewire\Admin\PayRuns\Index as AdminPayRunIndex;
+use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as AdminPayRunShow;
 use App\Domains\Payroll\Livewire\Admin\Timecards\Review as AdminTimecardReview;
 use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
@@ -53,6 +56,10 @@ class PayrollServiceProvider extends ServiceProvider
         Gate::define('payroll-rates.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.view'));
         Gate::define('payroll-rates.manage', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.manage'));
         Gate::define('payroll-timecards.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-timecards.view'));
+        Gate::define('payroll-runs.preview', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.preview'));
+        Gate::define('payroll-runs.approve', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.approve'));
+        Gate::define('payroll-runs.finalize', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.finalize'));
+        Gate::define('payroll-runs.void', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.void'));
 
         Gate::define('payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewOwn($user));
         Gate::define('reports.payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewReports($user));
@@ -75,6 +82,9 @@ class PayrollServiceProvider extends ServiceProvider
         Livewire::component('app.domains.payroll.livewire.admin.pay-rates', AdminPayRateIndex::class);
         Livewire::component('app.domains.payroll.livewire.admin.pay-rates.form', AdminPayRateForm::class);
         Livewire::component('app.domains.payroll.livewire.admin.timecards.review', AdminTimecardReview::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-runs', AdminPayRunIndex::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.form', AdminPayRunForm::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.show', AdminPayRunShow::class);
 
         Livewire::component('app.domains.payroll.livewire.user.reports.certified-payroll', CertifiedPayrollIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.tax-filings', PayrollTaxFilingsIndex::class);

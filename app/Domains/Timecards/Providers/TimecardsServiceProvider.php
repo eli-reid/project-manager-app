@@ -6,7 +6,6 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
-use App\Domains\Timecards\Reports\TimecardReportDefinitions;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
@@ -19,6 +18,7 @@ use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use App\Domains\Timecards\Observers\TimecardEntryObserver;
 use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
+use App\Domains\Timecards\Reports\TimecardReportDefinitions;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -105,6 +105,7 @@ class TimecardsServiceProvider extends ServiceProvider
     {
         if (! $this->app->bound(TaskTypeRegistry::class)) {
             Log::warning('TaskTypeRegistry not bound in container. Timecard reminder task not registered.');
+
             return;
         }
 
@@ -119,5 +120,7 @@ class TimecardsServiceProvider extends ServiceProvider
                 ],
             ],
         ]);
+        Log::info('Registered timecard reminder task with TaskTypeRegistry.');
+
     }
 }

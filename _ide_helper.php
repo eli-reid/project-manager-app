@@ -24485,6 +24485,31 @@ namespace App\Domains\Reports\Livewire\User\MonthlyPerformance {
             }
     }
 
+namespace App\Domains\Payroll\Livewire\Admin\PayRateTypes {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\Admin\PayRates {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\Admin\Timecards {
+    /**
+     */
+    class Review extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll {
     /**
      */
