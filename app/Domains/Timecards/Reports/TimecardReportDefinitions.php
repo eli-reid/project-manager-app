@@ -9,7 +9,7 @@ class TimecardReportDefinitions
      */
     public static function all(): array
     {
-        return[
+        return [
             [
                 'key' => 'financial.labor-cost-analysis',
                 'section' => 'financial',

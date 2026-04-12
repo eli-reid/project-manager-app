@@ -2,8 +2,12 @@
 
 namespace App\Domains\Payroll\Services;
 
+use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Enums\PayRunStatus;
 use App\Domains\Payroll\Models\PayRun;
+use App\Domains\Payroll\Notifications\PayRunApprovedNotification;
+use App\Domains\Payroll\Notifications\PayRunFinalizedNotification;
+use App\Domains\Payroll\Notifications\PayRunVoidedNotification;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +84,17 @@ class PayRunService
                 ],
             ]);
 
+            // Dispatch notification to controller/admin
+            $approver = User::find($approvedBy);
+            if ($approver !== null) {
+                $approver->notify(new PayRunApprovedNotification(
+                    payRunId: (string) $run->id,
+                    approvedBy: $approver->username,
+                    payPeriodStart: $run->pay_period_start->toDateString(),
+                    payPeriodEnd: $run->pay_period_end->toDateString(),
+                ));
+            }
+
             return $run->fresh(['payrollStatements']) ?? $run;
         });
     }
@@ -108,6 +123,18 @@ class PayRunService
                 ],
             ]);
 
+            // Notify controller and payroll admin
+            $approver = User::find($run->approved_by);
+            if ($approver !== null) {
+                $approver->notify(new PayRunFinalizedNotification(
+                    payRunId: (string) $run->id,
+                    payPeriodStart: $run->pay_period_start->toDateString(),
+                    payPeriodEnd: $run->pay_period_end->toDateString(),
+                    payDate: $run->pay_date->toDateString(),
+                    employeeCount: $run->employee_count,
+                ));
+            }
+
             return $run->fresh(['payrollStatements']) ?? $run;
         });
     }
@@ -134,6 +161,16 @@ class PayRunService
                 'before' => ['status' => PayRunStatus::Finalized->value],
                 'after' => ['status' => PayRunStatus::Void->value],
             ]);
+
+            // Notify controller and system admin of void action (critical)
+            $approver = User::find($run->approved_by);
+            if ($approver !== null) {
+                $approver->notify(new PayRunVoidedNotification(
+                    payRunId: (string) $run->id,
+                    payPeriodStart: $run->pay_period_start->toDateString(),
+                    payPeriodEnd: $run->pay_period_end->toDateString(),
+                ));
+            }
 
             return $run->fresh(['payrollStatements']) ?? $run;
         });

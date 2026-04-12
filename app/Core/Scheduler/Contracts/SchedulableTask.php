@@ -4,7 +4,6 @@ namespace App\Core\Scheduler\Contracts;
 
 use App\Core\Scheduler\Models\ScheduledTask;
 
-
 interface SchedulableTask
 {
     /**
@@ -18,4 +17,3 @@ interface SchedulableTask
      */
     public function dispatchJob(): void;
 }
-

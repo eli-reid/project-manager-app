@@ -28,10 +28,8 @@ class TaskTypeRegistry
 
     /**
      * Register a task type → class mapping.
-     * 
      */
 
-    
     /**
      * @param  array<string, mixed>  $definition
      */

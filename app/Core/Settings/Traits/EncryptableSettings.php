@@ -39,17 +39,19 @@ trait EncryptableSettings
             } catch (\Exception $e) {
                 // If decryption fails, return the original value
                 // This handles cases where the value wasn't encrypted yet
-                Log::warning("Failed to decrypt setting '{$this->key}': " . $e->getMessage());
+                Log::warning("Failed to decrypt setting '{$this->key}': ".$e->getMessage());
+
                 return $value;
             }
         }
-        
+
         // Try to decode JSON for array values
         if (is_string($value) && $this->type === 'array') {
             $decoded = json_decode($value, true);
+
             return $decoded !== null ? $decoded : $value;
         }
-        
+
         return $value;
     }
 
@@ -69,6 +71,7 @@ trait EncryptableSettings
     public static function shouldEncrypt(string $key): bool
     {
         $setting = static::where('key', $key)->first();
+
         return $setting ? (bool) $setting->encrypted : false;
     }
 }

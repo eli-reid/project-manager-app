@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Only create if table doesn't exist
-        if (!Schema::connection('settings_sqlite')->hasTable('settings')) {
+        if (! Schema::connection('settings_sqlite')->hasTable('settings')) {
             Schema::connection('settings_sqlite')->create('settings', function (Blueprint $table) {
                 $table->id();
                 $table->string('key')->unique();

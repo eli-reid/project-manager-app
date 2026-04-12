@@ -17,7 +17,6 @@ enum ProjectStatusEnum: string
     case CANCELLED = 'cancelled';
     case ARCHIVED = 'archived';
 
-
     /**
      * Get status display name
      */

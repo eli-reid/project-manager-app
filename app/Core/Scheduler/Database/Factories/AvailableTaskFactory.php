@@ -2,14 +2,15 @@
 
 namespace App\Core\Scheduler\Database\Factories;
 
+use App\Core\Scheduler\Models\AvailableTask;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Core\Scheduler\Models\AvailableTask>
+ * @extends Factory<AvailableTask>
  */
 class AvailableTaskFactory extends Factory
 {
-    protected $model = \App\Core\Scheduler\Models\AvailableTask::class;
+    protected $model = AvailableTask::class;
 
     /**
      * Define the model's default state.

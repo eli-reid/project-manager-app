@@ -2,17 +2,14 @@
 
 namespace App\Domains\Timecards\Tasks;
 
-use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Contracts\SchedulableTask;
+use App\Core\Scheduler\Models\ScheduledTask;
 use App\Domains\Timecards\Services\TimecardReminderService;
 use Illuminate\Support\Facades\Log;
 
 class TimecardReminderTask implements SchedulableTask
 {
-    public function __construct(protected ScheduledTask $task,) 
-    {
-        
-    }
+    public function __construct(protected ScheduledTask $task) {}
 
     public function dispatchJob(): void
     {

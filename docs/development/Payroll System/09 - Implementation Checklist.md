@@ -141,9 +141,9 @@
 
 ## Phase 10 - Notifications
 
-- [ ] Register payroll notification definitions (TC/PR/EM/SY/CO)
-- [ ] Wire notifications to payroll lifecycle events
-- [ ] Add notification tests for critical events
+- [x] Register payroll notification definitions (TC/PR/EM/SY/CO)
+- [x] Wire notifications to payroll lifecycle events
+- [x] Add notification tests for critical events
 
 ## Phase 11 - Forecasting
 

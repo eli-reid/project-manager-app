@@ -3,6 +3,7 @@
 namespace App\Domains\Payroll\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Form as AdminPayRateForm;
@@ -24,6 +25,7 @@ use App\Domains\Payroll\Models\EmployeeDeduction;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
+use App\Domains\Payroll\Notifications\PayrollNotificationDefinitions;
 use App\Domains\Payroll\Observers\PayRateObserver;
 use App\Domains\Payroll\Observers\PayrollAuditObserver;
 use App\Domains\Payroll\Permissions\PayrollPermissions;
@@ -44,10 +46,11 @@ class PayrollServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ?TaskTypeRegistry $taskTypeRegistry = null): void
+    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, ?TaskTypeRegistry $taskTypeRegistry = null): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
+        $this->registerNotifications($notificationRegistry);
         $this->registerAuthorization();
         $this->registerReports($reportRegistry);
         $this->registerSchedulerTasks($taskTypeRegistry);
@@ -133,6 +136,11 @@ class PayrollServiceProvider extends ServiceProvider
     private function registerReports(ReportRegistry $reportRegistry): void
     {
         $reportRegistry->registerDefinitions(PayrollReportDefinitions::all());
+    }
+
+    private function registerNotifications(NotificationRegistry $notificationRegistry): void
+    {
+        $notificationRegistry->registerDefinitions(PayrollNotificationDefinitions::definitions());
     }
 
     private function registerSchedulerTasks(?TaskTypeRegistry $taskTypeRegistry): void

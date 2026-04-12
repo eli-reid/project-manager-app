@@ -5,6 +5,7 @@ namespace App\Domains\Tasks\Livewire\Admin\Projects;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
+use App\Domains\Tasks\Services\ProjectTaskHierarchyViewDataService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
@@ -368,7 +369,7 @@ class TaskHierarchyWidget extends Component
     {
         return view('tasks::livewire.admin.projects.task-hierarchy-widget', [
             'project' => $this->project,
-            ...app(\App\Domains\Tasks\Services\ProjectTaskHierarchyViewDataService::class)->forProject($this->project),
+            ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project),
         ]);
     }
 
