@@ -52,42 +52,6 @@ class FoundationPermissions
         'description' => 'Edit change orders',
     ];
 
-    public const PAYROLL_VIEW = [
-        'resource' => 'payroll',
-        'action' => 'view',
-        'description' => 'View payroll runs and summaries',
-    ];
-
-    public const PAYROLL_RUN = [
-        'resource' => 'payroll',
-        'action' => 'run',
-        'description' => 'Run payroll calculations',
-    ];
-
-    public const PAYROLL_FINALIZE = [
-        'resource' => 'payroll',
-        'action' => 'finalize',
-        'description' => 'Finalize and lock payroll periods',
-    ];
-
-    public const PAYROLL_REOPEN = [
-        'resource' => 'payroll',
-        'action' => 'reopen',
-        'description' => 'Reopen finalized payroll periods',
-    ];
-
-    public const PAYROLL_EXPORT = [
-        'resource' => 'payroll',
-        'action' => 'export',
-        'description' => 'Export payroll results',
-    ];
-
-    public const PAYROLL_ADMIN_LABOR = [
-        'resource' => 'payroll',
-        'action' => 'manage-admin-labor',
-        'description' => 'Create and manage admin labor entries',
-    ];
-
     public const RATE_MANAGEMENT_VIEW = [
         'resource' => 'rate-management',
         'action' => 'view',
@@ -159,12 +123,6 @@ class FoundationPermissions
             self::CHANGE_ORDERS_CREATE,
             self::CHANGE_ORDERS_APPROVE,
             self::CHANGE_ORDERS_EDIT,
-            self::PAYROLL_VIEW,
-            self::PAYROLL_RUN,
-            self::PAYROLL_FINALIZE,
-            self::PAYROLL_REOPEN,
-            self::PAYROLL_EXPORT,
-            self::PAYROLL_ADMIN_LABOR,
             self::RATE_MANAGEMENT_VIEW,
             self::RATE_MANAGEMENT_EDIT,
             self::RATE_MANAGEMENT_COMPONENTS,

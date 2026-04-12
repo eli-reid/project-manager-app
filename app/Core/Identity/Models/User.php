@@ -8,10 +8,13 @@ use App\Core\Auth\User\Database\Factories\UserFactory;
 use App\Core\Identity\Services\UserAuthorizationSnapshotService;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
+use App\Domains\Payroll\Models\PayrollEmployeeProfile;
+use App\Domains\Payroll\Models\PayrollStatement;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -20,6 +23,7 @@ use Throwable;
 
 /**
  * @property string $id
+ *
  * @mixin IdeHelperUser
  */
 class User extends Authenticatable
@@ -101,6 +105,16 @@ class User extends Authenticatable
     public function notificationPreferences(): HasMany
     {
         return $this->hasMany(UserNotificationPreference::class);
+    }
+
+    public function payrollProfile(): HasOne
+    {
+        return $this->hasOne(PayrollEmployeeProfile::class);
+    }
+
+    public function payrollStatements(): HasMany
+    {
+        return $this->hasMany(PayrollStatement::class);
     }
 
     public function notificationPreferenceFor(string $notificationKey, string $channel): ?bool

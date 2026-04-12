@@ -1,205 +1,162 @@
 # Payroll System Implementation Checklist
 
-## Goal
+## Build Rules
 
-Rebuild the payroll domain from the approved specification while aligning with this application's existing architecture, conventions, and permission system.
+- [ ] Keep User as identity and RBAC subject
+- [ ] Keep Timecards as payroll source of truth for user-entered time
+- [ ] Use Dailies only for manual reconciliation reporting
+- [ ] Use ULIDs for all payroll domain entities
+- [ ] Keep authorization policy-first and permission-driven
+- [ ] Reuse core audit logs as primary event store
 
-## Guiding Decisions
+## Phase 1 - Data Foundation
 
-- [ ] Treat the current payroll domain as disposable scaffold code.
-- [ ] Keep `User` as the system identity and RBAC subject.
-- [ ] Introduce payroll-specific profile and financial models around `User` instead of replacing it with a separate authentication entity.
-- [ ] Use ULIDs for new payroll entities to match app conventions.
-- [ ] Keep authorization policy-first and permission-driven.
-- [ ] Rebuild payroll in phases instead of implementing every appendix at once.
-- [ ] Defer external banking, tax filing, and government integrations until the internal payroll ledger is stable.
+### 1A - Payroll Core Tables
+- [x] Create payroll employee profiles table
+- [x] Create pay rate types table
+- [x] Create pay rates table
+- [ ] Create pay runs table
+- [ ] Create payroll statements table
+- [ ] Create deductions table
+- [ ] Create employee deductions table
 
-## Phase 0 - Architecture Decisions
+### 1B - Project and Timecard Extensions
+- [ ] Add prevailing wage fields to projects
+- [ ] Create cost codes table under Projects domain
+- [ ] Add payroll fields to timecard entries (cost code, regular/OT/DT, prevailing fields)
 
-- [ ] Confirm payroll will be modeled as `User` + payroll-owned profile/data tables.
-- [ ] Confirm the canonical status lifecycle for payroll periods, runs, statements, corrections, and exports.
-- [ ] Confirm the first release scope.
-- [ ] Decide which features are core for v1.
-- [ ] Core recommendation: periods, runs, statements, rates, deductions, preview/finalize workflow, payroll history, reporting foundation.
-- [ ] Later recommendation: ACH, tax portal filing, certified payroll submission, union remittance, forecasting, advanced audit chain features.
-- [ ] Confirm naming conventions for new models, services, permissions, and route groups.
-- [ ] Confirm sensitive-data handling boundaries for bank details, tax data, and SSN-related fields.
+### 1C - Constraints and Integrity
+- [x] Ensure unique employee_number on payroll profiles
+- [ ] Enforce one active employee rate per rate type and project scope
+- [ ] Enforce payroll statement user/profile consistency in builder validation
 
-## Phase 1 - Remove Existing Payroll Scaffold
+## Phase 2 - Domain Registration and Settings
 
-- [ ] Inventory all current payroll references across the repo.
-- [ ] Remove the current payroll provider registration from `bootstrap/providers.php`.
-- [ ] Remove the current payroll domain folder under `app/Domains/Payroll`.
-- [ ] Remove or replace payroll migrations tied to the disposable scaffold.
-- [ ] Remove payroll Livewire components and views that depend on the old schema.
-- [ ] Remove payroll tests that validate the old scaffold behavior.
-- [ ] Remove or refactor cross-domain references to old payroll models and services.
-- [ ] Update any permission tests that still assert old payroll permission names.
-- [ ] Clear compiled/bootstrap caches after teardown.
+### 2A - Domain Provider
+- [x] Add Payroll service provider
+- [x] Register payroll settings config in SettingsRegistryContract
+- [ ] Register payroll migrations from domain path when domain migrations are moved
+- [ ] Register payroll permissions
+- [ ] Register payroll routes
+- [ ] Register payroll views and Livewire components
 
-## Phase 2 - Define New Payroll Domain Model
+### 2B - Payroll Settings
+- [x] Add reconciliation settings definitions
+- [ ] Confirm settings sync into settings database in local/dev
+- [ ] Add tests for settings registry integration
 
-- [ ] Create a payroll domain map that matches the spec and the app's architecture.
-- [ ] Define the new core entities.
-- [ ] `PayrollEmployeeProfile`
-- [ ] `PayrollPeriod`
-- [ ] `PayrollRun`
-- [ ] `PayrollStatement`
-- [ ] `PayrollStatementLine`
-- [ ] `PayrollPayRate`
-- [ ] `PayrollPayRateType` if still needed after redesign
-- [ ] `PayrollDeductionDefinition`
-- [ ] `PayrollEmployeeDeduction`
-- [ ] `PayrollDirectDepositAccount`
-- [ ] `PayrollTaxProfile` or equivalent elections model
-- [ ] `PayrollCorrection`
-- [ ] `CertifiedPayrollReport` or export aggregate if included in early scope
-- [ ] Define ownership and relationships for each entity.
-- [ ] Document which entities are immutable after finalization.
-- [ ] Define which data belongs in the general audit subsystem versus payroll-specific audit records.
+## Phase 3 - Models and Factories
 
-## Phase 3 - Database Design
+### 3A - Models
+- [x] PayrollEmployeeProfile model
+- [x] PayRateType model
+- [x] PayRate model
+- [x] PayrollStatement model
+- [ ] PayRun model
+- [ ] Deduction model
+- [ ] EmployeeDeduction model
 
-- [ ] Write the new schema design before building migrations.
-- [ ] Define table names, foreign keys, unique constraints, and effective-date rules.
-- [ ] Use DECIMAL for all financial values.
-- [ ] Add indexes for pay period, run, employee, project, and status-heavy queries.
-- [ ] Add uniqueness constraints for active rate windows where applicable.
-- [ ] Add encryption/casting strategy for sensitive payroll fields.
-- [ ] Decide how to store masked versus encrypted values.
-- [ ] Plan archival and soft-delete behavior explicitly.
-- [ ] Ensure migrations follow project conventions and are safe for fresh installs.
+### 3B - Relationships and Casts
+- [x] Add encrypted cast for ssn_encrypted
+- [x] Add typed rate relationships (profile -> rates -> rate type)
+- [ ] Add PayRun and PayrollStatement full relationships
 
-## Phase 4 - Permission and Authorization Design
+### 3C - Factories
+- [x] PayrollEmployeeProfileFactory
+- [x] PayRateTypeFactory (includes standard state)
+- [x] PayRateFactory
+- [x] PayrollStatementFactory baseline
 
-- [ ] Replace the scaffold payroll permissions with a spec-aligned permission map.
-- [ ] Define granular permissions for own-data versus all-data access.
-- [ ] Suggested categories:
-- [ ] `payroll.view-own`
-- [ ] `payroll.view-all`
-- [ ] `payroll.rates.manage`
-- [ ] `payroll.periods.manage`
-- [ ] `payroll.runs.preview`
-- [ ] `payroll.runs.approve`
-- [ ] `payroll.runs.finalize`
-- [ ] `payroll.runs.void`
-- [ ] `payroll.statements.export`
-- [ ] `payroll.corrections.manage`
-- [ ] `payroll.reports.certified-payroll`
-- [ ] `payroll.reports.tax`
-- [ ] `payroll.audit.view`
-- [ ] Map spec roles into the existing role system through permissions, not hardcoded role names.
-- [ ] Build policies around these permissions.
-- [ ] Decide whether admin bypass remains allowed or payroll follows stricter separation-of-duties rules.
-- [ ] Add tests for policy behavior using role/permission assignments.
+## Phase 4 - Typed Rate Management
 
-## Phase 5 - Timecard to Payroll Pipeline
+### 4A - Seeded System Types
+- [ ] Seed standard pay rate type
+- [ ] Seed prevailing_base pay rate type
+- [ ] Seed prevailing_fringe pay rate type
+- [ ] Prevent edits/deletes to protected system types
 
-- [ ] Define the exact handoff from approved timecards into payroll calculation.
-- [ ] Reuse the existing Timecards domain instead of duplicating time entry concepts.
-- [ ] Define which timecard fields are required for payroll calculation.
-- [ ] Add prevailing-wage support where project/timecard data requires it.
-- [ ] Implement rate resolution order.
-- [ ] Project-specific prevailing wage rate
-- [ ] Employee payroll rate
-- [ ] Fallback/default classification rule if needed
-- [ ] Define overtime calculation rules by jurisdiction.
-- [ ] Define adjustment and reversal mechanics for processed time.
-- [ ] Ensure processed time cannot be silently recalculated without traceability.
+### 4B - Admin UI
+- [ ] Build PayRateTypes admin index
+- [ ] Build employee PayRates admin index
+- [ ] Build employee PayRates form with type selection and project scope
 
-## Phase 6 - Payroll Calculation Engine
+## Phase 5 - Time to Payroll Pipeline
 
-- [ ] Implement a service layer for payroll calculation that is deterministic and testable.
-- [ ] Separate responsibilities into focused services.
-- [ ] Rate resolution
-- [ ] Hours classification
-- [ ] Gross pay calculation
-- [ ] Deduction resolution
-- [ ] Tax calculation placeholder or adapter boundary
-- [ ] Net pay calculation
-- [ ] Statement generation
-- [ ] Define preview run generation behavior.
-- [ ] Define approval/finalization rules.
-- [ ] Lock finalized data against mutation.
-- [ ] Implement correction workflows through explicit follow-up records, not in-place edits.
+### 5A - Calculation Services
+- [ ] Build PayrollRateResolutionService with typed precedence
+- [ ] Build OvertimeCalculationService (weekly FLSA, CA daily, 7th-day)
 
-## Phase 7 - UI and Workflow
+### 5B - Timecard Integration
+- [ ] Extend timecard forms with cost code selection
+- [ ] Add validation rules V-01 through V-10 in payroll review pipeline
+- [ ] Build admin payroll timecard review screen
 
-- [ ] Build new payroll admin workflows with Livewire and Flux components.
-- [ ] Build payroll period management UI.
-- [ ] Build preview pay run UI.
-- [ ] Build payroll statement drill-down UI.
-- [ ] Build correction workflow UI.
-- [ ] Build employee payroll history UI.
-- [ ] Add approval/finalization confirmations with clear state transitions.
-- [ ] Add exception states for missing rates, invalid time, unapproved entries, and locked periods.
-- [ ] Ensure mobile and desktop experiences follow existing app patterns where relevant.
+### 5C - Dailies Reconciliation
+- [ ] Build TimecardDailyReconciliation report (user/project/date/hours)
+- [ ] Respect payroll.reconciliation settings in mismatch logic
+- [ ] Keep require_cost_code_match default false until mapping exists
 
-## Phase 8 - Reporting Foundation
+## Phase 6 - Pay Runs and Statements
 
-- [ ] Implement payroll summary reporting based on finalized statements.
-- [ ] Add project labor cost rollups that use the new payroll source of truth.
-- [ ] Define export formats for statements and summaries.
-- [ ] Add certified payroll reporting only after the required prevailing-wage data model exists.
-- [ ] Add tax-report outputs only after tax data is reliable and versioned.
+### 6A - Services
+- [ ] Build PayRunService orchestration
+- [ ] Build GrossToNetService
+- [ ] Build TaxWithholdingService with configurable tables
+- [ ] Build PayrollStatementBuilderService
 
-## Phase 9 - Sensitive Data and Compliance Hardening
+### 6B - Workflow
+- [ ] Create preview pay run flow
+- [ ] Require Controller approval before finalize
+- [ ] Lock finalized runs and statements against in-place mutation
 
-- [ ] Define how SSN-related data is stored, masked, and accessed.
-- [ ] Define how direct-deposit details are encrypted and rotated.
-- [ ] Add access logging for sensitive payroll data views.
-- [ ] Add audit coverage for payroll mutations, approvals, finalization, voids, and exports.
-- [ ] Decide whether immutable hash-chain audit requirements are in initial scope or deferred.
-- [ ] Define legal-hold and retention expectations before implementing archival behavior.
+### 6C - UI
+- [ ] Build PayRuns admin index
+- [ ] Build PayRuns create screen
+- [ ] Build PayRuns show screen with approve/finalize/void actions
 
-## Phase 10 - Integrations
+## Phase 7 - Employee Payroll Experience
 
-- [ ] Design integration boundaries as adapters, not embedded business logic.
-- [ ] Add accounting export first if external integration is needed early.
-- [ ] Defer ACH file generation until direct-deposit and finalization flows are stable.
-- [ ] Defer tax filing integrations until tax calculations and filing requirements are confirmed.
-- [ ] Defer government portal integrations until certified payroll exports are verified.
-- [ ] Add retry, DLQ, monitoring, and credential management as part of integration work.
+- [ ] Build PayStubs user index
+- [ ] Build PayStubs user show page
+- [ ] Add PDF pay stub generation
 
-## Phase 11 - Testing Strategy
+## Phase 8 - Reporting and Compliance
 
-- [ ] Write tests alongside each phase instead of backfilling at the end.
-- [ ] Add model tests for rate windows, status transitions, and constraints.
-- [ ] Add service tests for payroll calculation scenarios.
-- [ ] Add feature tests for permissions and workflows.
-- [ ] Add Livewire tests for payroll admin components.
-- [ ] Add scenario tests for corrections, approvals, and finalization locking.
-- [ ] Add regression tests for project labor cost reporting that depends on payroll outputs.
-- [ ] Run the minimum targeted Pest coverage for each increment.
+- [ ] Build certified payroll report generation (WH-347)
+- [ ] Build labor cost report by project/cost code/employee
+- [ ] Build union remittance report
+- [ ] Register payroll reports in report registry
 
-## Phase 12 - Cutover and Cleanup
+## Phase 9 - Audit and Monitoring
 
-- [ ] Remove any remaining dead references to scaffold payroll classes.
-- [ ] Verify bootstrap/provider registration only loads the new payroll domain.
-- [ ] Clear caches and confirm routes, views, and Livewire components register correctly.
-- [ ] Verify permission synchronization includes the new payroll capabilities.
-- [ ] Run targeted tests for Payroll, Projects, Reports, Timecards, and permission sync.
-- [ ] Document any deferred spec items explicitly so they do not get mistaken for completed work.
+- [ ] Log payroll mutations with core AuditLogger
+- [ ] Add payroll hash-chain digest layer
+- [ ] Build payroll audit report screen
+- [ ] Add nightly digest validation task and alerts
 
-## Suggested Build Sequence
+## Phase 10 - Notifications
 
-- [ ] Step 1: Teardown existing payroll scaffold.
-- [ ] Step 2: Finalize new payroll architecture decisions.
-- [ ] Step 3: Build schema and models.
-- [ ] Step 4: Build permissions and policies.
-- [ ] Step 5: Build timecard-to-payroll calculation pipeline.
-- [ ] Step 6: Build payroll periods, runs, and statements.
-- [ ] Step 7: Build admin workflow UI.
-- [ ] Step 8: Build employee payroll history.
-- [ ] Step 9: Build reporting outputs.
-- [ ] Step 10: Add compliance hardening.
-- [ ] Step 11: Add integrations.
-- [ ] Step 12: Final cleanup and regression validation.
+- [ ] Register payroll notification definitions (TC/PR/EM/SY/CO)
+- [ ] Wire notifications to payroll lifecycle events
+- [ ] Add notification tests for critical events
 
-## Explicit Non-Goals for the First Build Pass
+## Phase 11 - Forecasting
 
-- [ ] Do not mirror the spec literally where it conflicts with app-wide conventions.
-- [ ] Do not replace `User` as the authentication identity.
-- [ ] Do not implement banking and tax integrations before the internal payroll model is stable.
-- [ ] Do not add speculative compliance features without a concrete technical design.
-- [ ] Do not leave old scaffold classes in place once the rebuild starts.
+- [ ] Build forecasting service (trailing, project-based, headcount)
+- [ ] Build forecasting widgets
+- [ ] Build forecasting reports
+
+## Phase 12 - Integrations (Deferred)
+
+- [ ] Keep all third-party payroll integrations deferred until core payroll stabilizes
+- [ ] Revisit accounting export first when integration phase starts
+- [ ] Add retry, DLQ, and health monitoring framework before enabling endpoints
+
+## Verification Checklist
+
+- [x] Typed rate test passes (standard type with different employee values)
+- [x] SSN encrypted cast test passes
+- [x] Reconciliation settings keys test passes
+- [ ] Run full payroll test group after Phase 1 completion
+- [ ] Run migration test in clean database state
+- [ ] Validate payroll settings visibility in admin settings editor
