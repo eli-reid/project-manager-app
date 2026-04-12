@@ -38,4 +38,28 @@ class PayRateTypeFactory extends Factory
             'sort_order' => 10,
         ]);
     }
+
+    public function prevailingBase(): static
+    {
+        return $this->state(fn (): array => [
+            'key' => 'prevailing_base',
+            'name' => 'Prevailing Wage Base',
+            'description' => 'Base hourly rate for prevailing wage projects (Davis-Bacon / SCA).',
+            'is_active' => true,
+            'is_system' => true,
+            'sort_order' => 20,
+        ]);
+    }
+
+    public function prevailingFringe(): static
+    {
+        return $this->state(fn (): array => [
+            'key' => 'prevailing_fringe',
+            'name' => 'Prevailing Wage Fringe',
+            'description' => 'Fringe benefit rate for prevailing wage projects.',
+            'is_active' => true,
+            'is_system' => true,
+            'sort_order' => 30,
+        ]);
+    }
 }

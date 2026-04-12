@@ -8,6 +8,8 @@ use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as Certifie
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
 use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
 use App\Domains\Payroll\Livewire\User\Reports\UnionRemittance\Index as PayrollUnionRemittanceIndex;
+use App\Domains\Payroll\Models\PayRate;
+use App\Domains\Payroll\Observers\PayRateObserver;
 use App\Domains\Payroll\Permissions\PayrollPermissions;
 use App\Domains\Payroll\Policies\PayrollReportPolicy;
 use App\Domains\Payroll\Reports\PayrollReportDefinitions;
@@ -42,6 +44,8 @@ class PayrollServiceProvider extends ServiceProvider
 
     private function registerAuthorization(): void
     {
+        PayRate::observe(PayRateObserver::class);
+
         Gate::define('payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewOwn($user));
         Gate::define('reports.payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewReports($user));
         Gate::define('reports.payroll.export', fn ($user): bool => app(PayrollReportPolicy::class)->exportReports($user));

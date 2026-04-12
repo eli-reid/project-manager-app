@@ -5,6 +5,7 @@ namespace App\Domains\Payroll\Models;
 use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Database\Factories\PayRateFactory;
 use App\Domains\Projects\Models\Project;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -55,6 +56,15 @@ class PayRate extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * @param  Builder<PayRate>  $query
+     * @return Builder<PayRate>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereNull('expiration_date');
     }
 
     protected static function newFactory(): PayRateFactory

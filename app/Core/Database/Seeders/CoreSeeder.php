@@ -5,6 +5,7 @@ namespace App\Core\Database\Seeders;
 use App\Core\Auth\Permission\Database\Seeders\RolesAndPermissionsSeeder;
 use App\Core\Auth\User\Database\Seeders\UserSeeder;
 use App\Core\Settings\Database\Seeders\SettingsSeeder;
+use App\Domains\Payroll\Database\Seeders\PayRateTypeSeeder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -20,5 +21,6 @@ class CoreSeeder extends Seeder
         $this->call(SettingsSeeder::class);
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(UserSeeder::class);
+        $this->call(PayRateTypeSeeder::class);
     }
 }
