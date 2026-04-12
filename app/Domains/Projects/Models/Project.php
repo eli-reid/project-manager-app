@@ -37,6 +37,7 @@ class Project extends Model
         'project_manager_id',
         'leave_category',
         'is_active',
+        'budget',
     ];
 
     /**
@@ -49,6 +50,7 @@ class Project extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'is_active' => 'boolean',
+            'budget' => 'decimal:2',
         ];
     }
 

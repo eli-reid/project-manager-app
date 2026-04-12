@@ -74,4 +74,23 @@ class ProjectPolicy
 
         return $projectAccessService->hasScopedPermission($project, $user, 'projects.delete');
     }
+
+    public function viewFinancials(User $user, Project $project): bool
+    {
+        if (! $user->hasPermission('projects.view-financials')) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        $projectAccessService = app(ProjectAccessService::class);
+
+        if (! $projectAccessService->projectUsesScopedAccess($project)) {
+            return true;
+        }
+
+        return $projectAccessService->hasScopedPermission($project, $user, 'projects.view');
+    }
 }

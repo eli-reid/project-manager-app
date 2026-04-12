@@ -9,21 +9,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('reports')
     ->name('reports.')
+    ->middleware('can:reports.payroll.view')
     ->group(function (): void {
         Route::get('/payroll/certified-wh347', CertifiedPayrollIndex::class)
-            ->middleware('can:reports.financial.view')
             ->name('payroll.certified.index');
 
         Route::get('/payroll/tax-filings', PayrollTaxFilingsIndex::class)
-            ->middleware('can:reports.financial.view')
             ->name('payroll.tax-filings.index');
 
         Route::get('/payroll/labor-cost', PayrollLaborCostIndex::class)
-            ->middleware('can:reports.financial.view')
             ->name('payroll.labor-cost.index');
 
         Route::get('/payroll/union-remittance', PayrollUnionRemittanceIndex::class)
-            ->middleware('can:reports.financial.view')
             ->name('payroll.union-remittance.index');
     });
 

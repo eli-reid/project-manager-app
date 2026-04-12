@@ -10,6 +10,7 @@ use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFili
 use App\Domains\Payroll\Livewire\User\Reports\UnionRemittance\Index as PayrollUnionRemittanceIndex;
 use App\Domains\Payroll\Permissions\PayrollPermissions;
 use App\Domains\Payroll\Policies\PayrollReportPolicy;
+use App\Domains\Payroll\Reports\PayrollReportDefinitions;
 use App\Domains\Reports\Services\ReportRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -77,47 +78,6 @@ class PayrollServiceProvider extends ServiceProvider
 
     private function registerReports(ReportRegistry $reportRegistry): void
     {
-        $reportRegistry->registerDefinitions([
-            [
-                'key' => 'financial.payroll-certified-wh347',
-                'section' => 'financial',
-                'title' => 'Certified Payroll (WH-347)',
-                'description' => 'Generate certified payroll by project and week.',
-                'route' => 'reports.payroll.certified.index',
-                'badge_label' => 'Compliance',
-                'badge_color' => 'amber',
-                'sort' => 60,
-            ],
-            [
-                'key' => 'financial.payroll-tax-filings',
-                'section' => 'financial',
-                'title' => 'Payroll Tax Filings (941 and W-2)',
-                'description' => 'Generate quarterly and annual payroll tax filing datasets.',
-                'route' => 'reports.payroll.tax-filings.index',
-                'badge_label' => 'Compliance',
-                'badge_color' => 'amber',
-                'sort' => 70,
-            ],
-            [
-                'key' => 'financial.payroll-labor-cost',
-                'section' => 'financial',
-                'title' => 'Payroll Labor Cost by Project and Cost Code',
-                'description' => 'Analyze payroll labor cost by project, cost code, and employee.',
-                'route' => 'reports.payroll.labor-cost.index',
-                'badge_label' => 'Financial',
-                'badge_color' => 'green',
-                'sort' => 80,
-            ],
-            [
-                'key' => 'financial.payroll-union-remittance',
-                'section' => 'financial',
-                'title' => 'Union Remittance',
-                'description' => 'Generate union remittance reports and export-ready files.',
-                'route' => 'reports.payroll.union-remittance.index',
-                'badge_label' => 'Compliance',
-                'badge_color' => 'amber',
-                'sort' => 90,
-            ],
-        ]);
+        $reportRegistry->registerDefinitions(PayrollReportDefinitions::all());
     }
 }

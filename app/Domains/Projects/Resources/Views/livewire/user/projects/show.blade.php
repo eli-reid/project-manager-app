@@ -76,6 +76,12 @@
                     <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $documentCount }}</span>
                 </button>
             @endif
+
+            @if (in_array('financials', $tabs, true))
+                <button type="button" wire:click="setTab('financials')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'financials' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    {{ __('Financials') }}
+                </button>
+            @endif
         </div>
     </div>
 
@@ -171,5 +177,38 @@
 
     @if ($activeTab === 'documents' && in_array('documents', $tabs, true))
         <livewire:app.domains.documents.livewire.admin.projects.documents-tab :project="$project" :key="'user-project-documents-tab-'.$project->id" />
+    @endif
+
+    @if ($activeTab === 'financials' && in_array('financials', $tabs, true))
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Budget') }}</p>
+                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {{ $financialSummary['budget'] !== null ? '$'.number_format($financialSummary['budget'], 2) : '—' }}
+                </p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Total Invoiced') }}</p>
+                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    ${{ number_format($financialSummary['invoiced'], 2) }}
+                    <span class="ml-1 text-xs text-zinc-400 dark:text-zinc-500">({{ $financialSummary['invoice_count'] }} {{ Str::plural('invoice', $financialSummary['invoice_count']) }})</span>
+                </p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Remaining Budget') }}</p>
+                <p class="mt-2 text-sm font-medium {{ $financialSummary['remaining'] !== null && $financialSummary['remaining'] < 0 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100' }}">
+                    {{ $financialSummary['remaining'] !== null ? '$'.number_format($financialSummary['remaining'], 2) : '—' }}
+                </p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Budget Used') }}</p>
+                <p class="mt-2 text-sm font-medium {{ $financialSummary['variance_pct'] !== null && $financialSummary['variance_pct'] > 100 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100' }}">
+                    {{ $financialSummary['variance_pct'] !== null ? $financialSummary['variance_pct'].'%' : '—' }}
+                </p>
+            </div>
+        </div>
     @endif
 </section>

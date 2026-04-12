@@ -6,6 +6,7 @@ use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectFinancialsService;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Tasks\Models\Task;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -71,6 +72,10 @@ class Show extends Component
 
         if ($user?->can('viewAny', Document::class)) {
             $tabs[] = 'documents';
+        }
+
+        if ($user?->can('viewFinancials', $this->project)) {
+            $tabs[] = 'financials';
         }
 
         return $tabs;
@@ -158,6 +163,11 @@ class Show extends Component
                 ->count();
         }
 
+        $financialSummary = null;
+        if (in_array('financials', $tabs, true) && $this->activeTab === 'financials') {
+            $financialSummary = app(ProjectFinancialsService::class)->summary($this->project);
+        }
+
         return view('projects::livewire.user.projects.show', [
             'tabs' => $tabs,
             'taskCount' => $taskCount,
@@ -169,6 +179,7 @@ class Show extends Component
             'stockOrderCount' => $stockOrderCount,
             'recentStockOrders' => $recentStockOrders,
             'documentCount' => $documentCount,
+            'financialSummary' => $financialSummary,
         ]);
     }
 }

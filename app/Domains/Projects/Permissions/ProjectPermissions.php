@@ -28,6 +28,12 @@ class ProjectPermissions
         'description' => 'Delete projects',
     ];
 
+    public const VIEW_FINANCIALS = [
+        'resource' => 'projects',
+        'action' => 'view-financials',
+        'description' => 'View project financials (budget vs invoiced)',
+    ];
+
     public static function all(): array
     {
         return [
@@ -35,6 +41,7 @@ class ProjectPermissions
             self::CREATE,
             self::EDIT,
             self::DELETE,
+            self::VIEW_FINANCIALS,
         ];
     }
 }
