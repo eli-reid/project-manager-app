@@ -2,6 +2,7 @@
 
 namespace App\Domains\Timecards\Livewire\User\Timecards;
 
+use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
@@ -10,6 +11,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -29,7 +31,7 @@ class Form extends Component
     public ?string $notes = null;
 
     /**
-     * @var array<int, array{id:?string,row_key:string,day_of_week:int,start_time:?string,project_id:?string,custom_project_name:?string,hours:string,notes:?string,delete:bool}>
+     * @var array<int, array{id:?string,row_key:string,day_of_week:int,start_time:?string,project_id:?string,cost_code_id:?string,custom_project_name:?string,hours:string,notes:?string,delete:bool}>
      */
     public array $entries = [];
 
@@ -53,6 +55,7 @@ class Form extends Component
                     'day_of_week' => (int) optional($entry->date)->dayOfWeek,
                     'start_time' => $entry->start_time ? substr((string) $entry->start_time, 0, 5) : null,
                     'project_id' => $entry->project_id ? (string) $entry->project_id : null,
+                    'cost_code_id' => $entry->cost_code_id ? (string) $entry->cost_code_id : null,
                     'custom_project_name' => $entry->custom_project_name,
                     'hours' => number_format((float) $entry->hours, 2, '.', ''),
                     'notes' => $entry->notes,
@@ -84,6 +87,7 @@ class Form extends Component
             'entries.*.day_of_week' => ['required', 'integer', 'between:0,6'],
             'entries.*.start_time' => ['nullable', 'date_format:H:i'],
             'entries.*.project_id' => ['nullable', 'exists:projects,id'],
+            'entries.*.cost_code_id' => ['nullable', 'exists:cost_codes,id'],
             'entries.*.custom_project_name' => ['nullable', 'string', 'max:255'],
             'entries.*.hours' => ['required', 'numeric', 'min:0', 'max:24'],
             'entries.*.notes' => ['nullable', 'string'],
@@ -99,6 +103,7 @@ class Form extends Component
             'day_of_week' => 1, // Default to Monday
             'start_time' => null,
             'project_id' => null,
+            'cost_code_id' => null,
             'custom_project_name' => null,
             'hours' => '0.00',
             'notes' => null,
@@ -134,6 +139,8 @@ class Form extends Component
     public function save(): void
     {
         $validated = $this->validate();
+        $this->assertValidCostCodeMapping($validated['entries'] ?? []);
+
         // Convert day_of_week to actual dates
         $entries = $this->convertDayOfWeekToDate($validated['entries'] ?? []);
         $validated['entries'] = $entries;
@@ -170,6 +177,11 @@ class Form extends Component
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name']),
+            'costCodesByProject' => CostCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'project_id', 'code', 'description'])
+                ->groupBy('project_id'),
         ]);
     }
 
@@ -190,5 +202,38 @@ class Form extends Component
 
             return $entry;
         }, $entries);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $entries
+     */
+    private function assertValidCostCodeMapping(array $entries): void
+    {
+        foreach ($entries as $index => $entry) {
+            $costCodeId = (string) ($entry['cost_code_id'] ?? '');
+
+            if ($costCodeId === '') {
+                continue;
+            }
+
+            $projectId = (string) ($entry['project_id'] ?? '');
+
+            if ($projectId === '') {
+                throw ValidationException::withMessages([
+                    "entries.{$index}.cost_code_id" => 'Select a project before selecting a cost code.',
+                ]);
+            }
+
+            $isValidForProject = CostCode::query()
+                ->whereKey($costCodeId)
+                ->where('project_id', $projectId)
+                ->exists();
+
+            if (! $isValidForProject) {
+                throw ValidationException::withMessages([
+                    "entries.{$index}.cost_code_id" => 'Selected cost code does not belong to the selected project.',
+                ]);
+            }
+        }
     }
 }

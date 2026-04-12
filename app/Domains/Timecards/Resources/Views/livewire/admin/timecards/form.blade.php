@@ -94,6 +94,21 @@
                                     @error('entries.'.$index.'.project_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                 </div>
 
+                                <div class="lg:col-span-2">
+                                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Cost Code') }}</label>
+                                    <select wire:model="entries.{{ $index }}.cost_code_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                        <option value="">{{ __('No Cost Code') }}</option>
+                                        @php
+                                            $projectId = $entry['project_id'] ?? null;
+                                            $costCodes = $projectId ? ($costCodesByProject[$projectId] ?? collect()) : collect();
+                                        @endphp
+                                        @foreach ($costCodes as $costCode)
+                                            <option value="{{ $costCode->id }}">{{ $costCode->code }} - {{ $costCode->description }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('entries.'.$index.'.cost_code_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                </div>
+
                                 <div class="flex items-end justify-end">
                                     <button type="button" wire:click="removeEntry({{ $index }})" class="rounded-md border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/20">{{ __('Remove') }}</button>
                                 </div>

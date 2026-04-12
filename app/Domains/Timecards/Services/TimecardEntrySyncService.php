@@ -32,6 +32,7 @@ class TimecardEntrySyncService
             $attributes = [
                 'user_id' => $timecard->user_id,
                 'project_id' => $entryData['project_id'] ?: null,
+                'cost_code_id' => $entryData['cost_code_id'] ?: null,
                 'custom_project_name' => $entryData['custom_project_name'] ?: null,
                 'date' => Carbon::parse((string) $entryData['date'])->toDateString(),
                 'start_time' => $entryData['start_time'] ?: null,

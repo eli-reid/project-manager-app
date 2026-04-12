@@ -4,6 +4,10 @@ namespace App\Domains\Payroll\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Domains\Payroll\Livewire\Admin\PayRates\Form as AdminPayRateForm;
+use App\Domains\Payroll\Livewire\Admin\PayRates\Index as AdminPayRateIndex;
+use App\Domains\Payroll\Livewire\Admin\PayRateTypes\Index as AdminPayRateTypeIndex;
+use App\Domains\Payroll\Livewire\Admin\Timecards\Review as AdminTimecardReview;
 use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
 use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
@@ -46,6 +50,10 @@ class PayrollServiceProvider extends ServiceProvider
     {
         PayRate::observe(PayRateObserver::class);
 
+        Gate::define('payroll-rates.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.view'));
+        Gate::define('payroll-rates.manage', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.manage'));
+        Gate::define('payroll-timecards.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-timecards.view'));
+
         Gate::define('payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewOwn($user));
         Gate::define('reports.payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewReports($user));
         Gate::define('reports.payroll.export', fn ($user): bool => app(PayrollReportPolicy::class)->exportReports($user));
@@ -63,6 +71,11 @@ class PayrollServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
+        Livewire::component('app.domains.payroll.livewire.admin.pay-rate-types', AdminPayRateTypeIndex::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-rates', AdminPayRateIndex::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-rates.form', AdminPayRateForm::class);
+        Livewire::component('app.domains.payroll.livewire.admin.timecards.review', AdminTimecardReview::class);
+
         Livewire::component('app.domains.payroll.livewire.user.reports.certified-payroll', CertifiedPayrollIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.tax-filings', PayrollTaxFilingsIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.labor-cost', PayrollLaborCostIndex::class);
@@ -71,6 +84,11 @@ class PayrollServiceProvider extends ServiceProvider
 
     private function registerRoutes(): void
     {
+        Route::prefix('admin')
+            ->name('admin.')
+            ->middleware(['web', 'auth'])
+            ->group(__DIR__.'/../Routes/admin.php');
+
         Route::middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/web.php');
     }

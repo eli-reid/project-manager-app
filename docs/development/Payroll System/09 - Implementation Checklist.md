@@ -35,15 +35,15 @@
 ### 2A - Domain Provider
 - [x] Add Payroll service provider
 - [x] Register payroll settings config in SettingsRegistryContract
-- [ ] Register payroll migrations from domain path when domain migrations are moved
-- [ ] Register payroll permissions
-- [ ] Register payroll routes
-- [ ] Register payroll views and Livewire components
+- [x] Register payroll migrations from domain path when domain migrations are moved
+- [x] Register payroll permissions
+- [x] Register payroll routes
+- [x] Register payroll views and Livewire components
 
 ### 2B - Payroll Settings
 - [x] Add reconciliation settings definitions
-- [ ] Confirm settings sync into settings database in local/dev
-- [ ] Add tests for settings registry integration
+- [x] Confirm settings sync into settings database in local/dev
+- [x] Add tests for settings registry integration
 
 ## Phase 3 - Models and Factories
 
@@ -81,25 +81,25 @@
 - [x] Expand PayrollPermissions to full spec surface (employees, timecards, runs, stubs, deductions, rates)
 
 ### 4B - Admin UI
-- [ ] Build PayRateTypes admin index
-- [ ] Build employee PayRates admin index
-- [ ] Build employee PayRates form with type selection and project scope
+- [x] Build PayRateTypes admin index
+- [x] Build employee PayRates admin index
+- [x] Build employee PayRates form with type selection and project scope
 
 ## Phase 5 - Time to Payroll Pipeline
 
 ### 5A - Calculation Services
-- [ ] Build PayrollRateResolutionService with typed precedence
-- [ ] Build OvertimeCalculationService (weekly FLSA, CA daily, 7th-day)
+- [x] Build PayrollRateResolutionService with typed precedence
+- [x] Build OvertimeCalculationService (weekly FLSA, CA daily, 7th-day)
 
 ### 5B - Timecard Integration
-- [ ] Extend timecard forms with cost code selection
-- [ ] Add validation rules V-01 through V-10 in payroll review pipeline
-- [ ] Build admin payroll timecard review screen
+- [x] Extend timecard forms with cost code selection
+- [x] Add validation rules V-01 through V-10 in payroll review pipeline
+- [x] Build admin payroll timecard review screen
 
 ### 5C - Dailies Reconciliation
-- [ ] Build TimecardDailyReconciliation report (user/project/date/hours)
-- [ ] Respect payroll.reconciliation settings in mismatch logic
-- [ ] Keep require_cost_code_match default false until mapping exists
+- [x] Build TimecardDailyReconciliation report (user/project/date/hours)
+- [x] Respect payroll.reconciliation settings in mismatch logic
+- [x] Keep require_cost_code_match default false until mapping exists
 
 ## Phase 6 - Pay Runs and Statements
 
