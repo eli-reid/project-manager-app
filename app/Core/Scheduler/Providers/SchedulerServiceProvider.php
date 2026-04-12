@@ -56,6 +56,10 @@ class SchedulerServiceProvider extends ServiceProvider
         $this->registerUIComponents();
         $this->registerRoutes();
         $this->registerCommands();
+
+        $this->app->booted(function (): void {
+            $this->app->make(TaskDefinitionSyncService::class)->syncSafely();
+        });
     }
 
     private function registerAuthorization(): void
