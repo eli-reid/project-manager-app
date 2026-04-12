@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\Scheduler\Services\Contracts;
+namespace App\Core\Scheduler\Contracts;
 
 use App\Core\Scheduler\Models\ScheduledTask;
 

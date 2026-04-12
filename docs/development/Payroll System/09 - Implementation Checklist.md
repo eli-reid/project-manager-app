@@ -107,7 +107,7 @@
 - [x] Build PayRunService orchestration
 - [ ] Build GrossToNetService
 - [x] Build GrossToNetService
-- [ ] Build TaxWithholdingService with configurable tables
+- [x] Build TaxWithholdingService with configurable tables
 - [x] Build PayrollStatementBuilderService
 
 ### 6B - Workflow
@@ -122,9 +122,9 @@
 
 ## Phase 7 - Employee Payroll Experience
 
-- [ ] Build PayStubs user index
-- [ ] Build PayStubs user show page
-- [ ] Add PDF pay stub generation
+- [x] Build PayStubs user index
+- [x] Build PayStubs user show page
+- [x] Add PDF pay stub generation
 
 ## Phase 8 - Reporting and Compliance
 

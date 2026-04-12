@@ -11,6 +11,8 @@ use App\Domains\Payroll\Livewire\Admin\PayRuns\Form as AdminPayRunForm;
 use App\Domains\Payroll\Livewire\Admin\PayRuns\Index as AdminPayRunIndex;
 use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as AdminPayRunShow;
 use App\Domains\Payroll\Livewire\Admin\Timecards\Review as AdminTimecardReview;
+use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as UserPayrollHistoryIndex;
+use App\Domains\Payroll\Livewire\User\PayrollHistory\Show as UserPayrollHistoryShow;
 use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
 use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
@@ -60,6 +62,8 @@ class PayrollServiceProvider extends ServiceProvider
         Gate::define('payroll-runs.approve', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.approve'));
         Gate::define('payroll-runs.finalize', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.finalize'));
         Gate::define('payroll-runs.void', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.void'));
+        Gate::define('payroll-stubs.view-own', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-stubs.view-own'));
+        Gate::define('payroll-stubs.view-all', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-stubs.view-all'));
 
         Gate::define('payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewOwn($user));
         Gate::define('reports.payroll.view', fn ($user): bool => app(PayrollReportPolicy::class)->viewReports($user));
@@ -86,6 +90,8 @@ class PayrollServiceProvider extends ServiceProvider
         Livewire::component('app.domains.payroll.livewire.admin.pay-runs.form', AdminPayRunForm::class);
         Livewire::component('app.domains.payroll.livewire.admin.pay-runs.show', AdminPayRunShow::class);
 
+        Livewire::component('app.domains.payroll.livewire.user.payroll-history', UserPayrollHistoryIndex::class);
+        Livewire::component('app.domains.payroll.livewire.user.payroll-history.show', UserPayrollHistoryShow::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.certified-payroll', CertifiedPayrollIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.tax-filings', PayrollTaxFilingsIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.labor-cost', PayrollLaborCostIndex::class);

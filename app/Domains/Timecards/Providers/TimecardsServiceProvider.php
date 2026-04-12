@@ -33,12 +33,12 @@ class TimecardsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
-        $this->registerSchedulerTasks();
+        $this->registerSchedulerTasks($taskTypeRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -101,7 +101,7 @@ class TimecardsServiceProvider extends ServiceProvider
         $reportRegistry->registerDefinitions(TimecardReportDefinitions::all());
     }
 
-    private function registerSchedulerTasks(): void
+    private function registerSchedulerTasks(TaskTypeRegistry $taskTypeRegistry): void
     {
         if (! $this->app->bound(TaskTypeRegistry::class)) {
             Log::warning('TaskTypeRegistry not bound in container. Timecard reminder task not registered.');
@@ -109,7 +109,7 @@ class TimecardsServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->make(TaskTypeRegistry::class)->register('timecard_reminders', TimecardReminderTask::class, [
+        $taskTypeRegistry->register('timecard_reminders', TimecardReminderTask::class, [
             'name' => 'Timecard Reminders',
             'description' => 'Sends reminders to users with pending timecards.',
             'task_config' => [
@@ -120,7 +120,5 @@ class TimecardsServiceProvider extends ServiceProvider
                 ],
             ],
         ]);
-        Log::info('Registered timecard reminder task with TaskTypeRegistry.');
-
     }
 }

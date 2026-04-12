@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as PayrollHistoryIndex;
+use App\Domains\Payroll\Livewire\User\PayrollHistory\Show as PayrollHistoryShow;
 use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
 use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
@@ -28,6 +29,10 @@ Route::prefix('payroll')
     ->name('payroll.')
     ->group(function (): void {
         Route::get('/history', PayrollHistoryIndex::class)
-            ->middleware('can:payroll.view')
+            ->middleware('can:payroll-stubs.view-own')
             ->name('history');
+
+        Route::get('/history/{payrollStatement}', PayrollHistoryShow::class)
+            ->middleware('can:payroll-stubs.view-own')
+            ->name('history.show');
     });

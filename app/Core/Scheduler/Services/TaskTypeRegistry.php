@@ -17,7 +17,7 @@ class TaskTypeRegistry
     ];
 
     /**
-     * @var array<string, class-string>
+     * @var array<string, class-string|object>
      */
     protected array $types = [];
 
@@ -28,11 +28,14 @@ class TaskTypeRegistry
 
     /**
      * Register a task type → class mapping.
+     * 
      */
+
+    
     /**
      * @param  array<string, mixed>  $definition
      */
-    public function register(string $featureType, string $class, array $definition = []): void
+    public function register(string $featureType, mixed $class, array $definition = []): void
     {
         $this->types[$featureType] = $class;
 

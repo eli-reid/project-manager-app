@@ -14,8 +14,8 @@ it('includes a dailies link in the user sidebar partial', function (): void {
 it('includes a payroll history link in the user sidebar partial', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-user-nav.blade.php');
 
-    expect($view)->not->toContain("@can('payroll.view')");
-    expect($view)->not->toContain(':href="route(\'payroll.history\')"');
-    expect($view)->not->toContain('data-test="payroll-sidebar-main-link"');
-    expect($view)->not->toContain("{{ __('My Payroll') }}");
+    expect($view)->toContain("@can('payroll-stubs.view-own')");
+    expect($view)->toContain(':href="route(\'payroll.history\')"');
+    expect($view)->toContain('data-test="payroll-sidebar-main-link"');
+    expect($view)->toContain("{{ __('My Payroll') }}");
 });

@@ -141,6 +141,12 @@
                                     {{ __('Reports') }}
                                 </flux:menu.item>
                             @endcan
+
+                            @can('payroll-stubs.view-own')
+                                <flux:menu.item :href="route('payroll.history')" icon="wallet" wire:navigate data-test="payroll-link-mobile">
+                                    {{ __('My Payroll') }}
+                                </flux:menu.item>
+                            @endcan
                         </flux:menu.radio.group>
 
                         <flux:menu.separator />

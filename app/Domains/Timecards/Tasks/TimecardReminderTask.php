@@ -3,7 +3,7 @@
 namespace App\Domains\Timecards\Tasks;
 
 use App\Core\Scheduler\Models\ScheduledTask;
-use App\Core\Scheduler\Services\Contracts\SchedulableTask;
+use App\Core\Scheduler\Contracts\SchedulableTask;
 use App\Domains\Timecards\Services\TimecardReminderService;
 use Illuminate\Support\Facades\Log;
 
