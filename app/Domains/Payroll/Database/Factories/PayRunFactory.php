@@ -3,6 +3,7 @@
 namespace App\Domains\Payroll\Database\Factories;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Payroll\Enums\PayRunStatus;
 use App\Domains\Payroll\Models\PayRun;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -25,7 +26,7 @@ class PayRunFactory extends Factory
             'pay_period_start' => $periodStart,
             'pay_period_end' => $periodEnd,
             'pay_date' => (clone $periodEnd)->modify('+7 days'),
-            'status' => fake()->randomElement(['draft', 'preview', 'approved']),
+            'status' => fake()->randomElement([PayRunStatus::Draft, PayRunStatus::Preview, PayRunStatus::Approved]),
             'total_gross' => fake()->randomFloat(2, 1000, 25000),
             'total_net' => fake()->randomFloat(2, 800, 18000),
             'total_taxes' => fake()->randomFloat(2, 150, 7000),

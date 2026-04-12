@@ -4,6 +4,7 @@ namespace App\Domains\Payroll\Models;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Database\Factories\PayrollStatementFactory;
+use DomainException;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,9 +38,6 @@ class PayrollStatement extends Model
         'ytd_net',
     ];
 
-    /**
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -73,6 +71,26 @@ class PayrollStatement extends Model
     public function payRun(): BelongsTo
     {
         return $this->belongsTo(PayRun::class);
+    }
+
+    protected static function booted(): void
+    {
+        $assertConsistency = function (PayrollStatement $statement): void {
+            if ($statement->isDirty(['user_id', 'payroll_employee_profile_id'])) {
+                $profileUserId = PayrollEmployeeProfile::query()
+                    ->where('id', $statement->payroll_employee_profile_id)
+                    ->value('user_id');
+
+                if ((string) $profileUserId !== (string) $statement->user_id) {
+                    throw new DomainException(
+                        'PayrollStatement user_id must match the user_id on the linked PayrollEmployeeProfile.'
+                    );
+                }
+            }
+        };
+
+        static::creating($assertConsistency);
+        static::updating($assertConsistency);
     }
 
     protected static function newFactory(): PayrollStatementFactory

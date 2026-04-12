@@ -4,6 +4,8 @@ namespace App\Domains\Payroll\Models;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Database\Factories\PayRunFactory;
+use App\Domains\Payroll\Enums\PayRunStatus;
+use DomainException;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,9 +34,6 @@ class PayRun extends Model
         'finalized_at',
     ];
 
-    /**
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -46,7 +45,24 @@ class PayRun extends Model
             'total_taxes' => 'decimal:2',
             'employee_count' => 'integer',
             'finalized_at' => 'datetime',
+            'status' => PayRunStatus::class,
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(function (PayRun $run): void {
+            $rawStatus = $run->getOriginal('status');
+            $original = $rawStatus instanceof PayRunStatus
+                ? $rawStatus
+                : PayRunStatus::from((string) $rawStatus);
+
+            if ($original->isLocked()) {
+                throw new DomainException(
+                    "Pay run with status [{$original->value}] is locked and cannot be modified."
+                );
+            }
+        });
     }
 
     public function payrollStatements(): HasMany

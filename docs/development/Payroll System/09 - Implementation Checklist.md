@@ -15,20 +15,20 @@
 - [x] Create payroll employee profiles table
 - [x] Create pay rate types table
 - [x] Create pay rates table
-- [ ] Create pay runs table
-- [ ] Create payroll statements table
-- [ ] Create deductions table
-- [ ] Create employee deductions table
+- [x] Create pay runs table
+- [x] Create payroll statements table
+- [x] Create deductions table
+- [x] Create employee deductions table
 
 ### 1B - Project and Timecard Extensions
-- [ ] Add prevailing wage fields to projects
-- [ ] Create cost codes table under Projects domain
-- [ ] Add payroll fields to timecard entries (cost code, regular/OT/DT, prevailing fields)
+- [x] Add prevailing wage fields to projects
+- [x] Create cost codes table under Projects domain
+- [x] Add payroll fields to timecard entries (cost code, regular/OT/DT, prevailing fields)
 
 ### 1C - Constraints and Integrity
 - [x] Ensure unique employee_number on payroll profiles
-- [ ] Enforce one active employee rate per rate type and project scope
-- [ ] Enforce payroll statement user/profile consistency in builder validation
+- [x] Enforce one active employee rate per rate type and project scope
+- [x] Enforce payroll statement user/profile consistency in builder validation
 
 ## Phase 2 - Domain Registration and Settings
 
@@ -52,28 +52,33 @@
 - [x] PayRateType model
 - [x] PayRate model
 - [x] PayrollStatement model
-- [ ] PayRun model
-- [ ] Deduction model
-- [ ] EmployeeDeduction model
+- [x] PayRun model
+- [x] Deduction model
+- [x] EmployeeDeduction model
 
 ### 3B - Relationships and Casts
 - [x] Add encrypted cast for ssn_encrypted
 - [x] Add typed rate relationships (profile -> rates -> rate type)
-- [ ] Add PayRun and PayrollStatement full relationships
+- [x] Add PayRun and PayrollStatement full relationships
 
 ### 3C - Factories
 - [x] PayrollEmployeeProfileFactory
-- [x] PayRateTypeFactory (includes standard state)
+- [x] PayRateTypeFactory (includes standard, prevailingBase, prevailingFringe states)
 - [x] PayRateFactory
 - [x] PayrollStatementFactory baseline
+- [x] PayRunFactory
+- [x] DeductionFactory
+- [x] EmployeeDeductionFactory
 
 ## Phase 4 - Typed Rate Management
 
 ### 4A - Seeded System Types
-- [ ] Seed standard pay rate type
-- [ ] Seed prevailing_base pay rate type
-- [ ] Seed prevailing_fringe pay rate type
-- [ ] Prevent edits/deletes to protected system types
+- [x] Seed standard pay rate type
+- [x] Seed prevailing_base pay rate type
+- [x] Seed prevailing_fringe pay rate type
+- [x] Prevent edits/deletes to protected system types
+- [x] PayRunStatus enum with transition rules and locked-state guard
+- [x] Expand PayrollPermissions to full spec surface (employees, timecards, runs, stubs, deductions, rates)
 
 ### 4B - Admin UI
 - [ ] Build PayRateTypes admin index
@@ -157,6 +162,9 @@
 - [x] Typed rate test passes (standard type with different employee values)
 - [x] SSN encrypted cast test passes
 - [x] Reconciliation settings keys test passes
-- [ ] Run full payroll test group after Phase 1 completion
+- [x] Phase 1B extension tests pass (12 tests)
+- [x] Phase 1C + 4A tests pass (13 tests)
+- [x] Payroll relationships tests pass
+- [x] Full payroll test group passes (27 tests, 61 assertions)
 - [ ] Run migration test in clean database state
 - [ ] Validate payroll settings visibility in admin settings editor

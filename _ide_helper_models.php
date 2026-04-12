@@ -991,7 +991,7 @@ namespace App\Domains\Payroll\Models{
 /**
  * @property string $ulid
  * @property string $payroll_period_id
- * @property string $status
+ * @property \App\Domains\Payroll\Enums\PayRunStatus $status
  * @property numeric $total_gross
  * @property numeric $total_deductions
  * @property numeric $total_net

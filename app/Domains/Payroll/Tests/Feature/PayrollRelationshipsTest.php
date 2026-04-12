@@ -19,9 +19,11 @@ it('keeps payroll persistence classes inside the payroll domain', function () {
 
 it('links pay runs to payroll statements', function () {
     $payRun = PayRun::factory()->create();
+    $profile = PayrollEmployeeProfile::factory()->create(['user_id' => $payRun->creator->id]);
     $statement = PayrollStatement::factory()->create([
         'pay_run_id' => $payRun->id,
         'user_id' => $payRun->creator->id,
+        'payroll_employee_profile_id' => $profile->id,
     ]);
 
     expect($statement->payRun)->not->toBeNull()

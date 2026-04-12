@@ -6,6 +6,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Domains\Timecards\Reports\TimecardReportDefinitions;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
@@ -20,6 +21,7 @@ use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -96,33 +98,13 @@ class TimecardsServiceProvider extends ServiceProvider
 
     private function registerReports(ReportRegistry $reportRegistry): void
     {
-        $reportRegistry->registerDefinitions([
-            [
-                'key' => 'financial.labor-cost-analysis',
-                'section' => 'financial',
-                'title' => 'Labor Cost Analysis',
-                'description' => 'Review labor cost distribution by project and period.',
-                'route' => 'reports.financial.labor-cost-analysis.index',
-                'badge_label' => 'Available',
-                'badge_color' => 'green',
-                'sort' => 20,
-            ],
-            [
-                'key' => 'operational.timecard-activity',
-                'section' => 'operational',
-                'title' => 'Timecard Activity',
-                'description' => 'Track submissions, approvals, and workforce activity.',
-                'route' => 'timecards.index',
-                'badge_label' => 'Operational',
-                'badge_color' => 'sky',
-                'sort' => 30,
-            ],
-        ]);
+        $reportRegistry->registerDefinitions(TimecardReportDefinitions::all());
     }
 
     private function registerSchedulerTasks(): void
     {
         if (! $this->app->bound(TaskTypeRegistry::class)) {
+            Log::warning('TaskTypeRegistry not bound in container. Timecard reminder task not registered.');
             return;
         }
 
