@@ -4,7 +4,7 @@ use App\Domains\Payroll\Database\Seeders\PayRateTypeSeeder;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
-use App\Domains\Payroll\Services\PayRateIntegrityService;
+use App\Domains\Projects\Models\Project;
 
 // ─── Phase 1C: Active Rate Uniqueness Constraint ──────────────────────────────
 
@@ -68,7 +68,7 @@ it('allows a new active rate once the previous one is expired', function (): voi
 it('treats default rate (null project) and project-specific rate as separate scopes', function (): void {
     $type = PayRateType::factory()->prevailingBase()->create();
     $profile = PayrollEmployeeProfile::factory()->create();
-    $project = App\Domains\Projects\Models\Project::factory()->create(['is_prevailing_wage' => true]);
+    $project = Project::factory()->create(['is_prevailing_wage' => true]);
 
     PayRate::factory()->create([
         'payroll_employee_profile_id' => $profile->id,

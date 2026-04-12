@@ -201,7 +201,6 @@ namespace App\Core\Identity\Models{
  * @property string $last_name
  * @property string $username
  * @property string $email
- * @property string|null $company_email
  * @property \Carbon\CarbonImmutable|null $email_verified_at
  * @property string $password
  * @property bool $is_admin
@@ -214,17 +213,23 @@ namespace App\Core\Identity\Models{
  * @property string|null $remember_token
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayRun> $approvedPayRuns
+ * @property-read int|null $approved_pay_runs_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayRun> $createdPayRuns
+ * @property-read int|null $created_pay_runs_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Notification\Models\UserNotificationPreference> $notificationPreferences
  * @property-read int|null $notification_preferences_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
+ * @property-read \App\Domains\Payroll\Models\PayrollEmployeeProfile|null $payrollProfile
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayrollStatement> $payrollStatements
+ * @property-read int|null $payroll_statements_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
  * @property-read int|null $roles_count
  * @method static \App\Core\Auth\User\Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCompanyEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
@@ -427,8 +432,8 @@ namespace App\Core\Scheduler\Models{
 /**
  * @property string $id
  * @property string $name
+ * @property string $feature_type
  * @property string|null $description
- * @property string $available_task_id
  * @property string $schedule_type
  * @property string $time
  * @property string $timezone
@@ -450,7 +455,8 @@ namespace App\Core\Scheduler\Models{
  * @property string|null $updated_by
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
- * @property-read \App\Core\Scheduler\Models\AvailableTask $availableTask
+ * @property string|null $available_task_id
+ * @property-read \App\Core\Scheduler\Models\AvailableTask|null $availableTask
  * @property-read \App\Core\Identity\Models\User|null $creator
  * @property-read \App\Core\Identity\Models\User|null $updater
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask active()
@@ -466,6 +472,7 @@ namespace App\Core\Scheduler\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDayOfMonth($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDaysOfWeek($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereFeatureType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereIsActive($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereIsEnabled($value)
@@ -628,6 +635,7 @@ namespace App\Domains\Dailies\Models{
  * @property array<array-key, mixed>|null $safety_issues
  * @property array<array-key, mixed>|null $delays
  * @property array<array-key, mixed>|null $visitors
+ * @property array<array-key, mixed>|null $onsite_employees
  * @property string|null $weather_condition
  * @property float|null $temperature
  * @property string $temperature_unit
@@ -639,7 +647,6 @@ namespace App\Domains\Dailies\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
- * @property array<array-key, mixed>|null $onsite_employees
  * @property-read \App\Domains\Projects\Models\Project|null $project
  * @property-read \App\Core\Identity\Models\User|null $submittedBy
  * @property-read \App\Core\Identity\Models\User $user
@@ -831,6 +838,347 @@ namespace App\Domains\Invoices\Models{
 	class IdeHelperInvoiceLineItem {}
 }
 
+namespace App\Domains\Payroll\Models{
+/**
+ * @property string $id
+ * @property string $name
+ * @property string $category
+ * @property string $calculation_method
+ * @property numeric $amount
+ * @property int $priority
+ * @property bool $pre_tax
+ * @property numeric|null $max_annual
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\EmployeeDeduction> $employeeDeductions
+ * @property-read int|null $employee_deductions_count
+ * @method static \App\Domains\Payroll\Database\Factories\DeductionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereCalculationMethod($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereCategory($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereMaxAnnual($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction wherePreTax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction wherePriority($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperDeduction {}
+}
+
+namespace App\Domains\Payroll\Models{
+/**
+ * @property string $id
+ * @property string $payroll_employee_profile_id
+ * @property string $deduction_id
+ * @property numeric|null $override_amount
+ * @property \Carbon\CarbonImmutable $effective_date
+ * @property \Carbon\CarbonImmutable|null $end_date
+ * @property string $status
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Domains\Payroll\Models\Deduction|null $deduction
+ * @property-read \App\Domains\Payroll\Models\PayrollEmployeeProfile|null $payrollEmployeeProfile
+ * @method static \App\Domains\Payroll\Database\Factories\EmployeeDeductionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereDeductionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereEffectiveDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereEndDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereOverrideAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction wherePayrollEmployeeProfileId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperEmployeeDeduction {}
+}
+
+namespace App\Domains\Payroll\Models{
+/**
+ * @property string $ulid
+ * @property string $user_id
+ * @property numeric $rate
+ * @property \Carbon\CarbonImmutable $effective_date
+ * @property string|null $end_date
+ * @property string|null $notes
+ * @property string|null $created_by
+ * @property string|null $updated_by
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property string|null $deleted_at
+ * @property string|null $pay_rate_type_id
+ * @property-read \App\Core\Identity\Models\User|null $approver
+ * @property-read \App\Domains\Payroll\Models\PayRateType|null $payRateType
+ * @property-read \App\Domains\Payroll\Models\PayrollEmployeeProfile|null $payrollEmployeeProfile
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate active()
+ * @method static \App\Domains\Payroll\Database\Factories\PayRateFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereEffectiveDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereEndDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate wherePayRateTypeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereRate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereUserId($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperPayRate {}
+}
+
+namespace App\Domains\Payroll\Models{
+/**
+ * @property string $id
+ * @property string $code
+ * @property string $name
+ * @property string|null $description
+ * @property bool $is_active
+ * @property int $is_builtin
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property string|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayRate> $payRates
+ * @property-read int|null $pay_rates_count
+ * @method static \App\Domains\Payroll\Database\Factories\PayRateTypeFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereIsBuiltin($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperPayRateType {}
+}
+
+namespace App\Domains\Payroll\Models{
+/**
+ * @property string $ulid
+ * @property string $payroll_period_id
+ * @property string $status
+ * @property numeric $total_gross
+ * @property numeric $total_deductions
+ * @property numeric $total_net
+ * @property int $records_count
+ * @property string|null $approved_at
+ * @property string|null $approved_by
+ * @property string|null $created_by
+ * @property string|null $updated_by
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Core\Identity\Models\User|null $approver
+ * @property-read \App\Core\Identity\Models\User|null $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayrollStatement> $payrollStatements
+ * @property-read int|null $payroll_statements_count
+ * @method static \App\Domains\Payroll\Database\Factories\PayRunFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereApprovedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereApprovedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun wherePayrollPeriodId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereRecordsCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereTotalDeductions($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereTotalGross($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereTotalNet($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperPayRun {}
+}
+
+namespace App\Domains\Payroll\Models{
+/**
+ * @property string $id
+ * @property string $user_id
+ * @property string $employee_number
+ * @property string $ssn_encrypted
+ * @property \Carbon\CarbonImmutable $date_of_birth
+ * @property \Carbon\CarbonImmutable $hire_date
+ * @property \Carbon\CarbonImmutable|null $termination_date
+ * @property string $status
+ * @property string $pay_type
+ * @property string|null $department
+ * @property string $job_classification
+ * @property string|null $union_code
+ * @property bool $direct_deposit_active
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\EmployeeDeduction> $employeeDeductions
+ * @property-read int|null $employee_deductions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayRate> $payRates
+ * @property-read int|null $pay_rates_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayrollStatement> $payrollStatements
+ * @property-read int|null $payroll_statements_count
+ * @property-read \App\Core\Identity\Models\User $user
+ * @method static \App\Domains\Payroll\Database\Factories\PayrollEmployeeProfileFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereDateOfBirth($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereDepartment($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereDirectDepositActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereEmployeeNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereHireDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereJobClassification($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile wherePayType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereSsnEncrypted($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereTerminationDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereUnionCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperPayrollEmployeeProfile {}
+}
+
+namespace App\Domains\Payroll\Models{
+/**
+ * @property string $id
+ * @property string $user_id
+ * @property string $payroll_employee_profile_id
+ * @property string|null $pay_run_id
+ * @property numeric $total_regular_hours
+ * @property numeric $total_ot_hours
+ * @property numeric $total_dt_hours
+ * @property numeric $gross_pay
+ * @property numeric $federal_tax
+ * @property numeric $state_tax
+ * @property numeric $local_tax
+ * @property numeric $social_security
+ * @property numeric $medicare
+ * @property numeric $other_deductions
+ * @property numeric $net_pay
+ * @property numeric $ytd_gross
+ * @property numeric $ytd_federal_tax
+ * @property numeric $ytd_net
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Domains\Payroll\Models\PayRun|null $payRun
+ * @property-read \App\Domains\Payroll\Models\PayrollEmployeeProfile|null $payrollEmployeeProfile
+ * @property-read \App\Core\Identity\Models\User $user
+ * @method static \App\Domains\Payroll\Database\Factories\PayrollStatementFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereFederalTax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereGrossPay($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereLocalTax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereMedicare($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereNetPay($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereOtherDeductions($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement wherePayRunId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement wherePayrollEmployeeProfileId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereSocialSecurity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereStateTax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereTotalDtHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereTotalOtHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereTotalRegularHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereYtdFederalTax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereYtdGross($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereYtdNet($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperPayrollStatement {}
+}
+
+namespace App\Domains\Projects\Models{
+/**
+ * @property string $id
+ * @property string $project_id
+ * @property string $code
+ * @property string $description
+ * @property numeric|null $budget_hours
+ * @property numeric|null $budget_cost
+ * @property bool $is_active
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @method static \App\Domains\Projects\Database\Factories\CostCodeFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereBudgetCost($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereBudgetHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode withoutTrashed()
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperCostCode {}
+}
+
 namespace App\Domains\Projects\Models{
 /**
  * @property string $id
@@ -847,10 +1195,17 @@ namespace App\Domains\Projects\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property string|null $pay_rate_type_id
+ * @property string|null $leave_category
+ * @property numeric|null $budget
+ * @property bool $is_prevailing_wage
+ * @property string|null $wage_determination_id
  * @property-read \App\Domains\Addresses\Models\Address|null $address
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Addresses\Models\Address> $availableClientAddresses
  * @property-read int|null $available_client_addresses_count
  * @property-read \App\Domains\Clients\Models\Client|null $client
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\CostCode> $costCodes
+ * @property-read int|null $cost_codes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Dailies\Models\DailyReport> $dailyReports
  * @property-read int|null $daily_reports_count
  * @property-read \App\Core\Identity\Models\User|null $projectManager
@@ -864,6 +1219,7 @@ namespace App\Domains\Projects\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereAddressId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereBudget($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereClientId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDeletedAt($value)
@@ -871,12 +1227,16 @@ namespace App\Domains\Projects\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereEndDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereIsPrevailingWage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereLeaveCategory($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project wherePayRateTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereProjectManagerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereProjectNumber($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereStartDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereWageDeterminationId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
  * @mixin \Eloquent
@@ -887,12 +1247,26 @@ namespace App\Domains\Projects\Models{
 
 namespace App\Domains\Projects\Models{
 /**
+ * @property int $id
+ * @property string $project_id
+ * @property string $role_id
+ * @property string|null $granted_by
+ * @property array<array-key, mixed>|null $permission_keys
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
  * @property-read \App\Core\Identity\Models\User|null $grantedBy
  * @property-read \App\Domains\Projects\Models\Project|null $project
- * @property-read \App\Core\Auth\Role\Models\Role|null $role
+ * @property-read \App\Core\Auth\Role\Models\Role $role
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereGrantedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess wherePermissionKeys($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereRoleId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]
@@ -1242,6 +1616,15 @@ namespace App\Domains\Timecards\Models{
  * @property string|null $notes
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property string|null $cost_code_id
+ * @property float|null $regular_hours
+ * @property float|null $overtime_hours
+ * @property float|null $double_time_hours
+ * @property string|null $work_classification
+ * @property numeric|null $prevailing_base_rate
+ * @property numeric|null $prevailing_fringe_rate
+ * @property string|null $fringe_payment_method
+ * @property-read \App\Domains\Projects\Models\CostCode|null $costCode
  * @property-read \App\Domains\Projects\Models\Project|null $project
  * @property-read \App\Domains\Timecards\Models\Timecard $timecard
  * @property-read \App\Core\Identity\Models\User $user
@@ -1249,17 +1632,25 @@ namespace App\Domains\Timecards\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereCostCodeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereCustomProjectName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereDoubleTimeHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereFringePaymentMethod($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereHours($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereOvertimeHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry wherePrevailingBaseRate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry wherePrevailingFringeRate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereRegularHours($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereStartTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereTimecardId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereWorkClassification($value)
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]

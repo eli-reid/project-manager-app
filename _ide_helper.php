@@ -24334,6 +24334,32 @@ namespace App\Core\Announcement\Livewire\Admin\Announcements {
             }
     }
 
+namespace App\Core\Auth\Role\Livewire\Admin\Roles {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Users extends \Livewire\Component {
+            }
+    }
+
+namespace App\Core\Auth\User\Livewire\Admin\Users {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    }
+
 namespace App\Core\Cpanel\Livewire\Admin\EmailManagement {
     /**
      */
@@ -24364,32 +24390,6 @@ namespace App\Core\Queue\Livewire\Admin\Queue {
     /**
      */
     class Dashboard extends \Livewire\Component {
-            }
-    }
-
-namespace App\Core\Auth\Role\Livewire\Admin\Roles {
-    /**
-     */
-    class Index extends \Livewire\Component {
-            }
-    /**
-     */
-    class Form extends \Livewire\Component {
-            }
-    /**
-     */
-    class Users extends \Livewire\Component {
-            }
-    }
-
-namespace App\Core\Auth\User\Livewire\Admin\Users {
-    /**
-     */
-    class Index extends \Livewire\Component {
-            }
-    /**
-     */
-    class Form extends \Livewire\Component {
             }
     }
 
@@ -24478,6 +24478,48 @@ namespace App\Domains\Invoices\Livewire\Admin\Invoices {
             }
     }
 
+namespace App\Domains\Reports\Livewire\User\MonthlyPerformance {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\User\Reports\TaxFilings {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\User\Reports\LaborCost {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\User\Reports\UnionRemittance {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\User\PayrollHistory {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Projects\Livewire\Admin\Projects {
     /**
      */
@@ -24559,6 +24601,13 @@ namespace App\Domains\Stock\Livewire\User\Templates {
             }
     }
 
+namespace App\Domains\Reports\Livewire\User\MaterialCostAnalysis {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Tasks\Livewire\Admin\Tasks {
     /**
      */
@@ -24599,6 +24648,13 @@ namespace App\Domains\Tasks\Livewire\User\Tasks {
             }
     }
 
+namespace App\Domains\Reports\Livewire\User\OperationalReports {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Timecards\Livewire\Admin\Timecards {
     /**
      */
@@ -24626,6 +24682,13 @@ namespace App\Domains\Timecards\Livewire\User\Timecards {
     /**
      */
     class Show extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Reports\Livewire\User\LaborCostAnalysis {
+    /**
+     */
+    class Index extends \Livewire\Component {
             }
     }
 
