@@ -50,6 +50,16 @@ class PayrollReportDefinitions
                 'badge_color' => 'amber',
                 'sort' => 90,
             ],
+            [
+                'key' => 'financial.payroll-audit-trail',
+                'section' => 'financial',
+                'title' => 'Payroll Audit Trail',
+                'description' => 'Review payroll mutations and digest chain integrity status.',
+                'route' => 'reports.payroll.audit.index',
+                'badge_label' => 'Audit',
+                'badge_color' => 'red',
+                'sort' => 100,
+            ],
         ];
     }
 }

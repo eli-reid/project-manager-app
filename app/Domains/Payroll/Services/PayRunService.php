@@ -12,6 +12,7 @@ class PayRunService
 {
     public function __construct(
         private readonly PayrollStatementBuilderService $statementBuilderService,
+        private readonly PayrollAuditTrailService $auditTrail,
     ) {}
 
     public function createPreview(
@@ -46,6 +47,15 @@ class PayRunService
             $this->statementBuilderService->buildForRun($payRun);
             $this->recalculateTotals($payRun);
 
+            $this->auditTrail->record('payroll.pay-runs.preview-created', $payRun, [
+                'after' => [
+                    'status' => $payRun->status->value,
+                    'pay_period_start' => $payRun->pay_period_start?->toDateString(),
+                    'pay_period_end' => $payRun->pay_period_end?->toDateString(),
+                    'pay_date' => $payRun->pay_date?->toDateString(),
+                ],
+            ]);
+
             return $payRun->fresh(['payrollStatements']) ?? $payRun;
         });
     }
@@ -62,6 +72,13 @@ class PayRunService
             $this->transition($run, PayRunStatus::Approved);
             $run->approved_by = $approvedBy;
             $run->save();
+
+            $this->auditTrail->record('payroll.pay-runs.approved', $run, [
+                'after' => [
+                    'status' => $run->status->value,
+                    'approved_by' => (string) $run->approved_by,
+                ],
+            ]);
 
             return $run->fresh(['payrollStatements']) ?? $run;
         });
@@ -84,6 +101,13 @@ class PayRunService
             $run->finalized_at = now();
             $run->save();
 
+            $this->auditTrail->record('payroll.pay-runs.finalized', $run, [
+                'after' => [
+                    'status' => $run->status->value,
+                    'finalized_at' => $run->finalized_at?->toDateTimeString(),
+                ],
+            ]);
+
             return $run->fresh(['payrollStatements']) ?? $run;
         });
     }
@@ -105,6 +129,11 @@ class PayRunService
                 ->whereKey($run->id)
                 ->where('status', PayRunStatus::Finalized->value)
                 ->update(['status' => PayRunStatus::Void->value]);
+
+            $this->auditTrail->record('payroll.pay-runs.voided', $run, [
+                'before' => ['status' => PayRunStatus::Finalized->value],
+                'after' => ['status' => PayRunStatus::Void->value],
+            ]);
 
             return $run->fresh(['payrollStatements']) ?? $run;
         });

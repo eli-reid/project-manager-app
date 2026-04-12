@@ -3,6 +3,7 @@
 namespace App\Domains\Payroll\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Form as AdminPayRateForm;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Index as AdminPayRateIndex;
@@ -13,17 +14,25 @@ use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as AdminPayRunShow;
 use App\Domains\Payroll\Livewire\Admin\Timecards\Review as AdminTimecardReview;
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as UserPayrollHistoryIndex;
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Show as UserPayrollHistoryShow;
+use App\Domains\Payroll\Livewire\User\Reports\Audit\Index as PayrollAuditIndex;
 use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
 use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
 use App\Domains\Payroll\Livewire\User\Reports\UnionRemittance\Index as PayrollUnionRemittanceIndex;
+use App\Domains\Payroll\Models\Deduction;
+use App\Domains\Payroll\Models\EmployeeDeduction;
 use App\Domains\Payroll\Models\PayRate;
+use App\Domains\Payroll\Models\PayrollEmployeeProfile;
+use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Observers\PayRateObserver;
+use App\Domains\Payroll\Observers\PayrollAuditObserver;
 use App\Domains\Payroll\Permissions\PayrollPermissions;
 use App\Domains\Payroll\Policies\PayrollReportPolicy;
 use App\Domains\Payroll\Reports\PayrollReportDefinitions;
+use App\Domains\Payroll\Tasks\PayrollDigestValidationTask;
 use App\Domains\Reports\Services\ReportRegistry;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -35,12 +44,13 @@ class PayrollServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry): void
+    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ?TaskTypeRegistry $taskTypeRegistry = null): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerReports($reportRegistry);
+        $this->registerSchedulerTasks($taskTypeRegistry);
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -54,6 +64,11 @@ class PayrollServiceProvider extends ServiceProvider
     private function registerAuthorization(): void
     {
         PayRate::observe(PayRateObserver::class);
+        PayRate::observe(PayrollAuditObserver::class);
+        PayrollEmployeeProfile::observe(PayrollAuditObserver::class);
+        PayrollStatement::observe(PayrollAuditObserver::class);
+        Deduction::observe(PayrollAuditObserver::class);
+        EmployeeDeduction::observe(PayrollAuditObserver::class);
 
         Gate::define('payroll-rates.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.view'));
         Gate::define('payroll-rates.manage', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.manage'));
@@ -96,6 +111,7 @@ class PayrollServiceProvider extends ServiceProvider
         Livewire::component('app.domains.payroll.livewire.user.reports.tax-filings', PayrollTaxFilingsIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.labor-cost', PayrollLaborCostIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.union-remittance', PayrollUnionRemittanceIndex::class);
+        Livewire::component('app.domains.payroll.livewire.user.reports.audit', PayrollAuditIndex::class);
     }
 
     private function registerRoutes(): void
@@ -117,5 +133,24 @@ class PayrollServiceProvider extends ServiceProvider
     private function registerReports(ReportRegistry $reportRegistry): void
     {
         $reportRegistry->registerDefinitions(PayrollReportDefinitions::all());
+    }
+
+    private function registerSchedulerTasks(?TaskTypeRegistry $taskTypeRegistry): void
+    {
+        if ($taskTypeRegistry === null && ! $this->app->bound(TaskTypeRegistry::class)) {
+            Log::warning('TaskTypeRegistry not bound in container. Payroll digest validation task not registered.');
+
+            return;
+        }
+
+        $registry = $taskTypeRegistry ?? $this->app->make(TaskTypeRegistry::class);
+
+        $registry->register('payroll_audit_digest_validation', PayrollDigestValidationTask::class, [
+            'name' => 'Payroll Audit Digest Validation',
+            'description' => 'Validates payroll audit digest chain and emits alerts on integrity failures.',
+            'task_config' => [
+                'chain_key' => 'payroll',
+            ],
+        ]);
     }
 }

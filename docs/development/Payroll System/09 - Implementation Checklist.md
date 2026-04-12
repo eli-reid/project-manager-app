@@ -105,7 +105,6 @@
 
 ### 6A - Services
 - [x] Build PayRunService orchestration
-- [ ] Build GrossToNetService
 - [x] Build GrossToNetService
 - [x] Build TaxWithholdingService with configurable tables
 - [x] Build PayrollStatementBuilderService
@@ -128,17 +127,17 @@
 
 ## Phase 8 - Reporting and Compliance
 
-- [ ] Build certified payroll report generation (WH-347)
-- [ ] Build labor cost report by project/cost code/employee
-- [ ] Build union remittance report
-- [ ] Register payroll reports in report registry
+- [x] Build certified payroll report generation (WH-347)
+- [x] Build labor cost report by project/cost code/employee
+- [x] Build union remittance report
+- [x] Register payroll reports in report registry
 
 ## Phase 9 - Audit and Monitoring
 
-- [ ] Log payroll mutations with core AuditLogger
-- [ ] Add payroll hash-chain digest layer
-- [ ] Build payroll audit report screen
-- [ ] Add nightly digest validation task and alerts
+- [x] Log payroll mutations with core AuditLogger
+- [x] Add payroll hash-chain digest layer
+- [x] Build payroll audit report screen
+- [x] Add nightly digest validation task and alerts
 
 ## Phase 10 - Notifications
 
