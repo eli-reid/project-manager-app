@@ -133,6 +133,22 @@ it('allows admin users to access phase 6 pay run screens', function (string $rou
     'admin.payroll.runs.show',
 ]);
 
+it('renders the pay run detail workflow summary for preview runs', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $run = PayRun::factory()->create([
+        'status' => PayRunStatus::Preview,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.payroll.runs.show', ['payRun' => $run]))
+        ->assertSuccessful()
+        ->assertSee('Pay Run Details')
+        ->assertSee('Back to Runs')
+        ->assertSee('Payroll Statements')
+        ->assertSee('Approve')
+        ->assertSee('No payroll statements were generated for this run.');
+});
+
 it('uses project-assigned pay rate type when building payroll statement gross pay', function (): void {
     $admin = User::factory()->create(['is_admin' => true]);
     $employee = User::factory()->create(['first_name' => 'Taylor', 'last_name' => 'Ng']);

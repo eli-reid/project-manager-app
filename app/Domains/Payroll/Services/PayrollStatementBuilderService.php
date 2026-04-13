@@ -2,12 +2,12 @@
 
 namespace App\Domains\Payroll\Services;
 
+use App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider;
 use App\Domains\Payroll\Enums\OvertimeRule;
 use App\Domains\Payroll\Models\EmployeeDeduction;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
-use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
 class PayrollStatementBuilderService
 {
     public function __construct(
+        private readonly ApprovedTimecardEntryProvider $approvedTimecardEntryProvider,
         private readonly PayrollRateResolutionService $rateResolutionService,
         private readonly OvertimeCalculationService $overtimeCalculationService,
         private readonly TaxWithholdingService $taxWithholdingService,
@@ -28,13 +29,10 @@ class PayrollStatementBuilderService
     {
         PayrollStatement::query()->where('pay_run_id', $payRun->id)->delete();
 
-        $entries = TimecardEntry::query()
-            ->with(['timecard:id,status', 'project:id,is_prevailing_wage'])
-            ->whereDate('date', '>=', $payRun->pay_period_start->toDateString())
-            ->whereDate('date', '<=', $payRun->pay_period_end->toDateString())
-            ->whereHas('timecard', fn ($query) => $query->whereIn('status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED]))
-            ->orderBy('date')
-            ->get();
+        $entries = $this->approvedTimecardEntryProvider->forPayPeriod(
+            $payRun->pay_period_start,
+            $payRun->pay_period_end,
+        );
 
         if ($entries->isEmpty()) {
             return collect();

@@ -6,6 +6,8 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider;
+use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Form as AdminPayRateForm;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Index as AdminPayRateIndex;
 use App\Domains\Payroll\Livewire\Admin\PayRateTypes\Index as AdminPayRateTypeIndex;
@@ -35,6 +37,8 @@ use App\Domains\Payroll\Reports\PayrollForecastingReportDefinitions;
 use App\Domains\Payroll\Reports\PayrollReportDefinitions;
 use App\Domains\Payroll\Tasks\PayrollDigestValidationTask;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider;
+use App\Domains\Timecards\Services\EloquentPayrollTimecardReadGateway;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -45,10 +49,11 @@ class PayrollServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(ApprovedTimecardEntryProvider::class, EloquentApprovedTimecardEntryProvider::class);
+        $this->app->bind(PayrollTimecardReadGateway::class, EloquentPayrollTimecardReadGateway::class);
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, ?TaskTypeRegistry $taskTypeRegistry = null): void
+    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);

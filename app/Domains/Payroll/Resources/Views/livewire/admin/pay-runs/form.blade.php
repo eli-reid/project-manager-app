@@ -1,7 +1,7 @@
-<div class="mx-auto w-full max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-    <div>
-        <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Create Preview Pay Run</h1>
-        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Create a preview run for submitted and approved timecards in the selected pay period.</p>
+<section class="w-full max-w-3xl space-y-6">
+    <div class="space-y-1">
+        <flux:heading size="xl">Create Preview Pay Run</flux:heading>
+        <flux:text class="text-zinc-600 dark:text-zinc-400">Create a preview run for submitted and approved timecards in the selected pay period.</flux:text>
     </div>
 
     @if ($errors->any())
@@ -16,31 +16,36 @@
 
     <form wire:submit="createPreview" class="space-y-5 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="grid gap-4 sm:grid-cols-2">
-            <div class="space-y-1">
-                <label for="pay_period_start" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay Period Start</label>
-                <input id="pay_period_start" type="date" wire:model="pay_period_start" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-            </div>
+            <flux:field>
+                <flux:label for="pay_period_start">Pay Period Start</flux:label>
+                <flux:input id="pay_period_start" type="date" wire:model="pay_period_start" />
+                <flux:error name="pay_period_start" />
+            </flux:field>
 
-            <div class="space-y-1">
-                <label for="pay_period_end" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay Period End</label>
-                <input id="pay_period_end" type="date" wire:model="pay_period_end" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-            </div>
+            <flux:field>
+                <flux:label for="pay_period_end">Pay Period End</flux:label>
+                <flux:input id="pay_period_end" type="date" wire:model="pay_period_end" />
+                <flux:error name="pay_period_end" />
+            </flux:field>
         </div>
 
-        <div class="space-y-1 sm:max-w-xs">
-            <label for="pay_date" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay Date</label>
-            <input id="pay_date" type="date" wire:model="pay_date" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+        <div class="sm:max-w-xs">
+            <flux:field>
+                <flux:label for="pay_date">Pay Date</flux:label>
+                <flux:input id="pay_date" type="date" wire:model="pay_date" />
+                <flux:error name="pay_date" />
+            </flux:field>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button type="submit" class="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300" wire:loading.attr="disabled">
+        <div class="flex flex-wrap items-center gap-3">
+            <flux:button type="submit" wire:loading.attr="disabled">
                 <span wire:loading.remove>Create Preview Run</span>
                 <span wire:loading>Creating...</span>
-            </button>
+            </flux:button>
 
-            <a href="{{ route('admin.payroll.runs.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+            <flux:button :href="route('admin.payroll.runs.index')" wire:navigate>
                 Cancel
-            </a>
+            </flux:button>
         </div>
     </form>
-</div>
+</section>

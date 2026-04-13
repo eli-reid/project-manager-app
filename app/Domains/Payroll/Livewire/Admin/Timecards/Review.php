@@ -3,12 +3,12 @@
 namespace App\Domains\Payroll\Livewire\Admin\Timecards;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Data\ValidationResult;
 use App\Domains\Payroll\Services\PayPeriodService;
 use App\Domains\Payroll\Services\TimecardDailyReconciliationService;
 use App\Domains\Payroll\Services\TimecardEntryValidationService;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -49,21 +49,18 @@ class Review extends Component
     public function render(
         TimecardEntryValidationService $validationService,
         TimecardDailyReconciliationService $reconciliationService,
+        PayrollTimecardReadGateway $timecardReadGateway,
     ): View {
         $startDate = Carbon::parse($this->weekStarting)->startOfDay();
         $endDate = $startDate->copy()->addDays(6)->endOfDay();
         $projectFilter = $this->projectFilter !== '' ? $this->projectFilter : null;
 
-        $entries = TimecardEntry::query()
-            ->with(['timecard:id,status', 'user:id,first_name,last_name', 'project:id,name,status', 'costCode:id,code,description'])
-            ->whereDate('date', '>=', $startDate->toDateString())
-            ->whereDate('date', '<=', $endDate->toDateString())
-            ->whereHas('timecard', fn ($query) => $query->whereIn('status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED]))
-            ->when($this->userFilter !== '', fn ($query) => $query->where('user_id', $this->userFilter))
-            ->when($projectFilter !== null, fn ($query) => $query->where('project_id', $projectFilter))
-            ->orderBy('date')
-            ->orderBy('user_id')
-            ->get();
+        $entries = $timecardReadGateway->reviewEntriesForDateRange(
+            startDate: $startDate,
+            endDate: $endDate,
+            userId: $this->userFilter !== '' ? $this->userFilter : null,
+            projectId: $projectFilter,
+        );
 
         $validationByEntryId = $entries->mapWithKeys(function (TimecardEntry $entry) use ($validationService): array {
             return [(string) $entry->id => $validationService->validate($entry)];

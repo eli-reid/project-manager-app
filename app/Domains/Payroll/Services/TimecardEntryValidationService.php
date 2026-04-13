@@ -2,6 +2,7 @@
 
 namespace App\Domains\Payroll\Services;
 
+use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Data\ValidationResult;
 use App\Domains\Payroll\Data\ValidationViolation;
 use App\Domains\Payroll\Enums\ValidationSeverity;
@@ -14,6 +15,7 @@ class TimecardEntryValidationService
     public function __construct(
         protected PayPeriodService $payPeriodService,
         protected PayrollRateResolutionService $rateResolutionService,
+        protected PayrollTimecardReadGateway $timecardReadGateway,
     ) {}
 
     /**
@@ -147,11 +149,11 @@ class TimecardEntryValidationService
      */
     protected function computeDailyTotal(TimecardEntry $entry): float
     {
-        $existing = TimecardEntry::query()
-            ->where('user_id', $entry->user_id)
-            ->whereDate('date', $entry->date)
-            ->when($entry->exists, fn ($q) => $q->where('id', '!=', $entry->id))
-            ->sum('hours');
+        $existing = $this->timecardReadGateway->existingHoursForUserOnDate(
+            userId: $entry->user_id,
+            date: Carbon::instance($entry->date),
+            excludeEntryId: $entry->exists ? (string) $entry->id : null,
+        );
 
         return (float) $existing + (float) $entry->hours;
     }
@@ -162,12 +164,12 @@ class TimecardEntryValidationService
      */
     protected function isDuplicate(TimecardEntry $entry): bool
     {
-        return TimecardEntry::query()
-            ->where('user_id', $entry->user_id)
-            ->whereDate('date', $entry->date)
-            ->where('project_id', $entry->project_id)
-            ->where('cost_code_id', $entry->cost_code_id)
-            ->when($entry->exists, fn ($q) => $q->where('id', '!=', $entry->id))
-            ->exists();
+        return $this->timecardReadGateway->duplicateEntryExists(
+            userId: $entry->user_id,
+            date: Carbon::instance($entry->date),
+            projectId: $entry->project_id ? (string) $entry->project_id : null,
+            costCodeId: $entry->cost_code_id ? (string) $entry->cost_code_id : null,
+            excludeEntryId: $entry->exists ? (string) $entry->id : null,
+        );
     }
 }

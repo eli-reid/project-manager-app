@@ -2,12 +2,12 @@
 
 namespace App\Domains\Payroll\Services;
 
+use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Models\EmployeeDeduction;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -15,6 +15,10 @@ use Illuminate\Support\Collection;
 
 class PayrollReportingService
 {
+    public function __construct(
+        private readonly PayrollTimecardReadGateway $timecardReadGateway,
+    ) {}
+
     /**
      * @return Collection<int, Project>
      */
@@ -36,13 +40,15 @@ class PayrollReportingService
         $weekEnd = $weekStart->copy()->addDays(6);
 
         $entries = $this->approvedEntriesQuery($projectId, $weekStart, $weekEnd)
-            ->whereNotNull('project_id')
-            ->where(function (Builder $query): void {
-                $query->whereNotNull('work_classification')
-                    ->orWhereNotNull('prevailing_base_rate')
-                    ->orWhereNotNull('prevailing_fringe_rate');
+            ->filter(function (TimecardEntry $entry): bool {
+                return $entry->project_id !== null
+                    && (
+                        $entry->work_classification !== null
+                        || $entry->prevailing_base_rate !== null
+                        || $entry->prevailing_fringe_rate !== null
+                    );
             })
-            ->get();
+            ->values();
 
         $grouped = $entries->groupBy(function (TimecardEntry $entry): string {
             $costCodeId = $entry->cost_code_id ?? 'none';
@@ -124,7 +130,7 @@ class PayrollReportingService
     {
         [$from, $to] = $this->normalizedDateRange($fromDate, $toDate);
 
-        $entries = $this->approvedEntriesQuery($projectId, $from, $to)->get();
+        $entries = $this->approvedEntriesQuery($projectId, $from, $to);
 
         $standardRateMap = $this->buildStandardRateMap($entries, $to);
 
@@ -311,20 +317,23 @@ class PayrollReportingService
             ->pluck('payroll_employee_profiles.union_code');
     }
 
-    private function approvedEntriesQuery(?string $projectId, Carbon $from, Carbon $to): Builder
+    /**
+     * @return Collection<int, TimecardEntry>
+     */
+    private function approvedEntriesQuery(?string $projectId, Carbon $from, Carbon $to): Collection
     {
-        return TimecardEntry::query()
-            ->with([
+        return $this->timecardReadGateway->approvedEntriesForDateRange(
+            startDate: $from,
+            endDate: $to,
+            projectId: $projectId,
+            with: [
                 'user:id,first_name,last_name,username',
                 'user.payrollProfile:id,user_id',
                 'project:id,name,project_number,wage_determination_id,is_prevailing_wage',
                 'costCode:id,code,description',
                 'timecard:id,status',
-            ])
-            ->whereDate('date', '>=', $from->toDateString())
-            ->whereDate('date', '<=', $to->toDateString())
-            ->whereHas('timecard', fn (Builder $query): Builder => $query->where('status', Timecard::STATUS_APPROVED))
-            ->when($projectId !== null && $projectId !== '', fn (Builder $query): Builder => $query->where('project_id', $projectId));
+            ],
+        );
     }
 
     /**

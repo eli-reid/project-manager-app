@@ -4,13 +4,17 @@ namespace App\Domains\Payroll\Services;
 
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Data\ReconciliationRow;
-use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class TimecardDailyReconciliationService
 {
+    public function __construct(
+        private readonly PayrollTimecardReadGateway $timecardReadGateway,
+    ) {}
+
     /**
      * Reconcile timecard entries against daily reports for a single employee over a
      * date range. Returns one ReconciliationRow per unique date (or date+project when
@@ -84,34 +88,17 @@ class TimecardDailyReconciliationService
         ?string $projectId,
         bool $groupByProject,
     ): Collection {
-        $query = TimecardEntry::query()
-            ->where('user_id', $userId)
-            ->whereDate('date', '>=', $startDate->toDateString())
-            ->whereDate('date', '<=', $endDate->toDateString());
+        return $this->timecardReadGateway
+            ->aggregateHoursByUserAndDate($userId, $startDate, $endDate, $projectId, $groupByProject)
+            ->mapWithKeys(function (float $hours, string $key): array {
+                if (str_contains($key, '|')) {
+                    [$date, $project] = explode('|', $key, 2);
 
-        if ($projectId !== null) {
-            $query->where('project_id', $projectId);
-        }
+                    return [$this->makeKey($date, $project) => $hours];
+                }
 
-        if ($groupByProject) {
-            $rows = $query
-                ->selectRaw('DATE(date) as work_date, project_id, SUM(hours) as total_hours')
-                ->groupBy('work_date', 'project_id')
-                ->get();
-
-            return $rows->mapWithKeys(fn ($row): array => [
-                $this->makeKey((string) $row->work_date, (string) ($row->project_id ?? '')) => (float) $row->total_hours,
-            ]);
-        }
-
-        $rows = $query
-            ->selectRaw('DATE(date) as work_date, SUM(hours) as total_hours')
-            ->groupBy('work_date')
-            ->get();
-
-        return $rows->mapWithKeys(fn ($row): array => [
-            $this->makeKey((string) $row->work_date, '') => (float) $row->total_hours,
-        ]);
+                return [$this->makeKey($key, '') => $hours];
+            });
     }
 
     /**
