@@ -82,6 +82,12 @@
                     {{ __('Financials') }}
                 </button>
             @endif
+
+            @if (in_array('forecasting', $tabs, true))
+                <button type="button" wire:click="setTab('forecasting')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'forecasting' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    {{ __('Forecasting') }}
+                </button>
+            @endif
         </div>
     </div>
 
@@ -210,5 +216,9 @@
                 </p>
             </div>
         </div>
+    @endif
+
+    @if ($activeTab === 'forecasting' && in_array('forecasting', $tabs, true))
+        <livewire:app.domains.payroll.livewire.user.forecasting.weekly-burn-rate-widget :project="$project" :key="'project-forecasting-widget-'.$project->id" />
     @endif
 </section>

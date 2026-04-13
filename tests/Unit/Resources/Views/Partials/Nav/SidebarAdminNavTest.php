@@ -13,15 +13,9 @@ it('centers the administration header in the admin sidebar partial', function ()
 it('includes a payroll link in the admin sidebar partial', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-admin-nav.blade.php');
 
-    expect($view)->toContain('@can(\'payroll-rates.view\')');
-    expect($view)->toContain(':href="route(\'admin.payroll.rates.index\')"');
-    expect($view)->toContain('data-test="admin-payroll-rates-sidebar-main-link"');
-    expect($view)->toContain(':href="route(\'admin.payroll.rate-types.index\')"');
-    expect($view)->toContain('data-test="admin-payroll-rate-types-sidebar-main-link"');
-    expect($view)->toContain('@can(\'payroll-timecards.view\')');
-    expect($view)->toContain(':href="route(\'admin.payroll.timecards.review\')"');
-    expect($view)->toContain('data-test="admin-payroll-timecards-sidebar-main-link"');
-    expect($view)->toContain('@can(\'payroll-runs.preview\')');
-    expect($view)->toContain(':href="route(\'admin.payroll.runs.index\')"');
-    expect($view)->toContain('data-test="admin-payroll-runs-sidebar-main-link"');
+    expect($view)->toContain('auth()->user()?->can(\'payroll-rates.view\') || auth()->user()?->can(\'payroll-timecards.view\') || auth()->user()?->can(\'payroll-runs.preview\')');
+    expect($view)->toContain(':href="auth()->user()?->can(\'payroll-rates.view\')');
+    expect($view)->toContain(':current="request()->routeIs(\'admin.payroll.*\')"');
+    expect($view)->toContain('data-test="admin-payroll-sidebar-main-link"');
+    expect($view)->toContain('{{ __(\'Payroll\') }}');
 });

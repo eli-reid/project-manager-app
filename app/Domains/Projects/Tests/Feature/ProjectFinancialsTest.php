@@ -5,8 +5,10 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectFinancialsService;
+use App\Domains\Tasks\Models\Task;
 
 // ─── Service Unit Tests ───────────────────────────────────────────────────────
 
@@ -102,6 +104,70 @@ it('hides financials tab when user lacks projects.view-financials permission', f
         ->get(route('projects.show', $project))
         ->assertSuccessful()
         ->assertDontSee('Financials');
+});
+
+it('shows forecasting tab when user has payroll reports view permission', function (): void {
+    $project = Project::factory()->create();
+    $user = projectUserWithPermissions(['projects.view', 'payroll-reports.view'], $project);
+
+    $this->actingAs($user)
+        ->get(route('projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Forecasting');
+});
+
+it('hides forecasting tab when user lacks payroll reports view permission', function (): void {
+    $project = Project::factory()->create();
+    $user = projectUserWithPermissions(['projects.view'], $project);
+
+    $this->actingAs($user)
+        ->get(route('projects.show', $project))
+        ->assertSuccessful()
+        ->assertDontSee('Forecasting');
+});
+
+it('renders the forecasting widget on the project forecasting tab', function (): void {
+    $project = Project::factory()->create();
+    $user = projectUserWithPermissions(['projects.view', 'payroll-reports.view'], $project);
+
+    $this->actingAs($user)
+        ->get(route('projects.show', $project).'?tab=forecasting')
+        ->assertSuccessful()
+        ->assertSee('Project Payroll Forecast')
+        ->assertSee('Open Full Forecasting');
+});
+
+it('uses cost code budget hours for the project forecasting widget', function (): void {
+    $project = Project::factory()->create();
+    $user = projectUserWithPermissions(['projects.view', 'payroll-reports.view'], $project);
+
+    CostCode::factory()->create([
+        'project_id' => $project->id,
+        'budget_hours' => 120,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.show', $project).'?tab=forecasting')
+        ->assertSuccessful()
+        ->assertSee('120.00')
+        ->assertDontSee('Project-specific forecasting is unavailable');
+});
+
+it('falls back to task estimated hours for the project forecasting widget', function (): void {
+    $project = Project::factory()->create();
+    $user = projectUserWithPermissions(['projects.view', 'payroll-reports.view'], $project);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'estimated_hours' => 16,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.show', $project).'?tab=forecasting')
+        ->assertSuccessful()
+        ->assertSee('16.00')
+        ->assertDontSee('Project-specific forecasting is unavailable');
 });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

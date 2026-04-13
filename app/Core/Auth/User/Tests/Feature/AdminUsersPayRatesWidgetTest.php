@@ -2,6 +2,7 @@
 
 use App\Core\Auth\User\Livewire\Admin\Users\Form as UserForm;
 use App\Core\Identity\Models\User;
+use App\Core\Settings\Services\SettingsSqliteService;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
@@ -47,6 +48,115 @@ it('adds a pay rate from the user edit widget', function (): void {
         'pay_rate_type_id' => $rateType->id,
         'approved_by' => $admin->id,
     ])->exists())->toBeTrue();
+});
+
+it('creates a payroll profile from the user edit widget', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $managedUser = User::factory()->create();
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class, ['user' => $managedUser])
+        ->assertSee('Create Payroll Profile')
+        ->set('profile_employee_number', 'EMP-1001')
+        ->set('profile_job_classification', 'Laborer')
+        ->set('profile_ssn', '123-45-6789')
+        ->set('profile_date_of_birth', '1990-01-01')
+        ->set('profile_hire_date', '2026-01-01')
+        ->set('profile_status', 'active')
+        ->set('profile_pay_type', 'hourly')
+        ->set('profile_direct_deposit_active', true)
+        ->call('createPayrollProfile')
+        ->assertHasNoErrors();
+
+    expect(PayrollEmployeeProfile::query()->where([
+        'user_id' => $managedUser->id,
+        'employee_number' => 'EMP-1001',
+        'job_classification' => 'Laborer',
+    ])->exists())->toBeTrue();
+});
+
+it('validates required fields when creating a payroll profile', function (): void {
+    app(SettingsSqliteService::class)->set('payroll.employee_profile.ssn_required', 'true');
+
+    $admin = User::factory()->create(['is_admin' => true]);
+    $managedUser = User::factory()->create();
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class, ['user' => $managedUser])
+        ->set('profile_employee_number', '')
+        ->set('profile_job_classification', '')
+        ->set('profile_ssn', '')
+        ->set('profile_date_of_birth', '')
+        ->set('profile_hire_date', '')
+        ->call('createPayrollProfile')
+        ->assertHasErrors([
+            'profile_employee_number',
+            'profile_job_classification',
+            'profile_ssn',
+            'profile_date_of_birth',
+            'profile_hire_date',
+        ]);
+});
+
+it('allows creating payroll profile without ssn when setting disables requirement', function (): void {
+    app(SettingsSqliteService::class)->set('payroll.employee_profile.ssn_required', 'false');
+
+    $admin = User::factory()->create(['is_admin' => true]);
+    $managedUser = User::factory()->create();
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class, ['user' => $managedUser])
+        ->set('profile_employee_number', 'EMP-1011')
+        ->set('profile_job_classification', 'Laborer')
+        ->set('profile_ssn', '')
+        ->set('profile_date_of_birth', '1991-02-02')
+        ->set('profile_hire_date', '2026-01-10')
+        ->set('profile_status', 'active')
+        ->set('profile_pay_type', 'hourly')
+        ->call('createPayrollProfile')
+        ->assertHasNoErrors();
+
+    expect(PayrollEmployeeProfile::query()->where([
+        'user_id' => $managedUser->id,
+        'employee_number' => 'EMP-1011',
+    ])->exists())->toBeTrue();
+});
+
+it('updates an existing payroll profile from the user edit widget', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $managedUser = User::factory()->create();
+
+    $profile = PayrollEmployeeProfile::factory()->create([
+        'user_id' => $managedUser->id,
+        'employee_number' => 'EMP-2001',
+        'job_classification' => 'Operator',
+        'status' => 'active',
+        'pay_type' => 'hourly',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class, ['user' => $managedUser])
+        ->assertSee('Edit Payroll Profile')
+        ->set('profile_employee_number', 'EMP-2009')
+        ->set('profile_job_classification', 'Foreman')
+        ->set('profile_status', 'inactive')
+        ->set('profile_pay_type', 'salary')
+        ->set('profile_department', 'Field')
+        ->set('profile_union_code', 'UN-7')
+        ->set('profile_direct_deposit_active', true)
+        ->set('profile_ssn', '')
+        ->call('updatePayrollProfile')
+        ->assertHasNoErrors();
+
+    $profile->refresh();
+
+    expect($profile->employee_number)->toBe('EMP-2009')
+        ->and($profile->job_classification)->toBe('Foreman')
+        ->and($profile->status)->toBe('inactive')
+        ->and($profile->pay_type)->toBe('salary')
+        ->and($profile->department)->toBe('Field')
+        ->and($profile->union_code)->toBe('UN-7')
+        ->and($profile->direct_deposit_active)->toBeTrue();
 });
 
 it('prevents adding a pay rate when the managed user has no payroll profile', function (): void {

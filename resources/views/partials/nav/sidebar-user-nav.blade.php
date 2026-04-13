@@ -80,30 +80,6 @@
     </flux:sidebar.item>
 @endcan
 
-@can('payroll-stubs.view-own')
-    <flux:sidebar.item
-        icon="wallet"
-        :href="route('payroll.history')"
-        :current="request()->routeIs('payroll.history') || request()->routeIs('payroll.history.show')"
-        wire:navigate
-        data-test="payroll-sidebar-main-link"
-    >
-        {{ __('My Payroll') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('reports.payroll.view')
-    <flux:sidebar.item
-        icon="chart-bar"
-        :href="route('reports.payroll.forecasting.index')"
-        :current="request()->routeIs('reports.payroll.forecasting.*')"
-        wire:navigate
-        data-test="payroll-forecasting-sidebar-link"
-    >
-        {{ __('Payroll Forecasting') }}
-    </flux:sidebar.item>
-@endcan
-
 @can('viewAny', \App\Domains\Documents\Models\Document::class)
     <flux:sidebar.item
         icon="folder"

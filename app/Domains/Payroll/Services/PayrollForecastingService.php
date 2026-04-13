@@ -6,7 +6,10 @@ use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Tasks\Models\Task;
+use App\Domains\Timecards\Models\TimecardEntry;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class PayrollForecastingService
 {
@@ -68,39 +71,18 @@ class PayrollForecastingService
     public function projectBasedForecast(string $projectId): ?array
     {
         $project = Project::query()->find($projectId);
-        if ($project === null || ! isset($project->payroll_budget_hours)) {
+        if ($project === null) {
             return null;
         }
 
-        $budgetHours = (float) $project->payroll_budget_hours;
-        $actualHoursResult = PayrollStatement::query()
-            ->whereHas('user.timecardEntries', fn ($q) => $q->where('project_id', $projectId))
-            ->selectRaw('COALESCE(SUM(total_regular_hours + total_ot_hours + total_dt_hours), 0) as total_hours')
-            ->first();
-
-        $actualHours = (float) ($actualHoursResult?->total_hours ?? 0.0);
+        $budgetHours = $this->resolveProjectBudgetHours($project);
+        $actualHours = $this->actualProjectHours($projectId);
         $remainingHours = max(0.0, $budgetHours - $actualHours);
 
-        // Get average weekly hours for this project (trailing 4 weeks)
-        $fourWeeksAgo = now()->subWeeks(4)->startOfWeek()->toDateString();
-        $avgWeeklyHours = PayrollStatement::query()
-            ->whereHas('user.timecardEntries', fn ($q) => $q->where('project_id', $projectId))
-            ->whereHas('payRun', fn ($q) => $q->where('pay_date', '>=', $fourWeeksAgo))
-            ->selectRaw('COALESCE(AVG(total_regular_hours + total_ot_hours + total_dt_hours), 40) as avg_hours')
-            ->first();
-
-        $avgWeekly = (float) ($avgWeeklyHours?->avg_hours ?? 40.0);
+        $avgWeekly = $this->averageWeeklyProjectHours($projectId);
         $weeksRemaining = $avgWeekly > 0 ? round($remainingHours / $avgWeekly, 2) : 0.0;
 
-        // Calculate blended rate (weighted average of all employee rates on project)
-        $ratesResult = PayRate::query()
-            ->whereHas('payrollEmployeeProfile.user.timecardEntries', fn ($q) => $q->where('project_id', $projectId))
-            ->where('effective_date', '<=', now()->toDateString())
-            ->where('payroll_employee_profiles.payroll_employee_profiles.status', '!=', 'terminated')
-            ->selectRaw('COALESCE(AVG(rate_amount), 0) as blended_rate')
-            ->first();
-
-        $blendedRate = (float) ($ratesResult?->blended_rate ?? 0.0);
+        $blendedRate = $this->projectBlendedRate($project);
         $weeklyCost = round($avgWeekly * $blendedRate, 2);
         $totalRemainingCost = round($remainingHours * $blendedRate, 2);
 
@@ -113,6 +95,107 @@ class PayrollForecastingService
             'budget_hours' => round($budgetHours, 2),
             'actual_hours_to_date' => round($actualHours, 2),
         ];
+    }
+
+    private function resolveProjectBudgetHours(Project $project): float
+    {
+        $costCodeBudgetHours = (float) $project->costCodes()
+            ->where('is_active', true)
+            ->sum('budget_hours');
+
+        if ($costCodeBudgetHours > 0) {
+            return round($costCodeBudgetHours, 2);
+        }
+
+        $taskEstimateHours = (float) Task::query()
+            ->where('project_id', $project->id)
+            ->sum('estimated_hours');
+
+        return round(max($taskEstimateHours, 0.0), 2);
+    }
+
+    private function actualProjectHours(string $projectId): float
+    {
+        $entries = TimecardEntry::query()
+            ->where('project_id', $projectId)
+            ->get(['hours', 'regular_hours', 'overtime_hours', 'double_time_hours']);
+
+        return round($this->sumEntryHours($entries), 2);
+    }
+
+    private function averageWeeklyProjectHours(string $projectId): float
+    {
+        $entries = TimecardEntry::query()
+            ->where('project_id', $projectId)
+            ->whereDate('date', '>=', now()->subWeeks(4)->startOfWeek()->toDateString())
+            ->get(['date', 'hours', 'regular_hours', 'overtime_hours', 'double_time_hours']);
+
+        if ($entries->isEmpty()) {
+            return 40.0;
+        }
+
+        $weeklyHours = $entries
+            ->groupBy(fn (TimecardEntry $entry): string => Carbon::parse($entry->date)->startOfWeek()->toDateString())
+            ->map(fn (Collection $weekEntries): float => $this->sumEntryHours($weekEntries));
+
+        return round((float) $weeklyHours->avg(), 2);
+    }
+
+    private function projectBlendedRate(Project $project): float
+    {
+        $userIds = TimecardEntry::query()
+            ->where('project_id', $project->id)
+            ->distinct()
+            ->pluck('user_id')
+            ->filter()
+            ->values();
+
+        if ($userIds->isEmpty()) {
+            return 0.0;
+        }
+
+        $profiles = PayrollEmployeeProfile::query()
+            ->whereIn('user_id', $userIds)
+            ->where('status', '!=', 'terminated')
+            ->get();
+
+        if ($profiles->isEmpty()) {
+            return 0.0;
+        }
+
+        $rateResolutionService = app(PayrollRateResolutionService::class);
+
+        $rates = $profiles
+            ->map(fn (PayrollEmployeeProfile $profile): ?float => optional(
+                $rateResolutionService->resolveForProject($profile, (string) $project->id, now())
+            )?->rate_amount)
+            ->filter(fn ($rate): bool => $rate !== null)
+            ->map(fn ($rate): float => (float) $rate)
+            ->values();
+
+        if ($rates->isEmpty()) {
+            return 0.0;
+        }
+
+        return round((float) $rates->avg(), 2);
+    }
+
+    /**
+     * @param  Collection<int, TimecardEntry>  $entries
+     */
+    private function sumEntryHours(Collection $entries): float
+    {
+        return (float) $entries->sum(function (TimecardEntry $entry): float {
+            $detailedHours = (float) ($entry->regular_hours ?? 0)
+                + (float) ($entry->overtime_hours ?? 0)
+                + (float) ($entry->double_time_hours ?? 0);
+
+            if ($detailedHours > 0) {
+                return $detailedHours;
+            }
+
+            return (float) ($entry->hours ?? 0);
+        });
     }
 
     /**

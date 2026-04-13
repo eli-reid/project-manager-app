@@ -5,7 +5,6 @@ it('includes payroll links in the mobile app menu', function (): void {
 
     expect($view)->toContain('@can(\'payroll-stubs.view-own\')');
     expect($view)->toContain('data-test="payroll-link-mobile"');
-    expect($view)->toContain('@can(\'reports.payroll.view\')');
-    expect($view)->toContain('data-test="payroll-forecasting-link-mobile"');
+    expect($view)->not->toContain('data-test="payroll-forecasting-link-mobile"');
     expect($view)->not->toContain('data-test="admin-payroll-link-mobile"');
 });

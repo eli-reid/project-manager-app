@@ -14,7 +14,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.admin')]
+#[Layout('payroll::layouts.payroll-admin')]
 #[Title('Payroll Rate Form')]
 class Form extends Component
 {

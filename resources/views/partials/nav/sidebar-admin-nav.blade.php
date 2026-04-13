@@ -86,24 +86,19 @@
     </flux:sidebar.item>
 @endcan
 
-@can('payroll-rates.view')
-    <flux:sidebar.item icon="wallet" :href="route('admin.payroll.rates.index')" :current="request()->routeIs('admin.payroll.rates.*')" wire:navigate data-test="admin-payroll-rates-sidebar-main-link">
-        {{ __('Payroll Rates') }}
+@if (auth()->user()?->can('payroll-rates.view') || auth()->user()?->can('payroll-timecards.view') || auth()->user()?->can('payroll-runs.preview'))
+    <flux:sidebar.item
+        icon="banknotes"
+        :href="auth()->user()?->can('payroll-rates.view')
+            ? route('admin.payroll.rates.index')
+            : (auth()->user()?->can('payroll-timecards.view')
+                ? route('admin.payroll.timecards.review')
+                : route('admin.payroll.runs.index'))"
+        :current="request()->routeIs('admin.payroll.*')"
+        wire:navigate
+        data-test="admin-payroll-sidebar-main-link"
+    >
+        {{ __('Payroll') }}
     </flux:sidebar.item>
+@endif
 
-    <flux:sidebar.item icon="tag" :href="route('admin.payroll.rate-types.index')" :current="request()->routeIs('admin.payroll.rate-types.*')" wire:navigate data-test="admin-payroll-rate-types-sidebar-main-link">
-        {{ __('Payroll Rate Types') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('payroll-timecards.view')
-    <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.payroll.timecards.review')" :current="request()->routeIs('admin.payroll.timecards.*')" wire:navigate data-test="admin-payroll-timecards-sidebar-main-link">
-        {{ __('Payroll Timecards') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('payroll-runs.preview')
-    <flux:sidebar.item icon="banknotes" :href="route('admin.payroll.runs.index')" :current="request()->routeIs('admin.payroll.runs.*')" wire:navigate data-test="admin-payroll-runs-sidebar-main-link">
-        {{ __('Payroll Runs') }}
-    </flux:sidebar.item>
-@endcan

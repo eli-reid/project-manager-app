@@ -11,7 +11,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.admin')]
+#[Layout('payroll::layouts.payroll-admin')]
 #[Title('Payroll Pay Runs')]
 class Index extends Component
 {

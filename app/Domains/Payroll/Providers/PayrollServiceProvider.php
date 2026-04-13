@@ -15,6 +15,7 @@ use App\Domains\Payroll\Livewire\Admin\PayRuns\Form as AdminPayRunForm;
 use App\Domains\Payroll\Livewire\Admin\PayRuns\Index as AdminPayRunIndex;
 use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as AdminPayRunShow;
 use App\Domains\Payroll\Livewire\Admin\Timecards\Review as AdminTimecardReview;
+use App\Domains\Payroll\Livewire\User\Forecasting\WeeklyBurnRateWidget;
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as UserPayrollHistoryIndex;
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Show as UserPayrollHistoryShow;
 use App\Domains\Payroll\Livewire\User\Reports\Audit\Index as PayrollAuditIndex;
@@ -82,6 +83,10 @@ class PayrollServiceProvider extends ServiceProvider
 
         Gate::define('payroll-rates.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.view'));
         Gate::define('payroll-rates.manage', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-rates.manage'));
+        Gate::define('payroll-employees.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-employees.view'));
+        Gate::define('payroll-employees.create', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-employees.create'));
+        Gate::define('payroll-employees.update', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-employees.update'));
+        Gate::define('payroll-employees.deactivate', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-employees.deactivate'));
         Gate::define('payroll-timecards.view', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-timecards.view'));
         Gate::define('payroll-runs.preview', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.preview'));
         Gate::define('payroll-runs.approve', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.approve'));
@@ -115,6 +120,7 @@ class PayrollServiceProvider extends ServiceProvider
         Livewire::component('app.domains.payroll.livewire.admin.pay-runs.form', AdminPayRunForm::class);
         Livewire::component('app.domains.payroll.livewire.admin.pay-runs.show', AdminPayRunShow::class);
 
+        Livewire::component('app.domains.payroll.livewire.user.forecasting.weekly-burn-rate-widget', WeeklyBurnRateWidget::class);
         Livewire::component('app.domains.payroll.livewire.user.payroll-history', UserPayrollHistoryIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.payroll-history.show', UserPayrollHistoryShow::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.certified-payroll', CertifiedPayrollIndex::class);

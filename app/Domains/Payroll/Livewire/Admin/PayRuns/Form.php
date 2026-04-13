@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.admin')]
+#[Layout('payroll::layouts.payroll-admin')]
 #[Title('Create Payroll Pay Run')]
 class Form extends Component
 {

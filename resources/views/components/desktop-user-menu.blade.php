@@ -41,6 +41,12 @@
                 {{ __('Settings') }}
             </flux:menu.item>
 
+            @can('payroll-stubs.view-own')
+                <flux:menu.item :href="route('payroll.history')" icon="wallet" wire:navigate data-test="payroll-menu-link">
+                    {{ __('My Payroll') }}
+                </flux:menu.item>
+            @endcan
+
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <flux:menu.item

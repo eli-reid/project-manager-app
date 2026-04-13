@@ -78,6 +78,10 @@ class Show extends Component
             $tabs[] = 'financials';
         }
 
+        if ($user?->can('reports.payroll.view')) {
+            $tabs[] = 'forecasting';
+        }
+
         return $tabs;
     }
 

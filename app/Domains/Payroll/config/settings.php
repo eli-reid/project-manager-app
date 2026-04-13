@@ -147,4 +147,21 @@ return [
         'is_required' => false,
         'encrypted' => false,
     ],
+    [
+        'key' => 'payroll.employee_profile.ssn_required',
+        'value' => env('PAYROLL_EMPLOYEE_PROFILE_SSN_REQUIRED', true) ? 'true' : 'false',
+        'display_name' => 'Require SSN On Payroll Profile',
+        'description' => 'When enabled, SSN is required when creating employee payroll profiles.',
+        'type' => 'select',
+        'group' => 'payroll',
+        'options' => [
+            'true' => 'Yes',
+            'false' => 'No',
+        ],
+        'order' => 11,
+        'is_visible' => true,
+        'is_public' => false,
+        'is_required' => false,
+        'encrypted' => false,
+    ],
 ];

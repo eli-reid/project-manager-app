@@ -5,6 +5,7 @@ namespace App\Core\Auth\User\Livewire\Admin\Users;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\User\Actions\Admin\CreateInvitedUser;
 use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
@@ -32,6 +33,10 @@ class Form extends Component
     public bool $isEdit = false;
 
     public bool $canManagePayrollRates = false;
+
+    public bool $canCreatePayrollProfiles = false;
+
+    public bool $canUpdatePayrollProfiles = false;
 
     public string $first_name = '';
 
@@ -62,6 +67,28 @@ class Form extends Component
 
     public string $new_expiration_date = '';
 
+    public string $profile_employee_number = '';
+
+    public string $profile_ssn = '';
+
+    public string $profile_date_of_birth = '';
+
+    public string $profile_hire_date = '';
+
+    public string $profile_termination_date = '';
+
+    public string $profile_status = 'active';
+
+    public string $profile_pay_type = 'hourly';
+
+    public string $profile_department = '';
+
+    public string $profile_job_classification = '';
+
+    public string $profile_union_code = '';
+
+    public bool $profile_direct_deposit_active = false;
+
     public function boot(CreateInvitedUser $createInvitedUser): void
     {
         $this->createInvitedUser = $createInvitedUser;
@@ -73,6 +100,8 @@ class Form extends Component
 
         $currentUser = Auth::user();
         $this->canManagePayrollRates = $currentUser !== null && $currentUser->can('payroll-rates.manage');
+        $this->canCreatePayrollProfiles = $currentUser !== null && $currentUser->can('payroll-employees.create');
+        $this->canUpdatePayrollProfiles = $currentUser !== null && $currentUser->can('payroll-employees.update');
 
         if ($user !== null && $user->exists) {
             $user->loadMissing('payrollProfile');
@@ -89,6 +118,12 @@ class Form extends Component
 
             if ($this->canManagePayrollRates && $this->payrollProfile !== null) {
                 $this->new_effective_date = now()->toDateString();
+            }
+
+            if ($this->payrollProfile !== null) {
+                $this->seedProfileFormFromExistingProfile();
+            } else {
+                $this->seedProfileFormDefaults($user);
             }
         }
     }
@@ -200,6 +235,87 @@ class Form extends Component
         session()->flash('success', 'Pay rate added successfully.');
     }
 
+    public function createPayrollProfile(): void
+    {
+        if (! $this->isEdit || $this->user === null) {
+            return;
+        }
+
+        if (! $this->canCreatePayrollProfiles) {
+            abort(403);
+        }
+
+        if ($this->payrollProfile !== null) {
+            $this->addError('payroll_profile', 'This user already has a payroll profile.');
+
+            return;
+        }
+
+        $validated = $this->validate($this->payrollProfileRules());
+
+        $this->payrollProfile = PayrollEmployeeProfile::query()->create([
+            'user_id' => $this->user->id,
+            'employee_number' => $validated['profile_employee_number'],
+            'ssn_encrypted' => $validated['profile_ssn'],
+            'date_of_birth' => $validated['profile_date_of_birth'],
+            'hire_date' => $validated['profile_hire_date'],
+            'termination_date' => ($validated['profile_termination_date'] ?? '') !== '' ? $validated['profile_termination_date'] : null,
+            'status' => $validated['profile_status'],
+            'pay_type' => $validated['profile_pay_type'],
+            'department' => ($validated['profile_department'] ?? '') !== '' ? $validated['profile_department'] : null,
+            'job_classification' => $validated['profile_job_classification'],
+            'union_code' => ($validated['profile_union_code'] ?? '') !== '' ? $validated['profile_union_code'] : null,
+            'direct_deposit_active' => (bool) $validated['profile_direct_deposit_active'],
+        ]);
+
+        if ($this->canManagePayrollRates) {
+            $this->new_effective_date = now()->toDateString();
+        }
+
+        session()->flash('success', 'Payroll profile created successfully.');
+    }
+
+    public function updatedProfileSsn(string $value): void
+    {
+        $this->profile_ssn = $this->formatSsn($value);
+    }
+
+    public function updatePayrollProfile(): void
+    {
+        if (! $this->isEdit || $this->user === null || $this->payrollProfile === null) {
+            return;
+        }
+
+        if (! $this->canUpdatePayrollProfiles) {
+            abort(403);
+        }
+
+        $validated = $this->validate($this->payrollProfileRules(isUpdate: true));
+
+        $payload = [
+            'employee_number' => $validated['profile_employee_number'],
+            'date_of_birth' => $validated['profile_date_of_birth'],
+            'hire_date' => $validated['profile_hire_date'],
+            'termination_date' => ($validated['profile_termination_date'] ?? '') !== '' ? $validated['profile_termination_date'] : null,
+            'status' => $validated['profile_status'],
+            'pay_type' => $validated['profile_pay_type'],
+            'department' => ($validated['profile_department'] ?? '') !== '' ? $validated['profile_department'] : null,
+            'job_classification' => $validated['profile_job_classification'],
+            'union_code' => ($validated['profile_union_code'] ?? '') !== '' ? $validated['profile_union_code'] : null,
+            'direct_deposit_active' => (bool) $validated['profile_direct_deposit_active'],
+        ];
+
+        if (($validated['profile_ssn'] ?? '') !== '') {
+            $payload['ssn_encrypted'] = $validated['profile_ssn'];
+        }
+
+        $this->payrollProfile->update($payload);
+        $this->payrollProfile->refresh();
+        $this->seedProfileFormFromExistingProfile();
+
+        session()->flash('success', 'Payroll profile updated successfully.');
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -214,6 +330,45 @@ class Form extends Component
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    protected function payrollProfileRules(bool $isUpdate = false): array
+    {
+        $employeeNumberRules = ['required', 'string', 'max:20', 'unique:payroll_employee_profiles,employee_number'];
+
+        if ($isUpdate && $this->payrollProfile !== null) {
+            $employeeNumberRules = [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('payroll_employee_profiles', 'employee_number')->ignore($this->payrollProfile->id),
+            ];
+        }
+
+        $ssnRules = ['string', 'regex:/^\d{3}-\d{2}-\d{4}$/'];
+
+        if ($isUpdate || ! $this->isSsnRequired()) {
+            array_unshift($ssnRules, 'nullable');
+        } else {
+            array_unshift($ssnRules, 'required');
+        }
+
+        return [
+            'profile_employee_number' => $employeeNumberRules,
+            'profile_ssn' => $ssnRules,
+            'profile_date_of_birth' => ['required', 'date'],
+            'profile_hire_date' => ['required', 'date'],
+            'profile_termination_date' => ['nullable', 'date', 'after_or_equal:profile_hire_date'],
+            'profile_status' => ['required', 'in:active,inactive,terminated'],
+            'profile_pay_type' => ['required', 'in:hourly,salary'],
+            'profile_department' => ['nullable', 'string', 'max:255'],
+            'profile_job_classification' => ['required', 'string', 'max:255'],
+            'profile_union_code' => ['nullable', 'string', 'max:20'],
+            'profile_direct_deposit_active' => ['boolean'],
+        ];
+    }
+
     protected function resetNewPayRateForm(): void
     {
         $this->new_pay_rate_type_id = '';
@@ -221,6 +376,77 @@ class Form extends Component
         $this->new_rate_amount = '';
         $this->new_effective_date = now()->toDateString();
         $this->new_expiration_date = '';
+    }
+
+    protected function seedProfileFormDefaults(User $user): void
+    {
+        $this->profile_employee_number = '';
+        $this->profile_ssn = '';
+        $this->profile_date_of_birth = '';
+        $this->profile_hire_date = now()->toDateString();
+        $this->profile_termination_date = '';
+        $this->profile_status = 'active';
+        $this->profile_pay_type = 'hourly';
+        $this->profile_department = '';
+        $this->profile_job_classification = '';
+        $this->profile_union_code = '';
+        $this->profile_direct_deposit_active = false;
+
+        if ($user->id !== '') {
+            $this->profile_employee_number = 'EMP-'.strtoupper(substr($user->id, -6));
+        }
+    }
+
+    protected function seedProfileFormFromExistingProfile(): void
+    {
+        if ($this->payrollProfile === null) {
+            return;
+        }
+
+        $this->profile_employee_number = (string) $this->payrollProfile->employee_number;
+        $this->profile_ssn = '';
+        $this->profile_date_of_birth = (string) optional($this->payrollProfile->date_of_birth)->toDateString();
+        $this->profile_hire_date = (string) optional($this->payrollProfile->hire_date)->toDateString();
+        $this->profile_termination_date = (string) optional($this->payrollProfile->termination_date)->toDateString();
+        $this->profile_status = (string) $this->payrollProfile->status;
+        $this->profile_pay_type = (string) $this->payrollProfile->pay_type;
+        $this->profile_department = (string) ($this->payrollProfile->department ?? '');
+        $this->profile_job_classification = (string) $this->payrollProfile->job_classification;
+        $this->profile_union_code = (string) ($this->payrollProfile->union_code ?? '');
+        $this->profile_direct_deposit_active = (bool) $this->payrollProfile->direct_deposit_active;
+    }
+
+    protected function isSsnRequired(): bool
+    {
+        $raw = Settings::get('payroll.employee_profile.ssn_required', 'true')->raw();
+
+        if (is_bool($raw)) {
+            return $raw;
+        }
+
+        $normalized = strtolower(trim((string) $raw));
+
+        return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+    }
+
+    protected function formatSsn(string $value): string
+    {
+        $digits = preg_replace('/\D+/', '', $value) ?? '';
+        $digits = substr($digits, 0, 9);
+
+        if ($digits === '') {
+            return '';
+        }
+
+        if (strlen($digits) <= 3) {
+            return $digits;
+        }
+
+        if (strlen($digits) <= 5) {
+            return substr($digits, 0, 3).'-'.substr($digits, 3);
+        }
+
+        return substr($digits, 0, 3).'-'.substr($digits, 3, 2).'-'.substr($digits, 5);
     }
 
     public function render()
