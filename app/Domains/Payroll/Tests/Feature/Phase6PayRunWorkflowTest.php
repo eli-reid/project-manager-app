@@ -5,6 +5,7 @@ use App\Domains\Payroll\Enums\PayRunStatus;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
+use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
 use App\Domains\Payroll\Services\PayRunService;
 use App\Domains\Projects\Models\Project;
@@ -131,6 +132,70 @@ it('allows admin users to access phase 6 pay run screens', function (string $rou
     'admin.payroll.runs.create',
     'admin.payroll.runs.show',
 ]);
+
+it('uses project-assigned pay rate type when building payroll statement gross pay', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $employee = User::factory()->create(['first_name' => 'Taylor', 'last_name' => 'Ng']);
+    $profile = PayrollEmployeeProfile::factory()->create(['user_id' => $employee->id]);
+
+    $standardType = PayRateType::factory()->standard()->create();
+    $prevailingBaseType = PayRateType::factory()->prevailingBase()->create();
+
+    $project = Project::factory()->create([
+        'name' => 'Typed Rate Project',
+        'pay_rate_type_id' => $prevailingBaseType->id,
+    ]);
+
+    // Standard exists but should not be used for this project.
+    PayRate::factory()->create([
+        'payroll_employee_profile_id' => $profile->id,
+        'pay_rate_type_id' => $standardType->id,
+        'project_id' => null,
+        'rate_amount' => 30,
+        'effective_date' => '2026-04-01',
+        'expiration_date' => null,
+        'approved_by' => $admin->id,
+    ]);
+
+    // Project's configured type rate should be used.
+    PayRate::factory()->create([
+        'payroll_employee_profile_id' => $profile->id,
+        'pay_rate_type_id' => $prevailingBaseType->id,
+        'project_id' => null,
+        'rate_amount' => 50,
+        'effective_date' => '2026-04-01',
+        'expiration_date' => null,
+        'approved_by' => $admin->id,
+    ]);
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_SUBMITTED,
+        'week_starting' => '2026-04-12',
+        'week_ending' => '2026-04-18',
+    ]);
+
+    $timecard->entries()->create([
+        'user_id' => $employee->id,
+        'project_id' => $project->id,
+        'date' => '2026-04-14',
+        'hours' => 8,
+    ]);
+
+    $service = app(PayRunService::class);
+
+    $run = $service->createPreview('2026-04-12', '2026-04-18', '2026-04-25', $admin->id)->fresh();
+
+    expect($run)->not->toBeNull();
+
+    $statement = PayrollStatement::query()
+        ->where('pay_run_id', $run?->id)
+        ->where('user_id', $employee->id)
+        ->first();
+
+    expect($statement)->not->toBeNull()
+        ->and((float) ($statement?->gross_pay ?? 0.0))->toBe(400.0); // 8h * $50
+});
 
 it('forbids non-admin users from phase 6 pay run screens without permissions', function (string $routeName): void {
     $user = User::factory()->create(['is_admin' => false]);

@@ -180,6 +180,59 @@ describe('PayrollRateResolutionService', function (): void {
 
         expect($service->hasAnyRate($profile, null, Carbon::now()))->toBeTrue();
     });
+
+    it('resolves using project-assigned pay rate type when present', function (): void {
+        $standard = PayRateType::factory()->standard()->create();
+        $prevailingBase = PayRateType::factory()->prevailingBase()->create();
+        $profile = PayrollEmployeeProfile::factory()->create();
+        $project = Project::factory()->create(['pay_rate_type_id' => $prevailingBase->id]);
+
+        // Standard rate exists but project should resolve prevailing base.
+        PayRate::factory()->create([
+            'payroll_employee_profile_id' => $profile->id,
+            'pay_rate_type_id' => $standard->id,
+            'project_id' => null,
+            'rate_amount' => 40.0000,
+            'effective_date' => now()->subMonth()->toDateString(),
+            'expiration_date' => null,
+        ]);
+
+        $projectTypeRate = PayRate::factory()->create([
+            'payroll_employee_profile_id' => $profile->id,
+            'pay_rate_type_id' => $prevailingBase->id,
+            'project_id' => null,
+            'rate_amount' => 55.0000,
+            'effective_date' => now()->subMonth()->toDateString(),
+            'expiration_date' => null,
+        ]);
+
+        $service = new PayrollRateResolutionService;
+        $resolved = $service->resolveForProject($profile, (string) $project->id, Carbon::now());
+
+        expect($resolved?->id)->toBe($projectTypeRate->id)
+            ->and((float) ($resolved?->rate_amount ?? 0.0))->toBe(55.0);
+    });
+
+    it('falls back to standard when project has no assigned type', function (): void {
+        $standard = PayRateType::factory()->standard()->create();
+        $profile = PayrollEmployeeProfile::factory()->create();
+        $project = Project::factory()->create(['pay_rate_type_id' => null]);
+
+        $standardRate = PayRate::factory()->create([
+            'payroll_employee_profile_id' => $profile->id,
+            'pay_rate_type_id' => $standard->id,
+            'project_id' => null,
+            'rate_amount' => 42.0000,
+            'effective_date' => now()->subMonth()->toDateString(),
+            'expiration_date' => null,
+        ]);
+
+        $service = new PayrollRateResolutionService;
+        $resolved = $service->resolveForProject($profile, (string) $project->id, Carbon::now());
+
+        expect($resolved?->id)->toBe($standardRate->id)
+            ->and((float) ($resolved?->rate_amount ?? 0.0))->toBe(42.0);
+    });
 });
 
 // ─── OvertimeCalculationService – Weekly FLSA ────────────────────────────────

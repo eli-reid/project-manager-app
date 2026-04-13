@@ -5,11 +5,42 @@ namespace App\Domains\Payroll\Services;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
+use App\Domains\Projects\Models\Project;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class PayrollRateResolutionService
 {
+    /**
+     * Resolve a pay rate based on the project's assigned rate type.
+     * Falls back to 'standard' when project has no assigned type.
+     */
+    public function resolveForProject(
+        PayrollEmployeeProfile $profile,
+        ?string $projectId,
+        Carbon $workDate,
+    ): ?PayRate {
+        if ($projectId === null) {
+            return $this->resolve($profile, 'standard', null, $workDate);
+        }
+
+        $project = Project::query()
+            ->select(['id', 'pay_rate_type_id'])
+            ->find($projectId);
+
+        if ($project?->pay_rate_type_id === null) {
+            return $this->resolve($profile, 'standard', $projectId, $workDate);
+        }
+
+        $type = PayRateType::query()->find($project->pay_rate_type_id);
+
+        if ($type === null) {
+            return $this->resolve($profile, 'standard', $projectId, $workDate);
+        }
+
+        return $this->resolve($profile, $type->key, $projectId, $workDate);
+    }
+
     /**
      * Resolve the best applicable pay rate for an employee on a given work date.
      *
@@ -89,6 +120,6 @@ class PayrollRateResolutionService
         ?string $projectId,
         Carbon $workDate,
     ): bool {
-        return $this->resolve($profile, 'standard', $projectId, $workDate) !== null;
+        return $this->resolveForProject($profile, $projectId, $workDate) !== null;
     }
 }

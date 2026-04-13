@@ -7,6 +7,7 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Database\Factories\ProjectFactory;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -44,6 +45,7 @@ class Project extends Model
         'budget',
         'is_prevailing_wage',
         'wage_determination_id',
+        'pay_rate_type_id',
     ];
 
     /**
@@ -59,6 +61,11 @@ class Project extends Model
             'budget' => 'decimal:2',
             'is_prevailing_wage' => 'boolean',
         ];
+    }
+
+    public function payRateType(): BelongsTo
+    {
+        return $this->belongsTo(PayRateType::class);
     }
 
     protected static function booted(): void

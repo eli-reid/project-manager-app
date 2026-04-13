@@ -161,9 +161,8 @@ class PayrollStatementBuilderService
             $hours = $hoursByEntry[$entryId] ?? ['regular' => 0.0, 'ot' => 0.0, 'dt' => 0.0, 'total' => 0.0];
             $workDate = Carbon::parse($entry->date);
 
-            $standardRate = $this->rateResolutionService->resolve(
+            $standardRate = $this->rateResolutionService->resolveForProject(
                 $profile,
-                'standard',
                 $entry->project_id ? (string) $entry->project_id : null,
                 $workDate,
             );
