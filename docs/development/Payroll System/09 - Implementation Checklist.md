@@ -147,9 +147,9 @@
 
 ## Phase 11 - Forecasting
 
-- [ ] Build forecasting service (trailing, project-based, headcount)
-- [ ] Build forecasting widgets
-- [ ] Build forecasting reports
+- [x] Build forecasting service (trailing, project-based, headcount)
+- [x] Build forecasting widgets
+- [x] Build forecasting reports
 
 ## Phase 12 - Integrations (Deferred)
 
@@ -166,5 +166,6 @@
 - [x] Phase 1C + 4A tests pass (13 tests)
 - [x] Payroll relationships tests pass
 - [x] Full payroll test group passes (27 tests, 61 assertions)
+- [x] Phase 11 Forecasting tests pass (15 tests, 22 assertions)
 - [ ] Run migration test in clean database state
 - [ ] Validate payroll settings visibility in admin settings editor

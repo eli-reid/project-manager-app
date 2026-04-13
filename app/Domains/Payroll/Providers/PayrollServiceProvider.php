@@ -17,6 +17,7 @@ use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as UserPayrollHistory
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Show as UserPayrollHistoryShow;
 use App\Domains\Payroll\Livewire\User\Reports\Audit\Index as PayrollAuditIndex;
 use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
+use App\Domains\Payroll\Livewire\User\Reports\Forecasting\Index as PayrollForecastingIndex;
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
 use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
 use App\Domains\Payroll\Livewire\User\Reports\UnionRemittance\Index as PayrollUnionRemittanceIndex;
@@ -30,6 +31,7 @@ use App\Domains\Payroll\Observers\PayRateObserver;
 use App\Domains\Payroll\Observers\PayrollAuditObserver;
 use App\Domains\Payroll\Permissions\PayrollPermissions;
 use App\Domains\Payroll\Policies\PayrollReportPolicy;
+use App\Domains\Payroll\Reports\PayrollForecastingReportDefinitions;
 use App\Domains\Payroll\Reports\PayrollReportDefinitions;
 use App\Domains\Payroll\Tasks\PayrollDigestValidationTask;
 use App\Domains\Reports\Services\ReportRegistry;
@@ -115,6 +117,7 @@ class PayrollServiceProvider extends ServiceProvider
         Livewire::component('app.domains.payroll.livewire.user.reports.labor-cost', PayrollLaborCostIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.union-remittance', PayrollUnionRemittanceIndex::class);
         Livewire::component('app.domains.payroll.livewire.user.reports.audit', PayrollAuditIndex::class);
+        Livewire::component('app.domains.payroll.livewire.user.reports.forecasting', PayrollForecastingIndex::class);
     }
 
     private function registerRoutes(): void
@@ -136,6 +139,7 @@ class PayrollServiceProvider extends ServiceProvider
     private function registerReports(ReportRegistry $reportRegistry): void
     {
         $reportRegistry->registerDefinitions(PayrollReportDefinitions::all());
+        $reportRegistry->registerDefinitions(PayrollForecastingReportDefinitions::all());
     }
 
     private function registerNotifications(NotificationRegistry $notificationRegistry): void

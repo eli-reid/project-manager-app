@@ -4,6 +4,7 @@ use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as PayrollHistoryInde
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Show as PayrollHistoryShow;
 use App\Domains\Payroll\Livewire\User\Reports\Audit\Index as PayrollAuditIndex;
 use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
+use App\Domains\Payroll\Livewire\User\Reports\Forecasting\Index as PayrollForecastingIndex;
 use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
 use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
 use App\Domains\Payroll\Livewire\User\Reports\UnionRemittance\Index as PayrollUnionRemittanceIndex;
@@ -27,6 +28,9 @@ Route::prefix('reports')
 
         Route::get('/payroll/audit', PayrollAuditIndex::class)
             ->name('payroll.audit.index');
+
+        Route::get('/payroll/forecasting', PayrollForecastingIndex::class)
+            ->name('payroll.forecasting.index');
     });
 
 Route::prefix('payroll')

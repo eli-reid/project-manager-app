@@ -92,6 +92,18 @@
     </flux:sidebar.item>
 @endcan
 
+@can('reports.payroll.view')
+    <flux:sidebar.item
+        icon="chart-bar"
+        :href="route('reports.payroll.forecasting.index')"
+        :current="request()->routeIs('reports.payroll.forecasting.*')"
+        wire:navigate
+        data-test="payroll-forecasting-sidebar-link"
+    >
+        {{ __('Payroll Forecasting') }}
+    </flux:sidebar.item>
+@endcan
+
 @can('viewAny', \App\Domains\Documents\Models\Document::class)
     <flux:sidebar.item
         icon="folder"

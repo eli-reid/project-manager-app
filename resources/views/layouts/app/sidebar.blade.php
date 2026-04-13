@@ -147,6 +147,12 @@
                                     {{ __('My Payroll') }}
                                 </flux:menu.item>
                             @endcan
+
+                            @can('reports.payroll.view')
+                                <flux:menu.item :href="route('reports.payroll.forecasting.index')" icon="chart-bar" wire:navigate data-test="payroll-forecasting-link-mobile">
+                                    {{ __('Payroll Forecasting') }}
+                                </flux:menu.item>
+                            @endcan
                         </flux:menu.radio.group>
 
                         <flux:menu.separator />
