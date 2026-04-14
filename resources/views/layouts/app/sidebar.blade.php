@@ -83,62 +83,10 @@
                             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                                 {{ __('Settings') }}
                             </flux:menu.item>
-                            @can('admin')
-                                <flux:menu.item :href="route('admin.settings.index')" icon="cog" data-test="admin-settings-link-mobile">
-                                    {{ __('Admin Settings') }}
-                                </flux:menu.item>
-                                <flux:menu.item :href="route('admin.users.index')" icon="users" wire:navigate>
-                                    {{ __('Admin Users') }}
-                                </flux:menu.item>
-                                <flux:menu.item :href="route('admin.roles.index')" icon="shield-check" wire:navigate>
-                                    {{ __('Admin Roles') }}
-                                </flux:menu.item>
-                                @can('deleteAny', \App\Domains\Documents\Models\Document::class)
-                                    <flux:menu.item :href="route('admin.documents.index')" icon="folder" wire:navigate>
-                                        {{ __('Admin Documents') }}
-                                    </flux:menu.item>
-                                @endcan
-                            @endcan
-
-                            @can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)
-                                <flux:menu.item :href="route('admin.scheduler.tasks.index')" icon="clock" wire:navigate data-test="admin-scheduler-link-mobile">
-                                    {{ __('Scheduler') }}
-                                </flux:menu.item>
-                            @endcan
-
-                            @can('queue.viewAny')
-                                <flux:menu.item :href="route('admin.queue.index')" icon="server-stack" wire:navigate data-test="admin-queue-link-mobile">
-                                    {{ __('Queue') }}
-                                </flux:menu.item>
-                            @endcan
-
-                            @can('viewAny', \App\Core\Announcement\Models\Announcement::class)
-                                <flux:menu.item :href="route('admin.announcements.index')" icon="megaphone" wire:navigate data-test="admin-announcements-link-mobile">
-                                    {{ __('Announcements') }}
-                                </flux:menu.item>
-                            @endcan
 
                             @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
                                 <flux:menu.item :href="route('timecards.index')" icon="clock" wire:navigate>
                                     {{ __('My Timecards') }}
-                                </flux:menu.item>
-                            @endcan
-
-                            @can('viewAll', \App\Domains\Timecards\Models\Timecard::class)
-                                <flux:menu.item :href="route('admin.timecards.index')" icon="clock" wire:navigate data-test="timecards-link-mobile">
-                                    {{ __('All Timecards') }}
-                                </flux:menu.item>
-                            @endcan
-
-                            @can('viewAny', \App\Domains\Invoices\Models\Invoice::class)
-                                <flux:menu.item :href="route('admin.invoices.index')" icon="document-text" wire:navigate data-test="admin-invoices-link-mobile">
-                                    {{ __('Invoices') }}
-                                </flux:menu.item>
-                            @endcan
-
-                            @can('reports.financial.view')
-                                <flux:menu.item :href="route('reports.financial.index')" icon="document-text" wire:navigate data-test="reports-link-mobile">
-                                    {{ __('Reports') }}
                                 </flux:menu.item>
                             @endcan
 

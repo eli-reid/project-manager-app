@@ -3,7 +3,9 @@
 it('includes a dailies link in the user sidebar partial', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-user-nav.blade.php');
 
-    expect($view)->toContain('@can(\'viewAny\', \\App\\Domains\\Dailies\\Models\\DailyReport::class)');
+    expect($view)->toContain('$canViewDailies = $user?->can(\'viewAny\', \\App\\Domains\\Dailies\\Models\\DailyReport::class) ?? false;');
+    expect($view)->not->toContain('$showWorkGroup');
+    expect($view)->not->toContain('$showOperationsGroup');
     expect($view)->toContain('<flux:sidebar.item');
     expect($view)->toContain('icon="clipboard-document-list"');
     expect($view)->toContain(':href="route(\'dailies.index\')"');
@@ -27,4 +29,8 @@ it('does not include a payroll forecasting link in the user sidebar partial', fu
     expect($view)->not->toContain(':href="route(\'reports.payroll.forecasting.index\')"');
     expect($view)->not->toContain('data-test="payroll-forecasting-sidebar-link"');
     expect($view)->not->toContain("{{ __('Payroll Forecasting') }}");
+    expect($view)->not->toContain('$canViewReports = $user?->can(\'reports.financial.view\') ?? false;');
+    expect($view)->not->toContain(':href="route(\'reports.financial.index\')"');
+    expect($view)->not->toContain('data-test="reports-sidebar-main-link"');
+    expect($view)->not->toContain("{{ __('Reports') }}");
 });

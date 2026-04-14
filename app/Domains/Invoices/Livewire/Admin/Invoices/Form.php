@@ -11,7 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.admin')]
+#[Layout('layouts.stock-invoices-admin')]
 #[Title('Invoice Form')]
 class Form extends Component
 {

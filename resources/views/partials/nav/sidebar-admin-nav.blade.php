@@ -3,95 +3,89 @@
 <flux:sidebar.header class="in-data-flux-sidebar-collapsed-desktop:hidden">
     <flux:separator  data-flux-separator="admin-header" text="{{ __('Administration') }}" class="text-lg" />
 </flux:sidebar.header>
-@can('admin')
-    <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-link">
-        {{ __('Settings') }}
-    </flux:sidebar.item>
-@endcan
-@can('admin')
-    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
-        {{ __('Access') }}
-    </flux:sidebar.item>
-@endcan
 
-@can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class)
-    <flux:sidebar.item icon="clock" :href="route('admin.scheduler.tasks.index')" :current="request()->routeIs('admin.scheduler.tasks.*')" wire:navigate data-test="admin-scheduler-sidebar-main-link">
-        {{ __('Scheduler') }}
-    </flux:sidebar.item>
-@endcan
+@php
+    $user = auth()->user();
+    $canManageAnnouncements = $user?->can('viewAny', \App\Core\Announcement\Models\Announcement::class) ?? false;
+    $canManageUsers = $user?->can('admin') ?? false;
+    $canViewAdminClients = $user?->can('viewAny', \App\Domains\Clients\Models\Client::class) ?? false;
+    $canViewAdminAddresses = $user?->can('viewAny', \App\Domains\Addresses\Models\Address::class) ?? false;
+    $showClientManagement = $canViewAdminClients || $canViewAdminAddresses;
+    $canViewAdminProjects = $user?->can('viewAny', \App\Domains\Projects\Models\Project::class) ?? false;
+    $canViewAdminStockOrders = $user?->can('viewAny', \App\Domains\Stock\Models\StockOrder::class) ?? false;
+    $canViewAdminStockTemplates = $user?->can('viewAny', \App\Domains\Stock\Models\StockOrderTemplate::class) ?? false;
+    $canViewAdminInvoices = $user?->can('viewAny', \App\Domains\Invoices\Models\Invoice::class) ?? false;
+    $showStockAndInvoices = $canViewAdminStockOrders || $canViewAdminStockTemplates || $canViewAdminInvoices;
+    $canViewAdminDailies = $user?->can('viewAll', \App\Domains\Dailies\Models\DailyReport::class) ?? false;
+    $canViewAdminTimecards = $user?->can('viewAll', \App\Domains\Timecards\Models\Timecard::class) ?? false;
+    $showTimeManagement = $canViewAdminDailies || $canViewAdminTimecards;
+    $canViewAdminDocuments = $user?->can('deleteAny', \App\Domains\Documents\Models\Document::class) ?? false;
+    $canManagePayroll = ($user?->can('payroll-rates.view') ?? false)
+        || ($user?->can('payroll-timecards.view') ?? false)
+        || ($user?->can('payroll-runs.preview') ?? false);
+    $canManageSettings = $user?->can('admin') ?? false;
+    $canViewScheduler = $user?->can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class) ?? false;
+    $canViewQueue = $user?->can('queue.viewAny') ?? false;
+@endphp
 
-@can('queue.viewAny')
-    <flux:sidebar.item icon="server-stack" :href="route('admin.queue.index')" :current="request()->routeIs('admin.queue.*')" wire:navigate data-test="admin-queue-sidebar-main-link">
-        {{ __('Queue') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('viewAny', \App\Core\Announcement\Models\Announcement::class)
-    <flux:sidebar.item icon="megaphone" :href="route('admin.announcements.index')" :current="request()->routeIs('admin.announcements.*')" wire:navigate data-test="admin-announcements-sidebar-main-link">
-        {{ __('Announcements') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('manage-email-accounts')
-    <flux:sidebar.item icon="envelope" :href="route('admin.cpanel.manage.dashboard')" :current="request()->routeIs('admin.cpanel.manage.*')" wire:navigate>
-        {{ __('Email Management') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('viewAny', \App\Domains\Projects\Models\Project::class)
+@if ($canViewAdminProjects)
     <flux:sidebar.item icon="drafting-compass" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
         {{ __('Projects') }}
     </flux:sidebar.item>
-@endcan
+@endif
 
-@can('viewAny', \App\Domains\Clients\Models\Client::class)
-    <flux:sidebar.item icon="building-2" :href="route('admin.clients.index')" :current="request()->routeIs('admin.clients.*')" wire:navigate>
-        {{ __('Clients') }}
-    </flux:sidebar.item>
-@endcan
-
-@if (auth()->user()?->hasPermission('tasks.view') || auth()->user()?->hasPermission('task-categories.view') || auth()->user()?->hasPermission('task-templates.view'))
-    <flux:sidebar.item icon="check-circle" :href="route('admin.tasks.index')" :current="request()->routeIs('admin.tasks.*') || request()->routeIs('admin.task-categories.*') || request()->routeIs('admin.task-templates.*')" wire:navigate>
-        {{ __('Tasks') }}
+@if ($showClientManagement)
+    <flux:sidebar.item
+        icon="building-2"
+        :href="$canViewAdminClients ? route('admin.clients.index') : route('admin.addresses.index')"
+        :current="request()->routeIs('admin.clients.*') || request()->routeIs('admin.addresses.*')"
+        wire:navigate
+        data-test="admin-client-management-sidebar-main-link"
+    >
+        {{ __('Client Management') }}
     </flux:sidebar.item>
 @endif
 
-@if (auth()->user()?->hasPermission('stock-orders.view-any') || auth()->user()?->hasPermission('stock-order-templates.view'))
-    <flux:sidebar.item icon="archive-box" :href="route('admin.stock-orders.index')" :current="request()->routeIs('admin.stock-orders.*') || request()->routeIs('admin.stock-order-templates.*')" wire:navigate>
-        {{ __('Stock Orders') }}
+@if ($showStockAndInvoices)
+    <flux:sidebar.item
+        icon="archive-box"
+        :href="$canViewAdminStockOrders
+            ? route('admin.stock-orders.index')
+            : ($canViewAdminStockTemplates
+                ? route('admin.stock-order-templates.index')
+                : route('admin.invoices.index'))"
+        :current="request()->routeIs('admin.stock-orders.*') || request()->routeIs('admin.stock-order-templates.*') || request()->routeIs('admin.invoices.*')"
+        wire:navigate
+        data-test="admin-stock-invoices-sidebar-main-link"
+    >
+        {{ __('Stock & Invoices') }}
     </flux:sidebar.item>
 @endif
 
-@can('deleteAny', \App\Domains\Documents\Models\Document::class)
+@if ($showTimeManagement)
+    <flux:sidebar.item
+        icon="clock"
+        :href="$canViewAdminTimecards ? route('admin.timecards.index') : route('admin.dailies.index')"
+        :current="request()->routeIs('admin.timecards.*') || request()->routeIs('admin.dailies.*')"
+        wire:navigate
+        data-test="admin-time-management-sidebar-main-link"
+    >
+        {{ __('Time Management') }}
+    </flux:sidebar.item>
+@endif
+
+@if ($canViewAdminDocuments)
     <flux:sidebar.item icon="folder" :href="route('admin.documents.index')" :current="request()->routeIs('admin.documents.*')" wire:navigate>
         {{ __('Documents') }}
     </flux:sidebar.item>
-@endcan
+@endif
 
-@can('viewAll', \App\Domains\Dailies\Models\DailyReport::class)
-    <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.dailies.index')" :current="request()->routeIs('admin.dailies.*')" wire:navigate data-test="admin-dailies-sidebar-main-link">
-        {{ __('Dailies') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('viewAll', \App\Domains\Timecards\Models\Timecard::class)
-    <flux:sidebar.item icon="clock" :href="route('admin.timecards.index')" :current="request()->routeIs('admin.timecards.*')" wire:navigate data-test="admin-timecards-sidebar-main-link">
-        {{ __('Timecards') }}
-    </flux:sidebar.item>
-@endcan
-
-@can('viewAny', \App\Domains\Invoices\Models\Invoice::class)
-    <flux:sidebar.item icon="document-text" :href="route('admin.invoices.index')" :current="request()->routeIs('admin.invoices.*')" wire:navigate data-test="admin-invoices-sidebar-main-link">
-        {{ __('Invoices') }}
-    </flux:sidebar.item>
-@endcan
-
-@if (auth()->user()?->can('payroll-rates.view') || auth()->user()?->can('payroll-timecards.view') || auth()->user()?->can('payroll-runs.preview'))
+@if ($canManagePayroll)
     <flux:sidebar.item
         icon="banknotes"
-        :href="auth()->user()?->can('payroll-rates.view')
+        :href="$user?->can('payroll-rates.view')
             ? route('admin.payroll.rates.index')
-            : (auth()->user()?->can('payroll-timecards.view')
+            : ($user?->can('payroll-timecards.view')
                 ? route('admin.payroll.timecards.review')
                 : route('admin.payroll.runs.index'))"
         :current="request()->routeIs('admin.payroll.*')"
@@ -101,4 +95,37 @@
         {{ __('Payroll') }}
     </flux:sidebar.item>
 @endif
+
+@if ($canManageUsers)
+    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
+        {{ __('User Management') }}
+    </flux:sidebar.item>
+@endif
+
+@if ($canManageAnnouncements)
+    <flux:sidebar.item icon="megaphone" :href="route('admin.announcements.index')" :current="request()->routeIs('admin.announcements.*')" wire:navigate data-test="admin-announcements-sidebar-main-link">
+        {{ __('Announcements') }}
+    </flux:sidebar.item>
+@endif
+
+@if ($canManageSettings)
+    <flux:sidebar.item icon="cog" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate data-test="admin-settings-link">
+        {{ __('Settings') }}
+    </flux:sidebar.item>
+@endif
+
+@if ($canViewScheduler)
+    <flux:sidebar.item icon="clock" :href="route('admin.scheduler.tasks.index')" :current="request()->routeIs('admin.scheduler.tasks.*')" wire:navigate data-test="admin-scheduler-sidebar-main-link">
+        {{ __('Scheduler') }}
+    </flux:sidebar.item>
+@endif
+
+@if ($canViewQueue)
+    <flux:sidebar.item icon="server-stack" :href="route('admin.queue.index')" :current="request()->routeIs('admin.queue.*')" wire:navigate data-test="admin-queue-sidebar-main-link">
+        {{ __('Queue') }}
+    </flux:sidebar.item>
+@endif
+
+     
+
 

@@ -39,7 +39,7 @@ it('allows users with dailies.view-all to access admin dailies index', function 
     actingAs($reviewer);
 
     Livewire::test(AdminIndex::class)
-        ->assertSee('Dailies');
+        ->assertSee('Daily Reports');
 });
 
 it('allows users with dailies permissions to access user dailies routes', function (): void {

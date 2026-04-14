@@ -9,7 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.admin')]
+#[Layout('core-user::layouts.access-admin')]
 #[Title('Domain Forwarders')]
 class DomainForwarders extends Component
 {
