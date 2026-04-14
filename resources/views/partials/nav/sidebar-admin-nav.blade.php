@@ -23,6 +23,8 @@
     $canManagePayroll = ($user?->can('payroll-rates.view') ?? false)
         || ($user?->can('payroll-timecards.view') ?? false)
         || ($user?->can('payroll-runs.preview') ?? false);
+    $canViewReports = ($user?->can('reports.financial.view') ?? false)
+        || ($user?->can('reports.operational.view') ?? false);
     $canManageSettings = $user?->can('admin') ?? false;
     $canViewScheduler = $user?->can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class) ?? false;
     $canViewQueue = $user?->can('queue.viewAny') ?? false;
@@ -93,6 +95,18 @@
         data-test="admin-payroll-sidebar-main-link"
     >
         {{ __('Payroll') }}
+    </flux:sidebar.item>
+@endif
+
+@if ($canViewReports)
+    <flux:sidebar.item
+        icon="chart-bar"
+        :href="$user?->can('reports.financial.view') ? route('reports.financial.index') : route('reports.operational.index')"
+        :current="request()->routeIs('reports.*')"
+        wire:navigate
+        data-test="admin-reports-sidebar-main-link"
+    >
+        {{ __('Reports') }}
     </flux:sidebar.item>
 @endif
 

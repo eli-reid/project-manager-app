@@ -29,4 +29,9 @@ it('includes a payroll link in the admin sidebar partial', function (): void {
     expect($view)->toContain(':current="request()->routeIs(\'admin.payroll.*\')"');
     expect($view)->toContain('data-test="admin-payroll-sidebar-main-link"');
     expect($view)->toContain('{{ __(\'Payroll\') }}');
+    expect($view)->toContain('$canViewReports = ($user?->can(\'reports.financial.view\') ?? false)');
+    expect($view)->toContain(':href="$user?->can(\'reports.financial.view\') ? route(\'reports.financial.index\') : route(\'reports.operational.index\')"');
+    expect($view)->toContain(':current="request()->routeIs(\'reports.*\')"');
+    expect($view)->toContain('data-test="admin-reports-sidebar-main-link"');
+    expect($view)->toContain('{{ __(\'Reports\') }}');
 });
