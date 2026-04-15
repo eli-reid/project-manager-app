@@ -43,6 +43,20 @@ it('allows users with invoice view permission to access the index', function ():
         ->assertSee('Test Vendor Inc');
 });
 
+it('renders invoice index actions with row navigation exclusion markers', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view']);
+    Invoice::factory()->for(Project::factory())->create([
+        'vendor_name' => 'Navigation Marker Vendor',
+        'created_by' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.invoices.index'))
+        ->assertSuccessful()
+        ->assertSee('data-prevent-row-nav', false)
+        ->assertSee('window.Livewire?.navigate', false);
+});
+
 // ---------------------------------------------------------------------------
 // Index filtering
 // ---------------------------------------------------------------------------

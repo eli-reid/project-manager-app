@@ -7,12 +7,12 @@ use Illuminate\Support\Facades\Log;
 class ReportRegistry
 {
     /**
-     * @var array<string, array{key:string,section:string,title:string,description:string,route:string,badge_label:string,badge_color:string,sort:int}>
+    * @var array<string, array{key:string,section:string,title:string,description:string,route:string,badge_label:string,badge_color:string,sort:int,ability:string}>
      */
     private array $definitions = [];
 
     /**
-     * @param  array<int, array{key:string,section?:string,title?:string,description?:string,route?:string,badge_label?:string,badge_color?:string,sort?:int}>  $definitions
+    * @param  array<int, array{key:string,section?:string,title?:string,description?:string,route?:string,badge_label?:string,badge_color?:string,sort?:int,ability?:string}>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {
@@ -42,12 +42,13 @@ class ReportRegistry
                 'badge_label' => (string) ($definition['badge_label'] ?? 'Available'),
                 'badge_color' => (string) ($definition['badge_color'] ?? 'green'),
                 'sort' => (int) ($definition['sort'] ?? 100),
+                'ability' => (string) ($definition['ability'] ?? ''),
             ];
         }
     }
 
     /**
-     * @return array<int, array{key:string,section:string,title:string,description:string,route:string,badge_label:string,badge_color:string,sort:int}>
+     * @return array<int, array{key:string,section:string,title:string,description:string,route:string,badge_label:string,badge_color:string,sort:int,ability:string}>
      */
     public function forSection(string $section): array
     {

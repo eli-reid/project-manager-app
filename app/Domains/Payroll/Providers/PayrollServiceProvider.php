@@ -11,9 +11,10 @@ use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Form as AdminPayRateForm;
 use App\Domains\Payroll\Livewire\Admin\PayRates\Index as AdminPayRateIndex;
 use App\Domains\Payroll\Livewire\Admin\PayRateTypes\Index as AdminPayRateTypeIndex;
-use App\Domains\Payroll\Livewire\Admin\PayRuns\Form as AdminPayRunForm;
-use App\Domains\Payroll\Livewire\Admin\PayRuns\Index as AdminPayRunIndex;
-use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as AdminPayRunShow;
+use App\Domains\Payroll\Livewire\Admin\PayRuns\Form as PayRunForm;
+use App\Domains\Payroll\Livewire\Admin\PayRuns\Index as PayRunIndex;
+use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as PayRunShow;
+use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyEmployeeHours;
 use App\Domains\Payroll\Livewire\Admin\Timecards\Review as AdminTimecardReview;
 use App\Domains\Payroll\Livewire\User\Forecasting\WeeklyBurnRateWidget;
 use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as UserPayrollHistoryIndex;
@@ -115,10 +116,11 @@ class PayrollServiceProvider extends ServiceProvider
         Livewire::component('app.domains.payroll.livewire.admin.pay-rate-types', AdminPayRateTypeIndex::class);
         Livewire::component('app.domains.payroll.livewire.admin.pay-rates', AdminPayRateIndex::class);
         Livewire::component('app.domains.payroll.livewire.admin.pay-rates.form', AdminPayRateForm::class);
+        Livewire::component('app.domains.payroll.livewire.admin.reports.weekly-employee-hours', WeeklyEmployeeHours::class);
         Livewire::component('app.domains.payroll.livewire.admin.timecards.review', AdminTimecardReview::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-runs', AdminPayRunIndex::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.form', AdminPayRunForm::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.show', AdminPayRunShow::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-runs', PayRunIndex::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.form', PayRunForm::class);
+        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.show', PayRunShow::class);
 
         Livewire::component('app.domains.payroll.livewire.user.forecasting.weekly-burn-rate-widget', WeeklyBurnRateWidget::class);
         Livewire::component('app.domains.payroll.livewire.user.payroll-history', UserPayrollHistoryIndex::class);

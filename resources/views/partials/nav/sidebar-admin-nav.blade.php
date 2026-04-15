@@ -101,8 +101,8 @@
 @if ($canViewReports)
     <flux:sidebar.item
         icon="chart-bar"
-        :href="$user?->can('reports.financial.view') ? route('reports.financial.index') : route('reports.operational.index')"
-        :current="request()->routeIs('reports.*')"
+        :href="route('admin.reports.index')"
+        :current="request()->routeIs('admin.reports.*') || request()->routeIs('reports.*')"
         wire:navigate
         data-test="admin-reports-sidebar-main-link"
     >

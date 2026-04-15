@@ -25,8 +25,7 @@
                     @forelse ($projects as $project)
                         <tr
                             wire:key="project-{{ $project->id }}"
-                            wire:navigate
-                            href="{{ route('admin.projects.show', $project) }}"
+                            @click="if (! $event.target.closest('[data-prevent-row-nav]')) { window.Livewire?.navigate('{{ route('admin.projects.show', $project) }}') ?? window.location.assign('{{ route('admin.projects.show', $project) }}'); }"
                             class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
                         >
                             <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</td>
@@ -43,8 +42,8 @@
                                     TBD
                                 @endif
                             </td>
-                            <td class="px-4 py-3 align-top" @click.stop>
-                                <x-ui.row-actions-dropdown label="Project actions" width="w-36" :menu-height="160" @click.stop>
+                            <td class="px-4 py-3 align-top" data-prevent-row-nav @click.stop>
+                                <x-ui.row-actions-dropdown label="Project actions" width="w-36" :menu-height="160" data-prevent-row-nav @click.stop>
                                     @can('view', $project)
                                         <a href="{{ route('admin.projects.show', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
                                     @endcan

@@ -60,6 +60,17 @@ class PayrollReportDefinitions
                 'badge_color' => 'red',
                 'sort' => 100,
             ],
+            [
+                'key' => 'operational.payroll-weekly-employee-hours',
+                'section' => 'operational',
+                'title' => 'Weekly Employee Hours',
+                'description' => 'Review and export weekly employee totals for payroll approval.',
+                'route' => 'admin.payroll.reports.weekly-employee-hours',
+                'badge_label' => 'Payroll',
+                'badge_color' => 'sky',
+                'sort' => 25,
+                'ability' => 'payroll-runs.preview',
+            ],
         ];
     }
 }

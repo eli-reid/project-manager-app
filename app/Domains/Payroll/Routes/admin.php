@@ -6,6 +6,7 @@ use App\Domains\Payroll\Livewire\Admin\PayRateTypes\Index as PayRateTypeIndex;
 use App\Domains\Payroll\Livewire\Admin\PayRuns\Form as PayRunForm;
 use App\Domains\Payroll\Livewire\Admin\PayRuns\Index as PayRunIndex;
 use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as PayRunShow;
+use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyEmployeeHours;
 use App\Domains\Payroll\Livewire\Admin\Timecards\Review as TimecardReview;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,14 @@ Route::prefix('payroll')
         Route::get('/timecards/review', TimecardReview::class)
             ->middleware('can:payroll-timecards.view')
             ->name('timecards.review');
+
+        Route::redirect('/reports', '/admin/reports')
+            ->middleware('can:payroll-runs.preview')
+            ->name('reports.index');
+
+        Route::get('/reports/weekly-employee-hours', WeeklyEmployeeHours::class)
+            ->middleware('can:payroll-runs.preview')
+            ->name('reports.weekly-employee-hours');
 
         Route::get('/runs', PayRunIndex::class)
             ->middleware('can:payroll-runs.preview')

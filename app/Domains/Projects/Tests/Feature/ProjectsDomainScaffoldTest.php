@@ -142,6 +142,23 @@ it('allows users with domain view permissions to access scaffold routes', functi
         ->assertSee('Addresses');
 });
 
+it('renders project index actions with row navigation exclusion markers', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Navigation Marker Project',
+        'project_number' => 'PRJ-NAV-1',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.index'))
+        ->assertSuccessful()
+        ->assertSee('data-prevent-row-nav', false)
+        ->assertSee('window.Livewire?.navigate', false);
+});
+
 it('shows inline client and address widgets on project create form', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
