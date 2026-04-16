@@ -39,4 +39,6 @@ interface PayrollTimecardReadGateway
         ?string $projectId,
         bool $groupByProject,
     ): Collection;
+
+    public function weeklyEmployeeHoursForWeek(Carbon $weekStart): Collection;
 }

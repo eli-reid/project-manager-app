@@ -2,6 +2,7 @@
 
 namespace App\Domains\Timecards\Services;
 
+use App\Core\Settings\Services\WeekSettingsService;
 use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
@@ -10,6 +11,8 @@ use Illuminate\Support\Collection;
 
 class EloquentPayrollTimecardReadGateway implements PayrollTimecardReadGateway
 {
+    public function __construct(private readonly WeekSettingsService $weekSettingsService) {}
+
     public function approvedEntriesForDateRange(
         Carbon $startDate,
         Carbon $endDate,
@@ -110,6 +113,34 @@ class EloquentPayrollTimecardReadGateway implements PayrollTimecardReadGateway
             ->get()
             ->mapWithKeys(fn ($row): array => [
                 (string) $row->work_date => (float) $row->total_hours,
+            ]);
+    }
+
+    public function weeklyEmployeeHoursForWeek(Carbon $weekStart): Collection
+    {
+        $normalizedWeekStart = $this->weekSettingsService
+            ->normalizeWeekStart($weekStart)
+            ->startOfDay();
+        $weekEnd = $this->weekSettingsService
+            ->weekEndFromStart($normalizedWeekStart)
+            ->toDateString();
+
+        return TimecardEntry::query()
+            ->join('timecards', 'timecards.id', '=', 'timecard_entries.timecard_id')
+            ->join('users', 'users.id', '=', 'timecard_entries.user_id')
+            ->whereDate('timecard_entries.date', '>=', $normalizedWeekStart->toDateString())
+            ->whereDate('timecard_entries.date', '<=', $weekEnd)
+            ->whereIn('timecards.status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED])
+            ->groupBy('users.id', 'users.first_name', 'users.last_name')
+            ->orderBy('users.first_name')
+            ->orderBy('users.last_name')
+            ->selectRaw('users.id as user_id, users.first_name, users.last_name, ROUND(SUM(timecard_entries.hours), 2) as hours')
+            ->get()
+            ->map(fn ($row): array => [
+                'user_id' => (string) $row->user_id,
+                'first_name' => (string) $row->first_name,
+                'last_name' => (string) $row->last_name,
+                'hours' => (float) $row->hours,
             ]);
     }
 }

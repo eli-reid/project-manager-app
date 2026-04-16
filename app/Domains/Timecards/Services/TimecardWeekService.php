@@ -2,6 +2,7 @@
 
 namespace App\Domains\Timecards\Services;
 
+use App\Core\Settings\Services\WeekSettingsService;
 use App\Domains\Timecards\Models\Timecard;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -9,9 +10,11 @@ use Illuminate\Support\Collection;
 
 class TimecardWeekService
 {
+    public function __construct(private readonly WeekSettingsService $weekSettingsService) {}
+
     public function normalizeWeekStart(CarbonInterface|string $date): Carbon
     {
-        return Carbon::parse($date)->startOfWeek(Carbon::SUNDAY);
+        return $this->weekSettingsService->normalizeWeekStart($date);
     }
 
     public function weekEndingFor(CarbonInterface|string $date): Carbon

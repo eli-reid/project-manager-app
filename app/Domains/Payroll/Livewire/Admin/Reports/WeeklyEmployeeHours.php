@@ -2,12 +2,12 @@
 
 namespace App\Domains\Payroll\Livewire\Admin\Reports;
 
-use App\Core\Identity\Models\User;
-use App\Domains\Timecards\Models\Timecard;
-use App\Domains\Timecards\Models\TimecardEntry;
+use App\Core\Settings\Services\WeekSettingsService;
+use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -24,48 +24,30 @@ class WeeklyEmployeeHours extends Component
 
     public function mount(): void
     {
-        $this->authorize('viewAny', Timecard::class);
-        
-        if (!$this->weekStart) {
-            $this->weekStart = today()->startOfWeek()->toDateString();
+        $this->authorize('payroll-runs.preview');
+
+        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
+
+        if (! $this->weekStart) {
+            $this->weekStart = today()->startOfWeek($weekStartsAt)->toDateString();
         }
+
+        $this->weekStart = CarbonImmutable::parse($this->weekStart)
+            ->startOfWeek($weekStartsAt)
+            ->toDateString();
     }
 
     public function getWeekEndProperty(): CarbonImmutable
     {
-        return CarbonImmutable::parse($this->weekStart)->endOfWeek();
+        return app(WeekSettingsService::class)->weekEndFromStart($this->weekStart);
     }
 
     public function getEmployeeHoursProperty(): Collection
     {
-        $weekStart = CarbonImmutable::parse($this->weekStart);
-        $weekEnd = $this->getWeekEndProperty();
+        $weekStart = Carbon::parse($this->weekStart)->startOfDay();
 
-        return User::query()
-            ->whereHas('timecards', function ($query) use ($weekStart, $weekEnd) {
-                $query->whereBetween('week_starting', [$weekStart, $weekStart])
-                    ->whereIn('status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED]);
-            })
-            ->with([
-                'timecards' => function ($query) use ($weekStart) {
-                    $query->where('week_starting', $weekStart)
-                        ->whereIn('status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED])
-                        ->with('entries');
-                },
-            ])
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get()
-            ->map(function (User $user) {
-                $totalHours = $user->timecards
-                    ->flatMap(fn ($tc) => $tc->entries)
-                    ->sum('hours');
-
-                return [
-                    'user' => $user,
-                    'hours' => round($totalHours, 2),
-                ];
-            });
+        return app(PayrollTimecardReadGateway::class)
+            ->weeklyEmployeeHoursForWeek($weekStart);
     }
 
     public function getTotalHoursProperty(): float
@@ -75,12 +57,22 @@ class WeeklyEmployeeHours extends Component
 
     public function previousWeek(): void
     {
-        $this->weekStart = CarbonImmutable::parse($this->weekStart)->subWeek()->startOfWeek()->toDateString();
+        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
+
+        $this->weekStart = CarbonImmutable::parse($this->weekStart)
+            ->subWeek()
+            ->startOfWeek($weekStartsAt)
+            ->toDateString();
     }
 
     public function nextWeek(): void
     {
-        $this->weekStart = CarbonImmutable::parse($this->weekStart)->addWeek()->startOfWeek()->toDateString();
+        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
+
+        $this->weekStart = CarbonImmutable::parse($this->weekStart)
+            ->addWeek()
+            ->startOfWeek($weekStartsAt)
+            ->toDateString();
     }
 
     public function render()

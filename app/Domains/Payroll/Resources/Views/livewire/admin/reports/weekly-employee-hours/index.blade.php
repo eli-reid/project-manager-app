@@ -44,7 +44,7 @@
             <strong>Week of {{ \Carbon\CarbonImmutable::parse($weekStart)->format('M j, Y') }} to {{ $this->weekEnd->format('M j, Y') }}</strong>
         </p>
         <p class="text-sm text-blue-800 dark:text-blue-300">
-            Showing approved and submitted timecards only. Total employees: <strong>{{ $employeeHours->count() }}</strong>
+            Showing approved and submitted timecards only. Total employees: <strong>{{ $this->employeeHours->count() }}</strong>
         </p>
     </div>
 
@@ -65,13 +65,13 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                    @forelse ($employeeHours as $item)
+                    @forelse ($this->employeeHours as $item)
                         <tr>
                             <td class="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                {{ $item['user']->first_name }} {{ $item['user']->last_name }}
+                                {{ $item['first_name'] }} {{ $item['last_name'] }}
                             </td>
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ $item['user']->id }}
+                                {{ $item['user_id'] }}
                             </td>
                             <td class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                 {{ number_format($item['hours'], 2) }}
@@ -85,14 +85,14 @@
                         </tr>
                     @endforelse
                 </tbody>
-                @if ($employeeHours->count() > 0)
+                @if ($this->employeeHours->count() > 0)
                     <tfoot class="border-t-2 border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50">
                         <tr>
                             <td colspan="2" class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                 Total Hours:
                             </td>
                             <td class="px-4 py-3 text-right text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                                {{ number_format($totalHours, 2) }}
+                                {{ number_format($this->totalHours, 2) }}
                             </td>
                         </tr>
                     </tfoot>
