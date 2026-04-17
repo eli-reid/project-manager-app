@@ -90,7 +90,14 @@ class Dashboard extends Component
         $history = $this->activeTab === 'history' ? $service->getHistory($this->historyFilter) : null;
         $batches = $this->activeTab === 'batches' ? $service->getBatches() : null;
 
-        return view('queue-manager::livewire.admin.queue.dashboard', [
+        $viewName = collect([
+            'queue-manager::livewire.admin.queue.dashboard',
+            'queue-manager::Livewire.Admin.queue.dashboard',
+            'livewire.admin.queue.dashboard',
+        ])->first(static fn (string $candidate): bool => view()->exists($candidate))
+            ?? 'queue-manager::Livewire.Admin.queue.dashboard';
+
+        return view($viewName, [
             'stats' => $service->getStats(),
             'jobs' => $jobs,
             'failedJobs' => $failedJobs,
