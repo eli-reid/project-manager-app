@@ -372,10 +372,12 @@ class DomainDemoSeeder extends Seeder
         $employees = $users->where('is_admin', false)->take(12)->values();
 
         $profiles = $employees->map(function (User $employee) use ($payRateTypes, $projects, $deductions): PayrollEmployeeProfile {
+            $employeeNumber = 'EMP-'.strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', (string) $employee->id), -6));
+
             $profile = PayrollEmployeeProfile::query()->updateOrCreate(
                 ['user_id' => $employee->id],
                 PayrollEmployeeProfileFactory::new()->for($employee)->make([
-                    'employee_number' => 'EMP-'.str_pad((string) random_int(1000, 9999), 4, '0', STR_PAD_LEFT),
+                    'employee_number' => $employeeNumber,
                 ])->toArray()
             );
 

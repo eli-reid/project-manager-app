@@ -13,6 +13,8 @@ use App\Domains\Timecards\Models\Timecard;
 use Database\Seeders\DatabaseSeeder;
 
 it('seeds demo domain data for end-to-end app walkthroughs and reporting', function (): void {
+    config()->set('database.seed_demo_data', true);
+
     $this->seed(DatabaseSeeder::class);
 
     expect(Project::query()->count())->toBeGreaterThanOrEqual(10);

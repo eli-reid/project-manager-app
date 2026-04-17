@@ -14,6 +14,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(CoreSeeder::class);
-        $this->call(DomainDemoSeeder::class);
+
+        if ((bool) config('database.seed_demo_data', false)) {
+            $this->call(DomainDemoSeeder::class);
+        }
     }
 }

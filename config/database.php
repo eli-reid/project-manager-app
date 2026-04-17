@@ -21,6 +21,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Data Seeding Controls
+    |--------------------------------------------------------------------------
+    |
+    | Demo data seeding is disabled by default so production and clean
+    | environments only receive core required data unless explicitly enabled.
+    |
+    */
+
+    'seed_demo_data' => env('SEED_DEMO_DATA', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Database Connections
     |--------------------------------------------------------------------------
     |
