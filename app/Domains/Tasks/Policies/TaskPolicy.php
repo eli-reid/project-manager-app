@@ -27,6 +27,31 @@ class TaskPolicy
         return $user->hasPermission('tasks.edit');
     }
 
+    public function updateStatus(User $user, Task $task): bool
+    {
+        return $user->hasPermission('tasks.edit') || $user->hasPermission('tasks.edit-status');
+    }
+
+    public function updatePriority(User $user, Task $task): bool
+    {
+        return $user->hasPermission('tasks.edit') || $user->hasPermission('tasks.edit-priority');
+    }
+
+    public function updateAssignee(User $user, Task $task): bool
+    {
+        return $user->hasPermission('tasks.edit') || $user->hasPermission('tasks.edit-assignee');
+    }
+
+    public function updateProgress(User $user, Task $task): bool
+    {
+        return $user->hasPermission('tasks.edit') || $user->hasPermission('tasks.edit-progress');
+    }
+
+    public function updateNotes(User $user, Task $task): bool
+    {
+        return $user->hasPermission('tasks.edit') || $user->hasPermission('tasks.edit-notes');
+    }
+
     public function delete(User $user, Task $task): bool
     {
         return $user->hasPermission('tasks.delete');

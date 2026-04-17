@@ -240,6 +240,7 @@
                     <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</th>
                     <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Type</th>
                     <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
+                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Priority</th>
                     <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Assigned</th>
                     <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
                 </tr>
@@ -259,7 +260,32 @@
                         <tr wire:key="uncategorized-task-row-{{ $task->id }}">
                             <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200">{{ $task->title }}</td>
                             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">Task</td>
-                            <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ str($task->status)->replace('_', ' ')->headline() }}</td>
+                            <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">
+                                @if ($editingTaskStatus === $task->id && auth()->user()?->can('updateStatus', $task))
+                                    <select wire:model.live="editingTaskStatusValue" wire:change="saveTaskStatus" class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                        @foreach (Task::statuses() as $status)
+                                            <option value="{{ $status }}">{{ str($status)->replace('_', ' ')->headline() }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <span class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded px-1" @if(auth()->user()?->can('updateStatus', $task)) wire:click="startEditTaskStatus('{{ $task->id }}')" @endif>
+                                        {{ str($task->status)->replace('_', ' ')->headline() }}
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">
+                                @if ($editingTaskPriority === $task->id && auth()->user()?->can('updatePriority', $task))
+                                    <select wire:model.live="editingTaskPriorityValue" wire:change="saveTaskPriority" class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                                        @foreach (Task::priorities() as $priority)
+                                            <option value="{{ $priority }}">{{ ucfirst($priority) }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <span class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded px-1" @if(auth()->user()?->can('updatePriority', $task)) wire:click="startEditTaskPriority('{{ $task->id }}')" @endif>
+                                        {{ ucfirst($task->priority) }}
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ $task->assignedTo ? $task->assignedTo->first_name.' '.$task->assignedTo->last_name : '—' }}</td>
                             <td class="px-3 py-2 align-top text-right">
                                 <div class="relative inline-block text-left" x-data="buildMenuState(120)" @click.away="closeMenu()">
@@ -287,7 +313,7 @@
                     @endforeach
                 @else
                     <tr>
-                        <td colspan="5" class="px-3 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No tasks found for this project.</td>
+                        <td colspan="6" class="px-3 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No tasks found for this project.</td>
                     </tr>
                 @endif
             </tbody>

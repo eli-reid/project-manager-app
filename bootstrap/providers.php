@@ -15,9 +15,8 @@ use App\Core\Settings\Providers\SettingServiceProvider;
 use App\Core\WeatherApi\Providers\WeatherApiServiceProvider;
 use App\Domains\Providers\DomainServiceProvider;
 use App\Providers\AppServiceProvider;
-use App\Providers\TelescopeServiceProvider;
 
-return [
+$providers = [
     AnnouncementServiceProvider::class,
     AuditServiceProvider::class,
     PermissionServiceProvider::class,
@@ -33,5 +32,10 @@ return [
     WeatherApiServiceProvider::class,
     DomainServiceProvider::class,
     AppServiceProvider::class,
-    TelescopeServiceProvider::class,
 ];
+
+if (class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+    $providers[] = \App\Providers\TelescopeServiceProvider::class;
+}
+
+return $providers;

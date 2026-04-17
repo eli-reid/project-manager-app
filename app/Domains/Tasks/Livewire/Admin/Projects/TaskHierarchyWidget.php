@@ -44,6 +44,14 @@ class TaskHierarchyWidget extends Component
 
     public ?string $inlineTaskAssignedTo = null;
 
+    public ?string $editingTaskStatus = null;
+
+    public ?string $editingTaskStatusValue = null;
+
+    public ?string $editingTaskPriority = null;
+
+    public ?string $editingTaskPriorityValue = null;
+
     public function mount(Project $project): void
     {
         $this->authorize('view', $project);
@@ -421,5 +429,73 @@ class TaskHierarchyWidget extends Component
         }
 
         return $candidate;
+    }
+
+    public function startEditTaskStatus(string $taskId): void
+    {
+        $task = Task::query()->findOrFail($taskId);
+        $this->authorize('updateStatus', $task);
+
+        $this->editingTaskStatus = $taskId;
+        $this->editingTaskStatusValue = $task->status;
+    }
+
+    public function cancelEditTaskStatus(): void
+    {
+        $this->editingTaskStatus = null;
+        $this->editingTaskStatusValue = null;
+    }
+
+    public function saveTaskStatus(): void
+    {
+        if ($this->editingTaskStatus === null || $this->editingTaskStatusValue === null) {
+            return;
+        }
+
+        $task = Task::query()->findOrFail($this->editingTaskStatus);
+        $this->authorize('updateStatus', $task);
+
+        $validated = $this->validate([
+            'editingTaskStatusValue' => ['required', Rule::in(Task::statuses())],
+        ]);
+
+        $task->update(['status' => $validated['editingTaskStatusValue']]);
+        $this->cancelEditTaskStatus();
+
+        session()->flash('success', 'Task status updated successfully.');
+    }
+
+    public function startEditTaskPriority(string $taskId): void
+    {
+        $task = Task::query()->findOrFail($taskId);
+        $this->authorize('updatePriority', $task);
+
+        $this->editingTaskPriority = $taskId;
+        $this->editingTaskPriorityValue = $task->priority;
+    }
+
+    public function cancelEditTaskPriority(): void
+    {
+        $this->editingTaskPriority = null;
+        $this->editingTaskPriorityValue = null;
+    }
+
+    public function saveTaskPriority(): void
+    {
+        if ($this->editingTaskPriority === null || $this->editingTaskPriorityValue === null) {
+            return;
+        }
+
+        $task = Task::query()->findOrFail($this->editingTaskPriority);
+        $this->authorize('updatePriority', $task);
+
+        $validated = $this->validate([
+            'editingTaskPriorityValue' => ['required', Rule::in(Task::priorities())],
+        ]);
+
+        $task->update(['priority' => $validated['editingTaskPriorityValue']]);
+        $this->cancelEditTaskPriority();
+
+        session()->flash('success', 'Task priority updated successfully.');
     }
 }

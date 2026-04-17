@@ -67,7 +67,7 @@ return [
         'display_name' => 'Week Start Day',
         'description' => 'Day used as the start of the business week across reports and scheduling.',
         'type' => 'select',
-        'group' => 'app',
+        'group' => 'system',
         'options' => [
             'sunday' => 'Sunday',
             'monday' => 'Monday',

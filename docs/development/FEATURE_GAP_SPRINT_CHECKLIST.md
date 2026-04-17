@@ -51,16 +51,14 @@ Legend:
 - [ ] Change order attachments
 - [ ] Change order client approval tracking
 - [ ] Change order labor/material breakdown
-- [~] User-facing tasks list-first experience
-- [~] User task list route + filters + nav
 - [ ] Permission-controlled task editing (status, priority, assignees, progress, notes)
-- [ ] Task create/edit/structure actions aligned to explicit permissions
-- [ ] Task notification events (assignment, status, reminder, comments, updates)
+- [~] Task create/edit/structure actions aligned to explicit permissions
 - [ ] Gate: operations permission workflow tests pass
 
 ## Sprint 4: Reporting + Sharing + Vendors
 - [ ] Notification preferences full matrix UI (in-app/email/SMS/push)
 - [ ] Operational reports: timecard and project activity
+- [ ] Future: Task notification events (assignment, status, reminder, comments, updates)
 - [ ] Saved report templates
 - [ ] Scheduled reports (weekly/monthly/manual)
 - [ ] Guided custom builder phase 1
@@ -93,16 +91,16 @@ Legend:
 - [x] Notifications preference baseline and channel controls
 - [x] Financial reports foundation (project report + CSV export)
 - [~] Payroll backend scaffold complete (models/services/policy/tests)
-- [~] User-facing tasks list-first baseline
+- [~] Task operations baseline via project tab
 
 ## Next 10 Recommended Tasks
-1. [ ] Add permission-gated in-list task editing for status and priority
-2. [ ] Add permission-gated assignee/progress/notes task edits
-3. [ ] Implement task notification dispatch for key events
-4. [ ] Implement monthly financial performance report
-5. [ ] Implement labor cost analysis report
-6. [ ] Implement material cost analysis report
-7. [ ] Add report drill-down dimensions for phase 1
-8. [ ] Add financial report PDF export
-9. [ ] Implement payroll on-screen output + PDF export workflow
-10. [ ] Implement payroll sync into project financial summaries
+1. [ ] Define explicit task permissions for status, priority, assignee, progress, and notes updates
+2. [ ] Update task policy methods to map each edit path to explicit permissions
+3. [ ] Add permission-gated project-tab task editing UI/actions for status and priority
+4. [ ] Add permission-gated project-tab task editing UI/actions for assignee, progress, and notes
+5. [ ] Add allow/deny feature tests for each task edit permission path
+6. [ ] Add operations workflow integration test gate for task permissions
+7. [ ] Implement change orders CRUD foundation (model, migration, policy, routes)
+8. [ ] Implement change order lifecycle transitions and transition authorization tests
+9. [ ] Implement change order attachments and client approval tracking
+10. [ ] Implement change order labor/material breakdown with validation and tests
