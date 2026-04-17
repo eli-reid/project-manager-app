@@ -289,7 +289,14 @@ class SettingsEditor extends Component
 
     public function render()
     {
-        return view('core::livewire.settings-editor', [
+        $viewName = collect([
+            'core::livewire.settings-editor',
+            'core::Livewire.settings-editor',
+            'livewire.settings-editor',
+        ])->first(static fn (string $candidate): bool => view()->exists($candidate))
+            ?? 'core::Livewire.settings-editor';
+
+        return view($viewName, [
             'formData' => $this->formData,
             'settingsMetadata' => $this->settingsMetadata,
             'group' => $this->group,

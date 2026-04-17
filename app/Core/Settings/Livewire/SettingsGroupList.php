@@ -90,7 +90,14 @@ class SettingsGroupList extends Component
 
     public function render(): View
     {
-        return view('core::livewire.settings-group-list', [
+        $viewName = collect([
+            'core::livewire.settings-group-list',
+            'core::Livewire.settings-group-list',
+            'livewire.settings-group-list',
+        ])->first(static fn (string $candidate): bool => view()->exists($candidate))
+            ?? 'core::Livewire.settings-group-list';
+
+        return view($viewName, [
             'groups' => $this->settingGroups,
             'selectedGroup' => $this->selectedGroup,
             'asNavbar' => $this->asNavbar,
