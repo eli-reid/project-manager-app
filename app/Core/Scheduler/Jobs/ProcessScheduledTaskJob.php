@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -27,6 +28,18 @@ class ProcessScheduledTaskJob implements ShouldQueue
     public int $timeout = 300;
 
     public function __construct(public string $taskId) {}
+
+    /**
+     * @return array<int, object>
+     */
+    public function middleware(): array
+    {
+        return [
+            (new WithoutOverlapping('scheduled-task:'.$this->taskId))
+                ->expireAfter($this->timeout + 60)
+                ->dontRelease(),
+        ];
+    }
 
     public function handle(ScheduledTaskFactory $factory): void
     {

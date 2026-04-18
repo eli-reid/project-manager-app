@@ -3,47 +3,64 @@
 namespace App\Domains\Timecards\Services;
 
 use App\Domains\Timecards\Models\Timecard;
-use App\Domains\Timecards\Notifications\TimecardReminderNotification;
+use App\Domains\Timecards\Notifications\TimecardReminderDigestNotification;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class TimecardReminderService
 {
+    public function __construct(private readonly TimecardWeekService $timecardWeekService) {}
+
     /**
      * @param  array<string, mixed>  $taskConfig
      */
     public function sendPendingReminderNotifications(array $taskConfig = []): int
     {
         $daysAfterWeekEnd = (int) ($taskConfig['days_after_week_end'] ?? 0);
+        $batchSize = (int) ($taskConfig['batch_size'] ?? 10);
+        $batchSize = max(1, min($batchSize, 100));
         $statuses = $this->normalizeStatuses($taskConfig['statuses'] ?? [
             Timecard::STATUS_DRAFT,
             Timecard::STATUS_REJECTED,
         ]);
 
-        $targetDate = now()->startOfDay()->subDays(max(0, $daysAfterWeekEnd));
+        $referenceDate = now()->startOfDay()->subDays(max(0, $daysAfterWeekEnd));
+        $targetWeekEnding = $this->timecardWeekService->weekEndingFor($referenceDate)->toDateString();
 
         $timecards = Timecard::query()
             ->with('user')
             ->whereIn('status', $statuses)
-            ->whereDate('week_ending', '<=', $targetDate)
+            ->whereDate('week_ending', $targetWeekEnding)
             ->get();
+
+        /** @var Collection<string, Collection<int, Timecard>> $timecardsByUser */
+        $timecardsByUser = $timecards
+            ->groupBy(fn (Timecard $timecard): string => (string) $timecard->user_id);
 
         $sent = 0;
 
-        foreach ($timecards as $timecard) {
-            $user = $timecard->user;
+        foreach ($timecardsByUser->chunk($batchSize) as $recipientBatch) {
+            foreach ($recipientBatch as $userTimecards) {
+                $user = $userTimecards->first()?->user;
 
-            if (! $user || ! $user->is_active) {
-                continue;
+                if (! $user || ! $user->is_active) {
+                    continue;
+                }
+
+                if (! $this->claimReminderForToday((string) $user->id, $targetWeekEnding)) {
+                    continue;
+                }
+
+                try {
+                    $user->notify(new TimecardReminderDigestNotification($userTimecards->values(), $targetWeekEnding));
+                    $sent++;
+                } catch (\Throwable $exception) {
+                    Cache::forget($this->cacheKey((string) $user->id, $targetWeekEnding, now()));
+
+                    throw $exception;
+                }
             }
-
-            if ($this->alreadySentReminderToday((string) $timecard->id)) {
-                continue;
-            }
-
-            $user->notify(new TimecardReminderNotification($timecard));
-            $this->markReminderSentToday((string) $timecard->id);
-            $sent++;
         }
 
         return $sent;
@@ -64,18 +81,13 @@ class TimecardReminderService
             ->all();
     }
 
-    private function alreadySentReminderToday(string $timecardId): bool
+    private function claimReminderForToday(string $userId, string $weekEndingDate): bool
     {
-        return Cache::has($this->cacheKey($timecardId, now()));
+        return Cache::add($this->cacheKey($userId, $weekEndingDate, now()), true, now()->endOfDay());
     }
 
-    private function markReminderSentToday(string $timecardId): void
+    private function cacheKey(string $userId, string $weekEndingDate, CarbonInterface $date): string
     {
-        Cache::put($this->cacheKey($timecardId, now()), true, now()->endOfDay());
-    }
-
-    private function cacheKey(string $timecardId, CarbonInterface $date): string
-    {
-        return 'timecards.reminder_sent.'.$timecardId.'.'.$date->toDateString();
+        return 'timecards.reminder_sent.user.'.$userId.'.week_ending.'.$weekEndingDate.'.'.$date->toDateString();
     }
 }

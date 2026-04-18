@@ -10,6 +10,7 @@ use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Scheduler\Tasks\NoOpTask;
 use Carbon\Carbon;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Queue;
 
 it('calculates next run in utc for active daily tasks', function (): void {
@@ -128,6 +129,15 @@ it('marks task status as pending when scheduler dispatches a due task', function
     $status = app(ScheduledTaskStatusService::class)->get((string) $task->id);
 
     expect($status['status'])->toBe('pending');
+});
+
+it('prevents overlapping execution of the same scheduled task job', function (): void {
+    $job = new ProcessScheduledTaskJob('task-123');
+
+    $middleware = $job->middleware();
+
+    expect($middleware)->toHaveCount(1)
+        ->and($middleware[0])->toBeInstanceOf(WithoutOverlapping::class);
 });
 
 it('worker job updates run metadata after handling task', function (): void {

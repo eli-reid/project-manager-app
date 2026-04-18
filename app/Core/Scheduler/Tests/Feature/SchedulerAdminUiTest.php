@@ -5,10 +5,12 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
+use App\Core\Scheduler\Livewire\Admin\Settings\SystemTiming;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
+use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
@@ -25,6 +27,12 @@ it('renders scheduler admin pages for admins', function (): void {
         ->get(route('admin.scheduler.tasks.create'))
         ->assertSuccessful()
         ->assertSee('Create Scheduler Task');
+
+    $this->actingAs($admin)
+        ->get(route('admin.scheduler.settings.index'))
+        ->assertSuccessful()
+        ->assertSee('Scheduler System Timing')
+        ->assertSee('Dispatch Claim Window');
 });
 
 it('allows scheduler pages for users with scheduler permissions', function (): void {
@@ -39,6 +47,11 @@ it('allows scheduler pages for users with scheduler permissions', function (): v
         ->get(route('admin.scheduler.tasks.create'))
         ->assertSuccessful()
         ->assertSee('Create Scheduler Task');
+
+    $this->actingAs($user)
+        ->get(route('admin.scheduler.settings.index'))
+        ->assertSuccessful()
+        ->assertSee('Scheduler System Timing');
 });
 
 it('forbids scheduler admin pages for users without scheduler permissions', function (): void {
@@ -51,6 +64,44 @@ it('forbids scheduler admin pages for users without scheduler permissions', func
     $this->actingAs($user)
         ->get(route('admin.scheduler.tasks.create'))
         ->assertForbidden();
+
+    $this->actingAs($user)
+        ->get(route('admin.scheduler.settings.index'))
+        ->assertForbidden();
+});
+
+it('updates scheduler claim window from the scheduler timing ui', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    SettingsSqlite::query()->updateOrCreate(
+        ['key' => 'scheduler.claim_window_seconds'],
+        [
+            'value' => '300',
+            'default_value' => '300',
+            'display_name' => 'Scheduler Claim Window (seconds)',
+            'description' => 'Time window for preventing duplicate scheduled task dispatch.',
+            'type' => 'number',
+            'group' => 'scheduler',
+            'options' => null,
+            'order' => 1,
+            'is_public' => false,
+            'is_visible' => true,
+            'is_required' => true,
+            'encrypted' => false,
+        ]
+    );
+
+    $this->actingAs($admin);
+
+    Livewire::test(SystemTiming::class)
+        ->assertSet('claimWindowSeconds', 300)
+        ->set('claimWindowSeconds', 1200)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSet('successMessage', 'Scheduler timing settings updated.');
+
+    expect(SettingsSqlite::query()->where('key', 'scheduler.claim_window_seconds')->value('value'))
+        ->toBe('1200');
 });
 
 it('creates a scheduler task through livewire form', function (): void {
