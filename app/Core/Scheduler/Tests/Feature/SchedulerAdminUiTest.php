@@ -4,14 +4,14 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
-use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
 use App\Core\Scheduler\Livewire\Admin\Settings\SystemTiming;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
+use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Core\Scheduler\Tasks\NoOpTask;
 use App\Core\Settings\Models\SettingsSqlite;
-use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
 it('renders scheduler admin pages for admins', function (): void {
@@ -143,7 +143,9 @@ it('defaults new scheduler task to active and enabled', function (): void {
 });
 
 it('can toggle and run tasks from index component', function (): void {
-    Queue::fake();
+    app(TaskTypeRegistry::class)->register('timecard_reminders', NoOpTask::class, [
+        'name' => 'Timecard Reminders',
+    ]);
 
     $user = schedulerUserWithPermissions(['scheduler.view', 'scheduler.toggle', 'scheduler.run']);
     $availableTask = AvailableTask::factory()->create([
@@ -179,9 +181,11 @@ it('can toggle and run tasks from index component', function (): void {
         ->call('runNow', $task->id)
         ->assertHasNoErrors();
 
-    Queue::assertPushed(ProcessScheduledTaskJob::class, function (ProcessScheduledTaskJob $job) use ($task): bool {
-        return $job->taskId === (string) $task->id;
-    });
+    $task->refresh();
+
+    expect($task->run_count)->toBe(1)
+        ->and($task->last_run_at)->not->toBeNull()
+        ->and($task->next_run_at)->not->toBeNull();
 });
 
 /**
