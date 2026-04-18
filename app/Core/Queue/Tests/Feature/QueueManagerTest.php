@@ -100,3 +100,52 @@ it('queue manager service calls retry commands', function (): void {
     Artisan::shouldHaveReceived('call')->with('queue:retry', ['id' => ['all']])->once();
     Artisan::shouldHaveReceived('call')->with('queue:flush')->once();
 });
+
+it('queue manager service can clear history by status filter', function (): void {
+    QueueJobHistory::query()->create([
+        'job_uuid' => 'history-running',
+        'job_class' => 'App\\Jobs\\RunningJob',
+        'queue' => 'default',
+        'connection' => 'database',
+        'attempt' => 1,
+        'status' => 'running',
+        'started_at' => now(),
+    ]);
+
+    QueueJobHistory::query()->create([
+        'job_uuid' => 'history-completed',
+        'job_class' => 'App\\Jobs\\CompletedJob',
+        'queue' => 'default',
+        'connection' => 'database',
+        'attempt' => 1,
+        'status' => 'completed',
+        'started_at' => now(),
+        'finished_at' => now(),
+        'duration_ms' => 2,
+    ]);
+
+    QueueJobHistory::query()->create([
+        'job_uuid' => 'history-failed',
+        'job_class' => 'App\\Jobs\\FailedJob',
+        'queue' => 'default',
+        'connection' => 'database',
+        'attempt' => 1,
+        'status' => 'failed',
+        'started_at' => now(),
+        'finished_at' => now(),
+        'duration_ms' => 4,
+        'exception' => 'boom',
+    ]);
+
+    $deletedCompleted = app(QueueManagerService::class)->clearHistory('completed');
+
+    expect($deletedCompleted)->toBe(1)
+        ->and(QueueJobHistory::query()->where('status', 'completed')->count())->toBe(0)
+        ->and(QueueJobHistory::query()->where('status', 'running')->count())->toBe(1)
+        ->and(QueueJobHistory::query()->where('status', 'failed')->count())->toBe(1);
+
+    $deletedAll = app(QueueManagerService::class)->clearHistory();
+
+    expect($deletedAll)->toBe(2)
+        ->and(QueueJobHistory::query()->count())->toBe(0);
+});

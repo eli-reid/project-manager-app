@@ -107,14 +107,20 @@
 
     @if ($activeTab === 'history')
         <div class="space-y-4">
-            <div class="max-w-xs">
-                <label for="history-filter" class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">History Status</label>
-                <select id="history-filter" wire:model.live="historyFilter" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-                    <option value="all">All</option>
-                    <option value="running">Running</option>
-                    <option value="completed">Completed</option>
-                    <option value="failed">Failed</option>
-                </select>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div class="max-w-xs">
+                    <label for="history-filter" class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">History Status</label>
+                    <select id="history-filter" wire:model.live="historyFilter" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                        <option value="all">All</option>
+                        <option value="running">Running</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <button type="button" wire:click="clearHistory" wire:confirm="Clear {{ $historyFilter === 'all' ? 'all' : $historyFilter }} history records? This cannot be undone." class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500">
+                    Clear History
+                </button>
             </div>
 
             <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
