@@ -99,3 +99,49 @@ it('worker job updates run metadata after handling task', function (): void {
         ->and($task->next_run_at)->not->toBeNull()
         ->and($task->next_run_at?->greaterThan(now('UTC')))->toBeTrue();
 });
+
+it('finds due tasks using utc comparison even when app timezone differs', function (): void {
+    $originalTimezone = config('app.timezone');
+    config()->set('app.timezone', 'America/New_York');
+    Carbon::setTestNow(Carbon::parse('2026-04-18 15:00:00', 'UTC'));
+
+    $availableTask = AvailableTask::factory()->create([
+        'feature_type' => 'timecard_reminders',
+        'name' => 'Timecard Reminders',
+    ]);
+
+    $dueTask = ScheduledTask::query()->create([
+        'name' => 'Due in UTC',
+        'available_task_id' => $availableTask->id,
+        'schedule_type' => 'daily',
+        'time' => '09:00:00',
+        'timezone' => 'America/New_York',
+        'repeat_frequency' => 'daily',
+        'repeat_interval' => 1,
+        'is_active' => true,
+        'is_enabled' => true,
+        'next_run_at' => now('UTC')->subMinutes(30),
+    ]);
+
+    $futureTask = ScheduledTask::query()->create([
+        'name' => 'Future in UTC',
+        'available_task_id' => $availableTask->id,
+        'schedule_type' => 'daily',
+        'time' => '09:00:00',
+        'timezone' => 'America/New_York',
+        'repeat_frequency' => 'daily',
+        'repeat_interval' => 1,
+        'is_active' => true,
+        'is_enabled' => true,
+        'next_run_at' => now('UTC')->addMinutes(30),
+    ]);
+
+    $dueIds = ScheduledTask::due()->pluck('id')->all();
+
+    expect($dueIds)
+        ->toContain($dueTask->id)
+        ->and($dueIds)->not->toContain($futureTask->id);
+
+    Carbon::setTestNow();
+    config()->set('app.timezone', $originalTimezone);
+});

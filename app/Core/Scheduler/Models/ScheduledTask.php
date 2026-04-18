@@ -93,8 +93,10 @@ class ScheduledTask extends Model
 
     public function scopeDue($query)
     {
+        $nowUtc = now('UTC')->format('Y-m-d H:i:s');
+
         return $query->runnable()
-            ->where('next_run_at', '<=', now())
+            ->where('next_run_at', '<=', $nowUtc)
             ->whereNotNull('next_run_at');
     }
 
