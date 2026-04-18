@@ -51,6 +51,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Task</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Schedule</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Task Status</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Next Run</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Runs</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
@@ -58,6 +59,7 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($tasks as $task)
+                        @php($status = $taskStatuses[(string) $task->id]['status'] ?? 'idle')
                         <tr wire:key="task-{{ $task->id }}">
                             <td class="px-4 py-3 align-top">
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $task->name }}</div>
@@ -71,6 +73,17 @@
                                 @else
                                     <span class="mt-1 inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-300">Disabled</span>
                                 @endif
+                            </td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
+                                <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold
+                                    {{ $status === 'failed' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : '' }}
+                                    {{ $status === 'running' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : '' }}
+                                    {{ $status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : '' }}
+                                    {{ $status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : '' }}
+                                    {{ $status === 'idle' ? 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' : '' }}
+                                ">
+                                    {{ str($status)->headline() }}
+                                </span>
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ $task->next_run_at?->toDateTimeString() ?? 'Not scheduled' }}
@@ -87,7 +100,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No scheduler tasks found.</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No scheduler tasks found.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -6,6 +6,7 @@ use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\ScheduledTaskService;
+use App\Core\Scheduler\Services\ScheduledTaskStatusService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -78,6 +79,8 @@ class Index extends Component
 
     public function render()
     {
+        $statusService = app(ScheduledTaskStatusService::class);
+
         $tasks = ScheduledTask::query()
             ->with('availableTask')
             ->when($this->search !== '', function ($query): void {
@@ -100,8 +103,13 @@ class Index extends Component
             ->orderBy('next_run_at')
             ->paginate(12);
 
+        $taskStatuses = $tasks->getCollection()
+            ->mapWithKeys(fn (ScheduledTask $task): array => [(string) $task->id => $statusService->get((string) $task->id)])
+            ->all();
+
         return view('scheduler::livewire.admin.tasks.index', [
             'tasks' => $tasks,
+            'taskStatuses' => $taskStatuses,
             'availableTasks' => AvailableTask::query()
                 ->orderBy('name')
                 ->get(['id', 'name', 'feature_type']),

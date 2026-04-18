@@ -15,6 +15,7 @@ use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskDefinitionSyncService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +53,7 @@ class SchedulerServiceProvider extends ServiceProvider
     {
         $this->registerAuthorization();
         $this->registerPermissions();
+        $this->registerSettings();
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -73,6 +75,17 @@ class SchedulerServiceProvider extends ServiceProvider
         $registry = $this->app->make(PermissionRegistryContract::class);
 
         $registry->registerPermissions(SchedulerPermissions::all());
+    }
+
+    private function registerSettings(): void
+    {
+        if (! $this->app->bound(SettingsRegistryContract::class)) {
+            return;
+        }
+
+        /** @var SettingsRegistryContract $registry */
+        $registry = $this->app->make(SettingsRegistryContract::class);
+        $registry->registerConfigFile('scheduler', __DIR__.'/../config/settings.php');
     }
 
     private function registerUIComponents(): void

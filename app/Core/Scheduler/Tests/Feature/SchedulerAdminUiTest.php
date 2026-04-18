@@ -18,7 +18,8 @@ it('renders scheduler admin pages for admins', function (): void {
     $this->actingAs($admin)
         ->get(route('admin.scheduler.tasks.index'))
         ->assertSuccessful()
-        ->assertSee('Scheduler Tasks');
+        ->assertSee('Scheduler Tasks')
+        ->assertSee('Task Status');
 
     $this->actingAs($admin)
         ->get(route('admin.scheduler.tasks.create'))
