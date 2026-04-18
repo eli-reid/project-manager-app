@@ -80,6 +80,16 @@ it('creates a scheduler task through livewire form', function (): void {
         ->and($task?->next_run_at)->not->toBeNull();
 });
 
+it('defaults new scheduler task to active and enabled', function (): void {
+    $user = schedulerUserWithPermissions(['scheduler.create']);
+
+    $this->actingAs($user);
+
+    Livewire::test(Form::class)
+        ->assertSet('is_active', true)
+        ->assertSet('is_enabled', true);
+});
+
 it('can toggle and run tasks from index component', function (): void {
     Queue::fake();
 
