@@ -11,7 +11,39 @@
     </div>
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)]">
-        <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <section
+            x-data="{
+                titleValue: $wire.entangle('title'),
+                selectedFileName: '',
+                lastAutoTitle: '',
+                isUploading: false,
+                uploadProgress: 0,
+                fileBaseName(fileName) {
+                    return fileName.replace(/\.[^/.]+$/, '')
+                },
+                syncSelectedFile(fileName) {
+                    this.selectedFileName = fileName
+
+                    if (! fileName) {
+                        return
+                    }
+
+                    const nextTitle = this.fileBaseName(fileName)
+
+                    if (this.titleValue.trim() === '' || this.titleValue === this.lastAutoTitle) {
+                        this.titleValue = nextTitle
+                        this.lastAutoTitle = nextTitle
+                    }
+                }
+            }"
+            x-on:documents-file-input-reset.window="titleValue = ''; selectedFileName = ''; lastAutoTitle = ''; isUploading = false; uploadProgress = 0; $refs.userDocumentFile.value = null"
+            x-on:livewire-upload-start="isUploading = true; uploadProgress = 0"
+            x-on:livewire-upload-finish="isUploading = false; uploadProgress = 100"
+            x-on:livewire-upload-error="isUploading = false; uploadProgress = 0"
+            x-on:livewire-upload-cancel="isUploading = false; uploadProgress = 0"
+            x-on:livewire-upload-progress="uploadProgress = $event.detail.progress"
+            class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+        >
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Upload a document</h2>
@@ -27,7 +59,7 @@
                 <div class="space-y-4">
                     <flux:field>
                         <flux:label>Title</flux:label>
-                        <flux:input wire:model="title" placeholder="Safety checklist" />
+                        <flux:input x-model="titleValue" placeholder="Safety checklist" />
                         <flux:error name="title" />
                     </flux:field>
 
@@ -38,7 +70,7 @@
                     </flux:field>
                 </div>
 
-                <div x-data="{ selectedFileName: '' }" class="space-y-3 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
+                <div class="space-y-3 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
                     <div>
                         <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">File</p>
                         <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Choose a replacement file or keep the current one while editing.</p>
@@ -46,16 +78,35 @@
 
                     @php($defaultFileLabel = optional($file)->getClientOriginalName() ?? ($editingDocumentId ? 'No new file selected. The current file will be kept.' : 'No file selected yet.'))
 
-                    <label for="user-document-file" class="flex cursor-pointer flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-900/80">
+                    <label
+                        for="user-document-file"
+                        x-bind:class="isUploading ? 'pointer-events-none opacity-75' : ''"
+                        class="relative flex cursor-pointer flex-col gap-2 overflow-hidden rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-900/80"
+                    >
+                        <div
+                            x-show="isUploading"
+                            class="absolute inset-y-0 left-0 rounded-xl bg-sky-100/80 transition-[width] duration-200 ease-out dark:bg-sky-900/30"
+                            x-bind:style="`width: ${uploadProgress}%`"
+                        ></div>
+
+                        <div class="relative z-10 flex flex-col gap-2">
                         <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">Choose file</span>
                         <span x-text="selectedFileName || @js($defaultFileLabel)" class="text-xs text-zinc-500 dark:text-zinc-400"></span>
+                        </div>
                     </label>
 
-                    <input id="user-document-file" type="file" wire:model="file" x-on:change="selectedFileName = $event.target.files?.[0]?.name ?? ''" class="sr-only" />
+                    <input id="user-document-file" x-ref="userDocumentFile" type="file" wire:model="file" x-bind:disabled="isUploading" x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? '')" class="sr-only" />
                     <flux:error name="file" />
 
                     <div wire:loading wire:target="file" class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300">
-                        Uploading selection...
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Uploading selection...</span>
+                            <span x-text="`${uploadProgress}%`" class="font-semibold"></span>
+                        </div>
+
+                        <div class="mt-2 h-2 overflow-hidden rounded-full bg-sky-200/80 dark:bg-sky-950">
+                            <div class="h-full rounded-full bg-sky-500 transition-[width] duration-200 ease-out dark:bg-sky-400" x-bind:style="`width: ${uploadProgress}%`"></div>
+                        </div>
                     </div>
                 </div>
             </div>

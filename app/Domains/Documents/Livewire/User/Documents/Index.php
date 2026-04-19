@@ -169,5 +169,6 @@ class Index extends Component
         $this->description = '';
         $this->file = null;
         $this->resetValidation();
+        $this->dispatch('documents-file-input-reset');
     }
 }
