@@ -47,7 +47,7 @@
                                 <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $project->project_number ?? 'N/A' }}</div>
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</td>
-                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->client?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->client?->company_name ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->projectManager?->name ?? '—' }}</td>
                             <td class="px-4 py-3 text-right align-top">
                                 <flux:button size="sm" variant="ghost" :href="route('projects.show', $project)">
