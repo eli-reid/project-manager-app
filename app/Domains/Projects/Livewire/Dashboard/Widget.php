@@ -35,7 +35,7 @@ class Widget extends Component
         $total = (clone $query)->count();
 
         $projects = (clone $query)
-            ->with(['client:id,name'])
+            ->with(['client:id,company_name'])
             ->orderByDesc('start_date')
             ->orderBy('name')
             ->limit(5)

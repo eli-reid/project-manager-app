@@ -29,7 +29,7 @@
             <div class="min-w-0">
                 <p class="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</p>
                 @if ($project->client)
-                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $project->client->name }}</p>
+                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $project->client->company_name }}</p>
                 @endif
             </div>
             <div class="ml-3 shrink-0">
