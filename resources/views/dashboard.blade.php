@@ -4,7 +4,7 @@
             <div class="grid gap-4 lg:grid-cols-3">
                 @foreach($widgets as $widget)
                     <div class="{{ match($widget['span']) { 'full' => 'lg:col-span-3', 'half' => 'lg:col-span-2', default => 'lg:col-span-1' } }}">
-                        @livewire($widget['component'], key: $widget['key'])
+                        @livewire($widget['component'], [], $widget['key'])
                     </div>
                 @endforeach
             </div>
