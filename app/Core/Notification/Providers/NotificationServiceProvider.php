@@ -5,6 +5,7 @@ namespace App\Core\Notification\Providers;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class NotificationServiceProvider extends ServiceProvider
 {
@@ -27,5 +28,6 @@ class NotificationServiceProvider extends ServiceProvider
     private function registerInfrastructure(): void
     {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-notification');
+        Livewire::addNamespace('core.notification', classNamespace: 'App\Core\Notification\Livewire');
     }
 }

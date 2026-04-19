@@ -3,9 +3,6 @@
 namespace App\Core\Auth\Role\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Auth\Role\Livewire\Admin\Roles\Form;
-use App\Core\Auth\Role\Livewire\Admin\Roles\Index;
-use App\Core\Auth\Role\Livewire\Admin\Roles\Users;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\Role\Policies\RolePolicy;
 use App\Core\Identity\Permissions\RolePermissions;
@@ -48,9 +45,7 @@ class RoleServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.user.livewire.admin.roles', Index::class);
-        Livewire::component('app.core.user.livewire.admin.roles.form', Form::class);
-        Livewire::component('app.core.user.livewire.admin.roles.users', Users::class);
+        Livewire::addNamespace('roles', classNamespace: 'App\Core\Auth\Role\Livewire');
     }
 
     private function registerRoutes(): void

@@ -24312,6 +24312,13 @@ namespace Illuminate\Testing {
             }
     }
 
+namespace App\Core\Scheduler\Livewire\Admin\Settings {
+    /**
+     */
+    class SystemTiming extends \Livewire\Component {
+            }
+    }
+
 namespace App\Core\Scheduler\Livewire\Admin\Tasks {
     /**
      */
@@ -24510,6 +24517,28 @@ namespace App\Domains\Payroll\Livewire\Admin\Timecards {
             }
     }
 
+namespace App\Domains\Payroll\Livewire\Admin\Reports {
+    /**
+     */
+    class WeeklyEmployeeHours extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\Admin\PayRuns {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Form extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll {
     /**
      */
@@ -24538,10 +24567,28 @@ namespace App\Domains\Payroll\Livewire\User\Reports\UnionRemittance {
             }
     }
 
+namespace App\Domains\Payroll\Livewire\User\Reports\Audit {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Payroll\Livewire\User\Reports\Forecasting {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
 namespace App\Domains\Payroll\Livewire\User\PayrollHistory {
     /**
      */
     class Index extends \Livewire\Component {
+            }
+    /**
+     */
+    class Show extends \Livewire\Component {
             }
     }
 
@@ -24572,6 +24619,13 @@ namespace App\Domains\Projects\Livewire\User\Projects {
     }
 
 namespace App\Domains\Reports\Livewire\User\FinancialReports {
+    /**
+     */
+    class Index extends \Livewire\Component {
+            }
+    }
+
+namespace App\Domains\Reports\Livewire\Admin\Reports {
     /**
      */
     class Index extends \Livewire\Component {

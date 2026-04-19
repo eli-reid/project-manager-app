@@ -7,13 +7,6 @@ use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
-use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
-use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
-use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
-use App\Domains\Timecards\Livewire\Dashboard\Widget as DashboardWidget;
-use App\Domains\Timecards\Livewire\User\Timecards\Form as UserForm;
-use App\Domains\Timecards\Livewire\User\Timecards\Index as UserIndex;
-use App\Domains\Timecards\Livewire\User\Timecards\Show as UserShow;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
@@ -62,13 +55,7 @@ class TimecardsServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.timecards.livewire.admin.timecards', Index::class);
-        Livewire::component('app.domains.timecards.livewire.admin.timecards.form', AdminForm::class);
-        Livewire::component('app.domains.timecards.livewire.admin.timecards.show', AdminShow::class);
-        Livewire::component('app.domains.timecards.livewire.user.timecards', UserIndex::class);
-        Livewire::component('app.domains.timecards.livewire.user.timecards.form', UserForm::class);
-        Livewire::component('app.domains.timecards.livewire.user.timecards.show', UserShow::class);
-        Livewire::component('app.domains.timecards.livewire.dashboard.widget', DashboardWidget::class);
+        Livewire::addNamespace('timecards', classNamespace: 'App\Domains\Timecards\Livewire');
     }
 
     private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
@@ -76,7 +63,7 @@ class TimecardsServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'timecards.my-week',
-                'component' => 'app.domains.timecards.livewire.dashboard.widget',
+                'component' => 'timecards.dashboard.widget',
                 'section' => 'personal',
                 'sort' => 20,
                 'span' => 'half',

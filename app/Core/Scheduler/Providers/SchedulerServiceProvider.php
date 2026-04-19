@@ -6,10 +6,6 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Scheduler\Commands\DeployUpgradeCommand;
 use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
-use App\Core\Scheduler\Livewire\Admin\Settings\SystemTiming;
-use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
-use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
-use App\Core\Scheduler\Livewire\Dashboard\Widget as DashboardWidget;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Permissions\SchedulerPermissions;
 use App\Core\Scheduler\Policies\ScheduledTaskPolicy;
@@ -94,10 +90,7 @@ class SchedulerServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.scheduler.livewire.admin.settings.system-timing', SystemTiming::class);
-        Livewire::component('app.core.scheduler.livewire.admin.tasks', Index::class);
-        Livewire::component('app.core.scheduler.livewire.admin.tasks.form', Form::class);
-        Livewire::component('app.core.scheduler.livewire.dashboard.widget', DashboardWidget::class);
+        Livewire::addNamespace('scheduler', classNamespace: 'App\Core\Scheduler\Livewire');
     }
 
     private function registerDashboardWidgets(): void
@@ -112,7 +105,7 @@ class SchedulerServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'scheduler.task-health',
-                'component' => 'app.core.scheduler.livewire.dashboard.widget',
+                'component' => 'scheduler.dashboard.widget',
                 'section' => 'admin',
                 'sort' => 10,
                 'span' => 'full',

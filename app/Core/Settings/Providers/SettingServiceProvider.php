@@ -18,6 +18,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class SettingServiceProvider extends ServiceProvider
 {
@@ -109,6 +110,7 @@ class SettingServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core');
         $this->loadRoutesFrom(__DIR__.'/../Routes/admin.php');
+        Livewire::addNamespace('core.settings', classNamespace: 'App\Core\Settings\Livewire');
     }
 
     private function registerObservers(): void

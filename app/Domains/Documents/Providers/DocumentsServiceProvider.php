@@ -4,10 +4,6 @@ namespace App\Domains\Documents\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Domains\Documents\Livewire\Admin\Documents\Index as AdminDocumentsIndex;
-use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
-use App\Domains\Documents\Livewire\User\Documents\GlobalIndex;
-use App\Domains\Documents\Livewire\User\Documents\Index as UserDocumentsIndex;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
@@ -46,10 +42,7 @@ class DocumentsServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.documents.livewire.admin.documents.index', AdminDocumentsIndex::class);
-        Livewire::component('app.domains.documents.livewire.user.documents.index', UserDocumentsIndex::class);
-        Livewire::component('app.domains.documents.livewire.user.documents.global-index', GlobalIndex::class);
-        Livewire::component('app.domains.documents.livewire.admin.projects.documents-tab', DocumentsTab::class);
+        Livewire::addNamespace('documents', classNamespace: 'App\Domains\Documents\Livewire');
     }
 
     private function registerRoutes(): void

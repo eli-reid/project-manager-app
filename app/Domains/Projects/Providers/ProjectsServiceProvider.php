@@ -6,12 +6,6 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Domains\Projects\Livewire\Admin\Projects\Form;
-use App\Domains\Projects\Livewire\Admin\Projects\Index;
-use App\Domains\Projects\Livewire\Admin\Projects\Show;
-use App\Domains\Projects\Livewire\Dashboard\Widget as DashboardWidget;
-use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectIndex;
-use App\Domains\Projects\Livewire\User\Projects\Show as UserProjectShow;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
@@ -55,12 +49,7 @@ class ProjectsServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.projects.livewire.admin.projects', Index::class);
-        Livewire::component('app.domains.projects.livewire.admin.projects.form', Form::class);
-        Livewire::component('app.domains.projects.livewire.admin.projects.show', Show::class);
-        Livewire::component('app.domains.projects.livewire.user.projects', UserProjectIndex::class);
-        Livewire::component('app.domains.projects.livewire.user.projects.show', UserProjectShow::class);
-        Livewire::component('app.domains.projects.livewire.dashboard.widget', DashboardWidget::class);
+        Livewire::addNamespace('projects', classNamespace: 'App\Domains\Projects\Livewire');
     }
 
     private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
@@ -68,7 +57,7 @@ class ProjectsServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'projects.active-summary',
-                'component' => 'app.domains.projects.livewire.dashboard.widget',
+                'component' => 'projects.dashboard.widget',
                 'section' => 'operations',
                 'sort' => 10,
                 'span' => 'half',

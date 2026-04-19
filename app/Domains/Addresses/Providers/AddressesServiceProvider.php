@@ -3,9 +3,6 @@
 namespace App\Domains\Addresses\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Domains\Addresses\Livewire\Admin\Addresses\Form;
-use App\Domains\Addresses\Livewire\Admin\Addresses\Index;
-use App\Domains\Addresses\Livewire\Admin\Addresses\InlineCreateWidget;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Addresses\Permissions\AddressPermissions;
 use App\Domains\Addresses\Policies\AddressPolicy;
@@ -43,9 +40,7 @@ class AddressesServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.addresses.livewire.admin.addresses', Index::class);
-        Livewire::component('app.domains.addresses.livewire.admin.addresses.form', Form::class);
-        Livewire::component('app.domains.addresses.livewire.admin.addresses.inline-create-widget', InlineCreateWidget::class);
+        Livewire::addNamespace('addresses', classNamespace: 'App\Domains\Addresses\Livewire');
     }
 
     private function registerRoutes(): void

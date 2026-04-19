@@ -6,14 +6,6 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Reports\Services\ReportRegistry;
-use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
-use App\Domains\Tasks\Livewire\Admin\TaskCategories\Form as TaskCategoryForm;
-use App\Domains\Tasks\Livewire\Admin\TaskCategories\Index as TaskCategoryIndex;
-use App\Domains\Tasks\Livewire\Admin\Tasks\Form;
-use App\Domains\Tasks\Livewire\Admin\Tasks\Index;
-use App\Domains\Tasks\Livewire\Admin\TaskTemplates\Form as TaskTemplateForm;
-use App\Domains\Tasks\Livewire\Admin\TaskTemplates\Index as TaskTemplateIndex;
-use App\Domains\Tasks\Livewire\User\Tasks\Index as UserTaskIndex;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
@@ -65,14 +57,7 @@ class TasksServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.tasks.livewire.admin.tasks', Index::class);
-        Livewire::component('app.domains.tasks.livewire.admin.tasks.form', Form::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-categories', TaskCategoryIndex::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-categories.form', TaskCategoryForm::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-templates', TaskTemplateIndex::class);
-        Livewire::component('app.domains.tasks.livewire.admin.task-templates.form', TaskTemplateForm::class);
-        Livewire::component('app.domains.tasks.livewire.admin.projects.task-hierarchy-widget', TaskHierarchyWidget::class);
-        Livewire::component('app.domains.tasks.livewire.user.tasks', UserTaskIndex::class);
+        Livewire::addNamespace('tasks', classNamespace: 'App\Domains\Tasks\Livewire');
     }
 
     private function registerRoutes(): void

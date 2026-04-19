@@ -2,9 +2,6 @@
 
 namespace App\Core\Announcement\Providers;
 
-use App\Core\Announcement\Livewire\Admin\Announcements\Form;
-use App\Core\Announcement\Livewire\Admin\Announcements\Index;
-use App\Core\Announcement\Livewire\Dashboard\Widget;
 use App\Core\Announcement\Models\Announcement;
 use App\Core\Announcement\Permissions\AnnouncementPermissions;
 use App\Core\Announcement\Policies\AnnouncementPolicy;
@@ -37,7 +34,7 @@ class AnnouncementServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'core.announcements',
-                'component' => 'app.core.announcement.livewire.dashboard.widget',
+                'component' => 'announcement.dashboard.widget',
                 'section' => 'primary',
                 'sort' => 10,
                 'span' => 'half',
@@ -50,9 +47,7 @@ class AnnouncementServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.announcement.livewire.admin.announcements', Index::class);
-        Livewire::component('app.core.announcement.livewire.admin.announcements.form', Form::class);
-        Livewire::component('app.core.announcement.livewire.dashboard.widget', Widget::class);
+        Livewire::addNamespace('announcement', classNamespace: 'App\Core\Announcement\Livewire');
     }
 
     private function registerAuthorization(): void

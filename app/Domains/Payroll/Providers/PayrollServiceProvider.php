@@ -8,23 +8,6 @@ use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider;
 use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
-use App\Domains\Payroll\Livewire\Admin\PayRates\Form as AdminPayRateForm;
-use App\Domains\Payroll\Livewire\Admin\PayRates\Index as AdminPayRateIndex;
-use App\Domains\Payroll\Livewire\Admin\PayRateTypes\Index as AdminPayRateTypeIndex;
-use App\Domains\Payroll\Livewire\Admin\PayRuns\Form as PayRunForm;
-use App\Domains\Payroll\Livewire\Admin\PayRuns\Index as PayRunIndex;
-use App\Domains\Payroll\Livewire\Admin\PayRuns\Show as PayRunShow;
-use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyEmployeeHours;
-use App\Domains\Payroll\Livewire\Admin\Timecards\Review as AdminTimecardReview;
-use App\Domains\Payroll\Livewire\User\Forecasting\WeeklyBurnRateWidget;
-use App\Domains\Payroll\Livewire\User\PayrollHistory\Index as UserPayrollHistoryIndex;
-use App\Domains\Payroll\Livewire\User\PayrollHistory\Show as UserPayrollHistoryShow;
-use App\Domains\Payroll\Livewire\User\Reports\Audit\Index as PayrollAuditIndex;
-use App\Domains\Payroll\Livewire\User\Reports\CertifiedPayroll\Index as CertifiedPayrollIndex;
-use App\Domains\Payroll\Livewire\User\Reports\Forecasting\Index as PayrollForecastingIndex;
-use App\Domains\Payroll\Livewire\User\Reports\LaborCost\Index as PayrollLaborCostIndex;
-use App\Domains\Payroll\Livewire\User\Reports\TaxFilings\Index as PayrollTaxFilingsIndex;
-use App\Domains\Payroll\Livewire\User\Reports\UnionRemittance\Index as PayrollUnionRemittanceIndex;
 use App\Domains\Payroll\Models\Deduction;
 use App\Domains\Payroll\Models\EmployeeDeduction;
 use App\Domains\Payroll\Models\PayRate;
@@ -113,24 +96,7 @@ class PayrollServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.payroll.livewire.admin.pay-rate-types', AdminPayRateTypeIndex::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-rates', AdminPayRateIndex::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-rates.form', AdminPayRateForm::class);
-        Livewire::component('app.domains.payroll.livewire.admin.reports.weekly-employee-hours', WeeklyEmployeeHours::class);
-        Livewire::component('app.domains.payroll.livewire.admin.timecards.review', AdminTimecardReview::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-runs', PayRunIndex::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.form', PayRunForm::class);
-        Livewire::component('app.domains.payroll.livewire.admin.pay-runs.show', PayRunShow::class);
-
-        Livewire::component('app.domains.payroll.livewire.user.forecasting.weekly-burn-rate-widget', WeeklyBurnRateWidget::class);
-        Livewire::component('app.domains.payroll.livewire.user.payroll-history', UserPayrollHistoryIndex::class);
-        Livewire::component('app.domains.payroll.livewire.user.payroll-history.show', UserPayrollHistoryShow::class);
-        Livewire::component('app.domains.payroll.livewire.user.reports.certified-payroll', CertifiedPayrollIndex::class);
-        Livewire::component('app.domains.payroll.livewire.user.reports.tax-filings', PayrollTaxFilingsIndex::class);
-        Livewire::component('app.domains.payroll.livewire.user.reports.labor-cost', PayrollLaborCostIndex::class);
-        Livewire::component('app.domains.payroll.livewire.user.reports.union-remittance', PayrollUnionRemittanceIndex::class);
-        Livewire::component('app.domains.payroll.livewire.user.reports.audit', PayrollAuditIndex::class);
-        Livewire::component('app.domains.payroll.livewire.user.reports.forecasting', PayrollForecastingIndex::class);
+        Livewire::addNamespace('payroll', classNamespace: 'App\Domains\Payroll\Livewire');
     }
 
     private function registerRoutes(): void

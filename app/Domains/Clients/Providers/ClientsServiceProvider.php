@@ -3,9 +3,6 @@
 namespace App\Domains\Clients\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Domains\Clients\Livewire\Admin\Clients\Form;
-use App\Domains\Clients\Livewire\Admin\Clients\Index;
-use App\Domains\Clients\Livewire\Admin\Clients\InlineCreateWidget;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Clients\Permissions\ClientPermissions;
 use App\Domains\Clients\Policies\ClientPolicy;
@@ -43,9 +40,7 @@ class ClientsServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.clients.livewire.admin.clients', Index::class);
-        Livewire::component('app.domains.clients.livewire.admin.clients.form', Form::class);
-        Livewire::component('app.domains.clients.livewire.admin.clients.inline-create-widget', InlineCreateWidget::class);
+        Livewire::addNamespace('clients', classNamespace: 'App\Domains\Clients\Livewire');
     }
 
     private function registerRoutes(): void

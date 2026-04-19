@@ -4,15 +4,6 @@ namespace App\Domains\Stock\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Reports\Services\ReportRegistry;
-use App\Domains\Stock\Livewire\Admin\StockOrders\Index as AdminStockOrdersIndex;
-use App\Domains\Stock\Livewire\Admin\StockOrders\Show as AdminStockOrdersShow;
-use App\Domains\Stock\Livewire\Admin\Templates\Form as AdminTemplatesForm;
-use App\Domains\Stock\Livewire\Admin\Templates\Index as AdminTemplatesIndex;
-use App\Domains\Stock\Livewire\User\StockOrders\Form;
-use App\Domains\Stock\Livewire\User\StockOrders\Index;
-use App\Domains\Stock\Livewire\User\StockOrders\Show;
-use App\Domains\Stock\Livewire\User\Templates\Browse;
-use App\Domains\Stock\Livewire\User\Templates\FromTemplate;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Stock\Models\StockOrderTemplate;
 use App\Domains\Stock\Permissions\StockOrderPermissions;
@@ -55,16 +46,7 @@ class StockServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.stock.livewire.user.stock-orders.index', Index::class);
-        Livewire::component('app.domains.stock.livewire.user.stock-orders.form', Form::class);
-        Livewire::component('app.domains.stock.livewire.user.stock-orders.show', Show::class);
-        Livewire::component('app.domains.stock.livewire.user.templates.browse', Browse::class);
-        Livewire::component('app.domains.stock.livewire.user.templates.from-template', FromTemplate::class);
-
-        Livewire::component('app.domains.stock.livewire.admin.stock-orders.index', AdminStockOrdersIndex::class);
-        Livewire::component('app.domains.stock.livewire.admin.stock-orders.show', AdminStockOrdersShow::class);
-        Livewire::component('app.domains.stock.livewire.admin.templates.index', AdminTemplatesIndex::class);
-        Livewire::component('app.domains.stock.livewire.admin.templates.form', AdminTemplatesForm::class);
+        Livewire::addNamespace('stock', classNamespace: 'App\Domains\Stock\Livewire');
     }
 
     private function registerRoutes(): void
