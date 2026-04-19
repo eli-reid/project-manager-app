@@ -63,7 +63,7 @@ class TimecardsServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'timecards.my-week',
-                'component' => 'timecards.dashboard.widget',
+                'component' => 'timecards::dashboard.widget',
                 'section' => 'personal',
                 'sort' => 20,
                 'span' => 'half',

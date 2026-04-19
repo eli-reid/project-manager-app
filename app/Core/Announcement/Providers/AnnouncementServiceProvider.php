@@ -34,7 +34,7 @@ class AnnouncementServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'core.announcements',
-                'component' => 'announcement.dashboard.widget',
+                'component' => 'announcement::dashboard.widget',
                 'section' => 'primary',
                 'sort' => 10,
                 'span' => 'half',

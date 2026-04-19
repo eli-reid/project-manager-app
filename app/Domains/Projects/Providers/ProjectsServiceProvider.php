@@ -57,7 +57,7 @@ class ProjectsServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'projects.active-summary',
-                'component' => 'projects.dashboard.widget',
+                'component' => 'projects::dashboard.widget',
                 'section' => 'operations',
                 'sort' => 10,
                 'span' => 'half',

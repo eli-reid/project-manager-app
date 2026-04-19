@@ -105,7 +105,7 @@ class SchedulerServiceProvider extends ServiceProvider
         $widgetRegistry->registerDefinitions([
             [
                 'key' => 'scheduler.task-health',
-                'component' => 'scheduler.dashboard.widget',
+                'component' => 'scheduler::dashboard.widget',
                 'section' => 'admin',
                 'sort' => 10,
                 'span' => 'full',
