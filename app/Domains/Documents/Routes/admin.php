@@ -8,5 +8,5 @@ Route::prefix('documents')
     ->name('documents.')
     ->middleware('can:deleteAny,'.Document::class)
     ->group(function (): void {
-        Route::get('/', AdminDocumentsIndex::class)->name('index');
+        Route::livewire('/', AdminDocumentsIndex::class)->name('index');
     });

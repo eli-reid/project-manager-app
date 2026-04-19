@@ -13,31 +13,31 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('stock-orders')
     ->name('stock-orders.')
     ->group(function (): void {
-        Route::get('/', StockOrderIndex::class)
+        Route::livewire('/', StockOrderIndex::class)
             ->middleware('can:viewAny,'.StockOrder::class)
             ->name('index');
 
-        Route::get('/create', StockOrderForm::class)
+        Route::livewire('/create', StockOrderForm::class)
             ->middleware('can:create,'.StockOrder::class)
             ->name('create');
 
         Route::prefix('templates')
             ->name('templates.')
             ->group(function (): void {
-                Route::get('/', TemplateBrowse::class)
+                Route::livewire('/', TemplateBrowse::class)
                     ->middleware('can:viewAny,'.StockOrderTemplate::class)
                     ->name('browse');
 
-                Route::get('/{stockOrderTemplate}/order', FromTemplate::class)
+                Route::livewire('/{stockOrderTemplate}/order', FromTemplate::class)
                     ->middleware('can:view,stockOrderTemplate')
                     ->name('from');
             });
 
-        Route::get('/{stockOrder}', StockOrderShow::class)
+        Route::livewire('/{stockOrder}', StockOrderShow::class)
             ->middleware('can:view,stockOrder')
             ->name('show');
 
-        Route::get('/{stockOrder}/edit', StockOrderForm::class)
+        Route::livewire('/{stockOrder}/edit', StockOrderForm::class)
             ->middleware('can:update,stockOrder')
             ->name('edit');
     });
@@ -45,7 +45,7 @@ Route::prefix('stock-orders')
 Route::prefix('reports')
     ->name('reports.')
     ->group(function (): void {
-        Route::get('/financial/material-cost-analysis', MaterialCostAnalysisIndex::class)
+        Route::livewire('/financial/material-cost-analysis', MaterialCostAnalysisIndex::class)
             ->middleware('can:reports.financial.view')
             ->name('financial.material-cost-analysis.index');
     });

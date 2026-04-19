@@ -10,19 +10,19 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('timecards')
     ->name('timecards.')
     ->group(function (): void {
-        Route::get('/', Index::class)
+        Route::livewire('/', Index::class)
             ->middleware('can:viewAny,'.Timecard::class)
             ->name('index');
 
-        Route::get('/create', Form::class)
+        Route::livewire('/create', Form::class)
             ->middleware('can:create,'.Timecard::class)
             ->name('create');
 
-        Route::get('/{timecard}', Show::class)
+        Route::livewire('/{timecard}', Show::class)
             ->middleware('can:view,timecard')
             ->name('show');
 
-        Route::get('/{timecard}/edit', Form::class)
+        Route::livewire('/{timecard}/edit', Form::class)
             ->middleware('can:update,timecard')
             ->name('edit');
     });
@@ -30,7 +30,7 @@ Route::prefix('timecards')
 Route::prefix('reports')
     ->name('reports.')
     ->group(function (): void {
-        Route::get('/financial/labor-cost-analysis', LaborCostAnalysisIndex::class)
+        Route::livewire('/financial/labor-cost-analysis', LaborCostAnalysisIndex::class)
             ->middleware('can:reports.financial.view')
             ->name('financial.labor-cost-analysis.index');
     });

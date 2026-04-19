@@ -25,7 +25,7 @@
 
         @if ($group === 'notifications')
             <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-                <livewire:core.notification.admin.channel-matrix />
+                <livewire:core.notification::admin.channel-matrix />
             </div>
         @endif
 

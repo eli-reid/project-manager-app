@@ -15,13 +15,13 @@ Route::prefix('tasks')
     ->name('tasks.')
     ->middleware('can:viewAny,'.Task::class)
     ->group(function (): void {
-        Route::get('/', TaskIndex::class)->name('index');
+        Route::livewire('/', TaskIndex::class)->name('index');
 
-        Route::get('/create', TaskForm::class)
+        Route::livewire('/create', TaskForm::class)
             ->middleware('can:create,'.Task::class)
             ->name('create');
 
-        Route::get('/{task}/edit', TaskForm::class)
+        Route::livewire('/{task}/edit', TaskForm::class)
             ->middleware('can:update,task')
             ->name('edit');
     });
@@ -30,13 +30,13 @@ Route::prefix('task-categories')
     ->name('task-categories.')
     ->middleware('can:viewAny,'.TaskCategory::class)
     ->group(function (): void {
-        Route::get('/', TaskCategoryIndex::class)->name('index');
+        Route::livewire('/', TaskCategoryIndex::class)->name('index');
 
-        Route::get('/create', TaskCategoryForm::class)
+        Route::livewire('/create', TaskCategoryForm::class)
             ->middleware('can:create,'.TaskCategory::class)
             ->name('create');
 
-        Route::get('/{taskCategory}/edit', TaskCategoryForm::class)
+        Route::livewire('/{taskCategory}/edit', TaskCategoryForm::class)
             ->middleware('can:update,taskCategory')
             ->name('edit');
     });
@@ -45,13 +45,13 @@ Route::prefix('task-templates')
     ->name('task-templates.')
     ->middleware('can:viewAny,'.TaskTemplate::class)
     ->group(function (): void {
-        Route::get('/', TaskTemplateIndex::class)->name('index');
+        Route::livewire('/', TaskTemplateIndex::class)->name('index');
 
-        Route::get('/create', TaskTemplateForm::class)
+        Route::livewire('/create', TaskTemplateForm::class)
             ->middleware('can:create,'.TaskTemplate::class)
             ->name('create');
 
-        Route::get('/{taskTemplate}/edit', TaskTemplateForm::class)
+        Route::livewire('/{taskTemplate}/edit', TaskTemplateForm::class)
             ->middleware('can:update,taskTemplate')
             ->name('edit');
     });

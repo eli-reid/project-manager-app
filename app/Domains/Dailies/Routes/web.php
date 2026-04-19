@@ -9,19 +9,19 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('dailies')
     ->name('dailies.')
     ->group(function (): void {
-        Route::get('/', Index::class)
+        Route::livewire('/', Index::class)
             ->middleware('can:viewAny,'.DailyReport::class)
             ->name('index');
 
-        Route::get('/create', Form::class)
+        Route::livewire('/create', Form::class)
             ->middleware('can:create,'.DailyReport::class)
             ->name('create');
 
-        Route::get('/{dailyReport}', Show::class)
+        Route::livewire('/{dailyReport}', Show::class)
             ->middleware('can:view,dailyReport')
             ->name('show');
 
-        Route::get('/{dailyReport}/edit', Form::class)
+        Route::livewire('/{dailyReport}/edit', Form::class)
             ->middleware('can:update,dailyReport')
             ->name('edit');
     });

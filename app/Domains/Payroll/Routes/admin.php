@@ -13,23 +13,23 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('payroll')
     ->name('payroll.')
     ->group(function (): void {
-        Route::get('/rate-types', PayRateTypeIndex::class)
+        Route::livewire('/rate-types', PayRateTypeIndex::class)
             ->middleware('can:payroll-rates.view')
             ->name('rate-types.index');
 
-        Route::get('/rates', PayRateIndex::class)
+        Route::livewire('/rates', PayRateIndex::class)
             ->middleware('can:payroll-rates.view')
             ->name('rates.index');
 
-        Route::get('/rates/create', PayRateForm::class)
+        Route::livewire('/rates/create', PayRateForm::class)
             ->middleware('can:payroll-rates.manage')
             ->name('rates.create');
 
-        Route::get('/rates/{payRate}/edit', PayRateForm::class)
+        Route::livewire('/rates/{payRate}/edit', PayRateForm::class)
             ->middleware('can:payroll-rates.manage')
             ->name('rates.edit');
 
-        Route::get('/timecards/review', TimecardReview::class)
+        Route::livewire('/timecards/review', TimecardReview::class)
             ->middleware('can:payroll-timecards.view')
             ->name('timecards.review');
 
@@ -37,19 +37,19 @@ Route::prefix('payroll')
             ->middleware('can:payroll-runs.preview')
             ->name('reports.index');
 
-        Route::get('/reports/weekly-employee-hours', WeeklyEmployeeHours::class)
+        Route::livewire('/reports/weekly-employee-hours', WeeklyEmployeeHours::class)
             ->middleware('can:payroll-runs.preview')
             ->name('reports.weekly-employee-hours');
 
-        Route::get('/runs', PayRunIndex::class)
+        Route::livewire('/runs', PayRunIndex::class)
             ->middleware('can:payroll-runs.preview')
             ->name('runs.index');
 
-        Route::get('/runs/create', PayRunForm::class)
+        Route::livewire('/runs/create', PayRunForm::class)
             ->middleware('can:payroll-runs.preview')
             ->name('runs.create');
 
-        Route::get('/runs/{payRun}', PayRunShow::class)
+        Route::livewire('/runs/{payRun}', PayRunShow::class)
             ->middleware('can:payroll-runs.preview')
             ->name('runs.show');
     });

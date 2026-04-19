@@ -10,17 +10,17 @@ Route::prefix('projects')
     ->name('projects.')
     ->middleware('can:viewAny,'.Project::class)
     ->group(function (): void {
-        Route::get('/', ProjectIndex::class)->name('index');
+        Route::livewire('/', ProjectIndex::class)->name('index');
 
-        Route::get('/create', ProjectForm::class)
+        Route::livewire('/create', ProjectForm::class)
             ->middleware('can:create,'.Project::class)
             ->name('create');
 
-        Route::get('/{project}', ProjectShow::class)
+        Route::livewire('/{project}', ProjectShow::class)
             ->middleware('can:view,project')
             ->name('show');
 
-        Route::get('/{project}/edit', ProjectForm::class)
+        Route::livewire('/{project}/edit', ProjectForm::class)
             ->middleware('can:update,project')
             ->name('edit');
     });

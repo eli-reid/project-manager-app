@@ -11,7 +11,7 @@ use Illuminate\View\View;
 Route::prefix('reports')
     ->name('reports.')
     ->group(function (): void {
-        Route::get('/financial/monthly-performance', MonthlyPerformanceIndex::class)
+        Route::livewire('/financial/monthly-performance', MonthlyPerformanceIndex::class)
             ->middleware('can:reports.financial.view')
             ->name('financial.monthly-performance.index');
 

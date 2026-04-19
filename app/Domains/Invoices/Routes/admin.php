@@ -10,17 +10,17 @@ Route::prefix('invoices')
     ->name('invoices.')
     ->middleware('can:viewAny,'.Invoice::class)
     ->group(function (): void {
-        Route::get('/', InvoiceIndex::class)->name('index');
+        Route::livewire('/', InvoiceIndex::class)->name('index');
 
-        Route::get('/create', InvoiceForm::class)
+        Route::livewire('/create', InvoiceForm::class)
             ->middleware('can:create,'.Invoice::class)
             ->name('create');
 
-        Route::get('/{invoice}', InvoiceShow::class)
+        Route::livewire('/{invoice}', InvoiceShow::class)
             ->middleware('can:view,invoice')
             ->name('show');
 
-        Route::get('/{invoice}/edit', InvoiceForm::class)
+        Route::livewire('/{invoice}/edit', InvoiceForm::class)
             ->middleware('can:update,invoice')
             ->name('edit');
     });

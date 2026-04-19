@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('tasks')
     ->name('tasks.')
     ->group(function (): void {
-        Route::get('/', UserTaskIndex::class)
+        Route::livewire('/', UserTaskIndex::class)
             ->middleware('can:viewAny,'.Task::class)
             ->name('index');
     });
@@ -16,7 +16,7 @@ Route::prefix('tasks')
 Route::prefix('reports')
     ->name('reports.')
     ->group(function (): void {
-        Route::get('/operational', OperationalReportsIndex::class)
+        Route::livewire('/operational', OperationalReportsIndex::class)
             ->middleware('can:reports.operational.view')
             ->name('operational.index');
     });

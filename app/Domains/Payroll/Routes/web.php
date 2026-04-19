@@ -14,33 +14,33 @@ Route::prefix('reports')
     ->name('reports.')
     ->middleware('can:reports.payroll.view')
     ->group(function (): void {
-        Route::get('/payroll/certified-wh347', CertifiedPayrollIndex::class)
+        Route::livewire('/payroll/certified-wh347', CertifiedPayrollIndex::class)
             ->name('payroll.certified.index');
 
-        Route::get('/payroll/tax-filings', PayrollTaxFilingsIndex::class)
+        Route::livewire('/payroll/tax-filings', PayrollTaxFilingsIndex::class)
             ->name('payroll.tax-filings.index');
 
-        Route::get('/payroll/labor-cost', PayrollLaborCostIndex::class)
+        Route::livewire('/payroll/labor-cost', PayrollLaborCostIndex::class)
             ->name('payroll.labor-cost.index');
 
-        Route::get('/payroll/union-remittance', PayrollUnionRemittanceIndex::class)
+        Route::livewire('/payroll/union-remittance', PayrollUnionRemittanceIndex::class)
             ->name('payroll.union-remittance.index');
 
-        Route::get('/payroll/audit', PayrollAuditIndex::class)
+        Route::livewire('/payroll/audit', PayrollAuditIndex::class)
             ->name('payroll.audit.index');
 
-        Route::get('/payroll/forecasting', PayrollForecastingIndex::class)
+        Route::livewire('/payroll/forecasting', PayrollForecastingIndex::class)
             ->name('payroll.forecasting.index');
     });
 
 Route::prefix('payroll')
     ->name('payroll.')
     ->group(function (): void {
-        Route::get('/history', PayrollHistoryIndex::class)
+        Route::livewire('/history', PayrollHistoryIndex::class)
             ->middleware('can:payroll-stubs.view-own')
             ->name('history');
 
-        Route::get('/history/{payrollStatement}', PayrollHistoryShow::class)
+        Route::livewire('/history/{payrollStatement}', PayrollHistoryShow::class)
             ->middleware('can:payroll-stubs.view-own')
             ->name('history.show');
     });

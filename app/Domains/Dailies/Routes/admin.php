@@ -10,17 +10,17 @@ Route::prefix('dailies')
     ->name('dailies.')
     ->middleware('can:viewAll,'.DailyReport::class)
     ->group(function (): void {
-        Route::get('/', Index::class)->name('index');
+        Route::livewire('/', Index::class)->name('index');
 
-        Route::get('/create', Form::class)
+        Route::livewire('/create', Form::class)
             ->middleware('can:create,'.DailyReport::class)
             ->name('create');
 
-        Route::get('/{dailyReport}', Show::class)
+        Route::livewire('/{dailyReport}', Show::class)
             ->middleware('can:view,dailyReport')
             ->name('show');
 
-        Route::get('/{dailyReport}/edit', Form::class)
+        Route::livewire('/{dailyReport}/edit', Form::class)
             ->middleware('can:update,dailyReport')
             ->name('edit');
     });
