@@ -48,6 +48,22 @@ it('monthly performance report rows sum to totals shown in footer', function ():
         ->assertSee('1,100.00');
 });
 
+it('monthly performance report renders when stock orders exist without stored totals', function (): void {
+    $user = User::factory()->create(['is_admin' => true]);
+    $project = Project::factory()->create();
+
+    StockOrder::factory()->forProject($project)->create([
+        'created_at' => now()->startOfYear()->addDays(5),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(MonthlyPerfIndex::class)
+        ->set('year', (string) now()->year)
+        ->assertSee('January')
+        ->assertSee('Total');
+});
+
 it('labor cost analysis renders with project grouping', function (): void {
     $user = reportsUserWithPermissions(['financial-reports.view']);
     $project = Project::factory()->create();
