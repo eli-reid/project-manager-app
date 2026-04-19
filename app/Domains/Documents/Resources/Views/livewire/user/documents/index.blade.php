@@ -113,7 +113,7 @@
 
             <div class="mt-5 flex flex-wrap items-center gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-700">
                 <flux:button variant="primary" wire:click="save" wire:loading.attr="disabled" wire:target="save,file">
-                    {{ $editingDocumentId ? 'Update Document' : 'Upload Document' }}
+                    {{ $editingDocumentId ? 'Update Document' : 'Save Document' }}
                 </flux:button>
 
                 @if ($editingDocumentId)

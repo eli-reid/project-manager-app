@@ -97,7 +97,7 @@
 
         <div class="mt-4 flex items-center gap-2">
             <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save,file" class="rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
-                {{ $editingDocumentId ? 'Update Document' : 'Upload Document' }}
+                {{ $editingDocumentId ? 'Update Document' : 'Save Document' }}
             </button>
 
             @if ($editingDocumentId)
