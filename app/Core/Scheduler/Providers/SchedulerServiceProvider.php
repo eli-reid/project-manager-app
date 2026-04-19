@@ -3,11 +3,13 @@
 namespace App\Core\Scheduler\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Scheduler\Commands\DeployUpgradeCommand;
 use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
 use App\Core\Scheduler\Livewire\Admin\Settings\SystemTiming;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
 use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
+use App\Core\Scheduler\Livewire\Dashboard\Widget as DashboardWidget;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Permissions\SchedulerPermissions;
 use App\Core\Scheduler\Policies\ScheduledTaskPolicy;
@@ -57,6 +59,7 @@ class SchedulerServiceProvider extends ServiceProvider
         $this->registerSettings();
         $this->registerInfrastructure();
         $this->registerUIComponents();
+        $this->registerDashboardWidgets();
         $this->registerRoutes();
         $this->registerCommands();
 
@@ -94,6 +97,31 @@ class SchedulerServiceProvider extends ServiceProvider
         Livewire::component('app.core.scheduler.livewire.admin.settings.system-timing', SystemTiming::class);
         Livewire::component('app.core.scheduler.livewire.admin.tasks', Index::class);
         Livewire::component('app.core.scheduler.livewire.admin.tasks.form', Form::class);
+        Livewire::component('app.core.scheduler.livewire.dashboard.widget', DashboardWidget::class);
+    }
+
+    private function registerDashboardWidgets(): void
+    {
+        if (! $this->app->bound(DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        /** @var DashboardWidgetRegistry $widgetRegistry */
+        $widgetRegistry = $this->app->make(DashboardWidgetRegistry::class);
+
+        $widgetRegistry->registerDefinitions([
+            [
+                'key' => 'scheduler.task-health',
+                'component' => 'app.core.scheduler.livewire.dashboard.widget',
+                'section' => 'admin',
+                'sort' => 10,
+                'span' => 'full',
+                'ability' => 'viewAny',
+                'ability_model' => ScheduledTask::class,
+                'title' => 'Scheduler Health',
+                'description' => 'Scheduled task status overview.',
+            ],
+        ]);
     }
 
     private function registerInfrastructure(): void

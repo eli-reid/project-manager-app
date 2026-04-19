@@ -27,7 +27,17 @@ class DashboardServiceProvider extends ServiceProvider
             $registry = $this->app->make(DashboardWidgetRegistry::class);
 
             $allWidgets = collect($registry->all())
-                ->filter(fn (array $widget): bool => $widget['ability'] === '' || Gate::allows($widget['ability']));
+                ->filter(function (array $widget): bool {
+                    if ($widget['ability'] === '') {
+                        return true;
+                    }
+
+                    $model = $widget['ability_model'] ?? '';
+
+                    return $model !== ''
+                        ? Gate::allows($widget['ability'], $model)
+                        : Gate::allows($widget['ability']);
+                });
 
             $sections = collect(self::SECTION_ORDER)
                 ->mapWithKeys(fn (string $section): array => [

@@ -3,12 +3,14 @@
 namespace App\Domains\Timecards\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
+use App\Domains\Timecards\Livewire\Dashboard\Widget as DashboardWidget;
 use App\Domains\Timecards\Livewire\User\Timecards\Form as UserForm;
 use App\Domains\Timecards\Livewire\User\Timecards\Index as UserIndex;
 use App\Domains\Timecards\Livewire\User\Timecards\Show as UserShow;
@@ -33,7 +35,7 @@ class TimecardsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
@@ -42,6 +44,7 @@ class TimecardsServiceProvider extends ServiceProvider
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
+        $this->registerDashboardWidgets($widgetRegistry);
         $this->registerRoutes();
     }
 
@@ -65,6 +68,24 @@ class TimecardsServiceProvider extends ServiceProvider
         Livewire::component('app.domains.timecards.livewire.user.timecards', UserIndex::class);
         Livewire::component('app.domains.timecards.livewire.user.timecards.form', UserForm::class);
         Livewire::component('app.domains.timecards.livewire.user.timecards.show', UserShow::class);
+        Livewire::component('app.domains.timecards.livewire.dashboard.widget', DashboardWidget::class);
+    }
+
+    private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
+    {
+        $widgetRegistry->registerDefinitions([
+            [
+                'key' => 'timecards.my-week',
+                'component' => 'app.domains.timecards.livewire.dashboard.widget',
+                'section' => 'personal',
+                'sort' => 20,
+                'span' => 'half',
+                'ability' => 'viewAny',
+                'ability_model' => Timecard::class,
+                'title' => 'My Timecards',
+                'description' => 'Recent timecard activity.',
+            ],
+        ]);
     }
 
     private function registerRoutes(): void

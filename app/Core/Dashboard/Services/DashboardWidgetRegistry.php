@@ -7,12 +7,12 @@ use Illuminate\Support\Facades\Log;
 class DashboardWidgetRegistry
 {
     /**
-     * @var array<string, array{key: string, component: string, section: string, sort: int, span: string, ability: string, title: string, description: string}>
+     * @var array<string, array{key: string, component: string, section: string, sort: int, span: string, ability: string, ability_model: string, title: string, description: string}>
      */
     private array $definitions = [];
 
     /**
-     * @param  array<int, array{key: string, component: string, section?: string, sort?: int, span?: string, ability?: string, title?: string, description?: string}>  $definitions
+     * @param  array<int, array{key: string, component: string, section?: string, sort?: int, span?: string, ability?: string, ability_model?: string, title?: string, description?: string}>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {
@@ -40,6 +40,7 @@ class DashboardWidgetRegistry
                 'sort' => (int) ($definition['sort'] ?? 100),
                 'span' => (string) ($definition['span'] ?? 'third'),
                 'ability' => (string) ($definition['ability'] ?? ''),
+                'ability_model' => (string) ($definition['ability_model'] ?? ''),
                 'title' => (string) ($definition['title'] ?? str($key)->replace(['.', '-', '_'], ' ')->headline()->value()),
                 'description' => (string) ($definition['description'] ?? ''),
             ];
@@ -47,7 +48,7 @@ class DashboardWidgetRegistry
     }
 
     /**
-     * @return array<int, array{key: string, component: string, section: string, sort: int, span: string, ability: string, title: string, description: string}>
+     * @return array<int, array{key: string, component: string, section: string, sort: int, span: string, ability: string, ability_model: string, title: string, description: string}>
      */
     public function forSection(string $section): array
     {
@@ -62,7 +63,7 @@ class DashboardWidgetRegistry
     }
 
     /**
-     * @return array<int, array{key: string, component: string, section: string, sort: int, span: string, ability: string, title: string, description: string}>
+     * @return array<int, array{key: string, component: string, section: string, sort: int, span: string, ability: string, ability_model: string, title: string, description: string}>
      */
     public function all(): array
     {
