@@ -4,6 +4,7 @@ namespace App\Domains\Documents\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
@@ -22,6 +23,7 @@ class DocumentsServiceProvider extends ServiceProvider
     public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
+        $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -72,5 +74,20 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('documents', __DIR__.'/../config/settings.php');
+    }
+
+    private function configureLivewireTemporaryUploadRules(): void
+    {
+        try {
+            $maxKilobytes = max(1, Settings::get('documents.max_file_size', 10240)->toInt());
+        } catch (\Throwable) {
+            $maxKilobytes = 10240;
+        }
+
+        config()->set('livewire.temporary_file_upload.rules', [
+            'required',
+            'file',
+            'max:'.$maxKilobytes,
+        ]);
     }
 }

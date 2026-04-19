@@ -38,20 +38,20 @@
                     </flux:field>
                 </div>
 
-                <div class="space-y-3 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
+                <div x-data="{ selectedFileName: '' }" class="space-y-3 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
                     <div>
                         <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">File</p>
                         <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Choose a replacement file or keep the current one while editing.</p>
                     </div>
 
+                    @php($defaultFileLabel = optional($file)->getClientOriginalName() ?? ($editingDocumentId ? 'No new file selected. The current file will be kept.' : 'No file selected yet.'))
+
                     <label for="user-document-file" class="flex cursor-pointer flex-col gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-900/80">
                         <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">Choose file</span>
-                        <span class="text-xs text-zinc-500 dark:text-zinc-400">
-                            {{ optional($file)->getClientOriginalName() ?? ($editingDocumentId ? 'No new file selected. The current file will be kept.' : 'No file selected yet.') }}
-                        </span>
+                        <span x-text="selectedFileName || @js($defaultFileLabel)" class="text-xs text-zinc-500 dark:text-zinc-400"></span>
                     </label>
 
-                    <input id="user-document-file" type="file" wire:model="file" class="sr-only" />
+                    <input id="user-document-file" type="file" wire:model="file" x-on:change="selectedFileName = $event.target.files?.[0]?.name ?? ''" class="sr-only" />
                     <flux:error name="file" />
 
                     <div wire:loading wire:target="file" class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300">
