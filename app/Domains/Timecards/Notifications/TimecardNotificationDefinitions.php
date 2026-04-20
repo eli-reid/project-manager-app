@@ -12,6 +12,8 @@ class TimecardNotificationDefinitions
 
     public const REMINDER = 'timecards.reminder';
 
+    public const MISSING_REMINDER = 'timecards.missing-reminder';
+
     /**
      * @return array<int, array{key:string,label:string,description:string,supported_channels:array<int, string>}>
      */
@@ -40,6 +42,12 @@ class TimecardNotificationDefinitions
                 'key' => self::REMINDER,
                 'label' => 'Timecard Reminder',
                 'description' => 'Sent when a pending timecard needs attention.',
+                'supported_channels' => ['mail', 'database', 'sms'],
+            ],
+            [
+                'key' => self::MISSING_REMINDER,
+                'label' => 'Missing Timecard Reminder',
+                'description' => 'Sent when a required timecard has not been submitted.',
                 'supported_channels' => ['mail', 'database', 'sms'],
             ],
         ];

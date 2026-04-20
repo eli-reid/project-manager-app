@@ -2,7 +2,10 @@
 
 namespace App\Domains\Timecards\Services;
 
+use App\Core\Identity\Models\User;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Models\TimecardRequiredUser;
+use App\Domains\Timecards\Notifications\MissingTimecardReminder;
 use App\Domains\Timecards\Notifications\TimecardReminderNotification;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Cache;
@@ -22,6 +25,20 @@ class TimecardReminderService
 
         $targetDate = now()->startOfDay()->subDays(max(0, $daysAfterWeekEnd));
 
+        // Send reminders for existing draft/rejected timecards
+        $sent = $this->sendExistingTimecardReminders($targetDate, $statuses);
+
+        // Send reminders for required users with missing/unsubmitted timecards
+        $sent += $this->sendMissingTimecardReminders($targetDate);
+
+        return $sent;
+    }
+
+    /**
+     * Send reminders for existing timecards with draft/rejected status.
+     */
+    private function sendExistingTimecardReminders(CarbonInterface $targetDate, array $statuses): int
+    {
         $timecards = Timecard::query()
             ->with('user')
             ->whereIn('status', $statuses)
@@ -37,16 +54,102 @@ class TimecardReminderService
                 continue;
             }
 
-            if ($this->alreadySentReminderToday((string) $timecard->id)) {
+            // Check if user is required to submit timecards
+            if (! $this->isUserTimecardRequired($user)) {
+                continue;
+            }
+
+            if ($this->alreadySentReminderToday((string) $timecard->id, 'existing')) {
                 continue;
             }
 
             $user->notify(new TimecardReminderNotification($timecard));
-            $this->markReminderSentToday((string) $timecard->id);
+            $this->markReminderSentToday((string) $timecard->id, 'existing');
             $sent++;
         }
 
         return $sent;
+    }
+
+    /**
+     * Send reminders for required users with missing submitted/approved timecards.
+     */
+    private function sendMissingTimecardReminders(CarbonInterface $targetDate): int
+    {
+        // Get all required users with reminders enabled
+        $requiredUsers = TimecardRequiredUser::query()
+            ->with('user')
+            ->where('reminders_enabled', true)
+            ->get()
+            ->filter(function (TimecardRequiredUser $entry) {
+                $user = $entry->user;
+
+                if (! $user || ! $user->is_active) {
+                    return false;
+                }
+
+                // Check if within effective date range
+                if ($entry->effective_start_date && now() < $entry->effective_start_date) {
+                    return false;
+                }
+
+                if ($entry->effective_end_date && now() > $entry->effective_end_date) {
+                    return false;
+                }
+
+                return true;
+            });
+
+        $sent = 0;
+        $weekStart = $targetDate->copy()->startOfWeek();
+
+        foreach ($requiredUsers as $entry) {
+            $user = $entry->user;
+
+            // Check if user has any submitted or approved timecard for this week
+            $existingValidTimecard = Timecard::query()
+                ->where('user_id', $user->id)
+                ->where('week_starting', $weekStart->toDateString())
+                ->whereIn('status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED])
+                ->exists();
+
+            if ($existingValidTimecard) {
+                continue;
+            }
+
+            if ($this->alreadySentReminderToday($user->id, 'missing')) {
+                continue;
+            }
+
+            $user->notify(new MissingTimecardReminder($weekStart));
+            $this->markReminderSentToday($user->id, 'missing');
+            $sent++;
+        }
+
+        return $sent;
+    }
+
+    /**
+     * Check if a user is required to submit timecards.
+     */
+    private function isUserTimecardRequired(User $user): bool
+    {
+        $entry = TimecardRequiredUser::where('user_id', $user->id)->first();
+
+        if (! $entry) {
+            return false;
+        }
+
+        // Check if within effective date range
+        if ($entry->effective_start_date && now() < $entry->effective_start_date) {
+            return false;
+        }
+
+        if ($entry->effective_end_date && now() > $entry->effective_end_date) {
+            return false;
+        }
+
+        return $entry->reminders_enabled;
     }
 
     /**
@@ -64,18 +167,18 @@ class TimecardReminderService
             ->all();
     }
 
-    private function alreadySentReminderToday(string $timecardId): bool
+    private function alreadySentReminderToday(string $id, string $type): bool
     {
-        return Cache::has($this->cacheKey($timecardId, now()));
+        return Cache::has($this->cacheKey($id, $type, now()));
     }
 
-    private function markReminderSentToday(string $timecardId): void
+    private function markReminderSentToday(string $id, string $type): void
     {
-        Cache::put($this->cacheKey($timecardId, now()), true, now()->endOfDay());
+        Cache::put($this->cacheKey($id, $type, now()), true, now()->endOfDay());
     }
 
-    private function cacheKey(string $timecardId, CarbonInterface $date): string
+    private function cacheKey(string $id, string $type, CarbonInterface $date): string
     {
-        return 'timecards.reminder_sent.'.$timecardId.'.'.$date->toDateString();
+        return 'timecards.reminder_sent.'.$id.'.'.$type.'.'.$date->toDateString();
     }
 }

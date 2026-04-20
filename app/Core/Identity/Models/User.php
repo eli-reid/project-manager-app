@@ -11,6 +11,7 @@ use App\Core\Notification\Services\NotificationPreferenceService;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
+use App\Domains\Timecards\Models\TimecardRequiredUser;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -111,6 +112,11 @@ class User extends Authenticatable
     public function payrollProfile(): HasOne
     {
         return $this->hasOne(PayrollEmployeeProfile::class);
+    }
+
+    public function timecardRequiredEntry(): HasOne
+    {
+        return $this->hasOne(TimecardRequiredUser::class, 'user_id');
     }
 
     public function payrollStatements(): HasMany
