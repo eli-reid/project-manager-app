@@ -6,6 +6,7 @@ use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Models\TimecardRequiredUser;
 use App\Domains\Timecards\Notifications\TimecardReminderDigestNotification;
 use App\Domains\Timecards\Services\TimecardReminderService;
 use App\Domains\Timecards\Services\TimecardWeekService;
@@ -29,6 +30,7 @@ it('sends reminder notifications for pending timecards', function (): void {
         ->toDateString();
 
     $user = User::factory()->create(['is_active' => true]);
+    TimecardRequiredUser::factory()->create(['user_id' => $user->id]);
 
     $timecard = Timecard::factory()->create([
         'user_id' => $user->id,
@@ -78,6 +80,7 @@ it('does not send duplicate reminders on the same day', function (): void {
         ->toDateString();
 
     $user = User::factory()->create(['is_active' => true]);
+    TimecardRequiredUser::factory()->create(['user_id' => $user->id]);
 
     Timecard::factory()->create([
         'user_id' => $user->id,
@@ -122,6 +125,7 @@ it('does not send a reminder when the daily reminder key is already claimed', fu
         ->toDateString();
 
     $user = User::factory()->create(['is_active' => true]);
+    TimecardRequiredUser::factory()->create(['user_id' => $user->id]);
 
     $timecard = Timecard::factory()->create([
         'user_id' => $user->id,
@@ -154,6 +158,7 @@ it('ignores older pending timecards outside the relevant reminder week', functio
         ->toDateString();
 
     $user = User::factory()->create(['is_active' => true]);
+    TimecardRequiredUser::factory()->create(['user_id' => $user->id]);
 
     Timecard::factory()->create([
         'user_id' => $user->id,

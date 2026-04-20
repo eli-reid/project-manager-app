@@ -7,7 +7,8 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardRequiredUser;
 use App\Domains\Timecards\Notifications\MissingTimecardReminder;
-use App\Domains\Timecards\Notifications\TimecardReminderNotification;
+use App\Domains\Timecards\Notifications\TimecardReminderDigestNotification;
+use App\Domains\Timecards\Services\TimecardWeekService;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;
 use Illuminate\Support\Facades\Notification;
 
@@ -35,12 +36,25 @@ function createTimecardReminderScheduledTask(array $taskConfig = []): ScheduledT
     ]);
 }
 
-it('sends reminder for existing draft timecard if user is required', function (): void {
+function targetWeekBounds(): array
+{
+    $targetWeekEnding = app(TimecardWeekService::class)
+        ->weekEndingFor(now()->startOfDay())
+        ->toDateString();
+
+    return [
+        'start' => now()->parse($targetWeekEnding)->subDays(6)->toDateString(),
+        'end' => $targetWeekEnding,
+    ];
+}
+
+it('sends digest reminder for existing draft timecard if user is required', function (): void {
     Notification::fake();
 
     Settings::set('notifications.enabled', 'true');
     Settings::set('notifications.default_channels', '["mail", "database"]');
 
+    $week = targetWeekBounds();
     $user = User::factory()->create(['is_active' => true]);
 
     TimecardRequiredUser::factory()->create([
@@ -51,42 +65,43 @@ it('sends reminder for existing draft timecard if user is required', function ()
     $timecard = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_DRAFT,
-        'week_starting' => now()->subWeek()->startOfWeek()->toDateString(),
-        'week_ending' => now()->subDay()->toDateString(),
+        'week_starting' => $week['start'],
+        'week_ending' => $week['end'],
     ]);
 
     $scheduledTask = createTimecardReminderScheduledTask();
 
     (new TimecardReminderTask($scheduledTask))->dispatchJob();
 
-    Notification::assertSentTo($user, TimecardReminderNotification::class, function (TimecardReminderNotification $notification) use ($timecard): bool {
-        return (string) $notification->timecard->id === (string) $timecard->id;
+    Notification::assertSentTo($user, TimecardReminderDigestNotification::class, function (TimecardReminderDigestNotification $notification) use ($timecard): bool {
+        return $notification->timecards->contains(fn (Timecard $candidate): bool => (string) $candidate->id === (string) $timecard->id);
     });
 });
 
-it('does not send existing timecard reminder if user is not required', function (): void {
+it('does not send digest reminder for existing draft timecard if user is not required', function (): void {
     Notification::fake();
 
     Settings::set('notifications.enabled', 'true');
     Settings::set('notifications.default_channels', '["mail", "database"]');
 
+    $week = targetWeekBounds();
     $user = User::factory()->create(['is_active' => true]);
 
     Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_DRAFT,
-        'week_starting' => now()->subWeek()->startOfWeek()->toDateString(),
-        'week_ending' => now()->subDay()->toDateString(),
+        'week_starting' => $week['start'],
+        'week_ending' => $week['end'],
     ]);
 
     $scheduledTask = createTimecardReminderScheduledTask();
 
     (new TimecardReminderTask($scheduledTask))->dispatchJob();
 
-    Notification::assertNotSentTo($user, TimecardReminderNotification::class);
+    Notification::assertNotSentTo($user, TimecardReminderDigestNotification::class);
 });
 
-it('sends missing reminder for required user without submitted or approved timecard', function (): void {
+it('sends missing reminder for required user without any timecard for the target week', function (): void {
     Notification::fake();
 
     Settings::set('notifications.enabled', 'true');
@@ -106,12 +121,13 @@ it('sends missing reminder for required user without submitted or approved timec
     Notification::assertSentTo($user, MissingTimecardReminder::class);
 });
 
-it('does not send missing reminder when submitted timecard exists for current week', function (): void {
+it('does not send missing reminder when submitted timecard exists for target week', function (): void {
     Notification::fake();
 
     Settings::set('notifications.enabled', 'true');
     Settings::set('notifications.default_channels', '["mail", "database"]');
 
+    $week = targetWeekBounds();
     $user = User::factory()->create(['is_active' => true]);
 
     TimecardRequiredUser::factory()->create([
@@ -122,8 +138,8 @@ it('does not send missing reminder when submitted timecard exists for current we
     Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_SUBMITTED,
-        'week_starting' => now()->startOfWeek()->toDateString(),
-        'week_ending' => now()->startOfWeek()->addDays(6)->toDateString(),
+        'week_starting' => $week['start'],
+        'week_ending' => $week['end'],
     ]);
 
     $scheduledTask = createTimecardReminderScheduledTask();

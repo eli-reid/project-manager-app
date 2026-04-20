@@ -6,7 +6,7 @@ use App\Core\Identity\Models\User;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardRequiredUser;
 use App\Domains\Timecards\Notifications\MissingTimecardReminder;
-use App\Domains\Timecards\Notifications\TimecardReminderNotification;
+use App\Domains\Timecards\Notifications\TimecardReminderDigestNotification;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -29,20 +29,23 @@ class TimecardReminderService
         ]);
 
         $targetDate = now()->startOfDay()->subDays(max(0, $daysAfterWeekEnd));
+        $targetWeekEnding = $this->timecardWeekService
+            ->weekEndingFor($targetDate)
+            ->toDateString();
 
-        // Send reminders for existing draft/rejected timecards
-        $sent = $this->sendExistingTimecardReminders($targetDate, $statuses);
+        // Send digest reminders for existing draft/rejected timecards.
+        $sent = $this->sendExistingTimecardReminders($targetWeekEnding, $statuses, $batchSize);
 
-        // Send reminders for required users with missing/unsubmitted timecards
-        $sent += $this->sendMissingTimecardReminders($targetDate);
+        // Send reminders for required users with missing submitted/approved timecards.
+        $sent += $this->sendMissingTimecardReminders($targetWeekEnding, $batchSize);
 
         return $sent;
     }
 
     /**
-     * Send reminders for existing timecards with draft/rejected status.
+     * Send digest reminders for existing timecards with draft/rejected status.
      */
-    private function sendExistingTimecardReminders(CarbonInterface $targetDate, array $statuses): int
+    private function sendExistingTimecardReminders(string $targetWeekEnding, array $statuses, int $batchSize): int
     {
         $timecards = Timecard::query()
             ->with('user')
@@ -64,18 +67,18 @@ class TimecardReminderService
                     continue;
                 }
 
-            // Check if user is required to submit timecards
-            if (! $this->isUserTimecardRequired($user)) {
-                continue;
-            }
+                if (! $this->isUserTimecardRequired($user)) {
+                    continue;
+                }
 
-            if ($this->alreadySentReminderToday((string) $timecard->id, 'existing')) {
-                continue;
-            }
+                if ($this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
+                    continue;
+                }
 
-            $user->notify(new TimecardReminderNotification($timecard));
-            $this->markReminderSentToday((string) $timecard->id, 'existing');
-            $sent++;
+                $user->notify(new TimecardReminderDigestNotification($userTimecards, $targetWeekEnding));
+                $this->markReminderSentToday((string) $user->id, $targetWeekEnding);
+                $sent++;
+            }
         }
 
         return $sent;
@@ -84,59 +87,74 @@ class TimecardReminderService
     /**
      * Send reminders for required users with missing submitted/approved timecards.
      */
-    private function sendMissingTimecardReminders(CarbonInterface $targetDate): int
+    private function sendMissingTimecardReminders(string $targetWeekEnding, int $batchSize): int
     {
-        // Get all required users with reminders enabled
-        $requiredUsers = TimecardRequiredUser::query()
+        /** @var Collection<int, TimecardRequiredUser> $requiredEntries */
+        $requiredEntries = TimecardRequiredUser::query()
             ->with('user')
             ->where('reminders_enabled', true)
             ->get()
-            ->filter(function (TimecardRequiredUser $entry) {
+            ->filter(fn (TimecardRequiredUser $entry): bool => $this->isEntryActiveForToday($entry));
+
+        $sent = 0;
+        $weekStart = $this->timecardWeekService
+            ->normalizeWeekStart($targetWeekEnding)
+            ->toDateString();
+
+        foreach ($requiredEntries->chunk($batchSize) as $entryBatch) {
+            foreach ($entryBatch as $entry) {
                 $user = $entry->user;
 
                 if (! $user || ! $user->is_active) {
-                    return false;
+                    continue;
                 }
 
-                // Check if within effective date range
-                if ($entry->effective_start_date && now() < $entry->effective_start_date) {
-                    return false;
+                $hasSubmittedOrApproved = Timecard::query()
+                    ->where('user_id', $user->id)
+                    ->whereDate('week_starting', $weekStart)
+                    ->whereIn('status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED])
+                    ->exists();
+
+                if ($hasSubmittedOrApproved) {
+                    continue;
                 }
 
-                if ($entry->effective_end_date && now() > $entry->effective_end_date) {
-                    return false;
+                // If a timecard already exists for this week (draft/rejected/etc), the digest reminder path handles it.
+                $hasAnyTimecardForWeek = Timecard::query()
+                    ->where('user_id', $user->id)
+                    ->whereDate('week_starting', $weekStart)
+                    ->exists();
+
+                if ($hasAnyTimecardForWeek) {
+                    continue;
                 }
 
-                return true;
-            });
+                if ($this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
+                    continue;
+                }
 
-        $sent = 0;
-        $weekStart = $targetDate->copy()->startOfWeek();
-
-        foreach ($requiredUsers as $entry) {
-            $user = $entry->user;
-
-            // Check if user has any submitted or approved timecard for this week
-            $existingValidTimecard = Timecard::query()
-                ->where('user_id', $user->id)
-                ->where('week_starting', $weekStart->toDateString())
-                ->whereIn('status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED])
-                ->exists();
-
-            if ($existingValidTimecard) {
-                continue;
+                $user->notify(new MissingTimecardReminder(now()->parse($weekStart)));
+                $this->markReminderSentToday((string) $user->id, $targetWeekEnding);
+                $sent++;
             }
-
-            if ($this->alreadySentReminderToday($user->id, 'missing')) {
-                continue;
-            }
-
-            $user->notify(new MissingTimecardReminder($weekStart));
-            $this->markReminderSentToday($user->id, 'missing');
-            $sent++;
         }
 
         return $sent;
+    }
+
+    private function isEntryActiveForToday(TimecardRequiredUser $entry): bool
+    {
+        $today = now();
+
+        if ($entry->effective_start_date && $today->lt($entry->effective_start_date)) {
+            return false;
+        }
+
+        if ($entry->effective_end_date && $today->gt($entry->effective_end_date)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -150,16 +168,7 @@ class TimecardReminderService
             return false;
         }
 
-        // Check if within effective date range
-        if ($entry->effective_start_date && now() < $entry->effective_start_date) {
-            return false;
-        }
-
-        if ($entry->effective_end_date && now() > $entry->effective_end_date) {
-            return false;
-        }
-
-        return $entry->reminders_enabled;
+        return $entry->reminders_enabled && $this->isEntryActiveForToday($entry);
     }
 
     /**
@@ -177,18 +186,18 @@ class TimecardReminderService
             ->all();
     }
 
-    private function alreadySentReminderToday(string $id, string $type): bool
+    private function alreadySentReminderToday(string $userId, string $weekEnding): bool
     {
-        return Cache::has($this->cacheKey($id, $type, now()));
+        return Cache::has($this->cacheKey($userId, $weekEnding, now()));
     }
 
-    private function markReminderSentToday(string $id, string $type): void
+    private function markReminderSentToday(string $userId, string $weekEnding): void
     {
-        Cache::put($this->cacheKey($id, $type, now()), true, now()->endOfDay());
+        Cache::put($this->cacheKey($userId, $weekEnding, now()), true, now()->endOfDay());
     }
 
-    private function cacheKey(string $id, string $type, CarbonInterface $date): string
+    private function cacheKey(string $userId, string $weekEnding, CarbonInterface $date): string
     {
-        return 'timecards.reminder_sent.'.$id.'.'.$type.'.'.$date->toDateString();
+        return 'timecards.reminder_sent.user.'.$userId.'.week_ending.'.$weekEnding.'.'.$date->toDateString();
     }
 }

@@ -5,9 +5,15 @@
             <p class="text-sm text-zinc-500 dark:text-zinc-400">Track weekly timecard status and approvals.</p>
         </div>
 
-        @can('create', \App\Domains\Timecards\Models\Timecard::class)
-            <a href="{{ route('admin.timecards.create') }}" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300" wire:navigate>Create Timecard</a>
-        @endcan
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.timecards.required-users') }}" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" wire:navigate>
+                Required Users
+            </a>
+
+            @can('create', \App\Domains\Timecards\Models\Timecard::class)
+                <a href="{{ route('admin.timecards.create') }}" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300" wire:navigate>Create Timecard</a>
+            @endcan
+        </div>
     </div>
 
     <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">

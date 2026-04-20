@@ -5,7 +5,7 @@ namespace App\Domains\Timecards\Notifications;
 use App\Core\Identity\Models\User;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Services\NotificationPreferenceService;
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -18,7 +18,7 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
     use SerializesModels;
 
     public function __construct(
-        public readonly Carbon $weekStarting,
+        public readonly CarbonInterface $weekStarting,
     ) {}
 
     /**

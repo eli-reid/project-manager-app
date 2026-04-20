@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Timecards\Livewire\Admin\RequiredUsers\Index as RequiredUsersIndex;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show;
@@ -11,6 +12,10 @@ Route::prefix('timecards')
     ->middleware('can:viewAll,'.Timecard::class)
     ->group(function (): void {
         Route::livewire('/', Index::class)->name('index');
+
+        Route::livewire('/required-users', RequiredUsersIndex::class)
+            ->middleware('can:viewAll,'.Timecard::class)
+            ->name('required-users');
 
         Route::livewire('/create', Form::class)
             ->middleware('can:create,'.Timecard::class)

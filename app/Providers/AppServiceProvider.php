@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Database\Eloquent\Model;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,7 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         $this->configureDefaults();
+         Model::preventLazyLoading(! app()->isProduction());
     }
 
     /**

@@ -21,7 +21,8 @@ it('contains core timecard notification events', function (): void {
         ->toContain(TimecardNotificationDefinitions::APPROVED)
         ->toContain(TimecardNotificationDefinitions::SUBMITTED)
         ->toContain(TimecardNotificationDefinitions::REJECTED)
-        ->toContain(TimecardNotificationDefinitions::REMINDER);
+        ->toContain(TimecardNotificationDefinitions::REMINDER)
+        ->toContain(TimecardNotificationDefinitions::MISSING_REMINDER);
 });
 
 it('contains project and task notification events from their domains', function (): void {
