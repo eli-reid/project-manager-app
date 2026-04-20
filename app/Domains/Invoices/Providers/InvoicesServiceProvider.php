@@ -3,9 +3,6 @@
 namespace App\Domains\Invoices\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Domains\Invoices\Livewire\Admin\Invoices\Form;
-use App\Domains\Invoices\Livewire\Admin\Invoices\Index;
-use App\Domains\Invoices\Livewire\Admin\Invoices\Show;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Permissions\InvoicePermissions;
 use App\Domains\Invoices\Policies\InvoicePolicy;
@@ -45,9 +42,7 @@ class InvoicesServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.invoices.livewire.admin.invoices', Index::class);
-        Livewire::component('app.domains.invoices.livewire.admin.invoices.form', Form::class);
-        Livewire::component('app.domains.invoices.livewire.admin.invoices.show', Show::class);
+        Livewire::addNamespace('invoices', classNamespace: 'App\Domains\Invoices\Livewire');
     }
 
     private function registerRoutes(): void

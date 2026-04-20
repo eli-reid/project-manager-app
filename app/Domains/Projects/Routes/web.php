@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('projects')
     ->name('projects.')
     ->group(function (): void {
-        Route::get('/', Index::class)
+        Route::livewire('/', Index::class)
             ->middleware('can:viewAny,'.Project::class)
             ->name('index');
 
-        Route::get('/{project}', Show::class)
+        Route::livewire('/{project}', Show::class)
             ->middleware('can:view,project')
             ->name('show');
     });
@@ -21,7 +21,7 @@ Route::prefix('projects')
 Route::prefix('reports')
     ->name('reports.')
     ->group(function (): void {
-        Route::get('/financial', FinancialReportsIndex::class)
+        Route::livewire('/financial', FinancialReportsIndex::class)
             ->middleware('can:reports.financial.view')
             ->name('financial.index');
     });

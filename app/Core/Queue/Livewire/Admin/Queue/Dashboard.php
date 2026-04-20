@@ -81,6 +81,18 @@ class Dashboard extends Component
         session()->flash('success', 'All failed jobs cleared.');
     }
 
+    public function clearHistory(): void
+    {
+        $this->authorize('queue.manage');
+
+        $deletedCount = app(QueueManagerService::class)->clearHistory($this->historyFilter);
+        $scope = $this->historyFilter === 'all' ? 'all' : $this->historyFilter;
+
+        session()->flash('success', "Cleared {$deletedCount} {$scope} history record(s).");
+
+        $this->resetPage();
+    }
+
     public function render()
     {
         $service = app(QueueManagerService::class);

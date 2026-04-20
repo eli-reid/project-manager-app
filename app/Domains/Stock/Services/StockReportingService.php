@@ -13,16 +13,17 @@ class StockReportingService
     public function projectMetrics(string $projectId, ?string $fromDate = null, ?string $toDate = null): array
     {
         $query = $this->baseQuery($projectId, $fromDate, $toDate);
+        $count = (int) $query->count();
 
         return [
-            'count' => (int) $query->count(),
-            'total' => (float) ($query->sum('total_cost') ?? 0.0),
+            'count' => $count,
+            'total' => $this->totalForQuery($query),
         ];
     }
 
     public function totalBetween(?string $projectId = null, ?string $fromDate = null, ?string $toDate = null): float
     {
-        return (float) ($this->baseQuery($projectId, $fromDate, $toDate)->sum('total_cost') ?? 0.0);
+        return $this->totalForQuery($this->baseQuery($projectId, $fromDate, $toDate));
     }
 
     private function baseQuery(?string $projectId, ?string $fromDate, ?string $toDate): Builder
@@ -42,5 +43,14 @@ class StockReportingService
         }
 
         return $query;
+    }
+
+    private function totalForQuery(Builder $query): float
+    {
+        if (! $query->getModel()->getConnection()->getSchemaBuilder()->hasColumn('stock_orders', 'total_cost')) {
+            return 0.0;
+        }
+
+        return (float) ($query->sum('total_cost') ?? 0.0);
     }
 }

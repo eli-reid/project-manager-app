@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\Livewire\Settings\DeleteUserForm;
 use App\Core\Identity\Livewire\Settings\Profile;
 use App\Core\Identity\Models\User;
 use Livewire\Livewire;
@@ -55,7 +56,7 @@ test('user can delete their account', function () {
 
     $this->actingAs($user);
 
-    $response = Livewire::test('settings.delete-user-form')
+    $response = Livewire::test(DeleteUserForm::class)
         ->set('password', 'password')
         ->call('deleteUser');
 
@@ -72,7 +73,7 @@ test('correct password must be provided to delete account', function () {
 
     $this->actingAs($user);
 
-    $response = Livewire::test('settings.delete-user-form')
+    $response = Livewire::test(DeleteUserForm::class)
         ->set('password', 'wrong-password')
         ->call('deleteUser');
 

@@ -7,5 +7,5 @@ Route::prefix('queue')
     ->name('queue.')
     ->middleware('can:queue.viewAny')
     ->group(function (): void {
-        Route::get('/', Dashboard::class)->name('index');
+        Route::livewire('/', Dashboard::class)->name('index');
     });

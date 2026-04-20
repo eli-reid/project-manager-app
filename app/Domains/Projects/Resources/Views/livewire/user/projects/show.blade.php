@@ -182,7 +182,7 @@
     @endif
 
     @if ($activeTab === 'documents' && in_array('documents', $tabs, true))
-        <livewire:app.domains.documents.livewire.admin.projects.documents-tab :project="$project" :key="'user-project-documents-tab-'.$project->id" />
+        <livewire:documents::admin.projects.documents-tab :project="$project" :key="'user-project-documents-tab-'.$project->id" />
     @endif
 
     @if ($activeTab === 'financials' && in_array('financials', $tabs, true))
@@ -219,6 +219,6 @@
     @endif
 
     @if ($activeTab === 'forecasting' && in_array('forecasting', $tabs, true))
-        <livewire:app.domains.payroll.livewire.user.forecasting.weekly-burn-rate-widget :project="$project" :key="'project-forecasting-widget-'.$project->id" />
+        <livewire:payroll::user.forecasting.weekly-burn-rate-widget :project="$project" :key="'project-forecasting-widget-'.$project->id" />
     @endif
 </section>

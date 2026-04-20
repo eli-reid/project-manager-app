@@ -2,13 +2,11 @@
 
 namespace App\Core\Announcement\Providers;
 
-use App\Core\Announcement\Livewire\Admin\Announcements\Form;
-use App\Core\Announcement\Livewire\Admin\Announcements\Index;
-use App\Core\Announcement\Livewire\Dashboard\Widget;
 use App\Core\Announcement\Models\Announcement;
 use App\Core\Announcement\Permissions\AnnouncementPermissions;
 use App\Core\Announcement\Policies\AnnouncementPolicy;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -21,20 +19,35 @@ class AnnouncementServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(): void
+    public function boot(DashboardWidgetRegistry $widgetRegistry): void
     {
         $this->registerAuthorization();
         $this->registerPermissions();
         $this->registerInfrastructure();
         $this->registerUIComponents();
+        $this->registerDashboardWidgets($widgetRegistry);
         $this->registerRoutes();
+    }
+
+    private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
+    {
+        $widgetRegistry->registerDefinitions([
+            [
+                'key' => 'core.announcements',
+                'component' => 'announcement::dashboard.widget',
+                'section' => 'primary',
+                'sort' => 10,
+                'span' => 'half',
+                'ability' => '',
+                'title' => 'Company Announcements',
+                'description' => 'Latest updates for the team.',
+            ],
+        ]);
     }
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.announcement.livewire.admin.announcements', Index::class);
-        Livewire::component('app.core.announcement.livewire.admin.announcements.form', Form::class);
-        Livewire::component('app.core.announcement.livewire.dashboard.widget', Widget::class);
+        Livewire::addNamespace('announcement', classNamespace: 'App\Core\Announcement\Livewire');
     }
 
     private function registerAuthorization(): void

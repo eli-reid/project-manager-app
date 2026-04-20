@@ -3,12 +3,6 @@
 namespace App\Domains\Reports\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Domains\Reports\Livewire\Admin\Reports\Index as AdminReportsIndex;
-use App\Domains\Reports\Livewire\User\FinancialReports\Index as FinancialReportsIndex;
-use App\Domains\Reports\Livewire\User\LaborCostAnalysis\Index as LaborCostAnalysisIndex;
-use App\Domains\Reports\Livewire\User\MaterialCostAnalysis\Index as MaterialCostAnalysisIndex;
-use App\Domains\Reports\Livewire\User\MonthlyPerformance\Index as MonthlyPerformanceIndex;
-use App\Domains\Reports\Livewire\User\OperationalReports\Index as OperationalReportsIndex;
 use App\Domains\Reports\Permissions\ReportPermissions;
 use App\Domains\Reports\Policies\ReportPolicy;
 use App\Domains\Reports\Services\ReportRegistry;
@@ -56,12 +50,7 @@ class ReportsServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.reports.livewire.admin.reports', AdminReportsIndex::class);
-        Livewire::component('app.domains.reports.livewire.user.financial-reports', FinancialReportsIndex::class);
-        Livewire::component('app.domains.reports.livewire.user.operational-reports', OperationalReportsIndex::class);
-        Livewire::component('app.domains.reports.livewire.user.monthly-performance', MonthlyPerformanceIndex::class);
-        Livewire::component('app.domains.reports.livewire.user.labor-cost-analysis', LaborCostAnalysisIndex::class);
-        Livewire::component('app.domains.reports.livewire.user.material-cost-analysis', MaterialCostAnalysisIndex::class);
+        Livewire::addNamespace('reports', classNamespace: 'App\Domains\Reports\Livewire');
     }
 
     private function registerRoutes(): void

@@ -4,7 +4,6 @@ namespace App\Core\Queue\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Queue\Listeners\RecordQueueJobHistory;
-use App\Core\Queue\Livewire\Admin\Queue\Dashboard;
 use App\Core\Queue\Permissions\QueuePermissions;
 use App\Core\Queue\Policies\QueuePolicy;
 use App\Core\Queue\Services\QueueManagerService;
@@ -60,7 +59,7 @@ class QueueManagerServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.queue.livewire.admin.queue.dashboard', Dashboard::class);
+        Livewire::addNamespace('queue', classNamespace: 'App\Core\Queue\Livewire');
     }
 
     private function registerInfrastructure(): void

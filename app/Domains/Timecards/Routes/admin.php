@@ -10,17 +10,17 @@ Route::prefix('timecards')
     ->name('timecards.')
     ->middleware('can:viewAll,'.Timecard::class)
     ->group(function (): void {
-        Route::get('/', Index::class)->name('index');
+        Route::livewire('/', Index::class)->name('index');
 
-        Route::get('/create', Form::class)
+        Route::livewire('/create', Form::class)
             ->middleware('can:create,'.Timecard::class)
             ->name('create');
 
-        Route::get('/{timecard}/edit', Form::class)
+        Route::livewire('/{timecard}/edit', Form::class)
             ->middleware('can:update,timecard')
             ->name('edit');
 
-        Route::get('/{timecard}', Show::class)
+        Route::livewire('/{timecard}', Show::class)
             ->middleware('can:view,timecard')
             ->name('show');
     });

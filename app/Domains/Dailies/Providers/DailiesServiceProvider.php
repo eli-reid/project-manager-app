@@ -3,12 +3,6 @@
 namespace App\Domains\Dailies\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Domains\Dailies\Livewire\Admin\Dailies\Form as AdminForm;
-use App\Domains\Dailies\Livewire\Admin\Dailies\Index as AdminIndex;
-use App\Domains\Dailies\Livewire\Admin\Dailies\Show as AdminShow;
-use App\Domains\Dailies\Livewire\User\Dailies\Form as UserForm;
-use App\Domains\Dailies\Livewire\User\Dailies\Index as UserIndex;
-use App\Domains\Dailies\Livewire\User\Dailies\Show as UserShow;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;
@@ -48,12 +42,7 @@ class DailiesServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.dailies.livewire.admin.dailies', AdminIndex::class);
-        Livewire::component('app.domains.dailies.livewire.admin.dailies.form', AdminForm::class);
-        Livewire::component('app.domains.dailies.livewire.admin.dailies.show', AdminShow::class);
-        Livewire::component('app.domains.dailies.livewire.user.dailies', UserIndex::class);
-        Livewire::component('app.domains.dailies.livewire.user.dailies.form', UserForm::class);
-        Livewire::component('app.domains.dailies.livewire.user.dailies.show', UserShow::class);
+        Livewire::addNamespace('dailies', classNamespace: 'App\Domains\Dailies\Livewire');
     }
 
     private function registerRoutes(): void

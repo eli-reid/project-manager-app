@@ -97,8 +97,8 @@
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">
-            <livewire:app.domains.clients.livewire.admin.clients.inline-create-widget />
-            <livewire:app.domains.addresses.livewire.admin.addresses.inline-create-widget :client-id="$client_id" />
+            <livewire:clients::admin.clients.inline-create-widget />
+            <livewire:addresses::admin.addresses.inline-create-widget :client-id="$client_id" />
         </div>
 
         <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">

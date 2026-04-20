@@ -3,10 +3,9 @@
 namespace App\Core\Scheduler\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Scheduler\Commands\DeployUpgradeCommand;
 use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
-use App\Core\Scheduler\Livewire\Admin\Tasks\Form;
-use App\Core\Scheduler\Livewire\Admin\Tasks\Index;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Permissions\SchedulerPermissions;
 use App\Core\Scheduler\Policies\ScheduledTaskPolicy;
@@ -15,6 +14,7 @@ use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskDefinitionSyncService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -52,8 +52,10 @@ class SchedulerServiceProvider extends ServiceProvider
     {
         $this->registerAuthorization();
         $this->registerPermissions();
+        $this->registerSettings();
         $this->registerInfrastructure();
         $this->registerUIComponents();
+        $this->registerDashboardWidgets();
         $this->registerRoutes();
         $this->registerCommands();
 
@@ -75,10 +77,44 @@ class SchedulerServiceProvider extends ServiceProvider
         $registry->registerPermissions(SchedulerPermissions::all());
     }
 
+    private function registerSettings(): void
+    {
+        if (! $this->app->bound(SettingsRegistryContract::class)) {
+            return;
+        }
+
+        /** @var SettingsRegistryContract $registry */
+        $registry = $this->app->make(SettingsRegistryContract::class);
+        $registry->registerConfigFile('scheduler', __DIR__.'/../config/settings.php');
+    }
+
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.scheduler.livewire.admin.tasks', Index::class);
-        Livewire::component('app.core.scheduler.livewire.admin.tasks.form', Form::class);
+        Livewire::addNamespace('scheduler', classNamespace: 'App\Core\Scheduler\Livewire');
+    }
+
+    private function registerDashboardWidgets(): void
+    {
+        if (! $this->app->bound(DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        /** @var DashboardWidgetRegistry $widgetRegistry */
+        $widgetRegistry = $this->app->make(DashboardWidgetRegistry::class);
+
+        $widgetRegistry->registerDefinitions([
+            [
+                'key' => 'scheduler.task-health',
+                'component' => 'scheduler::dashboard.widget',
+                'section' => 'admin',
+                'sort' => 10,
+                'span' => 'full',
+                'ability' => 'viewAny',
+                'ability_model' => ScheduledTask::class,
+                'title' => 'Scheduler Health',
+                'description' => 'Scheduled task status overview.',
+            ],
+        ]);
     }
 
     private function registerInfrastructure(): void

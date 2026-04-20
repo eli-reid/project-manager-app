@@ -9,13 +9,13 @@ Route::prefix('clients')
     ->name('clients.')
     ->middleware('can:viewAny,'.Client::class)
     ->group(function (): void {
-        Route::get('/', Index::class)->name('index');
+        Route::livewire('/', Index::class)->name('index');
 
-        Route::get('/create', Form::class)
+        Route::livewire('/create', Form::class)
             ->middleware('can:create,'.Client::class)
             ->name('create');
 
-        Route::get('/{client}/edit', Form::class)
+        Route::livewire('/{client}/edit', Form::class)
             ->middleware('can:update,client')
             ->name('edit');
     });

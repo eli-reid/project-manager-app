@@ -12,15 +12,15 @@ Route::prefix('stock-orders')
     ->name('stock-orders.')
     ->middleware('can:viewAny,'.StockOrder::class)
     ->group(function (): void {
-        Route::get('/', StockOrdersIndex::class)->name('index');
-        Route::get('/{stockOrder}', StockOrdersShow::class)->name('show');
+        Route::livewire('/', StockOrdersIndex::class)->name('index');
+        Route::livewire('/{stockOrder}', StockOrdersShow::class)->name('show');
     });
 
 Route::prefix('stock-order-templates')
     ->name('stock-order-templates.')
     ->middleware('can:viewAny,'.StockOrderTemplate::class)
     ->group(function (): void {
-        Route::get('/', TemplatesIndex::class)->name('index');
-        Route::get('/create', TemplatesForm::class)->name('create');
-        Route::get('/{stockOrderTemplate}/edit', TemplatesForm::class)->name('edit');
+        Route::livewire('/', TemplatesIndex::class)->name('index');
+        Route::livewire('/create', TemplatesForm::class)->name('create');
+        Route::livewire('/{stockOrderTemplate}/edit', TemplatesForm::class)->name('edit');
     });

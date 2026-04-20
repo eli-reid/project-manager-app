@@ -4,6 +4,7 @@ use App\Core\Announcement\Providers\AnnouncementServiceProvider;
 use App\Core\Identity\Providers\FortifyServiceProvider;
 use App\Core\Identity\Providers\UserServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
+use App\Providers\VoltServiceProvider;  
 use App\Providers\AppServiceProvider;
 use Illuminate\Auth\AuthServiceProvider;
 use Illuminate\Auth\Passwords\PasswordResetServiceProvider;
@@ -27,6 +28,7 @@ use Illuminate\Session\SessionServiceProvider;
 use Illuminate\Translation\TranslationServiceProvider;
 use Illuminate\Validation\ValidationServiceProvider;
 use Illuminate\View\ViewServiceProvider;
+use Livewire\Volt\Volt;
 
 return [
 
@@ -178,6 +180,7 @@ return [
         TranslationServiceProvider::class,
         ValidationServiceProvider::class,
         ViewServiceProvider::class,
+        VoltServiceProvider::class,  // Added Volt Service Provider
 
         // ... all the others
 

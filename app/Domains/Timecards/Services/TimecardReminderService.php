@@ -8,16 +8,21 @@ use App\Domains\Timecards\Models\TimecardRequiredUser;
 use App\Domains\Timecards\Notifications\MissingTimecardReminder;
 use App\Domains\Timecards\Notifications\TimecardReminderNotification;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class TimecardReminderService
 {
+    public function __construct(private readonly TimecardWeekService $timecardWeekService) {}
+
     /**
      * @param  array<string, mixed>  $taskConfig
      */
     public function sendPendingReminderNotifications(array $taskConfig = []): int
     {
         $daysAfterWeekEnd = (int) ($taskConfig['days_after_week_end'] ?? 0);
+        $batchSize = (int) ($taskConfig['batch_size'] ?? 10);
+        $batchSize = max(1, min($batchSize, 100));
         $statuses = $this->normalizeStatuses($taskConfig['statuses'] ?? [
             Timecard::STATUS_DRAFT,
             Timecard::STATUS_REJECTED,
@@ -42,17 +47,22 @@ class TimecardReminderService
         $timecards = Timecard::query()
             ->with('user')
             ->whereIn('status', $statuses)
-            ->whereDate('week_ending', '<=', $targetDate)
+            ->whereDate('week_ending', $targetWeekEnding)
             ->get();
+
+        /** @var Collection<string, Collection<int, Timecard>> $timecardsByUser */
+        $timecardsByUser = $timecards
+            ->groupBy(fn (Timecard $timecard): string => (string) $timecard->user_id);
 
         $sent = 0;
 
-        foreach ($timecards as $timecard) {
-            $user = $timecard->user;
+        foreach ($timecardsByUser->chunk($batchSize) as $recipientBatch) {
+            foreach ($recipientBatch as $userTimecards) {
+                $user = $userTimecards->first()?->user;
 
-            if (! $user || ! $user->is_active) {
-                continue;
-            }
+                if (! $user || ! $user->is_active) {
+                    continue;
+                }
 
             // Check if user is required to submit timecards
             if (! $this->isUserTimecardRequired($user)) {

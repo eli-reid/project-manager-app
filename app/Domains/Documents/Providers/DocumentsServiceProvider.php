@@ -4,10 +4,7 @@ namespace App\Domains\Documents\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Domains\Documents\Livewire\Admin\Documents\Index as AdminDocumentsIndex;
-use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
-use App\Domains\Documents\Livewire\User\Documents\GlobalIndex;
-use App\Domains\Documents\Livewire\User\Documents\Index as UserDocumentsIndex;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
@@ -26,6 +23,7 @@ class DocumentsServiceProvider extends ServiceProvider
     public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerSettings($settingsRegistry);
+        $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -46,10 +44,7 @@ class DocumentsServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.documents.livewire.admin.documents.index', AdminDocumentsIndex::class);
-        Livewire::component('app.domains.documents.livewire.user.documents.index', UserDocumentsIndex::class);
-        Livewire::component('app.domains.documents.livewire.user.documents.global-index', GlobalIndex::class);
-        Livewire::component('app.domains.documents.livewire.admin.projects.documents-tab', DocumentsTab::class);
+        Livewire::addNamespace('documents', classNamespace: 'App\Domains\Documents\Livewire');
     }
 
     private function registerRoutes(): void
@@ -79,5 +74,20 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('documents', __DIR__.'/../config/settings.php');
+    }
+
+    private function configureLivewireTemporaryUploadRules(): void
+    {
+        try {
+            $maxKilobytes = max(1, Settings::get('documents.max_file_size', 10240)->toInt());
+        } catch (\Throwable) {
+            $maxKilobytes = 10240;
+        }
+
+        config()->set('livewire.temporary_file_upload.rules', [
+            'required',
+            'file',
+            'max:'.$maxKilobytes,
+        ]);
     }
 }

@@ -85,10 +85,31 @@ class Form extends Component
 
         $this->authorize('create', ScheduledTask::class);
 
+        $this->resetCreateDefaults();
+
         $this->available_task_id = (string) AvailableTask::query()
             ->where('is_active', true)
             ->orderBy('name')
             ->value('id');
+    }
+
+    private function resetCreateDefaults(): void
+    {
+        $this->name = '';
+        $this->description = '';
+        $this->schedule_type = 'daily';
+        $this->time = '09:00';
+        $this->timezone = 'America/New_York';
+        $this->days_of_week = [];
+        $this->day_of_month = null;
+        $this->month = null;
+        $this->specific_date = null;
+        $this->repeat_frequency = 'once';
+        $this->repeat_interval = 1;
+        $this->repeat_until = null;
+        $this->max_occurrences = null;
+        $this->is_active = true;
+        $this->is_enabled = true;
     }
 
     protected function rules(): array

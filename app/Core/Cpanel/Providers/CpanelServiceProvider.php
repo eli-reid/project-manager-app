@@ -6,11 +6,6 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Cpanel\Commands\EnsureLaravelCronJobs;
 use App\Core\Cpanel\Commands\SyncEmailAccounts;
 use App\Core\Cpanel\Data\CpanelConfig;
-use App\Core\Cpanel\Livewire\Admin\EmailAccounts\Create as EmailAccountsCreate;
-use App\Core\Cpanel\Livewire\Admin\EmailAccounts\Index as EmailAccountsIndex;
-use App\Core\Cpanel\Livewire\Admin\EmailAccounts\Show as EmailAccountsShow;
-use App\Core\Cpanel\Livewire\Admin\EmailManagement\Dashboard as EmailManagementDashboard;
-use App\Core\Cpanel\Livewire\Admin\EmailManagement\DomainForwarders as EmailManagementDomainForwarders;
 use App\Core\Cpanel\Permissions\CpanelPermissions;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
@@ -43,11 +38,7 @@ class CpanelServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.cpanel.livewire.admin.email-management.dashboard', EmailManagementDashboard::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-management.domain-forwarders', EmailManagementDomainForwarders::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.index', EmailAccountsIndex::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.create', EmailAccountsCreate::class);
-        Livewire::component('app.core.cpanel.livewire.admin.email-accounts.show', EmailAccountsShow::class);
+        Livewire::addNamespace('cpanel', classNamespace: 'App\Core\Cpanel\Livewire');
     }
 
     private function registerInfrastructure(): void

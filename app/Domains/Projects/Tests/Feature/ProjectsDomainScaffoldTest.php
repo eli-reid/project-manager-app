@@ -5,6 +5,7 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
@@ -111,6 +112,29 @@ it('shows only assigned active and open projects by default on user project list
     expect($closedProject->exists)->toBeTrue()
         ->and($inactiveProject->exists)->toBeTrue()
         ->and($unassignedOpenProject->exists)->toBeTrue();
+});
+
+it('renders the client company name on the user project list', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+    $client = Client::factory()->create([
+        'company_name' => 'Acme Civil Group',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Client Linked Project',
+        'project_manager_id' => $user->id,
+        'client_id' => $client->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee('Client Linked Project')
+        ->assertSee('Acme Civil Group');
 });
 
 it('allows users with domain view permissions to access scaffold routes', function (): void {

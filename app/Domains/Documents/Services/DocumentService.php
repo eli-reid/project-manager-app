@@ -16,17 +16,22 @@ class DocumentService
      */
     public function uploadUserDocument(User $owner, UploadedFile $file, array $attributes = []): Document
     {
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $mimeType = (string) $file->getClientMimeType();
+        $fileSize = (int) $file->getSize();
+
         $disk = $this->storageDisk();
         $storedPath = $file->store('documents/user/'.$owner->id, $disk);
 
         $document = Document::query()->create([
-            'title' => (string) ($attributes['title'] ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)),
+            'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
             'description' => $attributes['description'] ?? null,
-            'original_name' => $file->getClientOriginalName(),
+            'original_name' => $originalName,
             'stored_name' => basename((string) $storedPath),
-            'extension' => $file->getClientOriginalExtension(),
-            'mime_type' => (string) $file->getClientMimeType(),
-            'file_size' => (int) $file->getSize(),
+            'extension' => $extension,
+            'mime_type' => $mimeType,
+            'file_size' => $fileSize,
             'storage_disk' => $disk,
             'storage_path' => $storedPath,
             'owner_scope' => Document::OWNER_SCOPE_USER,
@@ -45,17 +50,22 @@ class DocumentService
      */
     public function uploadProjectDocument(Project $project, User $actor, UploadedFile $file, array $attributes = []): Document
     {
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $mimeType = (string) $file->getClientMimeType();
+        $fileSize = (int) $file->getSize();
+
         $disk = $this->storageDisk();
         $storedPath = $file->store('documents/project/'.$project->id, $disk);
 
         $document = Document::query()->create([
-            'title' => (string) ($attributes['title'] ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)),
+            'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
             'description' => $attributes['description'] ?? null,
-            'original_name' => $file->getClientOriginalName(),
+            'original_name' => $originalName,
             'stored_name' => basename((string) $storedPath),
-            'extension' => $file->getClientOriginalExtension(),
-            'mime_type' => (string) $file->getClientMimeType(),
-            'file_size' => (int) $file->getSize(),
+            'extension' => $extension,
+            'mime_type' => $mimeType,
+            'file_size' => $fileSize,
             'storage_disk' => $disk,
             'storage_path' => $storedPath,
             'owner_scope' => Document::OWNER_SCOPE_PROJECT,
@@ -71,6 +81,11 @@ class DocumentService
 
     public function replaceFile(Document $document, UploadedFile $file, ?User $actor = null): Document
     {
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $mimeType = (string) $file->getClientMimeType();
+        $fileSize = (int) $file->getSize();
+
         $disk = $this->storageDisk();
         $folder = $document->isProjectOwned()
             ? 'documents/project/'.($document->ownerProjects()->value('projects.id') ?? 'unknown')
@@ -80,11 +95,11 @@ class DocumentService
         $storedPath = $file->store($folder, $disk);
 
         $document->fill([
-            'original_name' => $file->getClientOriginalName(),
+            'original_name' => $originalName,
             'stored_name' => basename((string) $storedPath),
-            'extension' => $file->getClientOriginalExtension(),
-            'mime_type' => (string) $file->getClientMimeType(),
-            'file_size' => (int) $file->getSize(),
+            'extension' => $extension,
+            'mime_type' => $mimeType,
+            'file_size' => $fileSize,
             'storage_disk' => $disk,
             'storage_path' => $storedPath,
             'replace_mode' => $this->replaceBehavior(),

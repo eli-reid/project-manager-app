@@ -1,0 +1,277 @@
+<?php
+
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\Identity\Models\User;
+use App\Core\Scheduler\Livewire\Dashboard\Widget as SchedulerWidget;
+use App\Core\Scheduler\Models\AvailableTask;
+use App\Core\Scheduler\Models\ScheduledTask;
+use App\Core\Settings\Facades\Settings;
+use App\Domains\Projects\Enums\ProjectStatusEnum;
+use App\Domains\Projects\Livewire\Dashboard\Widget as ProjectWidget;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Timecards\Livewire\Dashboard\Widget as TimecardWidget;
+use App\Domains\Timecards\Models\Timecard;
+use Carbon\Carbon;
+use Livewire\Livewire;
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+/**
+ * @param  array<int, string>  $permissions
+ */
+function dashboardWidgetUserWithPermissions(array $permissions): User
+{
+    app(DomainPermissionSynchronizer::class)->sync();
+
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $role = Role::query()->create([
+        'name' => 'Dashboard Widget Test Role '.str()->uuid(),
+        'description' => 'Role created by dashboard widget tests.',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 25,
+    ]);
+
+    $permissionIds = collect($permissions)
+        ->map(function (string $permission): ?string {
+            [$resource, $action] = explode('.', $permission, 2);
+
+            return Permission::query()
+                ->where('resource', $resource)
+                ->where('action', $action)
+                ->value('id');
+        })
+        ->filter()
+        ->values()
+        ->all();
+
+    $role->permissions()->sync($permissionIds);
+    $user->roles()->sync([$role->id]);
+
+    return $user->fresh();
+}
+
+// ─── Registry Integration ─────────────────────────────────────────────────────
+
+it('the timecards widget is registered in the container registry', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $keys = collect($registry->all())->pluck('key')->all();
+
+    expect($keys)->toContain('timecards.my-week');
+});
+
+it('the timecards widget is in the personal section with half span', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $widget = collect($registry->all())->firstWhere('key', 'timecards.my-week');
+
+    expect($widget)->not->toBeNull()
+        ->and($widget['section'])->toBe('personal')
+        ->and($widget['span'])->toBe('half');
+});
+
+it('the projects widget is registered in the container registry', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $keys = collect($registry->all())->pluck('key')->all();
+
+    expect($keys)->toContain('projects.active-summary');
+});
+
+it('the projects widget is in the operations section with half span', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $widget = collect($registry->all())->firstWhere('key', 'projects.active-summary');
+
+    expect($widget)->not->toBeNull()
+        ->and($widget['section'])->toBe('operations')
+        ->and($widget['span'])->toBe('half');
+});
+
+it('the scheduler widget is registered in the container registry', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $keys = collect($registry->all())->pluck('key')->all();
+
+    expect($keys)->toContain('scheduler.task-health');
+});
+
+it('the scheduler widget is in the admin section with full span', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $widget = collect($registry->all())->firstWhere('key', 'scheduler.task-health');
+
+    expect($widget)->not->toBeNull()
+        ->and($widget['section'])->toBe('admin')
+        ->and($widget['span'])->toBe('full');
+});
+
+// ─── Timecards Widget ─────────────────────────────────────────────────────────
+
+it('renders the timecards widget for a user with timecards.view permission', function (): void {
+    Settings::set('app.week_start_day', 'sunday');
+    $user = dashboardWidgetUserWithPermissions(['timecards.view']);
+
+    Livewire::actingAs($user)
+        ->test(TimecardWidget::class)
+        ->assertStatus(200)
+        ->assertSee('My Timecards');
+});
+
+it('timecards widget shows a submitted timecard for the current week', function (): void {
+    Settings::set('app.week_start_day', 'sunday');
+    $user = dashboardWidgetUserWithPermissions(['timecards.view']);
+
+    $weekStart = now()->startOfWeek(Carbon::SUNDAY);
+
+    Timecard::factory()->create([
+        'user_id' => $user->id,
+        'week_starting' => $weekStart->toDateString(),
+        'week_ending' => $weekStart->copy()->addDays(6)->toDateString(),
+        'status' => Timecard::STATUS_SUBMITTED,
+        'total_hours' => 40.0,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(TimecardWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Submitted')
+        ->assertSee('40.0');
+});
+
+it('timecards widget shows a no-timecard notice when current week has no entry', function (): void {
+    Settings::set('app.week_start_day', 'sunday');
+    $user = dashboardWidgetUserWithPermissions(['timecards.view']);
+
+    Livewire::actingAs($user)
+        ->test(TimecardWidget::class)
+        ->assertStatus(200)
+        ->assertSee('No timecard for the week');
+});
+
+it('timecards widget only shows the authenticated users own timecards', function (): void {
+    Settings::set('app.week_start_day', 'sunday');
+    $user = dashboardWidgetUserWithPermissions(['timecards.view']);
+    $otherUser = User::factory()->create();
+
+    $weekStart = now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1);
+
+    Timecard::factory()->create([
+        'user_id' => $otherUser->id,
+        'week_starting' => $weekStart->toDateString(),
+        'week_ending' => $weekStart->copy()->addDays(6)->toDateString(),
+        'status' => Timecard::STATUS_APPROVED,
+        'total_hours' => 40.0,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(TimecardWidget::class)
+        ->assertStatus(200)
+        ->assertDontSee('Approved');
+});
+
+// ─── Projects Widget ──────────────────────────────────────────────────────────
+
+it('renders the projects widget for a user with projects.view permission', function (): void {
+    $user = dashboardWidgetUserWithPermissions(['projects.view']);
+
+    Livewire::actingAs($user)
+        ->test(ProjectWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Active Projects');
+});
+
+it('renders the projects widget for an admin', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    Livewire::actingAs($admin)
+        ->test(ProjectWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Active Projects');
+});
+
+it('projects widget shows active project names for an admin', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    Project::factory()->create([
+        'name' => 'Alpha Project',
+        'is_active' => true,
+        'status' => ProjectStatusEnum::IN_PROGRESS,
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Beta Project',
+        'is_active' => false,
+        'status' => ProjectStatusEnum::IN_PROGRESS,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(ProjectWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Alpha Project')
+        ->assertDontSee('Beta Project');
+});
+
+// ─── Scheduler Widget ─────────────────────────────────────────────────────────
+
+it('renders the scheduler widget for an admin', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    Livewire::actingAs($admin)
+        ->test(SchedulerWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Scheduler Health');
+});
+
+it('renders the scheduler widget for a user with scheduler.view permission', function (): void {
+    $user = dashboardWidgetUserWithPermissions(['scheduler.view']);
+
+    Livewire::actingAs($user)
+        ->test(SchedulerWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Scheduler Health');
+});
+
+it('scheduler widget shows active tasks', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    $availableTask = AvailableTask::factory()->create([
+        'feature_type' => 'timecard_reminders',
+        'name' => 'Timecard Reminders',
+    ]);
+
+    ScheduledTask::query()->create([
+        'name' => 'Daily Report Task',
+        'available_task_id' => $availableTask->id,
+        'schedule_type' => 'daily',
+        'time' => '09:00:00',
+        'timezone' => 'America/New_York',
+        'repeat_frequency' => 'daily',
+        'repeat_interval' => 1,
+        'is_active' => true,
+        'is_enabled' => true,
+    ]);
+
+    ScheduledTask::query()->create([
+        'name' => 'Inactive Cleanup Task',
+        'available_task_id' => $availableTask->id,
+        'schedule_type' => 'daily',
+        'time' => '10:00:00',
+        'timezone' => 'America/New_York',
+        'repeat_frequency' => 'daily',
+        'repeat_interval' => 1,
+        'is_active' => false,
+        'is_enabled' => true,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(SchedulerWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Daily Report Task')
+        ->assertDontSee('Inactive Cleanup Task');
+});

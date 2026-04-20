@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('tasks')
     ->name('tasks.')
     ->group(function (): void {
-        Route::get('/', UserTaskIndex::class)
+        Route::livewire('/', UserTaskIndex::class)
             ->middleware('can:viewAny,'.Task::class)
             ->name('index');
     });

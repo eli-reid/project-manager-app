@@ -10,17 +10,81 @@
         </div>
     </div>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+    <div
+        x-data="{
+            titleValue: $wire.entangle('title'),
+            selectedFileName: '',
+            lastAutoTitle: '',
+            isUploading: false,
+            uploadProgress: 0,
+            fileBaseName(fileName) {
+                return fileName.replace(/\.[^/.]+$/, '')
+            },
+            syncSelectedFile(fileName) {
+                this.selectedFileName = fileName
+
+                if (! fileName) {
+                    return
+                }
+
+                const nextTitle = this.fileBaseName(fileName)
+
+                if (this.titleValue.trim() === '' || this.titleValue === this.lastAutoTitle) {
+                    this.titleValue = nextTitle
+                    this.lastAutoTitle = nextTitle
+                }
+            }
+        }"
+        x-on:project-documents-file-input-reset.window="titleValue = ''; selectedFileName = ''; lastAutoTitle = ''; isUploading = false; uploadProgress = 0; $refs.projectDocumentFile.value = null"
+        x-on:livewire-upload-start="isUploading = true; uploadProgress = 0"
+        x-on:livewire-upload-finish="isUploading = false; uploadProgress = 100"
+        x-on:livewire-upload-error="isUploading = false; uploadProgress = 0"
+        x-on:livewire-upload-cancel="isUploading = false; uploadProgress = 0"
+        x-on:livewire-upload-progress="uploadProgress = $event.detail.progress"
+        class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+    >
         <div class="grid gap-3 md:grid-cols-2">
             <div>
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</label>
-                <input type="text" wire:model="title" class="w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
+                <input type="text" x-model="titleValue" class="w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
                 @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">File</label>
-                <input type="file" wire:model="file" class="w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
+                <div class="space-y-2">
+                    @php($defaultFileLabel = optional($file)->getClientOriginalName() ?? ($editingDocumentId ? 'No new file selected. The current file will be kept.' : 'No file selected yet.'))
+
+                    <label
+                        for="project-document-file"
+                        x-bind:class="isUploading ? 'pointer-events-none opacity-75' : ''"
+                        class="relative flex cursor-pointer flex-col gap-2 overflow-hidden rounded-lg border border-zinc-300 bg-white px-3 py-3 text-sm shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600"
+                    >
+                        <div
+                            x-show="isUploading"
+                            class="absolute inset-y-0 left-0 bg-sky-100/80 transition-[width] duration-200 ease-out dark:bg-sky-900/30"
+                            x-bind:style="`width: ${uploadProgress}%`"
+                        ></div>
+
+                        <div class="relative z-10 flex flex-col gap-1">
+                            <span class="font-medium text-zinc-900 dark:text-zinc-100">Choose file</span>
+                            <span x-text="selectedFileName || @js($defaultFileLabel)" class="text-xs text-zinc-500 dark:text-zinc-400"></span>
+                        </div>
+                    </label>
+
+                    <input id="project-document-file" x-ref="projectDocumentFile" type="file" wire:model="file" x-bind:disabled="isUploading" x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? '')" class="sr-only" />
+
+                    <div wire:loading wire:target="file" class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300">
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Uploading selection...</span>
+                            <span x-text="`${uploadProgress}%`" class="font-semibold"></span>
+                        </div>
+
+                        <div class="mt-2 h-2 overflow-hidden rounded-full bg-sky-200/80 dark:bg-sky-950">
+                            <div class="h-full rounded-full bg-sky-500 transition-[width] duration-200 ease-out dark:bg-sky-400" x-bind:style="`width: ${uploadProgress}%`"></div>
+                        </div>
+                    </div>
+                </div>
                 @error('file') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
         </div>
@@ -32,12 +96,12 @@
         </div>
 
         <div class="mt-4 flex items-center gap-2">
-            <button type="button" wire:click="save" class="rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
-                {{ $editingDocumentId ? 'Update Document' : 'Upload Document' }}
+            <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save,file" class="rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                {{ $editingDocumentId ? 'Update Document' : 'Save Document' }}
             </button>
 
             @if ($editingDocumentId)
-                <button type="button" wire:click="cancelEdit" class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                <button type="button" wire:click="cancelEdit" wire:loading.attr="disabled" wire:target="save,file" class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                     Cancel
                 </button>
             @endif

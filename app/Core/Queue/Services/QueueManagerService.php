@@ -90,4 +90,11 @@ class QueueManagerService
     {
         Artisan::call('queue:flush');
     }
+
+    public function clearHistory(string $status = 'all'): int
+    {
+        return QueueJobHistory::query()
+            ->when($status !== 'all', fn ($query) => $query->where('status', $status))
+            ->delete();
+    }
 }

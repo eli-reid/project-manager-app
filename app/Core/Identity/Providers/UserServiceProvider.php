@@ -2,12 +2,6 @@
 
 namespace App\Core\Identity\Providers;
 
-use App\Core\Identity\Livewire\Settings\Appearance;
-use App\Core\Identity\Livewire\Settings\DeleteUserForm;
-use App\Core\Identity\Livewire\Settings\Password;
-use App\Core\Identity\Livewire\Settings\Profile;
-use App\Core\Identity\Livewire\Settings\TwoFactor;
-use App\Core\Identity\Livewire\Settings\TwoFactor\RecoveryCodes;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -26,11 +20,6 @@ class UserServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('settings.profile', Profile::class);
-        Livewire::component('settings.password', Password::class);
-        Livewire::component('settings.appearance', Appearance::class);
-        Livewire::component('settings.two-factor', TwoFactor::class);
-        Livewire::component('settings.delete-user-form', DeleteUserForm::class);
-        Livewire::component('settings.two-factor.recovery-codes', RecoveryCodes::class);
+        Livewire::addNamespace('settings', classNamespace: 'App\Core\Identity\Livewire\Settings');
     }
 }

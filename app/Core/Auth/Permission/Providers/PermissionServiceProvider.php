@@ -12,7 +12,6 @@ class PermissionServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(PermissionRegistry::class);
         $this->app->singleton(PermissionRegistryContract::class, PermissionRegistry::class);
         $this->app->singleton(DomainPermissionSynchronizer::class);
     }
@@ -20,10 +19,7 @@ class PermissionServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPermissions();
-
-        $this->app->booted(function (): void {
-            $this->syncRegisteredPermissions();
-        });
+        $this->app->booted(fn () => $this->syncRegisteredPermissions());
     }
 
     private function registerPermissions(): void

@@ -41,7 +41,7 @@ class PayrollForecastingService
             ];
         }
 
-        $totalCost = $statements->sum(function (PayrollStatement $stmt): float {
+        $totalCost = $statements->sum(function (PayrollStatement $stmt) use ($includeOvertimeInCost): float {
             $baseCost = (float) $stmt->gross_pay;
 
             if (! $includeOvertimeInCost) {
@@ -325,9 +325,9 @@ class PayrollForecastingService
      *
      * @return array{trailing_average: array, headcount: array, variance: array}
      */
-    public function getForecastSummary(): array
+    public function getForecastSummary(int $trailingWeeks = 4, bool $includeOvertimeInCost = true): array
     {
-        $trailingAvg = $this->trailingAverageForecast();
+        $trailingAvg = $this->trailingAverageForecast($trailingWeeks, $includeOvertimeInCost);
         $headcount = $this->headcountBasedForecast(forMonth: false);
 
         $variance = $this->varianceAnalysis($trailingAvg['weekly_cost'], $headcount['weekly_forecast']);

@@ -13,6 +13,9 @@
 			"vendor/bin/pint": true,
 			"Push-Location": true,
 			"Pop-Location": true
-		}
+		},
+		"claudeCode.environmentVariables": [
+			
+		]
 	}
 }

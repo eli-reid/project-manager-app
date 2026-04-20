@@ -13,6 +13,7 @@
 
 namespace App\Core\Announcement\Models{
 /**
+ * @mixin IdeHelperAnnouncement
  * @property string $id
  * @property string $title
  * @property string $content
@@ -46,14 +47,13 @@ namespace App\Core\Announcement\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperAnnouncement {}
+	class Announcement extends \Eloquent {}
 }
 
 namespace App\Core\Audit\Models{
 /**
+ * @mixin IdeHelperAuditLog
  * @property string $id
  * @property string $action
  * @property string|null $actor_type
@@ -83,14 +83,13 @@ namespace App\Core\Audit\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereTargetId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereTargetType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuditLog whereUserAgent($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperAuditLog {}
+	class AuditLog extends \Eloquent {}
 }
 
 namespace App\Core\Auth\Permission\Models{
 /**
+ * @mixin IdeHelperPermission
  * @property string $id
  * @property string $resource
  * @property string $action
@@ -111,14 +110,13 @@ namespace App\Core\Auth\Permission\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereLabel($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereResource($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperPermission {}
+	class Permission extends \Eloquent {}
 }
 
 namespace App\Core\Auth\Role\Models{
 /**
+ * @mixin IdeHelperRole
  * @property string $id
  * @property string $name
  * @property string|null $description
@@ -142,14 +140,13 @@ namespace App\Core\Auth\Role\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereIsActive($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperRole {}
+	class Role extends \Eloquent {}
 }
 
 namespace App\Core\Cpanel\Models{
 /**
+ * @mixin IdeHelperCachedEmailAccount
  * @property string $id
  * @property string $email
  * @property string|null $domain
@@ -188,15 +185,14 @@ namespace App\Core\Cpanel\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereUsage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereUsagePercentage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount whereUserId($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperCachedEmailAccount {}
+	class CachedEmailAccount extends \Eloquent {}
 }
 
 namespace App\Core\Identity\Models{
 /**
  * @property string $id
+ * @mixin IdeHelperUser
  * @property string $first_name
  * @property string $last_name
  * @property string $username
@@ -247,14 +243,13 @@ namespace App\Core\Identity\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperUser {}
+	class User extends \Eloquent {}
 }
 
 namespace App\Core\Notification\Models{
 /**
+ * @mixin IdeHelperUserNotificationPreference
  * @property string $id
  * @property string $user_id
  * @property string $notification_key
@@ -274,14 +269,13 @@ namespace App\Core\Notification\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereNotificationKey($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserNotificationPreference whereUserId($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperUserNotificationPreference {}
+	class UserNotificationPreference extends \Eloquent {}
 }
 
 namespace App\Core\Queue\Models{
 /**
+ * @mixin IdeHelperFailedJob
  * @property int $id
  * @property string $uuid
  * @property string $connection
@@ -299,14 +293,13 @@ namespace App\Core\Queue\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob wherePayload($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereQueue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FailedJob whereUuid($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperFailedJob {}
+	class FailedJob extends \Eloquent {}
 }
 
 namespace App\Core\Queue\Models{
 /**
+ * @mixin IdeHelperJobBatch
  * @property int $id
  * @property string $name
  * @property int $total_jobs
@@ -330,14 +323,13 @@ namespace App\Core\Queue\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereOptions($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch wherePendingJobs($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|JobBatch whereTotalJobs($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperJobBatch {}
+	class JobBatch extends \Eloquent {}
 }
 
 namespace App\Core\Queue\Models{
 /**
+ * @mixin IdeHelperQueueJob
  * @property int $id
  * @property string $queue
  * @property string $payload
@@ -355,14 +347,13 @@ namespace App\Core\Queue\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob wherePayload($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereQueue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJob whereReservedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperQueueJob {}
+	class QueueJob extends \Eloquent {}
 }
 
 namespace App\Core\Queue\Models{
 /**
+ * @mixin IdeHelperQueueJobHistory
  * @property string $id
  * @property string|null $job_uuid
  * @property string $job_class
@@ -392,14 +383,13 @@ namespace App\Core\Queue\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereStartedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QueueJobHistory whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperQueueJobHistory {}
+	class QueueJobHistory extends \Eloquent {}
 }
 
 namespace App\Core\Scheduler\Models{
 /**
+ * @mixin IdeHelperAvailableTask
  * @property string $id
  * @property string $feature_type
  * @property string $name
@@ -422,14 +412,13 @@ namespace App\Core\Scheduler\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AvailableTask whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AvailableTask whereTaskConfig($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AvailableTask whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperAvailableTask {}
+	class AvailableTask extends \Eloquent {}
 }
 
 namespace App\Core\Scheduler\Models{
 /**
+ * @mixin IdeHelperScheduledTask
  * @property string $id
  * @property string $name
  * @property string $feature_type
@@ -492,14 +481,13 @@ namespace App\Core\Scheduler\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereTimezone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ScheduledTask whereUpdatedBy($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperScheduledTask {}
+	class ScheduledTask extends \Eloquent {}
 }
 
 namespace App\Core\Settings\Models{
 /**
+ * @mixin IdeHelperSettingsSqlite
  * @property int|null $id
  * @property string $key
  * @property string|null $value
@@ -535,14 +523,13 @@ namespace App\Core\Settings\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SettingsSqlite whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SettingsSqlite whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SettingsSqlite whereValue($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperSettingsSqlite {}
+	class SettingsSqlite extends \Eloquent {}
 }
 
 namespace App\Domains\Addresses\Models{
 /**
+ * @mixin IdeHelperAddress
  * @property string $id
  * @property string $address1
  * @property string|null $address2
@@ -573,14 +560,13 @@ namespace App\Domains\Addresses\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Address whereZip($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Address withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Address withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperAddress {}
+	class Address extends \Eloquent {}
 }
 
 namespace App\Domains\Clients\Models{
 /**
+ * @mixin IdeHelperClient
  * @property string $id
  * @property string $company_name
  * @property string|null $contact_name
@@ -614,14 +600,13 @@ namespace App\Domains\Clients\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Client whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Client withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Client withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperClient {}
+	class Client extends \Eloquent {}
 }
 
 namespace App\Domains\Dailies\Models{
 /**
+ * @mixin IdeHelperDailyReport
  * @property string $id
  * @property string|null $project_id
  * @property string|null $custom_project_name
@@ -682,14 +667,13 @@ namespace App\Domains\Dailies\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport whereWorkPerformed($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyReport withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperDailyReport {}
+	class DailyReport extends \Eloquent {}
 }
 
 namespace App\Domains\Documents\Models{
 /**
+ * @mixin IdeHelperDocument
  * @property string $id
  * @property string $title
  * @property string|null $description
@@ -743,14 +727,13 @@ namespace App\Domains\Documents\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperDocument {}
+	class Document extends \Eloquent {}
 }
 
 namespace App\Domains\Invoices\Models{
 /**
+ * @mixin IdeHelperInvoice
  * @property string $id
  * @property string $project_id
  * @property string $vendor_name
@@ -801,14 +784,13 @@ namespace App\Domains\Invoices\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice whereVerifiedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperInvoice {}
+	class Invoice extends \Eloquent {}
 }
 
 namespace App\Domains\Invoices\Models{
 /**
+ * @mixin IdeHelperInvoiceLineItem
  * @property string $id
  * @property string $invoice_id
  * @property string $description
@@ -832,14 +814,13 @@ namespace App\Domains\Invoices\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|InvoiceLineItem whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperInvoiceLineItem {}
+	class InvoiceLineItem extends \Eloquent {}
 }
 
 namespace App\Domains\Payroll\Models{
 /**
+ * @mixin IdeHelperDeduction
  * @property string $id
  * @property string $name
  * @property string $category
@@ -871,14 +852,13 @@ namespace App\Domains\Payroll\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Deduction withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperDeduction {}
+	class Deduction extends \Eloquent {}
 }
 
 namespace App\Domains\Payroll\Models{
 /**
+ * @mixin IdeHelperEmployeeDeduction
  * @property string $id
  * @property string $payroll_employee_profile_id
  * @property string $deduction_id
@@ -908,14 +888,13 @@ namespace App\Domains\Payroll\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EmployeeDeduction withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperEmployeeDeduction {}
+	class EmployeeDeduction extends \Eloquent {}
 }
 
 namespace App\Domains\Payroll\Models{
 /**
+ * @mixin IdeHelperPayRate
  * @property string $ulid
  * @property string $user_id
  * @property numeric $rate
@@ -949,14 +928,13 @@ namespace App\Domains\Payroll\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRate whereUserId($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperPayRate {}
+	class PayRate extends \Eloquent {}
 }
 
 namespace App\Domains\Payroll\Models{
 /**
+ * @mixin IdeHelperPayRateType
  * @property string $id
  * @property string $code
  * @property string $name
@@ -981,25 +959,25 @@ namespace App\Domains\Payroll\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereIsBuiltin($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRateType whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperPayRateType {}
+	class PayRateType extends \Eloquent {}
 }
 
 namespace App\Domains\Payroll\Models{
 /**
- * @property string $ulid
- * @property string $payroll_period_id
+ * @mixin IdeHelperPayRun
+ * @property string $id
+ * @property \Carbon\CarbonImmutable $pay_period_start
+ * @property \Carbon\CarbonImmutable $pay_period_end
+ * @property \Carbon\CarbonImmutable $pay_date
  * @property \App\Domains\Payroll\Enums\PayRunStatus $status
  * @property numeric $total_gross
- * @property numeric $total_deductions
  * @property numeric $total_net
- * @property int $records_count
- * @property string|null $approved_at
- * @property string|null $approved_by
+ * @property numeric $total_taxes
+ * @property int $employee_count
  * @property string|null $created_by
- * @property string|null $updated_by
+ * @property string|null $approved_by
+ * @property \Carbon\CarbonImmutable|null $finalized_at
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
@@ -1012,30 +990,63 @@ namespace App\Domains\Payroll\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereApprovedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereApprovedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereDeletedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun wherePayrollPeriodId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereRecordsCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereEmployeeCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereFinalizedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun wherePayDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun wherePayPeriodEnd($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun wherePayPeriodStart($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereTotalDeductions($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereTotalGross($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereTotalNet($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereTotalTaxes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayRun withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperPayRun {}
+	class PayRun extends \Eloquent {}
 }
 
 namespace App\Domains\Payroll\Models{
 /**
+ * @mixin IdeHelperPayrollAuditDigest
+ * @property string $id
+ * @property string $chain_key
+ * @property string|null $audit_log_id
+ * @property string $payload_hash
+ * @property string $digest
+ * @property string|null $previous_digest
+ * @property bool $is_valid
+ * @property \Carbon\CarbonImmutable|null $validated_at
+ * @property array<array-key, mixed>|null $metadata
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Core\Audit\Models\AuditLog|null $auditLog
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereAuditLogId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereChainKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereDigest($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereIsValid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereMetadata($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest wherePayloadHash($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest wherePreviousDigest($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollAuditDigest whereValidatedAt($value)
+ */
+	class PayrollAuditDigest extends \Eloquent {}
+}
+
+namespace App\Domains\Payroll\Models{
+/**
+ * @mixin IdeHelperPayrollEmployeeProfile
  * @property string $id
  * @property string $user_id
  * @property string $employee_number
@@ -1082,14 +1093,13 @@ namespace App\Domains\Payroll\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollEmployeeProfile withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperPayrollEmployeeProfile {}
+	class PayrollEmployeeProfile extends \Eloquent {}
 }
 
 namespace App\Domains\Payroll\Models{
 /**
+ * @mixin IdeHelperPayrollStatement
  * @property string $id
  * @property string $user_id
  * @property string $payroll_employee_profile_id
@@ -1137,14 +1147,13 @@ namespace App\Domains\Payroll\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereYtdFederalTax($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereYtdGross($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PayrollStatement whereYtdNet($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperPayrollStatement {}
+	class PayrollStatement extends \Eloquent {}
 }
 
 namespace App\Domains\Projects\Models{
 /**
+ * @mixin IdeHelperCostCode
  * @property string $id
  * @property string $project_id
  * @property string $code
@@ -1173,14 +1182,13 @@ namespace App\Domains\Projects\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CostCode withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperCostCode {}
+	class CostCode extends \Eloquent {}
 }
 
 namespace App\Domains\Projects\Models{
 /**
+ * @mixin IdeHelperProject
  * @property string $id
  * @property string $name
  * @property string|null $project_number
@@ -1208,6 +1216,7 @@ namespace App\Domains\Projects\Models{
  * @property-read int|null $cost_codes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Dailies\Models\DailyReport> $dailyReports
  * @property-read int|null $daily_reports_count
+ * @property-read \App\Domains\Payroll\Models\PayRateType|null $payRateType
  * @property-read \App\Core\Identity\Models\User|null $projectManager
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\ProjectRoleAccess> $roleAccesses
  * @property-read int|null $role_accesses_count
@@ -1239,14 +1248,13 @@ namespace App\Domains\Projects\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereWageDeterminationId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperProject {}
+	class Project extends \Eloquent {}
 }
 
 namespace App\Domains\Projects\Models{
 /**
+ * @mixin IdeHelperProjectRoleAccess
  * @property int $id
  * @property string $project_id
  * @property string $role_id
@@ -1267,14 +1275,13 @@ namespace App\Domains\Projects\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereProjectId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereRoleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRoleAccess whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperProjectRoleAccess {}
+	class ProjectRoleAccess extends \Eloquent {}
 }
 
 namespace App\Domains\Projects\Models{
 /**
+ * @mixin IdeHelperProjectUserAccess
  * @property int $id
  * @property string $project_id
  * @property string $user_id
@@ -1295,14 +1302,13 @@ namespace App\Domains\Projects\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereProjectId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUserAccess whereUserId($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperProjectUserAccess {}
+	class ProjectUserAccess extends \Eloquent {}
 }
 
 namespace App\Domains\Stock\Models{
 /**
+ * @mixin IdeHelperStockOrder
  * @property string $id
  * @property string|null $user_id
  * @property string|null $project_id
@@ -1337,14 +1343,13 @@ namespace App\Domains\Stock\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrder withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperStockOrder {}
+	class StockOrder extends \Eloquent {}
 }
 
 namespace App\Domains\Stock\Models{
 /**
+ * @mixin IdeHelperStockOrderItem
  * @property string $id
  * @property string $stock_order_id
  * @property int $quantity
@@ -1366,14 +1371,13 @@ namespace App\Domains\Stock\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereStockOrderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderItem whereUpdatedAt($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperStockOrderItem {}
+	class StockOrderItem extends \Eloquent {}
 }
 
 namespace App\Domains\Stock\Models{
 /**
+ * @mixin IdeHelperStockOrderTemplate
  * @property string $id
  * @property string $name
  * @property string|null $description
@@ -1409,14 +1413,13 @@ namespace App\Domains\Stock\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate whereUrgency($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperStockOrderTemplate {}
+	class StockOrderTemplate extends \Eloquent {}
 }
 
 namespace App\Domains\Tasks\Models{
 /**
+ * @mixin IdeHelperTask
  * @property string $id
  * @property string $project_id
  * @property string|null $task_category_id
@@ -1464,14 +1467,13 @@ namespace App\Domains\Tasks\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperTask {}
+	class Task extends \Eloquent {}
 }
 
 namespace App\Domains\Tasks\Models{
 /**
+ * @mixin IdeHelperTaskCategory
  * @property string $id
  * @property string|null $project_id
  * @property string|null $parent_id
@@ -1507,14 +1509,13 @@ namespace App\Domains\Tasks\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskCategory whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskCategory withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskCategory withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperTaskCategory {}
+	class TaskCategory extends \Eloquent {}
 }
 
 namespace App\Domains\Tasks\Models{
 /**
+ * @mixin IdeHelperTaskTemplate
  * @property string $id
  * @property string $name
  * @property string|null $description
@@ -1550,14 +1551,13 @@ namespace App\Domains\Tasks\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskTemplate whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskTemplate withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskTemplate withoutTrashed()
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperTaskTemplate {}
+	class TaskTemplate extends \Eloquent {}
 }
 
 namespace App\Domains\Timecards\Models{
 /**
+ * @mixin IdeHelperTimecard
  * @property string $id
  * @property string $user_id
  * @property \Carbon\CarbonImmutable $week_starting
@@ -1597,14 +1597,13 @@ namespace App\Domains\Timecards\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereWeekEnding($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Timecard whereWeekStarting($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperTimecard {}
+	class Timecard extends \Eloquent {}
 }
 
 namespace App\Domains\Timecards\Models{
 /**
+ * @mixin IdeHelperTimecardEntry
  * @property string $id
  * @property string $timecard_id
  * @property string $user_id
@@ -1651,9 +1650,7 @@ namespace App\Domains\Timecards\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereWorkClassification($value)
- * @mixin \Eloquent
  */
-	#[\AllowDynamicProperties]
-	class IdeHelperTimecardEntry {}
+	class TimecardEntry extends \Eloquent {}
 }
 

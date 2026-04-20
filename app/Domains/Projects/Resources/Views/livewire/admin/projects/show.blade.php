@@ -92,7 +92,7 @@
     @endif
 
     @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))
-        <livewire:app.domains.tasks.livewire.admin.projects.task-hierarchy-widget :project="$project" :key="'project-task-widget-'.$project->id" />
+        <livewire:tasks::admin.projects.task-hierarchy-widget :project="$project" :key="'project-task-widget-'.$project->id" />
     @endif
 
     @if ($activeTab === 'invoices' && in_array('invoices', $tabs, true))
@@ -112,7 +112,7 @@
     @endif
 
     @if ($activeTab === 'documents' && in_array('documents', $tabs, true))
-        <livewire:app.domains.documents.livewire.admin.projects.documents-tab :project="$project" :key="'project-documents-tab-'.$project->id" />
+        <livewire:documents::admin.projects.documents-tab :project="$project" :key="'project-documents-tab-'.$project->id" />
     @endif
 
     @if ($activeTab === 'access' && in_array('access', $tabs, true))

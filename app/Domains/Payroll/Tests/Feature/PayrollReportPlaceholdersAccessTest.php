@@ -16,6 +16,7 @@ it('allows users with payroll reports view permission to access payroll report p
     ['reports.payroll.certified.index', 'Certified Payroll (WH-347)'],
     ['reports.payroll.tax-filings.index', 'Payroll Tax Filings (941 and W-2)'],
     ['reports.payroll.labor-cost.index', 'Payroll Labor Cost by Project and Cost Code'],
+    ['reports.payroll.forecasting.index', 'Payroll Forecasting'],
     ['reports.payroll.union-remittance.index', 'Union Remittance'],
 ]);
 

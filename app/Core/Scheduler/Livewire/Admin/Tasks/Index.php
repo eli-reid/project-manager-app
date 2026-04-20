@@ -2,10 +2,11 @@
 
 namespace App\Core\Scheduler\Livewire\Admin\Tasks;
 
-use App\Core\Scheduler\Jobs\ProcessScheduledTaskJob;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
+use App\Core\Scheduler\Services\ScheduledTaskFactory;
 use App\Core\Scheduler\Services\ScheduledTaskService;
+use App\Core\Scheduler\Services\ScheduledTaskStatusService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -60,9 +61,20 @@ class Index extends Component
         $task = ScheduledTask::query()->findOrFail($taskId);
         $this->authorize('run', $task);
 
-        ProcessScheduledTaskJob::dispatch((string) $task->id)->onQueue('scheduled-tasks');
+        $statusService = app(ScheduledTaskStatusService::class);
+        $statusService->markRunning((string) $task->id, null);
 
-        session()->flash('success', "Task '{$task->name}' queued for execution.");
+        try {
+            $task->loadMissing('availableTask');
+            app(ScheduledTaskFactory::class)->make($task)->dispatchJob();
+            $task->markAsRun();
+
+            $statusService->markCompleted((string) $task->id, null);
+            session()->flash('success', "Task '{$task->name}' ran successfully.");
+        } catch (\Throwable $exception) {
+            $statusService->markFailed((string) $task->id, $exception->getMessage(), null);
+            session()->flash('error', "Task '{$task->name}' failed: {$exception->getMessage()}");
+        }
     }
 
     public function deleteTask(string $taskId): void
@@ -78,6 +90,8 @@ class Index extends Component
 
     public function render()
     {
+        $statusService = app(ScheduledTaskStatusService::class);
+
         $tasks = ScheduledTask::query()
             ->with('availableTask')
             ->when($this->search !== '', function ($query): void {
@@ -100,8 +114,13 @@ class Index extends Component
             ->orderBy('next_run_at')
             ->paginate(12);
 
+        $taskStatuses = $tasks->getCollection()
+            ->mapWithKeys(fn (ScheduledTask $task): array => [(string) $task->id => $statusService->get((string) $task->id)])
+            ->all();
+
         return view('scheduler::livewire.admin.tasks.index', [
             'tasks' => $tasks,
+            'taskStatuses' => $taskStatuses,
             'availableTasks' => AvailableTask::query()
                 ->orderBy('name')
                 ->get(['id', 'name', 'feature_type']),

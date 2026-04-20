@@ -3,13 +3,9 @@
 namespace App\Domains\Projects\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Domains\Projects\Livewire\Admin\Projects\Form;
-use App\Domains\Projects\Livewire\Admin\Projects\Index;
-use App\Domains\Projects\Livewire\Admin\Projects\Show;
-use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectIndex;
-use App\Domains\Projects\Livewire\User\Projects\Show as UserProjectShow;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
@@ -27,7 +23,7 @@ class ProjectsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
@@ -36,6 +32,7 @@ class ProjectsServiceProvider extends ServiceProvider
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
+        $this->registerDashboardWidgets($widgetRegistry);
         $this->registerRoutes();
     }
 
@@ -52,11 +49,24 @@ class ProjectsServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.domains.projects.livewire.admin.projects', Index::class);
-        Livewire::component('app.domains.projects.livewire.admin.projects.form', Form::class);
-        Livewire::component('app.domains.projects.livewire.admin.projects.show', Show::class);
-        Livewire::component('app.domains.projects.livewire.user.projects', UserProjectIndex::class);
-        Livewire::component('app.domains.projects.livewire.user.projects.show', UserProjectShow::class);
+        Livewire::addNamespace('projects', classNamespace: 'App\Domains\Projects\Livewire');
+    }
+
+    private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
+    {
+        $widgetRegistry->registerDefinitions([
+            [
+                'key' => 'projects.active-summary',
+                'component' => 'projects::dashboard.widget',
+                'section' => 'operations',
+                'sort' => 10,
+                'span' => 'half',
+                'ability' => 'viewAny',
+                'ability_model' => Project::class,
+                'title' => 'Active Projects',
+                'description' => 'Currently active projects.',
+            ],
+        ]);
     }
 
     private function registerRoutes(): void

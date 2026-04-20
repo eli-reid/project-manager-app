@@ -2,8 +2,8 @@
 
 namespace App\Core\Scheduler\Services;
 
+use App\Core\Scheduler\Contracts\SchedulableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
-use App\Core\Scheduler\Services\Contracts\SchedulableTask;
 
 class ScheduledTaskFactory
 {

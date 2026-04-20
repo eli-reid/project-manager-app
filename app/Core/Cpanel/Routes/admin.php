@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('cpanel')->name('cpanel.')->group(function (): void {
     Route::prefix('manage')->name('manage.')->group(function (): void {
-        Route::get('/', EmailManagementDashboard::class)->name('dashboard');
-        Route::get('domain-forwarders', EmailManagementDomainForwarders::class)->name('domain-forwarders');
-        Route::get('email-accounts/create', EmailAccountsCreate::class)->name('email-accounts.create');
-        Route::get('email-accounts/{cachedEmailAccount}', EmailAccountsShow::class)->name('email-accounts.show');
-        Route::get('email-accounts', EmailAccountsIndex::class)->name('email-accounts.index');
+        Route::livewire('/', EmailManagementDashboard::class)->name('dashboard');
+        Route::livewire('domain-forwarders', EmailManagementDomainForwarders::class)->name('domain-forwarders');
+        Route::livewire('email-accounts/create', EmailAccountsCreate::class)->name('email-accounts.create');
+        Route::livewire('email-accounts/{cachedEmailAccount}', EmailAccountsShow::class)->name('email-accounts.show');
+        Route::livewire('email-accounts', EmailAccountsIndex::class)->name('email-accounts.index');
     });
 
     Route::prefix('api')->group(function (): void {

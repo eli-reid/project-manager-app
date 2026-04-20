@@ -9,13 +9,13 @@ Route::prefix('announcements')
     ->name('announcements.')
     ->middleware('can:viewAny,'.Announcement::class)
     ->group(function (): void {
-        Route::get('/', Index::class)->name('index');
+        Route::livewire('/', Index::class)->name('index');
 
-        Route::get('/create', Form::class)
+        Route::livewire('/create', Form::class)
             ->middleware('can:create,'.Announcement::class)
             ->name('create');
 
-        Route::get('/{announcement}/edit', Form::class)
+        Route::livewire('/{announcement}/edit', Form::class)
             ->middleware('can:update,announcement')
             ->name('edit');
     });

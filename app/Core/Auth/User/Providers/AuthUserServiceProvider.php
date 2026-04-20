@@ -3,8 +3,6 @@
 namespace App\Core\Auth\User\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Auth\User\Livewire\Admin\Users\Form as UserForm;
-use App\Core\Auth\User\Livewire\Admin\Users\Index as UserIndex;
 use App\Core\Auth\User\Observers\UserObserver;
 use App\Core\Auth\User\Policies\UserPolicy;
 use App\Core\Identity\Models\User;
@@ -58,8 +56,7 @@ class AuthUserServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::component('app.core.user.livewire.admin.users', UserIndex::class);
-        Livewire::component('app.core.user.livewire.admin.users.form', UserForm::class);
+        Livewire::addNamespace('users', classNamespace: 'App\Core\Auth\User\Livewire');
     }
 
     private function registerRoutes(): void

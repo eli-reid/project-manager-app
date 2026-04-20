@@ -148,5 +148,6 @@ class DocumentsTab extends Component
         $this->description = '';
         $this->file = null;
         $this->resetValidation();
+        $this->dispatch('project-documents-file-input-reset');
     }
 }

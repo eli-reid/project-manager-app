@@ -2,8 +2,8 @@
 
 namespace App\Core\Scheduler\Tasks;
 
+use App\Core\Scheduler\Contracts\SchedulableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
-use App\Core\Scheduler\Services\Contracts\SchedulableTask;
 use Illuminate\Support\Facades\Log;
 
 class NoOpTask implements SchedulableTask
