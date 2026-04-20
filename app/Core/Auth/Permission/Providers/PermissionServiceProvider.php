@@ -19,7 +19,7 @@ class PermissionServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPermissions();
-        $this->app->booted([$this, 'syncRegisteredPermissions']);
+        $this->app->booted(fn () => $this->syncRegisteredPermissions());
     }
 
     private function registerPermissions(): void
