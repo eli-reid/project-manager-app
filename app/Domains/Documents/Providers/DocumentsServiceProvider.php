@@ -60,6 +60,14 @@ class DocumentsServiceProvider extends ServiceProvider
         Route::middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/web.php');
 
+        Route::middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/sharing.php');
+
+        Route::middleware(['web'])
+            ->group(function (): void {
+                require __DIR__.'/../Routes/public-sharing.php';
+            });
+
         Route::prefix('api')
             ->name('api.')
             ->middleware(['web', 'auth', 'verified'])

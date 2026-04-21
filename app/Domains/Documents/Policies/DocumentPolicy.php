@@ -125,4 +125,13 @@ class DocumentPolicy
         return $this->manageProjectDocuments($user, $project)
             && $this->delete($user, $document);
     }
+
+    public function share(User $user, Document $document): bool
+    {
+        if (! $user->hasPermission('documents.share')) {
+            return false;
+        }
+
+        return $this->view($user, $document);
+    }
 }

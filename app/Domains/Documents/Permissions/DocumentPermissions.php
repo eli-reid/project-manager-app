@@ -46,6 +46,12 @@ class DocumentPermissions
         'description' => 'Manage project-owned documents',
     ];
 
+    public const SHARE = [
+        'resource' => 'documents',
+        'action' => 'share',
+        'description' => 'Create and manage document shares',
+    ];
+
     /**
      * @return array<int, array<string, string>>
      */
@@ -59,6 +65,7 @@ class DocumentPermissions
             self::PROMOTE_GLOBAL,
             self::DEMOTE_PRIVATE,
             self::MANAGE_PROJECT,
+            self::SHARE,
         ];
     }
 }
