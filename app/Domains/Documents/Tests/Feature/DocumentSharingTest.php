@@ -18,7 +18,7 @@ describe('share creation', function (): void {
         $document = Document::factory()->create();
         $document->ownerUsers()->sync([$this->user->id]);
 
-        actingAs($this->user);
+        $this->actingAs($this->user);
 
         $share = app(DocumentShareService::class)->createShare($document, $this->user, [
             'password' => 'test123',

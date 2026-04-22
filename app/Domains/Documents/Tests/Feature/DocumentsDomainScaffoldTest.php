@@ -151,6 +151,51 @@ it('supports user promote and demote livewire interactions for user-owned docume
     expect($document->fresh()?->visibility)->toBe(Document::VISIBILITY_PRIVATE);
 });
 
+it('allows owner to download their user-owned document', function (): void {
+    Storage::fake('local');
+
+    $user = userWithDocumentDomainPermissions(['documents.view']);
+
+    $document = Document::factory()->create([
+        'owner_scope' => Document::OWNER_SCOPE_USER,
+        'visibility' => Document::VISIBILITY_PRIVATE,
+        'uploaded_by_id' => $user->id,
+        'storage_disk' => 'local',
+        'storage_path' => 'documents/user/'.$user->id.'/download-test.pdf',
+        'original_name' => 'download-test.pdf',
+    ]);
+    $document->ownerUsers()->sync([$user->id]);
+    Storage::disk('local')->put($document->storage_path, 'document-content');
+
+    actingAs($user);
+
+    get(route('documents.download', $document))
+        ->assertSuccessful();
+});
+
+it('forbids non-owners from downloading private user-owned documents', function (): void {
+    Storage::fake('local');
+
+    $owner = userWithDocumentDomainPermissions(['documents.view']);
+    $otherUser = userWithDocumentDomainPermissions(['documents.view']);
+
+    $document = Document::factory()->create([
+        'owner_scope' => Document::OWNER_SCOPE_USER,
+        'visibility' => Document::VISIBILITY_PRIVATE,
+        'uploaded_by_id' => $owner->id,
+        'storage_disk' => 'local',
+        'storage_path' => 'documents/user/'.$owner->id.'/private-download-test.pdf',
+        'original_name' => 'private-download-test.pdf',
+    ]);
+    $document->ownerUsers()->sync([$owner->id]);
+    Storage::disk('local')->put($document->storage_path, 'document-content');
+
+    actingAs($otherUser);
+
+    get(route('documents.download', $document))
+        ->assertForbidden();
+});
+
 it('allows admins to delete any document from the admin queue', function (): void {
     Storage::fake('local');
     Settings::set('documents.storage_disk', 'local');

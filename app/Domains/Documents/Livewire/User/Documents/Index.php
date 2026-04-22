@@ -4,7 +4,10 @@ namespace App\Domains\Documents\Livewire\User\Documents;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
+use App\Domains\Documents\Models\DocumentShare;
 use App\Domains\Documents\Services\DocumentService;
+use App\Domains\Documents\Services\DocumentShareService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -28,6 +31,16 @@ class Index extends Component
     public ?string $editingDocumentId = null;
 
     public mixed $file = null;
+
+    public ?string $sharingDocumentId = null;
+
+    public string $sharePassword = '';
+
+    public ?string $shareExpiresAt = null;
+
+    public ?int $shareMaxDownloads = null;
+
+    public string $shareAccessNotes = '';
 
     public function mount(): void
     {
@@ -138,6 +151,82 @@ class Index extends Component
         $document->update(['visibility' => Document::VISIBILITY_PRIVATE]);
     }
 
+    public function openSharePanel(string $documentId): void
+    {
+        $document = Document::query()
+            ->userOwned()
+            ->ownedByUser((string) Auth::id())
+            ->findOrFail($documentId);
+
+        $this->authorize('share', $document);
+
+        $this->sharingDocumentId = $documentId;
+    }
+
+    public function closeSharePanel(): void
+    {
+        $this->sharingDocumentId = null;
+        $this->resetShareForm();
+    }
+
+    public function createShare(DocumentShareService $documentShareService): void
+    {
+        if ($this->sharingDocumentId === null) {
+            return;
+        }
+
+        $document = Document::query()
+            ->userOwned()
+            ->ownedByUser((string) Auth::id())
+            ->findOrFail($this->sharingDocumentId);
+
+        $this->authorize('share', $document);
+
+        $this->validate([
+            'sharePassword' => ['nullable', 'string', 'min:4'],
+            'shareExpiresAt' => ['nullable', 'date', 'after:now'],
+            'shareMaxDownloads' => ['nullable', 'integer', 'min:1'],
+            'shareAccessNotes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $options = [
+            'password' => $this->sharePassword !== '' ? $this->sharePassword : null,
+            'expires_at' => $this->shareExpiresAt !== null ? Carbon::parse($this->shareExpiresAt) : null,
+            'max_downloads' => $this->shareMaxDownloads,
+            'access_notes' => $this->shareAccessNotes !== '' ? $this->shareAccessNotes : null,
+        ];
+
+        /** @var User $user */
+        $user = Auth::user();
+        $documentShareService->createShare($document, $user, $options);
+
+        $this->resetShareForm();
+    }
+
+    public function toggleShare(string $shareId, DocumentShareService $documentShareService): void
+    {
+        $share = DocumentShare::query()
+            ->whereKey($shareId)
+            ->whereHas('document.ownerUsers', fn ($query) => $query->where('users.id', Auth::id()))
+            ->firstOrFail();
+
+        $this->authorize('share', $share->document);
+
+        $documentShareService->toggleShare($share, ! $share->is_active);
+    }
+
+    public function deleteShare(string $shareId, DocumentShareService $documentShareService): void
+    {
+        $share = DocumentShare::query()
+            ->whereKey($shareId)
+            ->whereHas('document.ownerUsers', fn ($query) => $query->where('users.id', Auth::id()))
+            ->firstOrFail();
+
+        $this->authorize('share', $share->document);
+
+        $documentShareService->deleteShare($share);
+    }
+
     public function cancelEdit(): void
     {
         $this->resetForm();
@@ -148,6 +237,7 @@ class Index extends Component
         $documentsQuery = Document::query()
             ->userOwned()
             ->ownedByUser((string) Auth::id())
+            ->withCount('shares')
             ->latest();
 
         if ($this->search !== '') {
@@ -157,8 +247,20 @@ class Index extends Component
             });
         }
 
+        $sharingDocument = null;
+        if ($this->sharingDocumentId !== null) {
+            $sharingDocument = Document::query()
+                ->userOwned()
+                ->ownedByUser((string) Auth::id())
+                ->with([
+                    'shares' => fn ($query) => $query->latest(),
+                ])
+                ->find($this->sharingDocumentId);
+        }
+
         return view('documents::livewire.user.documents.index', [
             'documents' => $documentsQuery->get(),
+            'sharingDocument' => $sharingDocument,
         ]);
     }
 
@@ -170,5 +272,19 @@ class Index extends Component
         $this->file = null;
         $this->resetValidation();
         $this->dispatch('documents-file-input-reset');
+    }
+
+    private function resetShareForm(): void
+    {
+        $this->sharePassword = '';
+        $this->shareExpiresAt = null;
+        $this->shareMaxDownloads = null;
+        $this->shareAccessNotes = '';
+        $this->resetValidation([
+            'sharePassword',
+            'shareExpiresAt',
+            'shareMaxDownloads',
+            'shareAccessNotes',
+        ]);
     }
 }

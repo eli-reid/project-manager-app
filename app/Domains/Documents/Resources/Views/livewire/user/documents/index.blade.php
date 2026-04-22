@@ -158,7 +158,7 @@
         </aside>
     </div>
 
-    <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+    <section class="overflow-visible rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
             <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Your documents</h2>
             <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Manage visibility, swap files, or remove documents you no longer need.</p>
@@ -186,20 +186,43 @@
 
                         <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ $document->description ?: 'No description added yet.' }}</p>
 
-                        <div class="flex flex-wrap gap-2">
-                            <flux:button size="sm" variant="ghost" wire:click="edit('{{ $document->id }}')">Edit</flux:button>
-                            @if ($document->visibility === \App\Domains\Documents\Models\Document::VISIBILITY_PRIVATE)
-                                <flux:button size="sm" variant="ghost" wire:click="promote('{{ $document->id }}')" class="border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-900/20">Make Global</flux:button>
-                            @else
-                                <flux:button size="sm" variant="ghost" wire:click="demote('{{ $document->id }}')" class="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/20">Make Private</flux:button>
-                            @endif
-                            <flux:button size="sm" variant="ghost" wire:click="delete('{{ $document->id }}')" wire:confirm="Delete this document?" class="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20">Delete</flux:button>
+                        <div class="flex justify-end">
+                            <flux:dropdown position="bottom" align="end">
+                                <flux:button size="sm" variant="ghost" icon-trailing="ellipsis-horizontal">Actions</flux:button>
+
+                                <flux:menu>
+                                    <flux:menu.item as="button" type="button" wire:click="edit('{{ $document->id }}')" icon="pencil-square">Edit</flux:menu.item>
+                                    <flux:menu.item :href="route('documents.download', $document)" icon="arrow-down-tray">Download</flux:menu.item>
+
+                                    @can('share', $document)
+                                        <flux:menu.item
+                                            as="button"
+                                            type="button"
+                                            wire:click.prevent="openSharePanel('{{ $document->id }}')"
+                                            x-on:click.stop
+                                            icon="link"
+                                        >
+                                            Share
+                                        </flux:menu.item>
+                                    @endcan
+
+                                    @if ($document->visibility === \App\Domains\Documents\Models\Document::VISIBILITY_PRIVATE)
+                                        <flux:menu.item as="button" type="button" wire:click="promote('{{ $document->id }}')" icon="globe-alt">Make Global</flux:menu.item>
+                                    @else
+                                        <flux:menu.item as="button" type="button" wire:click="demote('{{ $document->id }}')" icon="lock-closed">Make Private</flux:menu.item>
+                                    @endif
+
+                                    <flux:menu.separator />
+
+                                    <flux:menu.item as="button" type="button" wire:click="delete('{{ $document->id }}')" wire:confirm="Delete this document?" icon="trash" variant="danger">Delete</flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
                         </div>
                     </article>
                 @endforeach
             </div>
 
-            <div class="hidden overflow-x-auto md:block">
+            <div class="hidden overflow-x-auto overflow-y-visible md:block">
             <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
@@ -221,14 +244,37 @@
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ str($document->visibility)->headline() }}</td>
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ $document->original_name }}</td>
                             <td class="px-4 py-3 text-right">
-                                <div class="inline-flex gap-2">
-                                    <flux:button size="xs" variant="ghost" wire:click="edit('{{ $document->id }}')">Edit</flux:button>
-                                    @if ($document->visibility === \App\Domains\Documents\Models\Document::VISIBILITY_PRIVATE)
-                                        <flux:button size="xs" variant="ghost" wire:click="promote('{{ $document->id }}')" class="border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-900/20">Make Global</flux:button>
-                                    @else
-                                        <flux:button size="xs" variant="ghost" wire:click="demote('{{ $document->id }}')" class="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/20">Make Private</flux:button>
-                                    @endif
-                                    <flux:button size="xs" variant="ghost" wire:click="delete('{{ $document->id }}')" wire:confirm="Delete this document?" class="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20">Delete</flux:button>
+                                <div class="inline-flex">
+                                    <flux:dropdown position="bottom" align="end">
+                                        <flux:button size="xs" variant="ghost" icon-trailing="ellipsis-horizontal">Actions</flux:button>
+
+                                        <flux:menu>
+                                            <flux:menu.item as="button" type="button" wire:click="edit('{{ $document->id }}')" icon="pencil-square">Edit</flux:menu.item>
+                                            <flux:menu.item :href="route('documents.download', $document)" icon="arrow-down-tray">Download</flux:menu.item>
+
+                                            @can('share', $document)
+                                                <flux:menu.item
+                                                    as="button"
+                                                    type="button"
+                                                    wire:click.prevent="openSharePanel('{{ $document->id }}')"
+                                                    x-on:click.stop
+                                                    icon="link"
+                                                >
+                                                    Share ({{ $document->shares_count }})
+                                                </flux:menu.item>
+                                            @endcan
+
+                                            @if ($document->visibility === \App\Domains\Documents\Models\Document::VISIBILITY_PRIVATE)
+                                                <flux:menu.item as="button" type="button" wire:click="promote('{{ $document->id }}')" icon="globe-alt">Make Global</flux:menu.item>
+                                            @else
+                                                <flux:menu.item as="button" type="button" wire:click="demote('{{ $document->id }}')" icon="lock-closed">Make Private</flux:menu.item>
+                                            @endif
+
+                                            <flux:menu.separator />
+
+                                            <flux:menu.item as="button" type="button" wire:click="delete('{{ $document->id }}')" wire:confirm="Delete this document?" icon="trash" variant="danger">Delete</flux:menu.item>
+                                        </flux:menu>
+                                    </flux:dropdown>
                                 </div>
                             </td>
                         </tr>
@@ -239,4 +285,87 @@
         @endif
         </div>
     </section>
+
+    @if ($sharingDocument)
+        <section class="rounded-2xl border border-sky-200 bg-sky-50/40 p-5 shadow-sm dark:border-sky-900/70 dark:bg-sky-950/20">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Share {{ $sharingDocument->title }}</h2>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Create secure links, set optional passwords, and manage active shares.</p>
+                </div>
+
+                <flux:button size="sm" variant="ghost" wire:click="closeSharePanel">Close</flux:button>
+            </div>
+
+            <div class="mt-5 grid gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+                <form wire:submit="createShare" class="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:field>
+                        <flux:label>Password (optional)</flux:label>
+                        <flux:input type="password" wire:model="sharePassword" placeholder="Leave blank for open link" />
+                        <flux:error name="sharePassword" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Expires At (optional)</flux:label>
+                        <flux:input type="datetime-local" wire:model="shareExpiresAt" />
+                        <flux:error name="shareExpiresAt" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Max Downloads (optional)</flux:label>
+                        <flux:input type="number" min="1" wire:model="shareMaxDownloads" placeholder="Unlimited" />
+                        <flux:error name="shareMaxDownloads" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Access Notes (optional)</flux:label>
+                        <flux:textarea rows="3" wire:model="shareAccessNotes" placeholder="Guidance for recipients" />
+                        <flux:error name="shareAccessNotes" />
+                    </flux:field>
+
+                    <div class="pt-1">
+                        <flux:button type="submit" variant="primary">Create Share Link</flux:button>
+                    </div>
+                </form>
+
+                <div class="space-y-3">
+                    @forelse ($sharingDocument->shares as $share)
+                        <article wire:key="document-share-{{ $share->id }}" class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('share.view', $share->share_token) }}" target="_blank" class="block truncate text-sm font-medium text-sky-700 hover:underline dark:text-sky-300">
+                                        {{ route('share.view', $share->share_token) }}
+                                    </a>
+
+                                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                        <span class="inline-flex items-center rounded-full px-2 py-1 {{ $share->is_active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }}">{{ $share->is_active ? 'Active' : 'Disabled' }}</span>
+                                        @if ($share->share_password)
+                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Password</span>
+                                        @endif
+                                        <span>Downloads: {{ $share->download_count }}{{ $share->max_downloads ? ' / '.$share->max_downloads : '' }}</span>
+                                        @if ($share->expires_at)
+                                            <span>Expires: {{ $share->expires_at->format('M j, Y g:i A') }}</span>
+                                        @endif
+                                    </div>
+
+                                    @if ($share->access_notes)
+                                        <p class="mt-2 text-xs text-zinc-600 dark:text-zinc-300">{{ $share->access_notes }}</p>
+                                    @endif
+                                </div>
+
+                                <div class="inline-flex items-center gap-2">
+                                    <flux:button size="xs" variant="ghost" wire:click="toggleShare('{{ $share->id }}')">{{ $share->is_active ? 'Disable' : 'Enable' }}</flux:button>
+                                    <flux:button size="xs" variant="ghost" wire:click="deleteShare('{{ $share->id }}')" wire:confirm="Delete this share link?" class="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20">Delete</flux:button>
+                                </div>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="rounded-xl border border-dashed border-zinc-300 bg-white px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
+                            No share links yet for this document.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </section>
+    @endif
 </div>
