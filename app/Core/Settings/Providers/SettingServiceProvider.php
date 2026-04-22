@@ -3,6 +3,7 @@
 namespace App\Core\Settings\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Settings\Commands\RotateAppKeyCommand;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;
@@ -66,6 +67,7 @@ class SettingServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerAuthorization();
+        $this->registerCommands();
         $this->registerInfrastructure();
         $this->registerObservers();
         $this->registerSettings();
@@ -111,6 +113,17 @@ class SettingServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core');
         $this->loadRoutesFrom(__DIR__.'/../Routes/admin.php');
         Livewire::addNamespace('core.settings', classNamespace: 'App\Core\Settings\Livewire');
+    }
+
+    private function registerCommands(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->commands([
+            RotateAppKeyCommand::class,
+        ]);
     }
 
     private function registerObservers(): void
