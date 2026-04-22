@@ -30,7 +30,7 @@
                 <div class="px-6 py-8 sm:px-10">
                     <!-- File Icon & Title -->
                     <div class="flex items-start gap-4 mb-6">
-                        <div class="flex-shrink-0">
+                        <div class="shrink-0">
                             <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-indigo-100">
                                 <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -38,7 +38,7 @@
                             </div>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h2 class="text-2xl font-bold text-gray-900 break-words">{{ $share->document->title }}</h2>
+                            <h2 class="text-2xl font-bold text-gray-900 wrap-break-word">{{ $share->document->title }}</h2>
                             @if ($share->document->description)
                                 <p class="mt-2 text-sm text-gray-600">{{ $share->document->description }}</p>
                             @endif
@@ -82,9 +82,19 @@
                         <h3 class="text-lg font-medium text-gray-900 mb-4">Enter Password</h3>
                         <form method="POST" action="{{ route('share.verify-password', $share->share_token) }}">
                             @csrf
+                            <input
+                                type="text"
+                                name="username"
+                                value="{{ $share->createdBy->email }}"
+                                autocomplete="username"
+                                tabindex="-1"
+                                aria-hidden="true"
+                                class="sr-only"
+                            />
+
                             <div class="mb-4">
                                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                                <input type="password" name="password" id="password" required
+                                <input type="password" name="password" id="password" required autocomplete="current-password"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Enter the password"
                                 />

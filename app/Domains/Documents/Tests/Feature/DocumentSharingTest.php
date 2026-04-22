@@ -4,6 +4,7 @@ use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Models\DocumentShare;
 use App\Domains\Documents\Services\DocumentShareService;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create(['email_verified_at' => now()]);
@@ -206,5 +207,30 @@ describe('share routes', function (): void {
 
         expect(session("share.{$share->share_token}.verified"))->toBeTrue();
         $response->assertRedirect();
+    });
+
+    it('downloads shared file from configured disk path', function (): void {
+        Storage::fake('local');
+
+        $document = Document::factory()->create([
+            'storage_disk' => 'local',
+            'storage_path' => 'documents/user/'.$this->user->id.'/shared-download-test.pdf',
+            'original_name' => 'shared-download-test.pdf',
+        ]);
+        $document->ownerUsers()->sync([$this->user->id]);
+
+        Storage::disk('local')->put($document->storage_path, 'shared-content');
+
+        $share = DocumentShare::create([
+            'document_id' => $document->id,
+            'created_by_id' => $this->user->id,
+            'share_token' => DocumentShare::generateShareToken(),
+            'is_active' => true,
+        ]);
+
+        $response = $this->get(route('share.download', $share->share_token));
+
+        $response->assertOk();
+        expect($share->fresh()->download_count)->toBe(1);
     });
 });

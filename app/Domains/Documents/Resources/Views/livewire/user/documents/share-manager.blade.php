@@ -14,6 +14,16 @@
     @if ($showForm)
         <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 bg-zinc-50 dark:bg-zinc-900/50">
             <form wire:submit="createShare" class="space-y-4">
+                <input
+                    type="text"
+                    name="username"
+                    value="{{ auth()->user()?->email }}"
+                    autocomplete="username"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    class="sr-only"
+                />
+
                 <!-- Password Field -->
                 <div>
                     <label class="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">
@@ -23,6 +33,7 @@
                         type="password"
                         wire:model="sharePassword"
                         placeholder="Leave empty for public access"
+                        autocomplete="new-password"
                         class="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                     />
                     @error('sharePassword')

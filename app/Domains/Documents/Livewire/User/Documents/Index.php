@@ -45,6 +45,19 @@ class Index extends Component
     public function mount(): void
     {
         $this->authorize('viewAny', Document::class);
+
+        $shareDocumentId = request()->query('share');
+
+        if (is_string($shareDocumentId) && $shareDocumentId !== '') {
+            $document = Document::query()
+                ->userOwned()
+                ->ownedByUser((string) Auth::id())
+                ->find($shareDocumentId);
+
+            if ($document !== null && Auth::user()?->can('share', $document)) {
+                $this->sharingDocumentId = $document->id;
+            }
+        }
     }
 
     public function save(DocumentService $documentService): void

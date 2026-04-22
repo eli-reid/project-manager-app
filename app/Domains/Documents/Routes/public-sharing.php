@@ -3,6 +3,7 @@
 use App\Domains\Documents\Models\DocumentShare;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::prefix('share')
     ->name('share.')
@@ -52,10 +53,14 @@ Route::prefix('share')
 
             $document = $share->document;
 
+            if (! Storage::disk($document->storage_disk)->exists($document->storage_path)) {
+                abort(404, 'Shared file not found.');
+            }
+
             $share->recordDownload();
 
-            return response()->download(
-                storage_path('app/'.$document->storage_path),
+            return Storage::disk($document->storage_disk)->download(
+                $document->storage_path,
                 $document->original_name
             );
         })->name('download');

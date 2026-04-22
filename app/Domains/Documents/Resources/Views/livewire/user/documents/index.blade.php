@@ -1,3 +1,4 @@
+<div>
 <div class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -196,10 +197,8 @@
 
                                     @can('share', $document)
                                         <flux:menu.item
-                                            as="button"
-                                            type="button"
-                                            wire:click.prevent="openSharePanel('{{ $document->id }}')"
-                                            x-on:click.stop
+                                            :href="route('documents.index', ['share' => $document->id])"
+                                            wire:navigate
                                             icon="link"
                                         >
                                             Share
@@ -254,10 +253,8 @@
 
                                             @can('share', $document)
                                                 <flux:menu.item
-                                                    as="button"
-                                                    type="button"
-                                                    wire:click.prevent="openSharePanel('{{ $document->id }}')"
-                                                    x-on:click.stop
+                                                    :href="route('documents.index', ['share' => $document->id])"
+                                                    wire:navigate
                                                     icon="link"
                                                 >
                                                     Share ({{ $document->shares_count }})
@@ -299,9 +296,19 @@
 
             <div class="mt-5 grid gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
                 <form wire:submit="createShare" class="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <input
+                        type="text"
+                        name="username"
+                        value="{{ auth()->user()?->email }}"
+                        autocomplete="username"
+                        tabindex="-1"
+                        aria-hidden="true"
+                        class="sr-only"
+                    />
+
                     <flux:field>
                         <flux:label>Password (optional)</flux:label>
-                        <flux:input type="password" wire:model="sharePassword" placeholder="Leave blank for open link" />
+                        <flux:input type="password" wire:model="sharePassword" placeholder="Leave blank for open link" autocomplete="new-password" />
                         <flux:error name="sharePassword" />
                     </flux:field>
 
@@ -368,4 +375,5 @@
             </div>
         </section>
     @endif
+</div>
 </div>

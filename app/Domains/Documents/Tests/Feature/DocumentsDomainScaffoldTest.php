@@ -151,6 +151,27 @@ it('supports user promote and demote livewire interactions for user-owned docume
     expect($document->fresh()?->visibility)->toBe(Document::VISIBILITY_PRIVATE);
 });
 
+it('renders the documents page with the share panel open for an owned document', function (): void {
+    $user = userWithDocumentDomainPermissions([
+        'documents.view',
+        'documents.share',
+    ]);
+
+    $document = Document::factory()->create([
+        'owner_scope' => Document::OWNER_SCOPE_USER,
+        'visibility' => Document::VISIBILITY_PRIVATE,
+        'uploaded_by_id' => $user->id,
+    ]);
+    $document->ownerUsers()->sync([$user->id]);
+
+    actingAs($user);
+
+    get(route('documents.index', ['share' => $document->id]))
+        ->assertSuccessful()
+        ->assertSee('Share '.$document->title)
+        ->assertSee('Create Share Link');
+});
+
 it('allows owner to download their user-owned document', function (): void {
     Storage::fake('local');
 
