@@ -11,9 +11,9 @@
         @endphp
 
         <flux:sidebar sticky collapsible class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                <flux:sidebar.collapse class="lg:inline-flex"/>
+            <flux:sidebar.header class="gap-2">
+                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" class="min-w-0 flex-1" wire:navigate />
+                <flux:sidebar.collapse class="shrink-0 lg:inline-flex"/>
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
