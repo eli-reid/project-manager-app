@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Illuminate\Validation\ValidationException;
 
 #[Layout('layouts.auth')]
 #[Title('Change password')]
@@ -31,23 +32,27 @@ class ForcePasswordChange extends Component
 
     public function updatePassword(): void
     {
-        $validated = $this->validate([
-            'password' => $this->passwordRules(),
-        ]);
+        try {
+            $validated = $this->validate([
+                'password' => $this->passwordRules(),
+            ]);
+        } catch (ValidationException $e) {
+            $this->reset('password', 'password_confirmation');
 
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return;
+            throw $e;
         }
 
-        $user->forceFill([
+         Auth::user()->update([
             'password' => $validated['password'],
             'password_change_required' => false,
-        ])->save();
+        ]);
 
-        app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
 
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user !== null) {
+            app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
+        }
         session()->flash('status', 'Your password has been updated.');
 
         $this->redirectIntended(default: route('dashboard', absolute: false));

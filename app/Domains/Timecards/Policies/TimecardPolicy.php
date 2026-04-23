@@ -55,6 +55,16 @@ class TimecardPolicy
 
     public function approve(User $user, Timecard $timecard): bool
     {
+        if ($timecard->status === Timecard::STATUS_APPROVED) {
+            return false;
+        }
+
+        // Admins who can view all timecards may approve draft timecards they created
+        // without waiting for the employee to submit.
+        if ($user->hasPermission('timecards.approve') && $user->hasPermission('timecards.view-all')) {
+            return in_array($timecard->status, [Timecard::STATUS_SUBMITTED, Timecard::STATUS_DRAFT]);
+        }
+
         return $timecard->status === Timecard::STATUS_SUBMITTED
             && $user->hasPermission('timecards.approve');
     }

@@ -563,6 +563,55 @@ it('recalculates timecard total hours through the entry observer', function (): 
     expect($timecard->fresh()->total_hours)->toBe(0.0);
 });
 
+it('allows admins to approve a draft timecard without waiting for employee to submit', function (): void {
+    $admin = userWithTimecardDomainPermissions(['timecards.view-all', 'timecards.approve']);
+    $employee = User::factory()->create();
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_DRAFT,
+    ]);
+
+    actingAs($admin);
+
+    Livewire::test(AdminShow::class, ['timecard' => $timecard])
+        ->call('approve')
+        ->assertHasNoErrors();
+
+    $fresh = $timecard->fresh();
+    expect($fresh->status)->toBe(Timecard::STATUS_APPROVED)
+        ->and($fresh->approved_by)->toBe($admin->id)
+        ->and($fresh->approved_at)->not->toBeNull()
+        ->and($fresh->submitted_at)->not->toBeNull();
+});
+
+it('shows approve button for draft timecards when admin has approve and view-all permissions', function (): void {
+    $admin = userWithTimecardDomainPermissions(['timecards.view-all', 'timecards.approve']);
+    $employee = User::factory()->create();
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_DRAFT,
+    ]);
+
+    actingAs($admin);
+
+    Livewire::test(AdminShow::class, ['timecard' => $timecard])
+        ->assertSeeHtml('wire:click="approve"');
+});
+
+it('does not allow users without view-all to approve draft timecards', function (): void {
+    $approver = userWithTimecardDomainPermissions(['timecards.approve']);
+    $employee = User::factory()->create();
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_DRAFT,
+    ]);
+
+    expect(Gate::forUser($approver)->allows('approve', $timecard))->toBeFalse();
+});
+
 /**
  * @param  array<int, string>  $permissions
  */

@@ -13,9 +13,9 @@
             @can('update', $timecard)
                 <a href="{{ route('admin.timecards.edit', $timecard) }}" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" wire:navigate>Edit</a>
             @endcan
-            @if ($timecard->status === \App\Domains\Timecards\Models\Timecard::STATUS_SUBMITTED)
+            @can('approve', $timecard)
                 <button type="button" wire:click="approve" class="rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-500">Approve</button>
-            @endif
+            @endcan
             @if ($timecard->status === \App\Domains\Timecards\Models\Timecard::STATUS_REJECTED)
                 <button type="button" wire:click="resetStatus" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Reset To Draft</button>
             @endif

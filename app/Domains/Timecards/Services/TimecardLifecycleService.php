@@ -172,14 +172,15 @@ class TimecardLifecycleService
 
     public function approve(Timecard $timecard, User $approver): Timecard
     {
-        if ($timecard->status !== Timecard::STATUS_SUBMITTED) {
+        if (! in_array($timecard->status, [Timecard::STATUS_SUBMITTED, Timecard::STATUS_DRAFT])) {
             throw ValidationException::withMessages([
-                'timecard' => 'Only submitted timecards may be approved.',
+                'timecard' => 'Only submitted or draft timecards may be approved.',
             ]);
         }
 
         $timecard->update([
             'status' => Timecard::STATUS_APPROVED,
+            'submitted_at' => $timecard->submitted_at ?? now(),
             'approved_by' => $approver->id,
             'approved_at' => now(),
         ]);
@@ -255,6 +256,12 @@ class TimecardLifecycleService
         foreach ($timecards as $timecard) {
             try {
                 if ($action === 'approve') {
+                    if ($timecard->status !== Timecard::STATUS_SUBMITTED) {
+                        $skipped++;
+
+                        continue;
+                    }
+
                     $this->approve($timecard, $actor);
                     $processed++;
 

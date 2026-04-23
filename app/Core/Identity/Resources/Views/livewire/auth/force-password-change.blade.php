@@ -22,7 +22,7 @@
             <flux:input wire:model="password_confirmation" type="password" autocomplete="new-password" viewable />
         </flux:field>
 
-        <flux:button variant="primary" type="submit" class="w-full">
+        <flux:button variant="primary" type="submit" class="w-full"  wire:target="updatePassword" wire:loading.attr="disabled">
             {{ __('Update password') }}
         </flux:button>
     </form>
