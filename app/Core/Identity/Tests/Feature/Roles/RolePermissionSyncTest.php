@@ -5,6 +5,8 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Permission\Services\PermissionRegistry;
 use App\Core\Auth\Role\Models\Role;
+use App\Core\Identity\Permissions\FoundationPermissions;
+use App\Domains\ChangeOrders\Permissions\ChangeOrderPermissions;
 
 it('binds permission registry contract to concrete implementation', function () {
     $registry = app(PermissionRegistryContract::class);
@@ -37,6 +39,16 @@ it('supports registering domain permissions before synchronization', function ()
     app(DomainPermissionSynchronizer::class)->sync();
 
     expect(Permission::query()->where('resource', 'reports')->where('action', 'export')->exists())->toBeTrue();
+});
+
+it('does not overlap foundation permissions with change order domain permissions', function () {
+    $foundationKeys = collect(FoundationPermissions::all())
+        ->map(fn (array $permission): string => $permission['resource'].'.'.$permission['action']);
+
+    $changeOrderKeys = collect(ChangeOrderPermissions::all())
+        ->map(fn (array $permission): string => $permission['resource'].'.'.$permission['action']);
+
+    expect($foundationKeys->intersect($changeOrderKeys)->values()->all())->toBe([]);
 });
 
 it('prevents disabling or deleting built-in roles', function () {

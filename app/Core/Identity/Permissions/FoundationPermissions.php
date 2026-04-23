@@ -28,30 +28,6 @@ class FoundationPermissions
         'description' => 'Manage project access policies',
     ];
 
-    public const CHANGE_ORDERS_VIEW = [
-        'resource' => 'change-orders',
-        'action' => 'view',
-        'description' => 'View change orders',
-    ];
-
-    public const CHANGE_ORDERS_CREATE = [
-        'resource' => 'change-orders',
-        'action' => 'create',
-        'description' => 'Create change orders',
-    ];
-
-    public const CHANGE_ORDERS_APPROVE = [
-        'resource' => 'change-orders',
-        'action' => 'approve',
-        'description' => 'Approve or reject change orders',
-    ];
-
-    public const CHANGE_ORDERS_EDIT = [
-        'resource' => 'change-orders',
-        'action' => 'edit',
-        'description' => 'Edit change orders',
-    ];
-
     public const RATE_MANAGEMENT_VIEW = [
         'resource' => 'rate-management',
         'action' => 'view',
@@ -119,10 +95,6 @@ class FoundationPermissions
             self::PROJECT_ACCESS_GRANT,
             self::PROJECT_ACCESS_REVOKE,
             self::PROJECT_ACCESS_MANAGE,
-            self::CHANGE_ORDERS_VIEW,
-            self::CHANGE_ORDERS_CREATE,
-            self::CHANGE_ORDERS_APPROVE,
-            self::CHANGE_ORDERS_EDIT,
             self::RATE_MANAGEMENT_VIEW,
             self::RATE_MANAGEMENT_EDIT,
             self::RATE_MANAGEMENT_COMPONENTS,
