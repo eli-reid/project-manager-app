@@ -5,6 +5,7 @@ namespace App\Domains\Projects\Models;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Addresses\Models\Address;
+use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Payroll\Models\PayRateType;
@@ -175,6 +176,11 @@ class Project extends Model
     public function costCodes(): HasMany
     {
         return $this->hasMany(CostCode::class);
+    }
+
+    public function changeOrders(): HasMany
+    {
+        return $this->hasMany(ChangeOrder::class);
     }
 
     protected static function newFactory(): ProjectFactory
