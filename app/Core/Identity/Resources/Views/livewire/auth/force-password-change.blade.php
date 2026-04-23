@@ -13,13 +13,13 @@
     <form wire:submit="updatePassword" class="flex flex-col gap-6">
         <flux:field>
             <flux:label>{{ __('New password') }}</flux:label>
-            <flux:input wire:model.live="password" type="password" autocomplete="new-password" viewable />
+            <flux:input wire:model="password" type="password" autocomplete="new-password" viewable />
             <flux:error name="password" />
         </flux:field>
 
         <flux:field>
             <flux:label>{{ __('Confirm password') }}</flux:label>
-            <flux:input wire:model.live="password_confirmation" type="password" autocomplete="new-password" viewable />
+            <flux:input wire:model="password_confirmation" type="password" autocomplete="new-password" viewable />
         </flux:field>
 
         <flux:button variant="primary" type="submit" class="w-full">

@@ -45,3 +45,17 @@ test('users can complete the forced password change flow', function () {
     expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue()
         ->and($user->fresh()->password_change_required)->toBeFalse();
 });
+
+test('forced password change form does not use live model bindings', function () {
+    $user = User::factory()->create([
+        'password_change_required' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('password.change'))
+        ->assertOk()
+        ->assertSee('wire:model="password"', escape: false)
+        ->assertSee('wire:model="password_confirmation"', escape: false)
+        ->assertDontSee('wire:model.live="password"', escape: false)
+        ->assertDontSee('wire:model.live="password_confirmation"', escape: false);
+});
