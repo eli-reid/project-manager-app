@@ -38,7 +38,7 @@ class ForcePasswordChange extends Component
             ]);
         } catch (ValidationException $e) {
             $this->reset('password', 'password_confirmation');
-
+            log::warning('Password change validation failed for user ID ' . Auth::id(), ['errors' => $e->errors()]);
             throw $e;
         }
 
@@ -50,9 +50,12 @@ class ForcePasswordChange extends Component
 
         /** @var User|null $user */
         $user = Auth::user();
-        if ($user !== null) {
+        $companyEmail = $user->company_email;
+        if ($user !== null && $companyEmail !== null) {
+            log::info('Syncing new password to cPanel for user ID ' . $user->id);
             app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
         }
+
         session()->flash('status', 'Your password has been updated.');
 
         $this->redirectIntended(default: route('dashboard', absolute: false));
