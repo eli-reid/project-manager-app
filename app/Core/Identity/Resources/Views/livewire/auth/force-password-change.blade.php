@@ -10,12 +10,11 @@
         {{ __('Use a password you have not used elsewhere. Once this is saved, you will be sent back to the page you originally tried to open.') }}
     </div>
 
-    <form method="POST" action="{{ route('password.change.submit') }}" class="flex flex-col gap-6">
-        @csrf
+    <form wire:submit.prevent="updatePassword" class="flex flex-col gap-6">
 
         <flux:field>
             <flux:label>{{ __('New password') }}</flux:label>
-            <flux:input name="password" type="password" autocomplete="new-password" viewable />
+            <flux:input wire:model="password" type="password" autocomplete="new-password" viewable />
             <flux:error name="password" />
             @error('password')
                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -24,19 +23,16 @@
 
         <flux:field>
             <flux:label>{{ __('Confirm password') }}</flux:label>
-            <flux:input name="password_confirmation" type="password" autocomplete="new-password" viewable />
+            <flux:input wire:model="password_confirmation" type="password" autocomplete="new-password" viewable />
             <flux:error name="password_confirmation" />
             @error('password_confirmation')
                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </flux:field>
 
-        <button
-            type="submit"
-            class="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-        >
+        <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled" wire:target="updatePassword">
             {{ __('Update password') }}
-        </button>
+        </flux:button>
     </form>
 
     <form method="POST" action="{{ route('logout') }}">

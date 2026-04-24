@@ -54,46 +54,26 @@ test('forced password change form does not use live model bindings', function ()
     $this->actingAs($user)
         ->get(route('password.change'))
         ->assertOk()
-        ->assertSee('name="password"', escape: false)
-        ->assertSee('name="password_confirmation"', escape: false)
+        ->assertSee('wire:model="password"', escape: false)
+        ->assertSee('wire:model="password_confirmation"', escape: false)
+        ->assertSee('wire:submit.prevent="updatePassword"', escape: false)
         ->assertDontSee('wire:model.live="password"', escape: false)
-        ->assertDontSee('wire:model.live="password_confirmation"', escape: false)
-        ->assertDontSee('wire:model="password"', escape: false)
-        ->assertDontSee('wire:model="password_confirmation"', escape: false)
-        ->assertDontSee('wire:submit.prevent="updatePassword"', escape: false);
+        ->assertDontSee('wire:model.live="password_confirmation"', escape: false);
 });
 
-test('users can complete forced password change via native post fallback', function () {
+test('forced password change validates password confirmation mismatch', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
         'password_change_required' => true,
     ]);
 
-    $this->actingAs($user)
-        ->post(route('password.change.submit'), [
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ])
-        ->assertRedirect(route('dashboard', absolute: false));
+    $this->actingAs($user);
 
-    expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue()
-        ->and($user->fresh()->password_change_required)->toBeFalse();
-});
-
-test('native post fallback validates password confirmation mismatch', function () {
-    $user = User::factory()->create([
-        'password' => Hash::make('password'),
-        'password_change_required' => true,
-    ]);
-
-    $this->actingAs($user)
-        ->from(route('password.change'))
-        ->post(route('password.change.submit'), [
-            'password' => 'new-password',
-            'password_confirmation' => 'different-password',
-        ])
-        ->assertRedirect(route('password.change', absolute: false))
-        ->assertSessionHasErrors('password');
+    Livewire::test(ForcePasswordChange::class)
+        ->set('password', 'new-password')
+        ->set('password_confirmation', 'different-password')
+        ->call('updatePassword')
+        ->assertHasErrors('password');
 
     expect(Hash::check('password', $user->fresh()->password))->toBeTrue()
         ->and($user->fresh()->password_change_required)->toBeTrue();
