@@ -26,6 +26,11 @@ class ForcePasswordChange extends Component
     {
         $user = Auth::user();
 
+        Log::warning('[ForcePasswordChange] Component mounted.', [
+            'user_id' => $user instanceof User ? $user->id : null,
+            'password_change_required' => $user instanceof User ? $user->password_change_required : null,
+        ]);
+
         if (! $user instanceof User || ! $user->password_change_required) {
             $this->redirectRoute('dashboard', navigate: true);
         }
