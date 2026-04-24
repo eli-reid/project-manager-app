@@ -10,7 +10,7 @@
         {{ __('Use a password you have not used elsewhere. Once this is saved, you will be sent back to the page you originally tried to open.') }}
     </div>
 
-    <form wire:submit="updatePassword" class="flex flex-col gap-6">
+    <form wire:submit.prevent="updatePassword" class="flex flex-col gap-6">
         <flux:field>
             <flux:label>{{ __('New password') }}</flux:label>
             <flux:input wire:model="password" type="password" autocomplete="new-password" viewable />
