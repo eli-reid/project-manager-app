@@ -59,3 +59,20 @@ test('forced password change form does not use live model bindings', function ()
         ->assertDontSee('wire:model.live="password"', escape: false)
         ->assertDontSee('wire:model.live="password_confirmation"', escape: false);
 });
+
+test('users can complete forced password change via native post fallback', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+        'password_change_required' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('password.change.submit'), [
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue()
+        ->and($user->fresh()->password_change_required)->toBeFalse();
+});
