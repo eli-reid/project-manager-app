@@ -17,11 +17,18 @@
             <flux:label>{{ __('New password') }}</flux:label>
             <flux:input wire:model="password" name="password" type="password" autocomplete="new-password" viewable />
             <flux:error name="password" />
+            @error('password')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
         </flux:field>
 
         <flux:field>
             <flux:label>{{ __('Confirm password') }}</flux:label>
             <flux:input wire:model="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" viewable />
+            <flux:error name="password_confirmation" />
+            @error('password_confirmation')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
         </flux:field>
 
         <button

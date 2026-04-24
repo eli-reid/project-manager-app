@@ -76,3 +76,22 @@ test('users can complete forced password change via native post fallback', funct
     expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue()
         ->and($user->fresh()->password_change_required)->toBeFalse();
 });
+
+test('native post fallback validates password confirmation mismatch', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+        'password_change_required' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->from(route('password.change'))
+        ->post(route('password.change.submit'), [
+            'password' => 'new-password',
+            'password_confirmation' => 'different-password',
+        ])
+        ->assertRedirect(route('password.change', absolute: false))
+        ->assertSessionHasErrors('password');
+
+    expect(Hash::check('password', $user->fresh()->password))->toBeTrue()
+        ->and($user->fresh()->password_change_required)->toBeTrue();
+});
