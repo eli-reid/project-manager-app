@@ -6,6 +6,7 @@ use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Concerns\PasswordValidationRules;
 use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -38,7 +39,7 @@ class ForcePasswordChange extends Component
             ]);
         } catch (ValidationException $e) {
             $this->reset('password', 'password_confirmation');
-            log::warning('Password change validation failed for user ID ' . Auth::id(), ['errors' => $e->errors()]);
+            Log::warning('Password change validation failed for user ID ' . Auth::id(), ['errors' => $e->errors()]);
             throw $e;
         }
 
@@ -52,7 +53,7 @@ class ForcePasswordChange extends Component
         $user = Auth::user();
         $companyEmail = $user->company_email;
         if ($user !== null && $companyEmail !== null) {
-            log::info('Syncing new password to cPanel for user ID ' . $user->id);
+            Log::info('Syncing new password to cPanel for user ID ' . $user->id);
             app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
         }
 
