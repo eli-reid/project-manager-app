@@ -7,10 +7,10 @@ use App\Core\Identity\Concerns\PasswordValidationRules;
 use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Illuminate\Validation\ValidationException;
 
 #[Layout('layouts.auth')]
 #[Title('Change password')]
@@ -33,28 +33,33 @@ class ForcePasswordChange extends Component
 
     public function updatePassword(): void
     {
-        try {
-            $validated = $this->validate([
-                'password' => $this->passwordRules(),
+        $validated = $this->validate([
+            'password' => $this->passwordRules(),
+        ]);
+
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            throw ValidationException::withMessages([
+                'password' => 'Unable to update password because your session has expired. Please sign in again.',
             ]);
-        } catch (ValidationException $e) {
-            $this->reset('password', 'password_confirmation');
-            Log::warning('Password change validation failed for user ID ' . Auth::id(), ['errors' => $e->errors()]);
-            throw $e;
         }
 
-         Auth::user()->update([
+        $user->update([
             'password' => $validated['password'],
             'password_change_required' => false,
         ]);
 
-
-        /** @var User|null $user */
-        $user = Auth::user();
-        $companyEmail = $user->company_email;
-        if ($user !== null && $companyEmail !== null) {
-            Log::info('Syncing new password to cPanel for user ID ' . $user->id);
-            app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
+        if ($user->company_email !== null) {
+            try {
+                Log::info('Syncing new password to cPanel for user ID '.$user->id);
+                app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
+            } catch (\Throwable $exception) {
+                Log::error('Failed syncing new password to cPanel for user ID '.$user->id, [
+                    'message' => $exception->getMessage(),
+                ]);
+            }
         }
 
         session()->flash('status', 'Your password has been updated.');
