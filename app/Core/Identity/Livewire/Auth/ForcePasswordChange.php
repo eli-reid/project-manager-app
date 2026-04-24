@@ -33,40 +33,95 @@ class ForcePasswordChange extends Component
 
     public function updatePassword(): void
     {
-
-        Log::debug('User ID '.Auth::id().' is updating their password through the forced password change flow.');
-        $validated = $this->validate([
-            'password' => $this->passwordRules(),
+        Log::warning('[ForcePasswordChange] Entered updatePassword.', [
+            'user_id' => Auth::id(),
+            'has_password_value' => $this->password !== '',
+            'has_password_confirmation_value' => $this->password_confirmation !== '',
         ]);
 
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            throw ValidationException::withMessages([
-                'password' => 'Unable to update password because your session has expired. Please sign in again.',
+        try {
+            Log::warning('[ForcePasswordChange] Starting validation.', [
+                'user_id' => Auth::id(),
             ]);
-        }
 
-        $user->update([
-            'password' => $validated['password'],
-            'password_change_required' => false,
-        ]);
+            $validated = $this->validate([
+                'password' => $this->passwordRules(),
+            ]);
 
-        if ($user->company_email !== null) {
-            try {
-                Log::info('Syncing new password to cPanel for user ID '.$user->id);
-                app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
-            } catch (\Throwable $exception) {
-                Log::error('Failed syncing new password to cPanel for user ID '.$user->id, [
-                    'message' => $exception->getMessage(),
+            Log::warning('[ForcePasswordChange] Validation passed.', [
+                'user_id' => Auth::id(),
+            ]);
+
+            /** @var User|null $user */
+            $user = Auth::user();
+
+            if (! $user instanceof User) {
+                Log::error('[ForcePasswordChange] Auth user missing before update.', [
+                    'user_id' => Auth::id(),
+                ]);
+
+                throw ValidationException::withMessages([
+                    'password' => 'Unable to update password because your session has expired. Please sign in again.',
                 ]);
             }
+
+            Log::warning('[ForcePasswordChange] Updating user password and required-change flag.', [
+                'user_id' => $user->id,
+                'password_change_required_before' => $user->password_change_required,
+            ]);
+
+            $user->update([
+                'password' => $validated['password'],
+                'password_change_required' => false,
+            ]);
+
+            Log::warning('[ForcePasswordChange] User password update complete.', [
+                'user_id' => $user->id,
+                'password_change_required_after' => $user->fresh()?->password_change_required,
+            ]);
+
+            if ($user->company_email !== null) {
+                try {
+                    Log::warning('[ForcePasswordChange] Starting cPanel sync.', [
+                        'user_id' => $user->id,
+                        'has_company_email' => true,
+                    ]);
+
+                    app(CpanelMailboxManager::class)->syncPasswordForUser($user, $validated['password']);
+
+                    Log::warning('[ForcePasswordChange] cPanel sync complete.', [
+                        'user_id' => $user->id,
+                    ]);
+                } catch (\Throwable $exception) {
+                    Log::error('[ForcePasswordChange] cPanel sync failed.', [
+                        'user_id' => $user->id,
+                        'message' => $exception->getMessage(),
+                    ]);
+                }
+            }
+
+            session()->flash('status', 'Your password has been updated.');
+
+            Log::warning('[ForcePasswordChange] Redirecting user after successful update.', [
+                'user_id' => $user->id,
+            ]);
+
+            $this->redirectIntended(default: route('dashboard', absolute: false));
+        } catch (ValidationException $exception) {
+            Log::warning('[ForcePasswordChange] Validation exception encountered.', [
+                'user_id' => Auth::id(),
+                'errors' => $exception->errors(),
+            ]);
+
+            throw $exception;
+        } catch (\Throwable $exception) {
+            Log::error('[ForcePasswordChange] Unexpected exception encountered.', [
+                'user_id' => Auth::id(),
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
         }
-
-        session()->flash('status', 'Your password has been updated.');
-
-        $this->redirectIntended(default: route('dashboard', absolute: false));
     }
 
     public function render()
