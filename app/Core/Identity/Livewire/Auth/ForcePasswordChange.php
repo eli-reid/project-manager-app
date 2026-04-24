@@ -34,7 +34,7 @@ class ForcePasswordChange extends Component
     public function updatePassword(): void
     {
 
-        Log::warning('User ID '.Auth::id().' is updating their password through the forced password change flow.');
+        Log::debug('User ID '.Auth::id().' is updating their password through the forced password change flow.');
         $validated = $this->validate([
             'password' => $this->passwordRules(),
         ]);
