@@ -269,6 +269,105 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', "Deleted task {$taskTitle}.");
     }
 
+    public function moveTask(string $taskId, string $direction): void
+    {
+        if (! in_array($direction, ['up', 'down'], true)) {
+            return;
+        }
+
+        $task = Task::query()
+            ->where('project_id', $this->project->id)
+            ->findOrFail($taskId);
+
+        $this->authorize('update', $task);
+
+        $siblingIds = Task::query()
+            ->where('project_id', $this->project->id)
+            ->where('task_category_id', $task->task_category_id)
+            ->where('parent_task_id', $task->parent_task_id)
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->orderBy('id')
+            ->pluck('id')
+            ->values()
+            ->all();
+
+        $currentIndex = array_search($task->id, $siblingIds, true);
+        if ($currentIndex === false) {
+            return;
+        }
+
+        $targetIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+        if (! isset($siblingIds[$targetIndex])) {
+            return;
+        }
+
+        $movedId = $siblingIds[$currentIndex];
+        $siblingIds[$currentIndex] = $siblingIds[$targetIndex];
+        $siblingIds[$targetIndex] = $movedId;
+
+        DB::transaction(function () use ($siblingIds): void {
+            foreach ($siblingIds as $index => $siblingId) {
+                Task::query()
+                    ->where('project_id', $this->project->id)
+                    ->where('id', $siblingId)
+                    ->update(['sort_order' => ($index + 1) * 10]);
+            }
+        });
+
+        session()->flash('success', 'Task order updated.');
+    }
+
+    public function moveCategory(string $categoryId, string $direction): void
+    {
+        if (! in_array($direction, ['up', 'down'], true)) {
+            return;
+        }
+
+        $category = TaskCategory::query()
+            ->where('project_id', $this->project->id)
+            ->findOrFail($categoryId);
+
+        $this->authorize('update', $category);
+
+        $siblingIds = TaskCategory::query()
+            ->where('project_id', $this->project->id)
+            ->where('parent_id', $category->parent_id)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->orderBy('id')
+            ->pluck('id')
+            ->values()
+            ->all();
+
+        $currentIndex = array_search($category->id, $siblingIds, true);
+        if ($currentIndex === false) {
+            return;
+        }
+
+        $targetIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+        if (! isset($siblingIds[$targetIndex])) {
+            return;
+        }
+
+        $movedId = $siblingIds[$currentIndex];
+        $siblingIds[$currentIndex] = $siblingIds[$targetIndex];
+        $siblingIds[$targetIndex] = $movedId;
+
+        DB::transaction(function () use ($siblingIds): void {
+            foreach ($siblingIds as $index => $siblingId) {
+                TaskCategory::query()
+                    ->where('project_id', $this->project->id)
+                    ->where('id', $siblingId)
+                    ->update(['sort_order' => ($index + 1) * 10]);
+            }
+        });
+
+        app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
+
+        session()->flash('success', 'Category order updated.');
+    }
+
     public function copyCategory(): void
     {
         $this->authorize('create', TaskCategory::class);

@@ -14,7 +14,19 @@
     $progressWidth = $summary['progressPercent'].'%';
 @endphp
 
-<tr class="bg-zinc-50/70 dark:bg-zinc-800/50" x-show="{{ $summary['ancestorVisibilityCondition'] }}" x-cloak wire:key="category-row-{{ $categoryId }}">
+<tr
+    class="bg-zinc-50/70 dark:bg-zinc-800/50"
+    x-show="{{ $summary['ancestorVisibilityCondition'] }}"
+    x-cloak
+    wire:key="category-row-{{ $categoryId }}"
+    @contextmenu.prevent.stop="openContextMenu($event, {
+        type: 'category',
+        id: '{{ $categoryId }}',
+        canUpdate: @js(auth()->user()?->can('update', $category)),
+        canDelete: @js(auth()->user()?->can('delete', $category)),
+        canCreateTask: @js(auth()->user()?->can('create', \App\Domains\Tasks\Models\Task::class)),
+    })"
+>
     <td class="px-3 py-2 align-top text-sm font-semibold text-zinc-900 dark:text-zinc-100" @style(["padding-left: {$categoryIndent}px"] )>
         <div class="inline-flex items-center gap-2">
             <button type="button" @click="toggleCategory('{{ $categoryId }}')" class="inline-flex items-center justify-center rounded-md p-1 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70" aria-label="Toggle category">
@@ -84,7 +96,18 @@
 </tr>
 
 @foreach ($categoryTasks as $task)
-    <tr x-show="{{ $summary['childrenVisibilityCondition'] }}" x-cloak wire:key="task-row-{{ $task->id }}">
+    <tr
+        x-show="{{ $summary['childrenVisibilityCondition'] }}"
+        x-cloak
+        wire:key="task-row-{{ $task->id }}"
+        @contextmenu.prevent.stop="openContextMenu($event, {
+            type: 'task',
+            id: '{{ $task->id }}',
+            canUpdate: @js(auth()->user()?->can('update', $task)),
+            canDelete: @js(auth()->user()?->can('delete', $task)),
+            canCreateTask: @js(auth()->user()?->can('create', \App\Domains\Tasks\Models\Task::class)),
+        })"
+    >
         <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200" @style(["padding-left: {$taskIndent}px"] )>
             @if ($editingTaskTitle === $task->id && auth()->user()?->can('update', $task))
                 <form wire:submit="saveTaskTitle" class="flex items-center gap-1">
@@ -156,7 +179,18 @@
     </tr>
 
     @foreach ($task->subTasks as $subTask)
-        <tr x-show="{{ $summary['childrenVisibilityCondition'] }}" x-cloak wire:key="subtask-row-{{ $subTask->id }}">
+        <tr
+            x-show="{{ $summary['childrenVisibilityCondition'] }}"
+            x-cloak
+            wire:key="subtask-row-{{ $subTask->id }}"
+            @contextmenu.prevent.stop="openContextMenu($event, {
+                type: 'task',
+                id: '{{ $subTask->id }}',
+                canUpdate: @js(auth()->user()?->can('update', $subTask)),
+                canDelete: @js(auth()->user()?->can('delete', $subTask)),
+                canCreateTask: @js(auth()->user()?->can('create', \App\Domains\Tasks\Models\Task::class)),
+            })"
+        >
             <td class="px-3 py-2 align-top text-sm text-zinc-700 dark:text-zinc-300" @style(["padding-left: {$subTaskIndent}px"] )>
                 @if ($editingTaskTitle === $subTask->id && auth()->user()?->can('update', $subTask))
                     <form wire:submit="saveTaskTitle" class="flex items-center gap-1">
