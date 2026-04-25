@@ -27,6 +27,14 @@ class TaskHierarchyWidget extends Component
 
     public bool $copyIncludeSubtasks = true;
 
+    public bool $copyIncludeChildCategories = false;
+
+    public bool $copyIncludeCategoryTasks = false;
+
+    public ?string $copyTaskSourceId = null;
+
+    public bool $copyIncludeSubtasksOnTask = true;
+
     public bool $showInlineCategoryForm = false;
 
     public bool $showInlineTaskForm = false;
@@ -158,7 +166,7 @@ class TaskHierarchyWidget extends Component
     public function copyCategoryFrom(string $categoryId): void
     {
         $this->copyCategorySourceId = $categoryId;
-        $this->copyCategory();
+        $this->dispatch('open-copy-category-modal');
     }
 
     public function deleteCategory(string $categoryId): void
@@ -204,12 +212,28 @@ class TaskHierarchyWidget extends Component
     {
         $this->authorize('create', Task::class);
 
+        $this->copyTaskSourceId = $taskId;
+        $this->dispatch('open-copy-task-modal');
+    }
+
+    public function copyTask(): void
+    {
+        $this->authorize('create', Task::class);
+
+        $validated = $this->validate([
+            'copyTaskSourceId' => [
+                'required',
+                Rule::exists('tasks', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
+            ],
+            'copyIncludeSubtasksOnTask' => ['boolean'],
+        ]);
+
         $sourceTask = Task::query()
             ->where('project_id', $this->project->id)
             ->with(['subTasks'])
-            ->findOrFail($taskId);
+            ->findOrFail($validated['copyTaskSourceId']);
 
-        DB::transaction(function () use ($sourceTask): void {
+        DB::transaction(function () use ($sourceTask, $validated): void {
             $taskCopy = Task::query()->create([
                 'project_id' => $this->project->id,
                 'task_category_id' => $sourceTask->task_category_id,
@@ -225,6 +249,10 @@ class TaskHierarchyWidget extends Component
                 'is_billable' => $sourceTask->is_billable,
                 'sort_order' => $sourceTask->sort_order,
             ]);
+
+            if (! $validated['copyIncludeSubtasksOnTask']) {
+                return;
+            }
 
             foreach ($sourceTask->subTasks as $sourceSubTask) {
                 Task::query()->create([
@@ -244,6 +272,9 @@ class TaskHierarchyWidget extends Component
                 ]);
             }
         });
+
+        $this->reset('copyTaskSourceId', 'copyIncludeSubtasksOnTask');
+        $this->copyIncludeSubtasksOnTask = true;
 
         session()->flash('success', "Copied task {$sourceTask->title}.");
     }
@@ -385,23 +416,38 @@ class TaskHierarchyWidget extends Component
                 'required',
                 Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
             ],
+            'copyIncludeChildCategories' => ['boolean'],
+            'copyIncludeCategoryTasks' => ['boolean'],
         ]);
 
         $sourceCategory = TaskCategory::query()->findOrFail($validated['copyCategorySourceId']);
-        $copyName = $this->nextCategoryCopyName($sourceCategory->name);
 
-        TaskCategory::query()->create([
-            'project_id' => $this->project->id,
-            'parent_id' => $sourceCategory->parent_id,
-            'name' => $copyName,
-            'description' => $sourceCategory->description,
-            'sort_order' => $sourceCategory->sort_order,
-            'is_active' => $sourceCategory->is_active,
-        ]);
+        $copiedCategoryCount = 0;
+        $copiedTaskCount = 0;
 
-        $this->reset('copyCategorySourceId');
+        DB::transaction(function () use ($sourceCategory, $validated, &$copiedCategoryCount, &$copiedTaskCount): void {
+            $this->copyCategoryRecursive(
+                $sourceCategory,
+                $sourceCategory->parent_id,
+                $validated['copyIncludeChildCategories'],
+                $validated['copyIncludeCategoryTasks'],
+                $copiedCategoryCount,
+                $copiedTaskCount,
+            );
+        });
 
-        session()->flash('success', "Copied category {$sourceCategory->name} to {$copyName}.");
+        $this->reset('copyCategorySourceId', 'copyIncludeChildCategories', 'copyIncludeCategoryTasks');
+
+        $message = "Copied category {$sourceCategory->name}";
+        $extraCount = $copiedCategoryCount - 1;
+        if ($extraCount > 0) {
+            $message .= " with {$extraCount} sub-".($extraCount === 1 ? 'category' : 'categories');
+        }
+        if ($copiedTaskCount > 0) {
+            $message .= " and {$copiedTaskCount} ".($copiedTaskCount === 1 ? 'task' : 'tasks');
+        }
+
+        session()->flash('success', $message.'.');
     }
 
     public function startInlineCategoryForm(?string $parentCategoryId = null): void
@@ -582,6 +628,98 @@ class TaskHierarchyWidget extends Component
         }
 
         return $descendantIds;
+    }
+
+    /**
+     * @param  int  $copiedCategoryCount  Pass-by-reference counter for categories created.
+     * @param  int  $copiedTaskCount  Pass-by-reference counter for tasks created.
+     */
+    protected function copyCategoryRecursive(
+        TaskCategory $sourceCategory,
+        ?string $newParentId,
+        bool $includeChildCategories,
+        bool $includeTasks,
+        int &$copiedCategoryCount,
+        int &$copiedTaskCount,
+    ): TaskCategory {
+        $copyName = $this->nextCategoryCopyName($sourceCategory->name);
+
+        $newCategory = TaskCategory::query()->create([
+            'project_id' => $this->project->id,
+            'parent_id' => $newParentId,
+            'name' => $copyName,
+            'description' => $sourceCategory->description,
+            'sort_order' => $sourceCategory->sort_order,
+            'is_active' => $sourceCategory->is_active,
+        ]);
+
+        $copiedCategoryCount++;
+
+        if ($includeTasks) {
+            $tasks = Task::query()
+                ->where('project_id', $this->project->id)
+                ->where('task_category_id', $sourceCategory->id)
+                ->whereNull('parent_task_id')
+                ->with('subTasks')
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->get();
+
+            foreach ($tasks as $task) {
+                $taskCopy = Task::query()->create([
+                    'project_id' => $this->project->id,
+                    'task_category_id' => $newCategory->id,
+                    'parent_task_id' => null,
+                    'title' => $this->nextTaskCopyTitle($task->title),
+                    'description' => $task->description,
+                    'status' => $task->status,
+                    'priority' => $task->priority,
+                    'estimated_hours' => $task->estimated_hours,
+                    'completion_percentage' => 0,
+                    'due_date' => $task->due_date,
+                    'assigned_to' => $task->assigned_to,
+                    'is_billable' => $task->is_billable,
+                    'sort_order' => $task->sort_order,
+                ]);
+
+                $copiedTaskCount++;
+
+                foreach ($task->subTasks as $subTask) {
+                    Task::query()->create([
+                        'project_id' => $this->project->id,
+                        'task_category_id' => $newCategory->id,
+                        'parent_task_id' => $taskCopy->id,
+                        'title' => $this->nextTaskCopyTitle($subTask->title),
+                        'description' => $subTask->description,
+                        'status' => $subTask->status,
+                        'priority' => $subTask->priority,
+                        'estimated_hours' => $subTask->estimated_hours,
+                        'completion_percentage' => 0,
+                        'due_date' => $subTask->due_date,
+                        'assigned_to' => $subTask->assigned_to,
+                        'is_billable' => $subTask->is_billable,
+                        'sort_order' => $subTask->sort_order,
+                    ]);
+
+                    $copiedTaskCount++;
+                }
+            }
+        }
+
+        if ($includeChildCategories) {
+            $children = TaskCategory::query()
+                ->where('project_id', $this->project->id)
+                ->where('parent_id', $sourceCategory->id)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+
+            foreach ($children as $child) {
+                $this->copyCategoryRecursive($child, $newCategory->id, true, $includeTasks, $copiedCategoryCount, $copiedTaskCount);
+            }
+        }
+
+        return $newCategory;
     }
 
     protected function nextCategoryCopyName(string $sourceName): string
