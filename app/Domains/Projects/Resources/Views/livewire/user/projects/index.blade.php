@@ -50,6 +50,21 @@
                                     <div class="text-xs text-zinc-500 dark:text-zinc-400">
                                         {{ collect([$project->address->city, $project->address->state, $project->address->zip])->filter()->implode(', ') }}
                                     </div>
+                                    <a
+                                        href="{{ 'https://www.google.com/maps/search/?api=1&query=' . urlencode(collect([
+                                            $project->address->address1,
+                                            $project->address->address2,
+                                            $project->address->city,
+                                            $project->address->state,
+                                            $project->address->zip,
+                                            $project->address->country,
+                                        ])->filter()->implode(', ')) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="mt-1 inline-block text-xs font-medium text-zinc-600 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900 dark:text-zinc-300 dark:decoration-zinc-500 dark:hover:text-zinc-100"
+                                    >
+                                        {{ __('Open in Maps') }}
+                                    </a>
                                 @else
                                     <span class="text-zinc-500 dark:text-zinc-400">—</span>
                                 @endif

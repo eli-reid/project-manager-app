@@ -170,7 +170,8 @@ it('shows project address details on user project list', function (): void {
         ->assertSuccessful()
         ->assertSee('Address Visible Project')
         ->assertSee('123 Field St')
-        ->assertSee('Riverside, CA, 92501');
+        ->assertSee('Riverside, CA, 92501')
+        ->assertSee('Open in Maps');
 });
 
 it('allows searching user projects by address fields', function (): void {
