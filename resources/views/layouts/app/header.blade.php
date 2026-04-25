@@ -81,6 +81,18 @@
                         {{ __('Dashboard')  }}
                     </flux:sidebar.item>
 
+                    @can('viewAny', \App\Domains\Projects\Models\Project::class)
+                        <flux:sidebar.item
+                            icon="briefcase"
+                            :href="route('projects.index')"
+                            :current="request()->routeIs('projects.*')"
+                            wire:navigate
+                            data-test="projects-sidebar-link-mobile"
+                        >
+                            {{ __('My Projects') }}
+                        </flux:sidebar.item>
+                    @endcan
+
                     @can('viewAny', \App\Domains\Timecards\Models\Timecard::class)
                         <flux:sidebar.item
                             icon="clock"

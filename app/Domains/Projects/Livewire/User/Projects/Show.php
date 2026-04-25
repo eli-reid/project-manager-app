@@ -2,21 +2,31 @@
 
 namespace App\Domains\Projects\Livewire\User\Projects;
 
-use App\Domains\Dailies\Models\DailyReport;
-use App\Domains\Documents\Models\Document;
-use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Services\ProjectFinancialsService;
-use App\Domains\Stock\Models\StockOrder;
-use App\Domains\Tasks\Models\Task;
-use App\Domains\Timecards\Models\Timecard;
-use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Attributes\Url;
 use Livewire\Component;
+
+#[Layout('layouts.app')]
+#[Title('Project Details')]
+class Show extends Component
+{
+    use AuthorizesRequests;
+
+    public Project $project;
+
+    public function mount(Project $project): void
+    {
+        $this->authorize('view', $project);
+        $this->project = $project->loadMissing('address');
+    }
+
+    public function render()
+    {
+        return view('projects::livewire.user.projects.show');
+    }
+}
 
 #[Layout('layouts.app')]
 #[Title('Project Details')]
