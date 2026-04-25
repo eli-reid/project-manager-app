@@ -269,8 +269,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', "Deleted task {$taskTitle}.");
     }
 
-    public function moveTask(string $taskId, string $direction): void
+    public function moveTask(?string $taskId, string $direction): void
     {
+        if (! filled($taskId)) {
+            return;
+        }
+
         if (! in_array($direction, ['up', 'down'], true)) {
             return;
         }
@@ -318,8 +322,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', 'Task order updated.');
     }
 
-    public function moveCategory(string $categoryId, string $direction): void
+    public function moveCategory(?string $categoryId, string $direction): void
     {
+        if (! filled($categoryId)) {
+            return;
+        }
+
         if (! in_array($direction, ['up', 'down'], true)) {
             return;
         }
