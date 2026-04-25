@@ -160,15 +160,16 @@ class ProjectTaskHierarchyViewDataService
      * @param  array<string, array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}>  $summaries
      * @param  Collection<string, EloquentCollection<int, Task>>  $tasksByCategory
      * @param  array<int, string>  $ancestorIds
+     * @return array{taskCount: int, completedTaskCount: int}
      */
-    protected function appendCategorySummary(array &$summaries, mixed $category, Collection $tasksByCategory, array $ancestorIds): void
+    protected function appendCategorySummary(array &$summaries, mixed $category, Collection $tasksByCategory, array $ancestorIds): array
     {
         $categoryId = (string) $category->id;
         /** @var EloquentCollection<int, Task> $categoryTasks */
         $categoryTasks = $tasksByCategory->get($categoryId, collect());
 
-        $taskCount = $categoryTasks->count() + $categoryTasks->sum(fn (Task $task): int => $task->subTasks->count());
-        $completedTaskCount = $categoryTasks->where('status', Task::STATUS_COMPLETED)->count()
+        $ownTaskCount = $categoryTasks->count() + $categoryTasks->sum(fn (Task $task): int => $task->subTasks->count());
+        $ownCompletedCount = $categoryTasks->where('status', Task::STATUS_COMPLETED)->count()
             + $categoryTasks->sum(fn (Task $task): int => $task->subTasks->where('status', Task::STATUS_COMPLETED)->count());
 
         $ancestorVisibilityCondition = collect($ancestorIds)
@@ -176,6 +177,19 @@ class ProjectTaskHierarchyViewDataService
             ->implode(' && ');
 
         $ancestorVisibilityCondition = $ancestorVisibilityCondition !== '' ? $ancestorVisibilityCondition : 'true';
+
+        $descendantTaskCount = 0;
+        $descendantCompletedCount = 0;
+
+        $children = $category->childrenRecursive ?? collect();
+        foreach ($children as $child) {
+            $childTotals = $this->appendCategorySummary($summaries, $child, $tasksByCategory, [...$ancestorIds, $categoryId]);
+            $descendantTaskCount += $childTotals['taskCount'];
+            $descendantCompletedCount += $childTotals['completedTaskCount'];
+        }
+
+        $taskCount = $ownTaskCount + $descendantTaskCount;
+        $completedTaskCount = $ownCompletedCount + $descendantCompletedCount;
 
         $summaries[$categoryId] = [
             'taskCount' => $taskCount,
@@ -185,9 +199,6 @@ class ProjectTaskHierarchyViewDataService
             'childrenVisibilityCondition' => $ancestorVisibilityCondition." && !isCollapsed('{$categoryId}')",
         ];
 
-        $children = $category->childrenRecursive ?? collect();
-        foreach ($children as $child) {
-            $this->appendCategorySummary($summaries, $child, $tasksByCategory, [...$ancestorIds, $categoryId]);
-        }
+        return ['taskCount' => $taskCount, 'completedTaskCount' => $completedTaskCount];
     }
 }
