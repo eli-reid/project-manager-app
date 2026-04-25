@@ -65,7 +65,7 @@ class Index extends Component
         ];
 
         $projects = Project::query()
-            ->with(['client:id,company_name', 'projectManager:id,first_name,last_name', 'address:id,address1,address2,city,state,zip,country'])
+            ->with(['address:id,address1,address2,city,state,zip,country'])
             ->when(! $this->includeClosed, function ($query) use ($closedStatuses): void {
                 $query->where('is_active', true)
                     ->whereNotIn('status', $closedStatuses);

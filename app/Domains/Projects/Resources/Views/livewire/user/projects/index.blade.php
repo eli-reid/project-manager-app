@@ -35,9 +35,6 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Address') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Client') }}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project Manager') }}</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -58,38 +55,10 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</td>
-                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->client?->company_name ?? '—' }}</td>
-                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->projectManager?->name ?? '—' }}</td>
-                            <td class="px-4 py-3 text-right align-top">
-                                <div class="inline-flex items-center gap-2">
-                                    @if ($project->address)
-                                        <flux:button
-                                            size="sm"
-                                            variant="subtle"
-                                            :href="'https://www.google.com/maps/search/?api=1&query=' . urlencode(collect([
-                                                $project->address->address1,
-                                                $project->address->address2,
-                                                $project->address->city,
-                                                $project->address->state,
-                                                $project->address->zip,
-                                                $project->address->country,
-                                            ])->filter()->implode(', '))"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            {{ __('Open in Maps') }}
-                                        </flux:button>
-                                    @endif
-
-                                    <flux:button size="sm" variant="ghost" :href="route('projects.show', $project)">
-                                    {{ __('Open') }}
-                                    </flux:button>
-                                </div>
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No projects found for the selected filters.') }}</td>
+                            <td colspan="3" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No projects found for the selected filters.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

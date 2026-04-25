@@ -116,7 +116,7 @@ it('shows only assigned active and open projects by default on user project list
         ->and($unassignedOpenProject->exists)->toBeTrue();
 });
 
-it('renders the client company name on the user project list', function (): void {
+it('does not render client company name on the user project list', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
     ]);
@@ -136,10 +136,10 @@ it('renders the client company name on the user project list', function (): void
         ->get(route('projects.index'))
         ->assertSuccessful()
         ->assertSee('Client Linked Project')
-        ->assertSee('Acme Civil Group');
+        ->assertDontSee('Acme Civil Group');
 });
 
-it('shows project address details and maps action on user project list', function (): void {
+it('shows project address details on user project list', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
     ]);
@@ -170,8 +170,7 @@ it('shows project address details and maps action on user project list', functio
         ->assertSuccessful()
         ->assertSee('Address Visible Project')
         ->assertSee('123 Field St')
-        ->assertSee('Riverside, CA, 92501')
-        ->assertSee('Open in Maps');
+        ->assertSee('Riverside, CA, 92501');
 });
 
 it('allows searching user projects by address fields', function (): void {
