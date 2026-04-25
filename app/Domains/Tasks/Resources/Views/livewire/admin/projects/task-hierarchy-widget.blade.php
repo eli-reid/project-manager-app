@@ -37,6 +37,7 @@
                     this.menuStyle = 'bottom: ' + (window.innerHeight - rect.top + offset) + 'px; right: ' + right + 'px;';
                 } else {
                     this.menuStyle = 'top: ' + (rect.bottom + offset) + 'px; right: ' + right + 'px;';
+                }
 
                 this.open = !this.open;
             },
