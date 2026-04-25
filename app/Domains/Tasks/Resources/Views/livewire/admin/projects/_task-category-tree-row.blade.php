@@ -48,10 +48,10 @@
                 </form>
             @else
                 <span @if(auth()->user()?->can('update', $category)) @dblclick="$wire.startEditCategoryName('{{ $categoryId }}')" title="Double-click to rename" @endif class="cursor-default">{{ $category->name }}</span>
+                <span class="ml-1 rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400">{{ $summary['taskCount'] }}</span>
             @endif
         </div>
     </td>
-    <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">{{ $summary['taskCount'] }} items</td>
     <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">Category</td>
     <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">
         <div class="w-full max-w-40">
@@ -61,6 +61,8 @@
             <div class="mt-1">{{ $summary['progressPercent'] }}% complete ({{ $summary['completedTaskCount'] }}/{{ $summary['taskCount'] }})</div>
         </div>
     </td>
+    <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">—</td>
+    <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">—</td>
     <td class="px-3 py-2 align-top text-right">
         <div class="relative inline-block text-left" x-data="buildMenuState(150)" @click.away="closeMenu()">
             <button type="button" @click="toggleMenu($event)" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-300 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Category actions">
