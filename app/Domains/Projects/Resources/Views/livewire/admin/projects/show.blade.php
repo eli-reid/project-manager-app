@@ -94,6 +94,30 @@
                 <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $taskCount }}</p>
             </div>
         </div>
+
+        <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Job Site Address</p>
+            </div>
+            @if ($projectAddress)
+                <div class="space-y-0.5 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">
+                    <p>{{ $projectAddress->address1 }}</p>
+                    @if ($projectAddress->address2)
+                        <p>{{ $projectAddress->address2 }}</p>
+                    @endif
+                    <p>
+                        {{ $projectAddress->city }}@if ($projectAddress->city && $projectAddress->state),@endif
+                        {{ $projectAddress->state }}
+                        {{ $projectAddress->zip }}
+                    </p>
+                    @if ($projectAddress->country && $projectAddress->country !== 'US')
+                        <p class="text-zinc-500 dark:text-zinc-400">{{ $projectAddress->country }}</p>
+                    @endif
+                </div>
+            @else
+                <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">No address on file. <a href="{{ route('admin.projects.edit', $project) }}" class="underline hover:text-zinc-700 dark:hover:text-zinc-200" wire:navigate>Edit project</a> to add one.</p>
+            @endif
+        </div>
     @endif
 
     @if ($activeTab === 'dailies' && in_array('dailies', $tabs, true))

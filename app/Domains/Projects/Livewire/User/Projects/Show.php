@@ -19,11 +19,13 @@ class Show extends Component
     public function mount(Project $project): void
     {
         $this->authorize('view', $project);
-        $this->project = $project->loadMissing('address');
+        $this->project = $project;
     }
 
     public function render()
     {
+        $this->project->loadMissing('address');
+
         return view('projects::livewire.user.projects.show');
     }
 }

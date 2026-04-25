@@ -366,6 +366,7 @@ class Show extends Component
             'recentTimeEntries' => $recentTimeEntries,
             'hoursByUser' => $hoursByUser,
             'financialSummary' => $financialSummary,
+            'projectAddress' => $this->project->loadMissing('address')->address,
         ]);
     }
 }
