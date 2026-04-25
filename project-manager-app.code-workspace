@@ -14,8 +14,8 @@
 			"Push-Location": true,
 			"Pop-Location": true
 		},
-		"claudeCode.environmentVariables": [
-			
-		]
+		"claudeCode.environmentVariables": [],
+		"intelephense.codeLens.implementations.enable": true,
+		"php.validate.executablePath": ""
 	}
 }

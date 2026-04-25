@@ -6,6 +6,7 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Services\ProjectTaskHierarchyViewDataService;
+use App\Domains\Tasks\Services\TaskTreeService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,14 @@ class TaskHierarchyWidget extends Component
     public ?string $editingTaskPriority = null;
 
     public ?string $editingTaskPriorityValue = null;
+
+    public ?string $editingTaskTitle = null;
+
+    public string $editingTaskTitleValue = '';
+
+    public ?string $editingCategoryName = null;
+
+    public string $editingCategoryNameValue = '';
 
     public function mount(Project $project): void
     {
@@ -184,6 +193,9 @@ class TaskHierarchyWidget extends Component
                 ->whereIn('id', $branchCategoryIds)
                 ->delete();
         });
+
+        // Mass deletes bypass Eloquent observers, so clear the cache manually.
+        app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
 
         session()->flash('success', "Deleted category branch for {$categoryName}.");
     }
@@ -371,6 +383,74 @@ class TaskHierarchyWidget extends Component
         $this->cancelInlineTaskForm();
 
         session()->flash('success', 'Task created successfully.');
+    }
+
+    public function startEditTaskTitle(string $taskId): void
+    {
+        $task = Task::query()->where('project_id', $this->project->id)->findOrFail($taskId);
+        $this->authorize('update', $task);
+
+        $this->editingTaskTitle = $taskId;
+        $this->editingTaskTitleValue = $task->title;
+    }
+
+    public function cancelEditTaskTitle(): void
+    {
+        $this->editingTaskTitle = null;
+        $this->editingTaskTitleValue = '';
+    }
+
+    public function saveTaskTitle(): void
+    {
+        if ($this->editingTaskTitle === null) {
+            return;
+        }
+
+        $task = Task::query()->where('project_id', $this->project->id)->findOrFail($this->editingTaskTitle);
+        $this->authorize('update', $task);
+
+        $validated = $this->validate([
+            'editingTaskTitleValue' => ['required', 'string', 'max:255'],
+        ]);
+
+        $task->update(['title' => $validated['editingTaskTitleValue']]);
+        $this->cancelEditTaskTitle();
+
+        session()->flash('success', 'Task renamed successfully.');
+    }
+
+    public function startEditCategoryName(string $categoryId): void
+    {
+        $category = TaskCategory::query()->where('project_id', $this->project->id)->findOrFail($categoryId);
+        $this->authorize('update', $category);
+
+        $this->editingCategoryName = $categoryId;
+        $this->editingCategoryNameValue = $category->name;
+    }
+
+    public function cancelEditCategoryName(): void
+    {
+        $this->editingCategoryName = null;
+        $this->editingCategoryNameValue = '';
+    }
+
+    public function saveCategoryName(): void
+    {
+        if ($this->editingCategoryName === null) {
+            return;
+        }
+
+        $category = TaskCategory::query()->where('project_id', $this->project->id)->findOrFail($this->editingCategoryName);
+        $this->authorize('update', $category);
+
+        $validated = $this->validate([
+            'editingCategoryNameValue' => ['required', 'string', 'max:255'],
+        ]);
+
+        $category->update(['name' => $validated['editingCategoryNameValue']]);
+        $this->cancelEditCategoryName();
+
+        session()->flash('success', 'Category renamed successfully.');
     }
 
     public function render()

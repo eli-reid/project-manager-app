@@ -20,7 +20,21 @@
             <svg class="h-3.5 w-3.5 text-zinc-500 transition-transform" :class="isCollapsed('{{ $categoryId }}') ? '' : 'rotate-90'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 0 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
             </svg>
-            <span>{{ $category->name }}</span>
+            @if ($editingCategoryName === $categoryId && auth()->user()?->can('update', $category))
+                <form wire:submit="saveCategoryName" class="flex items-center gap-1" @click.stop>
+                    <input
+                        type="text"
+                        wire:model="editingCategoryNameValue"
+                        wire:keydown.escape="cancelEditCategoryName"
+                        class="rounded border border-zinc-300 bg-white px-2 py-0.5 text-sm font-semibold text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+                        x-init="$el.focus(); $el.select()"
+                    />
+                    <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">Save</button>
+                    <button type="button" wire:click="cancelEditCategoryName" class="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Cancel</button>
+                </form>
+            @else
+                <span @if(auth()->user()?->can('update', $category)) @dblclick="$wire.startEditCategoryName('{{ $categoryId }}')" title="Double-click to rename" @endif>{{ $category->name }}</span>
+            @endif
         </button>
     </td>
     <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">{{ $summary['taskCount'] }} items</td>
@@ -46,6 +60,9 @@
             <div x-show="open" x-cloak class="fixed z-30 w-44 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
                 <button type="button" @click="open = false" wire:click="startInlineTaskForm('{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Task</button>
                 <button type="button" @click="open = false" wire:click="startInlineCategoryForm('{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Subcategory</button>
+                @can('update', $category)
+                    <button type="button" @click="open = false" wire:click="startEditCategoryName('{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Rename Category</button>
+                @endcan
                 <button type="button" @click="open = false" wire:click="copyCategoryFrom('{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category</button>
                 <button type="button" @click="open = false; showCopyModal = true" wire:click="$set('copySourceCategoryId', '{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category Tasks</button>
                 @can('delete', $category)
@@ -67,7 +84,21 @@
 @foreach ($categoryTasks as $task)
     <tr x-show="{{ $summary['childrenVisibilityCondition'] }}" x-cloak wire:key="task-row-{{ $task->id }}">
         <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200" @style(["padding-left: {$taskIndent}px"] )>
-            {{ $task->title }}
+            @if ($editingTaskTitle === $task->id && auth()->user()?->can('update', $task))
+                <form wire:submit="saveTaskTitle" class="flex items-center gap-1">
+                    <input
+                        type="text"
+                        wire:model="editingTaskTitleValue"
+                        wire:keydown.escape="cancelEditTaskTitle"
+                        class="rounded border border-zinc-300 bg-white px-2 py-0.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+                        x-init="$el.focus(); $el.select()"
+                    />
+                    <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">Save</button>
+                    <button type="button" wire:click="cancelEditTaskTitle" class="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Cancel</button>
+                </form>
+            @else
+                <span @if(auth()->user()?->can('update', $task)) @dblclick="$wire.startEditTaskTitle('{{ $task->id }}')" title="Double-click to rename" @endif>{{ $task->title }}</span>
+            @endif
         </td>
         <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">Task</td>
         <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">
@@ -109,6 +140,7 @@
                 <div x-show="open" x-cloak class="fixed z-30 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
                     @can('update', $task)
                         <a href="{{ route('admin.tasks.edit', $task) }}" wire:navigate class="block px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit Task</a>
+                        <button type="button" @click="open = false" wire:click="startEditTaskTitle('{{ $task->id }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Rename Task</button>
                     @endcan
                     @can('create', \App\Domains\Tasks\Models\Task::class)
                         <button type="button" @click="open = false" wire:click="copyTaskFrom('{{ $task->id }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Task</button>
@@ -124,7 +156,21 @@
     @foreach ($task->subTasks as $subTask)
         <tr x-show="{{ $summary['childrenVisibilityCondition'] }}" x-cloak wire:key="subtask-row-{{ $subTask->id }}">
             <td class="px-3 py-2 align-top text-sm text-zinc-700 dark:text-zinc-300" @style(["padding-left: {$subTaskIndent}px"] )>
-                -> {{ $subTask->title }}
+                @if ($editingTaskTitle === $subTask->id && auth()->user()?->can('update', $subTask))
+                    <form wire:submit="saveTaskTitle" class="flex items-center gap-1">
+                        <input
+                            type="text"
+                            wire:model="editingTaskTitleValue"
+                            wire:keydown.escape="cancelEditTaskTitle"
+                            class="rounded border border-zinc-300 bg-white px-2 py-0.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+                            x-init="$el.focus(); $el.select()"
+                        />
+                        <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">Save</button>
+                        <button type="button" wire:click="cancelEditTaskTitle" class="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Cancel</button>
+                    </form>
+                @else
+                    <span @if(auth()->user()?->can('update', $subTask)) @dblclick="$wire.startEditTaskTitle('{{ $subTask->id }}')" title="Double-click to rename" @endif>-> {{ $subTask->title }}</span>
+                @endif
             </td>
             <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">Subtask</td>
             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ str($subTask->status)->replace('_', ' ')->headline() }}</td>
@@ -142,6 +188,7 @@
                     <div x-show="open" x-cloak class="fixed z-30 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
                         @can('update', $subTask)
                             <a href="{{ route('admin.tasks.edit', $subTask) }}" wire:navigate class="block px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit Task</a>
+                            <button type="button" @click="open = false" wire:click="startEditTaskTitle('{{ $subTask->id }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Rename Task</button>
                         @endcan
                         @can('create', \App\Domains\Tasks\Models\Task::class)
                             <button type="button" @click="open = false" wire:click="copyTaskFrom('{{ $subTask->id }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Task</button>
