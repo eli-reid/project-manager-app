@@ -136,12 +136,24 @@ class Form extends Component
     public function render()
     {
         $clientId = $this->client_id;
+        $selectedAddressId = $this->address_id;
 
         return view('projects::livewire.admin.projects.form', [
             'statuses' => ProjectStatusEnum::toArray(),
             'clients' => Client::query()->orderBy('company_name')->get(['id', 'company_name']),
             'addresses' => Address::query()
-                ->when($clientId, fn ($query) => $query->where('client_id', $clientId))
+                ->when($clientId || $selectedAddressId, function ($query) use ($clientId, $selectedAddressId): void {
+                    $query->where(function ($addressQuery) use ($clientId, $selectedAddressId): void {
+                        if (filled($clientId)) {
+                            $addressQuery->where('client_id', $clientId)
+                                ->orWhereNull('client_id');
+                        }
+
+                        if (filled($selectedAddressId)) {
+                            $addressQuery->orWhere('id', $selectedAddressId);
+                        }
+                    });
+                })
                 ->orderBy('address1')
                 ->get(['id', 'address1', 'city', 'state', 'client_id']),
         ]);

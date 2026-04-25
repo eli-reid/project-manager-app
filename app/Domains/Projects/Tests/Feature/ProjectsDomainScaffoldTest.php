@@ -5,6 +5,7 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
@@ -228,6 +229,40 @@ it('allows authorized users to edit and update a project', function (): void {
     expect($project->fresh()->name)->toBe('Updated Project Name')
         ->and($project->fresh()->status?->value)->toBe('in_progress')
         ->and($project->fresh()->leave_category)->toBe('vacation');
+});
+
+it('shows unassigned and selected addresses on project edit form', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'projects.edit',
+    ]);
+
+    $clientA = Client::factory()->create();
+    $clientB = Client::factory()->create();
+
+    $unassignedAddress = Address::factory()->create([
+        'client_id' => null,
+        'address1' => 'Unassigned Job Address',
+    ]);
+
+    $selectedAddressFromDifferentClient = Address::factory()->create([
+        'client_id' => $clientB->id,
+        'address1' => 'Selected Different Client Address',
+    ]);
+
+    $project = Project::factory()->create([
+        'client_id' => $clientA->id,
+        'address_id' => $selectedAddressFromDifferentClient->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Form::class, ['project' => $project])
+        ->assertSee('Unassigned Job Address')
+        ->assertSee('Selected Different Client Address');
+
+    expect($project->fresh()->address_id)->toBe($selectedAddressFromDifferentClient->id)
+        ->and($unassignedAddress->exists)->toBeTrue();
 });
 
 it('forbids users without edit permission from accessing project edit route', function (): void {
