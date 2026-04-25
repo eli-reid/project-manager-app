@@ -18,8 +18,6 @@ Route::prefix('documents')
             ->name('global');
 
         Route::get('/{document}/download', function (Document $document) {
-            abort_unless($document->ownerUsers()->where('users.id', auth()->id())->exists(), 403);
-
             return Storage::disk($document->storage_disk)->download($document->storage_path, $document->original_name);
         })
             ->middleware('can:view,document')

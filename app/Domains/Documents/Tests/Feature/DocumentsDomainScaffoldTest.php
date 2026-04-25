@@ -263,6 +263,55 @@ it('forbids non-owners from downloading private user-owned documents', function 
         ->assertForbidden();
 });
 
+it('allows authorized user to download a project-owned document', function (): void {
+    Storage::fake('local');
+
+    $user = userWithDocumentDomainPermissions(['documents.view', 'projects.view']);
+
+    $project = Project::factory()->create();
+
+    $document = Document::factory()->create([
+        'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'visibility' => Document::VISIBILITY_PRIVATE,
+        'uploaded_by_id' => $user->id,
+        'storage_disk' => 'local',
+        'storage_path' => 'documents/project/'.$project->id.'/project-doc.pdf',
+        'original_name' => 'project-doc.pdf',
+    ]);
+    $document->ownerProjects()->sync([$project->id]);
+    Storage::disk('local')->put($document->storage_path, 'project-document-content');
+
+    actingAs($user);
+
+    get(route('documents.download', $document))
+        ->assertSuccessful();
+});
+
+it('forbids users without project access from downloading project-owned documents', function (): void {
+    Storage::fake('local');
+
+    $uploader = User::factory()->create(['is_admin' => true, 'email_verified_at' => now()]);
+    $outsider = userWithDocumentDomainPermissions(['documents.view']);
+
+    $project = Project::factory()->create();
+
+    $document = Document::factory()->create([
+        'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'visibility' => Document::VISIBILITY_PRIVATE,
+        'uploaded_by_id' => $uploader->id,
+        'storage_disk' => 'local',
+        'storage_path' => 'documents/project/'.$project->id.'/restricted-doc.pdf',
+        'original_name' => 'restricted-doc.pdf',
+    ]);
+    $document->ownerProjects()->sync([$project->id]);
+    Storage::disk('local')->put($document->storage_path, 'content');
+
+    actingAs($outsider);
+
+    get(route('documents.download', $document))
+        ->assertForbidden();
+});
+
 it('allows admins to delete any document from the admin queue', function (): void {
     Storage::fake('local');
     Settings::set('documents.storage_disk', 'local');

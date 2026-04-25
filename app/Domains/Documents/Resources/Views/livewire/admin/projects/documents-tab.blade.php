@@ -135,10 +135,16 @@
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ trim(($document->uploadedBy?->first_name ?? '').' '.($document->uploadedBy?->last_name ?? '')) ?: '—' }}</td>
                             <td class="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400">{{ $document->created_at?->format('M j, Y') ?? '—' }}</td>
                             <td class="px-4 py-3 text-right">
-                                <div class="inline-flex gap-2">
-                                    <button type="button" wire:click="edit('{{ $document->id }}')" class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</button>
-                                    <button type="button" wire:click="delete('{{ $document->id }}')" wire:confirm="Delete this document?" class="rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20">Delete</button>
-                                </div>
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button size="xs" variant="ghost" icon-trailing="ellipsis-horizontal"></flux:button>
+
+                                    <flux:menu>
+                                        <flux:menu.item :href="route('documents.download', $document)" icon="arrow-down-tray">Download</flux:menu.item>
+                                        <flux:menu.item as="button" type="button" wire:click="edit('{{ $document->id }}')" icon="pencil-square">Edit</flux:menu.item>
+                                        <flux:menu.separator />
+                                        <flux:menu.item as="button" type="button" wire:click="delete('{{ $document->id }}')" wire:confirm="Delete this document?" icon="trash" variant="danger">Delete</flux:menu.item>
+                                    </flux:menu>
+                                </flux:dropdown>
                             </td>
                         </tr>
                     @empty
