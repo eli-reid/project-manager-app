@@ -51,7 +51,12 @@
             </div>
 
             <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">File</label>
+                <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">File</label>
+                    <span class="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        Max {{ $maxFileSizeLabel }}
+                    </span>
+                </div>
                 <div class="space-y-2">
                     @php($defaultFileLabel = optional($file)->getClientOriginalName() ?? ($editingDocumentId ? 'No new file selected. The current file will be kept.' : 'No file selected yet.'))
 
@@ -72,7 +77,9 @@
                         </div>
                     </label>
 
-                    <input id="project-document-file" x-ref="projectDocumentFile" type="file" wire:model="file" x-bind:disabled="isUploading" x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? '')" class="sr-only" />
+                    <input id="project-document-file" x-ref="projectDocumentFile" type="file" wire:model="file" accept="{{ $acceptAttribute }}" x-bind:disabled="isUploading" x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? '')" class="sr-only" />
+
+                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Allowed: {{ $allowedExtensionsLabel }}</p>
 
                     <div wire:loading wire:target="file" class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300">
                         <div class="flex items-center justify-between gap-3">

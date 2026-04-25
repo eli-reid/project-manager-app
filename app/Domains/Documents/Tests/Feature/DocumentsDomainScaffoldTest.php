@@ -122,6 +122,52 @@ it('supports project tab full crud for project-owned documents', function (): vo
     expect(Document::query()->whereKey($document?->id)->exists())->toBeFalse();
 });
 
+it('shows project upload constraints in project documents tab ui', function (): void {
+    Settings::set('documents.max_file_size', '2048');
+    Settings::set('documents.allowed_types', 'pdf,png,jpg');
+
+    $user = userWithDocumentDomainPermissions([
+        'projects.view',
+        'documents.view',
+        'documents.create',
+        'documents.manage-project',
+    ]);
+
+    $project = Project::factory()->create();
+
+    actingAs($user);
+
+    Livewire::test(DocumentsTab::class, ['project' => $project])
+        ->assertSee('Max 2.0 MB')
+        ->assertSee('Allowed: PDF, PNG, JPG');
+});
+
+it('validates project upload size using documents max file size setting', function (): void {
+    Storage::fake('local');
+    Settings::set('documents.storage_disk', 'local');
+    Settings::set('documents.max_file_size', '100');
+    Settings::set('documents.allowed_types', 'pdf');
+
+    $user = userWithDocumentDomainPermissions([
+        'projects.view',
+        'documents.view',
+        'documents.create',
+        'documents.manage-project',
+    ]);
+
+    $project = Project::factory()->create();
+
+    actingAs($user);
+
+    Livewire::test(DocumentsTab::class, ['project' => $project])
+        ->set('title', 'Oversized Upload')
+        ->set('file', UploadedFile::fake()->create('large.pdf', 101, 'application/pdf'))
+        ->call('save')
+        ->assertHasErrors(['file' => ['max']]);
+
+    expect(Document::query()->where('title', 'Oversized Upload')->exists())->toBeFalse();
+});
+
 it('supports user promote and demote livewire interactions for user-owned documents', function (): void {
     $user = userWithDocumentDomainPermissions([
         'documents.view',

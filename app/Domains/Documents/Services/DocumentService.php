@@ -140,8 +140,14 @@ class DocumentService
             ->values()
             ->all();
 
+        $maxKilobytes = max(1, Settings::get('documents.max_file_size', 10240)->toInt());
+
+        if ($allowedExtensions === []) {
+            $allowedExtensions = ['pdf'];
+        }
+
         return [
-            'max_kilobytes' => Settings::get('documents.max_file_size', 10240)->toInt(),
+            'max_kilobytes' => $maxKilobytes,
             'allowed_extensions' => $allowedExtensions,
         ];
     }

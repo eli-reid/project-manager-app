@@ -28,11 +28,20 @@ class DocumentsTab extends Component
 
     public mixed $file = null;
 
+    public int $maxKilobytes = 0;
+
+    /**
+     * @var array<int, string>
+     */
+    public array $allowedExtensions = [];
+
     public function mount(Project $project): void
     {
         $this->project = $project;
         $this->authorize('view', $project);
         $this->authorize('viewAny', Document::class);
+
+        $this->syncUploadConstraints();
     }
 
     public function save(DocumentService $documentService): void
@@ -138,7 +147,38 @@ class DocumentsTab extends Component
 
         return view('documents::livewire.admin.projects.documents-tab', [
             'documents' => $documentsQuery->get(),
+            'maxFileSizeLabel' => $this->maxFileSizeLabel(),
+            'allowedExtensionsLabel' => strtoupper(implode(', ', $this->allowedExtensions)),
+            'acceptAttribute' => $this->acceptAttribute(),
         ]);
+    }
+
+    private function syncUploadConstraints(): void
+    {
+        $rules = app(DocumentService::class)->validationRules();
+
+        $this->maxKilobytes = max(1, (int) ($rules['max_kilobytes'] ?? 10240));
+        $this->allowedExtensions = collect($rules['allowed_extensions'] ?? [])
+            ->map(fn (string $extension): string => trim(strtolower($extension)))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function maxFileSizeLabel(): string
+    {
+        if ($this->maxKilobytes >= 1024) {
+            return number_format($this->maxKilobytes / 1024, 1).' MB';
+        }
+
+        return $this->maxKilobytes.' KB';
+    }
+
+    private function acceptAttribute(): string
+    {
+        return collect($this->allowedExtensions)
+            ->map(fn (string $extension): string => '.'.$extension)
+            ->implode(',');
     }
 
     private function resetForm(): void

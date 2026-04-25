@@ -23,8 +23,6 @@ class Index extends Component
 
     public string $search = '';
 
-    public bool $includeClosed = false;
-
     #[Url(as: 'visibility', except: 'assigned')]
     public string $visibilityScope = 'assigned';
 
@@ -34,11 +32,6 @@ class Index extends Component
     }
 
     public function updatedSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatedIncludeClosed(): void
     {
         $this->resetPage();
     }
@@ -66,10 +59,8 @@ class Index extends Component
 
         $projects = Project::query()
             ->with(['address:id,address1,address2,city,state,zip,country'])
-            ->when(! $this->includeClosed, function ($query) use ($closedStatuses): void {
-                $query->where('is_active', true)
-                    ->whereNotIn('status', $closedStatuses);
-            })
+            ->where('is_active', true)
+            ->whereNotIn('status', $closedStatuses)
             ->when($this->search !== '', function ($query): void {
                 $search = '%'.$this->search.'%';
 

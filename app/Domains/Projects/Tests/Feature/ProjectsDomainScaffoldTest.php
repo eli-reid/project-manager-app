@@ -116,6 +116,25 @@ it('shows only assigned active and open projects by default on user project list
         ->and($unassignedOpenProject->exists)->toBeTrue();
 });
 
+it('does not offer include closed filter on user project list', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Only Active Listing Project',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee('Only Active Listing Project')
+        ->assertDontSee('Include closed projects');
+});
+
 it('does not render client company name on the user project list', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',

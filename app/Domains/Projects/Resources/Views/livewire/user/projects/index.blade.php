@@ -8,7 +8,7 @@
         </div>
     </div>
 
-    <div class="grid gap-3 md:grid-cols-[2fr_1fr_1fr]">
+    <div class="grid gap-3 md:grid-cols-[2fr_1fr]">
         <flux:field>
             <flux:label>{{ __('Search') }}</flux:label>
             <flux:input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('Project name or number') }}" />
@@ -20,10 +20,6 @@
                 <option value="assigned">{{ __('Assigned') }}</option>
                 <option value="permitted">{{ __('Broader Permitted') }}</option>
             </flux:select>
-        </flux:field>
-
-        <flux:field class="self-end">
-            <flux:checkbox wire:model.live="includeClosed" :label="__('Include closed projects')" />
         </flux:field>
     </div>
 
