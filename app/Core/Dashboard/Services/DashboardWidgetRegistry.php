@@ -2,6 +2,7 @@
 
 namespace App\Core\Dashboard\Services;
 
+use App\Core\Dashboard\Data\WidgetDefinition;
 use Illuminate\Support\Facades\Log;
 
 class DashboardWidgetRegistry
@@ -12,38 +13,29 @@ class DashboardWidgetRegistry
     private array $definitions = [];
 
     /**
-     * @param  array<int, array{key: string, component: string, section?: string, sort?: int, span?: string, ability?: string, ability_model?: string, title?: string, description?: string}>  $definitions
+     * @param  array<int, WidgetDefinition>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {
         foreach ($definitions as $definition) {
-            $key = (string) ($definition['key'] ?? '');
-            $component = (string) ($definition['component'] ?? '');
-
-            if ($key === '' || $component === '') {
+            if (! $definition instanceof WidgetDefinition) {
                 continue;
             }
 
-            if (array_key_exists($key, $this->definitions)) {
+            if ($definition->key === '' || $definition->component === '') {
+                continue;
+            }
+
+            if (array_key_exists($definition->key, $this->definitions)) {
                 Log::warning('DashboardWidgetRegistry: duplicate key ignored during registerDefinitions.', [
-                    'key' => $key,
-                    'existing_title' => $this->definitions[$key]['title'],
+                    'key' => $definition->key,
+                    'existing_title' => $this->definitions[$definition->key]['title'],
                 ]);
 
                 continue;
             }
 
-            $this->definitions[$key] = [
-                'key' => $key,
-                'component' => $component,
-                'section' => (string) ($definition['section'] ?? 'primary'),
-                'sort' => (int) ($definition['sort'] ?? 100),
-                'span' => (string) ($definition['span'] ?? 'third'),
-                'ability' => (string) ($definition['ability'] ?? ''),
-                'ability_model' => (string) ($definition['ability_model'] ?? ''),
-                'title' => (string) ($definition['title'] ?? str($key)->replace(['.', '-', '_'], ' ')->headline()->value()),
-                'description' => (string) ($definition['description'] ?? ''),
-            ];
+            $this->definitions[$definition->key] = $definition->toArray();
         }
     }
 

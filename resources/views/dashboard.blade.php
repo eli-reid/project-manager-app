@@ -19,8 +19,17 @@
                     </h2>
                 @endif
                 <div class="grid gap-4 lg:grid-cols-3">
+                    @php
+                        $isSingleWidgetSection = count($widgets) === 1;
+                    @endphp
                     @foreach($widgets as $widget)
-                        <div class="{{ match($widget['span']) { 'full' => 'lg:col-span-3', 'half' => 'lg:col-span-2', default => 'lg:col-span-1' } }}">
+                        <div class="{{ $isSingleWidgetSection
+                            ? 'lg:col-span-3'
+                            : match($widget['span']) {
+                                'full' => 'lg:col-span-3',
+                                'half' => 'lg:col-span-2',
+                                default => 'lg:col-span-1',
+                            } }}">
                             @livewire($widget['component'], [], $widget['key'])
                         </div>
                     @endforeach

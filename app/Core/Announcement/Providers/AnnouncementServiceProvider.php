@@ -6,6 +6,7 @@ use App\Core\Announcement\Models\Announcement;
 use App\Core\Announcement\Permissions\AnnouncementPermissions;
 use App\Core\Announcement\Policies\AnnouncementPolicy;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -32,16 +33,16 @@ class AnnouncementServiceProvider extends ServiceProvider
     private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
     {
         $widgetRegistry->registerDefinitions([
-            [
-                'key' => 'core.announcements',
-                'component' => 'announcement::dashboard.widget',
-                'section' => 'primary',
-                'sort' => 10,
-                'span' => 'half',
-                'ability' => '',
-                'title' => 'Company Announcements',
-                'description' => 'Latest updates for the team.',
-            ],
+            new WidgetDefinition(
+                key: 'core.announcements',
+                component: 'announcement::dashboard.widget',
+                section: 'primary',
+                sort: 10,
+                span: 'half',
+                ability: '',
+                title: 'Company Announcements',
+                description: 'Latest updates for the team.',
+            ),
         ]);
     }
 

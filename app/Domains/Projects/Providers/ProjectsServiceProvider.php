@@ -3,6 +3,7 @@
 namespace App\Domains\Projects\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
@@ -55,17 +56,17 @@ class ProjectsServiceProvider extends ServiceProvider
     private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
     {
         $widgetRegistry->registerDefinitions([
-            [
-                'key' => 'projects.active-summary',
-                'component' => 'projects::dashboard.widget',
-                'section' => 'operations',
-                'sort' => 10,
-                'span' => 'half',
-                'ability' => 'viewAny',
-                'ability_model' => Project::class,
-                'title' => 'Active Projects',
-                'description' => 'Currently active projects.',
-            ],
+            new WidgetDefinition(
+                key: 'projects.active-summary',
+                component: 'projects::dashboard.widget',
+                section: 'operations',
+                sort: 10,
+                span: 'half',
+                ability: 'viewAny',
+                abilityModel: Project::class,
+                title: 'Active Projects',
+                description: 'Currently active projects.',
+            ),
         ]);
     }
 

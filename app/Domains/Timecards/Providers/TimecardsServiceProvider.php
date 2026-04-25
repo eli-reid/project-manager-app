@@ -3,6 +3,7 @@
 namespace App\Domains\Timecards\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
@@ -61,17 +62,17 @@ class TimecardsServiceProvider extends ServiceProvider
     private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
     {
         $widgetRegistry->registerDefinitions([
-            [
-                'key' => 'timecards.my-week',
-                'component' => 'timecards::dashboard.widget',
-                'section' => 'personal',
-                'sort' => 20,
-                'span' => 'half',
-                'ability' => 'viewAny',
-                'ability_model' => Timecard::class,
-                'title' => 'My Timecards',
-                'description' => 'Recent timecard activity.',
-            ],
+            new WidgetDefinition(
+                key: 'timecards.my-week',
+                component: 'timecards::dashboard.widget',
+                section: 'personal',
+                sort: 20,
+                span: 'half',
+                ability: 'viewAny',
+                abilityModel: Timecard::class,
+                title: 'My Timecards',
+                description: 'Recent timecard activity.',
+            ),
         ]);
     }
 

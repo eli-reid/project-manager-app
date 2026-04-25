@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Log;
 
@@ -10,16 +11,16 @@ beforeEach(function (): void {
 
 it('registers a widget definition', function (): void {
     $this->registry->registerDefinitions([
-        [
-            'key' => 'test.widget',
-            'component' => 'test.component',
-            'section' => 'primary',
-            'sort' => 10,
-            'span' => 'half',
-            'ability' => '',
-            'title' => 'Test Widget',
-            'description' => 'A test widget.',
-        ],
+        new WidgetDefinition(
+            key: 'test.widget',
+            component: 'test.component',
+            section: 'primary',
+            sort: 10,
+            span: 'half',
+            ability: '',
+            title: 'Test Widget',
+            description: 'A test widget.',
+        ),
     ]);
 
     expect($this->registry->all())->toHaveCount(1)
@@ -29,9 +30,9 @@ it('registers a widget definition', function (): void {
 
 it('returns widgets in sort order within a section', function (): void {
     $this->registry->registerDefinitions([
-        ['key' => 'test.b', 'component' => 'b', 'section' => 'primary', 'sort' => 20],
-        ['key' => 'test.a', 'component' => 'a', 'section' => 'primary', 'sort' => 10],
-        ['key' => 'test.c', 'component' => 'c', 'section' => 'primary', 'sort' => 30],
+        new WidgetDefinition(key: 'test.b', component: 'b', section: 'primary', sort: 20),
+        new WidgetDefinition(key: 'test.a', component: 'a', section: 'primary', sort: 10),
+        new WidgetDefinition(key: 'test.c', component: 'c', section: 'primary', sort: 30),
     ]);
 
     $widgets = $this->registry->forSection('primary');
@@ -44,9 +45,9 @@ it('returns widgets in sort order within a section', function (): void {
 
 it('filters widgets by section', function (): void {
     $this->registry->registerDefinitions([
-        ['key' => 'test.primary', 'component' => 'a', 'section' => 'primary', 'sort' => 10],
-        ['key' => 'test.personal', 'component' => 'b', 'section' => 'personal', 'sort' => 10],
-        ['key' => 'test.admin', 'component' => 'c', 'section' => 'admin', 'sort' => 10],
+        new WidgetDefinition(key: 'test.primary', component: 'a', section: 'primary', sort: 10),
+        new WidgetDefinition(key: 'test.personal', component: 'b', section: 'personal', sort: 10),
+        new WidgetDefinition(key: 'test.admin', component: 'c', section: 'admin', sort: 10),
     ]);
 
     expect($this->registry->forSection('primary'))->toHaveCount(1)
@@ -64,15 +65,15 @@ it('ignores duplicate keys and logs a warning', function (): void {
         ));
 
     $this->registry->registerDefinitions([
-        ['key' => 'test.widget', 'component' => 'original', 'section' => 'primary', 'sort' => 10],
-        ['key' => 'test.widget', 'component' => 'duplicate', 'section' => 'primary', 'sort' => 20],
+        new WidgetDefinition(key: 'test.widget', component: 'original', section: 'primary', sort: 10),
+        new WidgetDefinition(key: 'test.widget', component: 'duplicate', section: 'primary', sort: 20),
     ]);
 
     expect($this->registry->all())->toHaveCount(1)
         ->and($this->registry->all()[0]['component'])->toBe('original');
 });
 
-it('skips definitions with a missing key', function (): void {
+it('skips non-WidgetDefinition entries', function (): void {
     $this->registry->registerDefinitions([
         ['component' => 'no-key-component', 'section' => 'primary'],
     ]);
@@ -80,17 +81,9 @@ it('skips definitions with a missing key', function (): void {
     expect($this->registry->all())->toHaveCount(0);
 });
 
-it('skips definitions with a missing component', function (): void {
-    $this->registry->registerDefinitions([
-        ['key' => 'test.no-component', 'section' => 'primary'],
-    ]);
-
-    expect($this->registry->all())->toHaveCount(0);
-});
-
 it('applies sensible defaults when optional fields are omitted', function (): void {
     $this->registry->registerDefinitions([
-        ['key' => 'test.defaults', 'component' => 'some.component'],
+        new WidgetDefinition(key: 'test.defaults', component: 'some.component'),
     ]);
 
     $widget = $this->registry->all()[0];

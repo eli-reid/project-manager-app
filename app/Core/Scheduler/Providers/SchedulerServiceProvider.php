@@ -3,6 +3,7 @@
 namespace App\Core\Scheduler\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Scheduler\Commands\DeployUpgradeCommand;
 use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
@@ -103,17 +104,17 @@ class SchedulerServiceProvider extends ServiceProvider
         $widgetRegistry = $this->app->make(DashboardWidgetRegistry::class);
 
         $widgetRegistry->registerDefinitions([
-            [
-                'key' => 'scheduler.task-health',
-                'component' => 'scheduler::dashboard.widget',
-                'section' => 'admin',
-                'sort' => 10,
-                'span' => 'full',
-                'ability' => 'viewAny',
-                'ability_model' => ScheduledTask::class,
-                'title' => 'Scheduler Health',
-                'description' => 'Scheduled task status overview.',
-            ],
+            new WidgetDefinition(
+                key: 'scheduler.task-health',
+                component: 'scheduler::dashboard.widget',
+                section: 'admin',
+                sort: 10,
+                span: 'full',
+                ability: 'viewAny',
+                abilityModel: ScheduledTask::class,
+                title: 'Scheduler Health',
+                description: 'Scheduled task status overview.',
+            ),
         ]);
     }
 
