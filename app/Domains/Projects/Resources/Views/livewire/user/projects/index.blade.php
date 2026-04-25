@@ -33,6 +33,7 @@
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project') }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Address') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Client') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project Manager') }}</th>
@@ -46,18 +47,49 @@
                                 <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</div>
                                 <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $project->project_number ?? 'N/A' }}</div>
                             </td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
+                                @if ($project->address)
+                                    <div>{{ $project->address->address1 }}</div>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        {{ collect([$project->address->city, $project->address->state, $project->address->zip])->filter()->implode(', ') }}
+                                    </div>
+                                @else
+                                    <span class="text-zinc-500 dark:text-zinc-400">—</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->client?->company_name ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->projectManager?->name ?? '—' }}</td>
                             <td class="px-4 py-3 text-right align-top">
-                                <flux:button size="sm" variant="ghost" :href="route('projects.show', $project)">
+                                <div class="inline-flex items-center gap-2">
+                                    @if ($project->address)
+                                        <flux:button
+                                            size="sm"
+                                            variant="subtle"
+                                            :href="'https://www.google.com/maps/search/?api=1&query=' . urlencode(collect([
+                                                $project->address->address1,
+                                                $project->address->address2,
+                                                $project->address->city,
+                                                $project->address->state,
+                                                $project->address->zip,
+                                                $project->address->country,
+                                            ])->filter()->implode(', '))"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ __('Open in Maps') }}
+                                        </flux:button>
+                                    @endif
+
+                                    <flux:button size="sm" variant="ghost" :href="route('projects.show', $project)">
                                     {{ __('Open') }}
-                                </flux:button>
+                                    </flux:button>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No projects found for the selected filters.') }}</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No projects found for the selected filters.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

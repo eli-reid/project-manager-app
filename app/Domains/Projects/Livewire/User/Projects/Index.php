@@ -65,7 +65,7 @@ class Index extends Component
         ];
 
         $projects = Project::query()
-            ->with(['client:id,company_name', 'projectManager:id,first_name,last_name'])
+            ->with(['client:id,company_name', 'projectManager:id,first_name,last_name', 'address:id,address1,address2,city,state,zip,country'])
             ->when(! $this->includeClosed, function ($query) use ($closedStatuses): void {
                 $query->where('is_active', true)
                     ->whereNotIn('status', $closedStatuses);
@@ -75,7 +75,14 @@ class Index extends Component
 
                 $query->where(function ($builder) use ($search): void {
                     $builder->where('name', 'like', $search)
-                        ->orWhere('project_number', 'like', $search);
+                        ->orWhere('project_number', 'like', $search)
+                        ->orWhereHas('address', function (Builder $addressQuery) use ($search): void {
+                            $addressQuery->where('address1', 'like', $search)
+                                ->orWhere('address2', 'like', $search)
+                                ->orWhere('city', 'like', $search)
+                                ->orWhere('state', 'like', $search)
+                                ->orWhere('zip', 'like', $search);
+                        });
                 });
             });
 

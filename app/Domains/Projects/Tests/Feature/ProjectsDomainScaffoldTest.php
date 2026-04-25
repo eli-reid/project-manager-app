@@ -10,6 +10,7 @@ use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
+use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectsIndex;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Models\Task;
@@ -136,6 +137,85 @@ it('renders the client company name on the user project list', function (): void
         ->assertSuccessful()
         ->assertSee('Client Linked Project')
         ->assertSee('Acme Civil Group');
+});
+
+it('shows project address details and maps action on user project list', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    $client = Client::factory()->create([
+        'company_name' => 'Address Client LLC',
+    ]);
+
+    $address = Address::factory()->create([
+        'client_id' => $client->id,
+        'address1' => '123 Field St',
+        'city' => 'Riverside',
+        'state' => 'CA',
+        'zip' => '92501',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Address Visible Project',
+        'project_manager_id' => $user->id,
+        'client_id' => $client->id,
+        'address_id' => $address->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee('Address Visible Project')
+        ->assertSee('123 Field St')
+        ->assertSee('Riverside, CA, 92501')
+        ->assertSee('Open in Maps');
+});
+
+it('allows searching user projects by address fields', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    $searchableClient = Client::factory()->create();
+    $otherClient = Client::factory()->create();
+
+    $searchableAddress = Address::factory()->create([
+        'client_id' => $searchableClient->id,
+        'city' => 'Searchville',
+    ]);
+
+    $otherAddress = Address::factory()->create([
+        'client_id' => $otherClient->id,
+        'city' => 'Othercity',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Project Matching Address Search',
+        'project_manager_id' => $user->id,
+        'client_id' => $searchableClient->id,
+        'address_id' => $searchableAddress->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Project Not Matching Address Search',
+        'project_manager_id' => $user->id,
+        'client_id' => $otherClient->id,
+        'address_id' => $otherAddress->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(UserProjectsIndex::class)
+        ->set('search', 'Searchville')
+        ->assertSee('Project Matching Address Search')
+        ->assertDontSee('Project Not Matching Address Search');
 });
 
 it('allows users with domain view permissions to access scaffold routes', function (): void {
