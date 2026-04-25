@@ -16,12 +16,14 @@
 
 <tr class="bg-zinc-50/70 dark:bg-zinc-800/50" x-show="{{ $summary['ancestorVisibilityCondition'] }}" x-cloak wire:key="category-row-{{ $categoryId }}">
     <td class="px-3 py-2 align-top text-sm font-semibold text-zinc-900 dark:text-zinc-100" @style(["padding-left: {$categoryIndent}px"] )>
-        <button type="button" @click="toggleCategory('{{ $categoryId }}')" class="inline-flex items-center gap-2 rounded-md px-1 py-1 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70">
-            <svg class="h-3.5 w-3.5 text-zinc-500 transition-transform" :class="isCollapsed('{{ $categoryId }}') ? '' : 'rotate-90'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 0 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
-            </svg>
+        <div class="inline-flex items-center gap-2">
+            <button type="button" @click="toggleCategory('{{ $categoryId }}')" class="inline-flex items-center justify-center rounded-md p-1 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70" aria-label="Toggle category">
+                <svg class="h-3.5 w-3.5 text-zinc-500 transition-transform" :class="isCollapsed('{{ $categoryId }}') ? '' : 'rotate-90'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 0 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+                </svg>
+            </button>
             @if ($editingCategoryName === $categoryId && auth()->user()?->can('update', $category))
-                <form wire:submit="saveCategoryName" class="flex items-center gap-1" @click.stop>
+                <form wire:submit="saveCategoryName" class="flex items-center gap-1">
                     <input
                         type="text"
                         wire:model="editingCategoryNameValue"
@@ -33,9 +35,9 @@
                     <button type="button" wire:click="cancelEditCategoryName" class="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Cancel</button>
                 </form>
             @else
-                <span @if(auth()->user()?->can('update', $category)) @dblclick="$wire.startEditCategoryName('{{ $categoryId }}')" title="Double-click to rename" @endif>{{ $category->name }}</span>
+                <span @if(auth()->user()?->can('update', $category)) @dblclick="$wire.startEditCategoryName('{{ $categoryId }}')" title="Double-click to rename" @endif class="cursor-default">{{ $category->name }}</span>
             @endif
-        </button>
+        </div>
     </td>
     <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">{{ $summary['taskCount'] }} items</td>
     <td class="px-3 py-2 align-top text-xs text-zinc-500 dark:text-zinc-400">Category</td>
