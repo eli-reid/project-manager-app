@@ -9,6 +9,8 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectFinancialsService;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Tasks\Models\Task;
+use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -72,6 +74,10 @@ class Show extends Component
 
         if ($user?->can('viewAny', Document::class)) {
             $tabs[] = 'documents';
+        }
+
+        if ($user?->can('viewAny', Timecard::class)) {
+            $tabs[] = 'time';
         }
 
         if ($user?->can('viewFinancials', $this->project)) {
@@ -167,6 +173,38 @@ class Show extends Component
                 ->count();
         }
 
+        $timeEntryCount = 0;
+        $totalHours = 0.0;
+        $regularHours = 0.0;
+        $overtimeHours = 0.0;
+        $doubleTimeHours = 0.0;
+        $recentTimeEntries = collect();
+        $hoursByUser = collect();
+        if (in_array('time', $tabs, true)) {
+            $timeQuery = TimecardEntry::query()->where('project_id', $this->project->id);
+
+            $timeEntryCount = (clone $timeQuery)->count();
+            $totalHours = (float) (clone $timeQuery)->sum('hours');
+            $regularHours = (float) (clone $timeQuery)->sum('regular_hours');
+            $overtimeHours = (float) (clone $timeQuery)->sum('overtime_hours');
+            $doubleTimeHours = (float) (clone $timeQuery)->sum('double_time_hours');
+
+            if ($this->activeTab === 'time') {
+                $recentTimeEntries = (clone $timeQuery)
+                    ->with(['user:id,first_name,last_name', 'costCode:id,code,name'])
+                    ->latest('date')
+                    ->limit(25)
+                    ->get();
+
+                $hoursByUser = (clone $timeQuery)
+                    ->selectRaw('user_id, SUM(hours) as total_hours')
+                    ->with('user:id,first_name,last_name')
+                    ->groupBy('user_id')
+                    ->orderByDesc('total_hours')
+                    ->get();
+            }
+        }
+
         $financialSummary = null;
         if (in_array('financials', $tabs, true) && $this->activeTab === 'financials') {
             $financialSummary = app(ProjectFinancialsService::class)->summary($this->project);
@@ -184,6 +222,13 @@ class Show extends Component
             'recentStockOrders' => $recentStockOrders,
             'documentCount' => $documentCount,
             'financialSummary' => $financialSummary,
+            'timeEntryCount' => $timeEntryCount,
+            'totalHours' => $totalHours,
+            'regularHours' => $regularHours,
+            'overtimeHours' => $overtimeHours,
+            'doubleTimeHours' => $doubleTimeHours,
+            'recentTimeEntries' => $recentTimeEntries,
+            'hoursByUser' => $hoursByUser,
         ]);
     }
 }
