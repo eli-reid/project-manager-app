@@ -686,6 +686,41 @@ it('copies a category from project show actions', function (): void {
     expect($copied?->description)->toBe('Original category');
 });
 
+it('copies a subcategory to a different destination parent', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'task-categories.view',
+        'task-categories.create',
+    ]);
+
+    $project = Project::factory()->create();
+    $sourceParent = TaskCategory::factory()->create(['project_id' => $project->id, 'name' => 'Building A']);
+    $destinationParent = TaskCategory::factory()->create(['project_id' => $project->id, 'name' => 'Building B']);
+    $source = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $sourceParent->id,
+        'name' => 'Unit 201 Scope',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->set('copyCategorySourceId', $source->id)
+        ->set('copyCategoryDestinationParentId', $destinationParent->id)
+        ->call('copyCategory')
+        ->assertHasNoErrors();
+
+    $copied = TaskCategory::query()
+        ->where('project_id', $project->id)
+        ->where('name', 'Unit 201 Scope')
+        ->where('id', '!=', $source->id)
+        ->latest('created_at')
+        ->first();
+
+    expect($copied)->not->toBeNull();
+    expect($copied?->parent_id)->toBe($destinationParent->id);
+});
+
 it('copies category descendants and tasks without renaming them', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',

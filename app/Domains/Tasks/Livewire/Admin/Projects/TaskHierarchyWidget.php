@@ -27,6 +27,8 @@ class TaskHierarchyWidget extends Component
 
     public ?string $copyCategorySourceId = null;
 
+    public ?string $copyCategoryDestinationParentId = null;
+
     public int $copyCategoryQuantity = 1;
 
     public string $copyCategoryNamePrefix = '';
@@ -508,6 +510,23 @@ class TaskHierarchyWidget extends Component
                 'required',
                 Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
             ],
+            'copyCategoryDestinationParentId' => [
+                'nullable',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '' || $value === '__root__') {
+                        return;
+                    }
+
+                    $exists = TaskCategory::query()
+                        ->where('project_id', $this->project->id)
+                        ->whereKey($value)
+                        ->exists();
+
+                    if (! $exists) {
+                        $fail('The selected destination parent is invalid.');
+                    }
+                },
+            ],
             'copyIncludeChildCategories' => ['boolean'],
             'copyIncludeCategoryTasks' => ['boolean'],
             'copyCategoryQuantity' => ['required', 'integer', 'min:1', 'max:50'],
@@ -523,17 +542,22 @@ class TaskHierarchyWidget extends Component
         }
 
         $sourceCategory = TaskCategory::query()->findOrFail($validated['copyCategorySourceId']);
+        $destinationParentId = match ($validated['copyCategoryDestinationParentId'] ?? null) {
+            '__root__' => null,
+            null, '' => $sourceCategory->parent_id,
+            default => $validated['copyCategoryDestinationParentId'],
+        };
 
         $copiedCategoryCount = 0;
         $copiedTaskCount = 0;
 
-        DB::transaction(function () use ($sourceCategory, $validated, &$copiedCategoryCount, &$copiedTaskCount): void {
+        DB::transaction(function () use ($sourceCategory, $validated, $destinationParentId, &$copiedCategoryCount, &$copiedTaskCount): void {
             for ($index = 0; $index < $validated['copyCategoryQuantity']; $index++) {
                 $rootName = $this->buildCategoryCopyRootName($sourceCategory, $validated, $index);
 
                 $this->copyCategoryRecursive(
                     $sourceCategory,
-                    $sourceCategory->parent_id,
+                    $destinationParentId,
                     $validated['copyIncludeChildCategories'],
                     $validated['copyIncludeCategoryTasks'],
                     $copiedCategoryCount,
@@ -543,7 +567,7 @@ class TaskHierarchyWidget extends Component
             }
         });
 
-        $this->reset('copyCategorySourceId', 'copyIncludeChildCategories', 'copyIncludeCategoryTasks', 'copyCategoryQuantity', 'copyCategoryNamePrefix', 'copyCategoryStartNumber');
+        $this->reset('copyCategorySourceId', 'copyCategoryDestinationParentId', 'copyIncludeChildCategories', 'copyIncludeCategoryTasks', 'copyCategoryQuantity', 'copyCategoryNamePrefix', 'copyCategoryStartNumber');
         $this->copyCategoryQuantity = 1;
 
         app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);

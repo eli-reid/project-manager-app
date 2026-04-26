@@ -116,6 +116,19 @@
                     @error('copyCategorySourceId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
+                <div>
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Destination Parent</label>
+                    <select wire:model="copyCategoryDestinationParentId" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                        <option value="">Keep current parent</option>
+                        <option value="__root__">Top level</option>
+                        @foreach ($copyCategoryOptions as $option)
+                            <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Choose the parent category the copied branch should be created under.</p>
+                    @error('copyCategoryDestinationParentId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
                 <div class="space-y-2">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Options</label>
                     <label class="inline-flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
