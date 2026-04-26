@@ -173,8 +173,12 @@ class TaskHierarchyWidget extends Component
         $this->dispatch('open-copy-category-modal');
     }
 
-    public function deleteCategory(string $categoryId): void
+    public function deleteCategory(?string $categoryId): void
     {
+        if (! $categoryId) {
+            return;
+        }
+
         $category = TaskCategory::query()
             ->where('project_id', $this->project->id)
             ->find($categoryId);
@@ -212,8 +216,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', "Deleted category branch for {$categoryName}.");
     }
 
-    public function copyTaskFrom(string $taskId): void
+    public function copyTaskFrom(?string $taskId): void
     {
+        if (! $taskId) {
+            return;
+        }
+
         $this->authorize('create', Task::class);
 
         $this->copyTaskSourceId = $taskId;
@@ -283,8 +291,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', "Copied task {$sourceTask->title}.");
     }
 
-    public function deleteTask(string $taskId): void
+    public function deleteTask(?string $taskId): void
     {
+        if (! $taskId) {
+            return;
+        }
+
         $task = Task::query()
             ->where('project_id', $this->project->id)
             ->findOrFail($taskId);
@@ -542,8 +554,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', 'Task created successfully.');
     }
 
-    public function startEditTaskTitle(string $taskId): void
+    public function startEditTaskTitle(?string $taskId): void
     {
+        if (! $taskId) {
+            return;
+        }
+
         $task = Task::query()->where('project_id', $this->project->id)->findOrFail($taskId);
         $this->authorize('update', $task);
 
@@ -576,8 +592,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', 'Task renamed successfully.');
     }
 
-    public function startEditCategoryName(string $categoryId): void
+    public function startEditCategoryName(?string $categoryId): void
     {
+        if (! $categoryId) {
+            return;
+        }
+
         $category = TaskCategory::query()->where('project_id', $this->project->id)->findOrFail($categoryId);
         $this->authorize('update', $category);
 
@@ -760,8 +780,12 @@ class TaskHierarchyWidget extends Component
         return $candidate;
     }
 
-    public function startEditTaskStatus(string $taskId): void
+    public function startEditTaskStatus(?string $taskId): void
     {
+        if (! $taskId) {
+            return;
+        }
+
         $task = Task::query()->findOrFail($taskId);
         $this->authorize('updateStatus', $task);
 
@@ -794,8 +818,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', 'Task status updated successfully.');
     }
 
-    public function startEditTaskPriority(string $taskId): void
+    public function startEditTaskPriority(?string $taskId): void
     {
+        if (! $taskId) {
+            return;
+        }
+
         $task = Task::query()->findOrFail($taskId);
         $this->authorize('updatePriority', $task);
 
