@@ -2,8 +2,11 @@
 
 namespace App\Domains\Submittals\Livewire\Submittals;
 
+use App\Core\Identity\Models\User;
+use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Submittals\Models\Submittal;
+use App\Domains\Submittals\Models\SubmittalApproval;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -28,6 +31,21 @@ class Form extends Component
 
     public ?string $needByDate = null;
 
+    /**
+     * @var array<int, array{description:string, manufacturer:?string, model:?string, part_number:?string, quantity:?string, unit:?string}>
+     */
+    public array $items = [];
+
+    /**
+     * @var array<int, string>
+     */
+    public array $reviewerIds = [];
+
+    /**
+     * @var array<int, string>
+     */
+    public array $documentIds = [];
+
     public function mount(?Submittal $submittal = null): void
     {
         $this->submittal = $submittal;
@@ -40,10 +58,59 @@ class Form extends Component
             $this->vendor = (string) ($submittal->vendor ?? '');
             $this->needByDate = $submittal->need_by_date?->format('Y-m-d');
 
+            $this->items = $submittal->items()
+                ->orderBy('created_at')
+                ->get(['description', 'manufacturer', 'model', 'part_number', 'quantity', 'unit'])
+                ->map(fn ($item): array => [
+                    'description' => (string) $item->description,
+                    'manufacturer' => $item->manufacturer,
+                    'model' => $item->model,
+                    'part_number' => $item->part_number,
+                    'quantity' => $item->quantity !== null ? (string) $item->quantity : null,
+                    'unit' => $item->unit,
+                ])
+                ->values()
+                ->all();
+
+            $this->reviewerIds = $submittal->approvals()
+                ->orderBy('step')
+                ->pluck('reviewer_id')
+                ->values()
+                ->all();
+
+            $this->documentIds = $submittal->documents()
+                ->pluck('documents.id')
+                ->values()
+                ->all();
+
+            if ($this->items === []) {
+                $this->items = [$this->emptyItemRow()];
+            }
+
             return;
         }
 
         $this->authorize('create', Submittal::class);
+        $this->items = [$this->emptyItemRow()];
+    }
+
+    public function addItem(): void
+    {
+        $this->items[] = $this->emptyItemRow();
+    }
+
+    public function removeItem(int $index): void
+    {
+        if (! array_key_exists($index, $this->items)) {
+            return;
+        }
+
+        unset($this->items[$index]);
+        $this->items = array_values($this->items);
+
+        if ($this->items === []) {
+            $this->items[] = $this->emptyItemRow();
+        }
     }
 
     public function save(): void
@@ -54,6 +121,17 @@ class Form extends Component
             'specReference' => ['nullable', 'string', 'max:120'],
             'vendor' => ['nullable', 'string', 'max:120'],
             'needByDate' => ['nullable', 'date'],
+            'reviewerIds' => ['required', 'array', 'min:1'],
+            'reviewerIds.*' => ['string', 'exists:users,id', 'distinct'],
+            'documentIds' => ['nullable', 'array'],
+            'documentIds.*' => ['string', 'exists:documents,id', 'distinct'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.description' => ['required', 'string', 'max:255'],
+            'items.*.manufacturer' => ['nullable', 'string', 'max:120'],
+            'items.*.model' => ['nullable', 'string', 'max:120'],
+            'items.*.part_number' => ['nullable', 'string', 'max:120'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
+            'items.*.unit' => ['nullable', 'string', 'max:20'],
         ]);
 
         $payload = [
@@ -66,6 +144,10 @@ class Form extends Component
 
         if ($this->submittal instanceof Submittal) {
             $this->submittal->update($payload);
+            $this->syncItems($this->submittal, $validated['items']);
+            $this->syncApprovals($this->submittal, $validated['reviewerIds']);
+            $this->syncDocuments($this->submittal, $validated['documentIds'] ?? []);
+
             session()->flash('success', 'Submittal updated successfully.');
             $this->redirectRoute('submittals.show', $this->submittal);
 
@@ -78,14 +160,109 @@ class Form extends Component
             'submitted_by_id' => (string) Auth::id(),
         ]);
 
+        $this->syncItems($created, $validated['items']);
+        $this->syncApprovals($created, $validated['reviewerIds']);
+        $this->syncDocuments($created, $validated['documentIds'] ?? []);
+
         session()->flash('success', 'Submittal created successfully.');
         $this->redirectRoute('submittals.show', $created);
     }
 
     public function render()
     {
+        $availableDocuments = collect();
+
+        if ($this->projectId !== '') {
+            $availableDocuments = Document::query()
+                ->projectOwned()
+                ->ownedByProject($this->projectId)
+                ->orderBy('title')
+                ->get(['id', 'title', 'original_name']);
+        }
+
         return view('submittals::livewire.user.submittals.form', [
             'projects' => Project::query()->orderBy('name')->get(['id', 'name', 'project_number']),
+            'reviewers' => User::query()
+                ->where('is_active', true)
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get(['id', 'first_name', 'last_name', 'email']),
+            'availableDocuments' => $availableDocuments,
         ]);
+    }
+
+    /**
+     * @param  array<int, array{description:string, manufacturer:?string, model:?string, part_number:?string, quantity?:string|float|int|null, unit:?string}>  $items
+     */
+    private function syncItems(Submittal $submittal, array $items): void
+    {
+        $submittal->items()->delete();
+
+        $submittal->items()->createMany(
+            collect($items)
+                ->map(function (array $item): array {
+                    return [
+                        'description' => $item['description'],
+                        'manufacturer' => $item['manufacturer'] ?: null,
+                        'model' => $item['model'] ?: null,
+                        'part_number' => $item['part_number'] ?: null,
+                        'quantity' => $item['quantity'] !== null && $item['quantity'] !== '' ? (float) $item['quantity'] : null,
+                        'unit' => $item['unit'] ?: null,
+                        'status' => 'pending',
+                    ];
+                })
+                ->all()
+        );
+    }
+
+    /**
+     * @param  array<int, string>  $reviewerIds
+     */
+    private function syncApprovals(Submittal $submittal, array $reviewerIds): void
+    {
+        $submittal->approvals()->delete();
+
+        foreach (array_values($reviewerIds) as $index => $reviewerId) {
+            $submittal->approvals()->create([
+                'step' => $index + 1,
+                'reviewer_id' => $reviewerId,
+                'status' => SubmittalApproval::STATUS_PENDING,
+            ]);
+        }
+
+        $submittal->update([
+            'current_reviewer_id' => $reviewerIds[0] ?? null,
+        ]);
+    }
+
+    /**
+     * @param  array<int, string>  $selectedDocumentIds
+     */
+    private function syncDocuments(Submittal $submittal, array $selectedDocumentIds): void
+    {
+        $allowedDocumentIds = Document::query()
+            ->projectOwned()
+            ->ownedByProject((string) $submittal->project_id)
+            ->whereIn('id', $selectedDocumentIds)
+            ->pluck('id')
+            ->values()
+            ->all();
+
+        $submittal->documents()->sync($allowedDocumentIds);
+    }
+
+    /**
+     * @return array{description:string, manufacturer:?string, model:?string, part_number:?string, quantity:?string, unit:?string}
+     */
+    private function emptyItemRow(): array
+    {
+        return [
+            'description' => '',
+            'manufacturer' => null,
+            'model' => null,
+            'part_number' => null,
+            'quantity' => null,
+            'unit' => null,
+        ];
     }
 }

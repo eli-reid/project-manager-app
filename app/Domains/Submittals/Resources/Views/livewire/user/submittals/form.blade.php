@@ -1,25 +1,27 @@
-<div class="mx-auto w-full max-w-3xl space-y-4 px-4 py-6 sm:px-6 lg:px-8">
+<div class="mx-auto w-full max-w-5xl space-y-4 px-4 py-6 sm:px-6 lg:px-8">
     <flux:heading size="xl">{{ $submittal ? 'Edit Submittal' : 'Create Submittal' }}</flux:heading>
 
-    <form wire:submit="save" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <flux:field>
-            <flux:label>Project</flux:label>
-            <flux:select wire:model="projectId">
-                <option value="">Select project</option>
-                @foreach ($projects as $project)
-                    <option value="{{ $project->id }}">{{ $project->name }} ({{ $project->project_number ?? 'N/A' }})</option>
-                @endforeach
-            </flux:select>
-            <flux:error name="projectId" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Package Type</flux:label>
-            <flux:input wire:model="type" placeholder="Lighting fixture package, gear package, etc." />
-            <flux:error name="type" />
-        </flux:field>
-
+    <form wire:submit="save" class="space-y-5 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="grid gap-4 md:grid-cols-2">
+            <flux:field>
+                <flux:label>Project</flux:label>
+                <flux:select wire:model.live="projectId">
+                    <option value="">Select project</option>
+                    @foreach ($projects as $project)
+                        <option value="{{ $project->id }}">{{ $project->name }} ({{ $project->project_number ?? 'N/A' }})</option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="projectId" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>Package Type</flux:label>
+                <flux:input wire:model="type" placeholder="Lighting fixture package, gear package, etc." />
+                <flux:error name="type" />
+            </flux:field>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-3">
             <flux:field>
                 <flux:label>Spec Reference</flux:label>
                 <flux:input wire:model="specReference" placeholder="26 50 00" />
@@ -31,13 +33,85 @@
                 <flux:input wire:model="vendor" placeholder="ABC Lighting" />
                 <flux:error name="vendor" />
             </flux:field>
+
+            <flux:field>
+                <flux:label>Need-By Date</flux:label>
+                <flux:input type="date" wire:model="needByDate" />
+                <flux:error name="needByDate" />
+            </flux:field>
         </div>
 
-        <flux:field>
-            <flux:label>Need-By Date</flux:label>
-            <flux:input type="date" wire:model="needByDate" />
-            <flux:error name="needByDate" />
-        </flux:field>
+        <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+            <div class="flex items-center justify-between">
+                <flux:heading size="sm">Submittal Items</flux:heading>
+                <flux:button type="button" variant="ghost" wire:click="addItem">Add Item</flux:button>
+            </div>
+
+            @foreach ($items as $index => $item)
+                <div class="grid gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700 md:grid-cols-6" wire:key="submittal-item-{{ $index }}">
+                    <div class="md:col-span-2">
+                        <flux:input wire:model="items.{{ $index }}.description" placeholder="Description" />
+                        <flux:error name="items.{{ $index }}.description" />
+                    </div>
+                    <div>
+                        <flux:input wire:model="items.{{ $index }}.manufacturer" placeholder="Manufacturer" />
+                        <flux:error name="items.{{ $index }}.manufacturer" />
+                    </div>
+                    <div>
+                        <flux:input wire:model="items.{{ $index }}.model" placeholder="Model" />
+                        <flux:error name="items.{{ $index }}.model" />
+                    </div>
+                    <div>
+                        <flux:input wire:model="items.{{ $index }}.part_number" placeholder="Part #" />
+                        <flux:error name="items.{{ $index }}.part_number" />
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="w-28">
+                            <flux:input wire:model="items.{{ $index }}.quantity" placeholder="Qty" />
+                            <flux:error name="items.{{ $index }}.quantity" />
+                        </div>
+                        <div class="w-24">
+                            <flux:input wire:model="items.{{ $index }}.unit" placeholder="Unit" />
+                            <flux:error name="items.{{ $index }}.unit" />
+                        </div>
+                        <flux:button type="button" variant="danger" wire:click="removeItem({{ $index }})">Remove</flux:button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-2">
+            <div class="space-y-2 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                <flux:heading size="sm">Reviewer Chain</flux:heading>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">Select reviewers in sequence. Order is top to bottom.</p>
+                <div class="space-y-2">
+                    @foreach ($reviewers as $reviewer)
+                        <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                            <input type="checkbox" value="{{ $reviewer->id }}" wire:model.live="reviewerIds" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-950">
+                            <span>{{ trim($reviewer->first_name.' '.$reviewer->last_name) }} ({{ $reviewer->email }})</span>
+                        </label>
+                    @endforeach
+                </div>
+                <flux:error name="reviewerIds" />
+                <flux:error name="reviewerIds.*" />
+            </div>
+
+            <div class="space-y-2 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                <flux:heading size="sm">Attachments</flux:heading>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">Attach existing project documents to this submittal.</p>
+                <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
+                    @forelse ($availableDocuments as $document)
+                        <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                            <input type="checkbox" value="{{ $document->id }}" wire:model.live="documentIds" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-950">
+                            <span>{{ $document->title ?: $document->original_name }}</span>
+                        </label>
+                    @empty
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">Select a project to load documents.</p>
+                    @endforelse
+                </div>
+                <flux:error name="documentIds.*" />
+            </div>
+        </div>
 
         <div class="flex items-center justify-end gap-2">
             <a href="{{ $submittal ? route('submittals.show', $submittal) : route('submittals.index') }}" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</a>

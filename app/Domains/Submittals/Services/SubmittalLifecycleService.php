@@ -18,6 +18,17 @@ class SubmittalLifecycleService
             ]);
         }
 
+        $firstPendingApproval = $submittal->approvals()
+            ->where('status', SubmittalApproval::STATUS_PENDING)
+            ->orderBy('step')
+            ->first();
+
+        if (! $firstPendingApproval instanceof SubmittalApproval) {
+            throw ValidationException::withMessages([
+                'submittal' => 'Assign at least one reviewer before submitting.',
+            ]);
+        }
+
         $submittal->update([
             'status' => Submittal::STATUS_UNDER_REVIEW,
             'submitted_at' => now(),
@@ -26,6 +37,7 @@ class SubmittalLifecycleService
             'rejection_reason' => null,
             'cancelled_at' => null,
             'distributed_at' => null,
+            'current_reviewer_id' => $firstPendingApproval->reviewer_id,
         ]);
 
         return $submittal->fresh();

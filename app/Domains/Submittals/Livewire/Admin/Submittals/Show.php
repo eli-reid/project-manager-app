@@ -32,6 +32,7 @@ class Show extends Component
             'currentReviewer:id,first_name,last_name,email',
             'items',
             'approvals.reviewer:id,first_name,last_name,email',
+            'documents:id,title,original_name',
         ]);
     }
 
@@ -51,6 +52,7 @@ class Show extends Component
             'currentReviewer:id,first_name,last_name,email',
             'items',
             'approvals.reviewer:id,first_name,last_name,email',
+            'documents:id,title,original_name',
         ]);
 
         session()->flash('success', 'Review step approved.');
@@ -76,9 +78,28 @@ class Show extends Component
             'currentReviewer:id,first_name,last_name,email',
             'items',
             'approvals.reviewer:id,first_name,last_name,email',
+            'documents:id,title,original_name',
         ]);
 
         session()->flash('success', 'Submittal rejected.');
+    }
+
+    public function distribute(): void
+    {
+        $this->authorize('distribute', $this->submittal);
+
+        app(SubmittalLifecycleService::class)->distribute($this->submittal);
+
+        $this->submittal->refresh()->load([
+            'project:id,name,project_number',
+            'submittedBy:id,first_name,last_name,email',
+            'currentReviewer:id,first_name,last_name,email',
+            'items',
+            'approvals.reviewer:id,first_name,last_name,email',
+            'documents:id,title,original_name',
+        ]);
+
+        session()->flash('success', 'Submittal distributed.');
     }
 
     public function render()

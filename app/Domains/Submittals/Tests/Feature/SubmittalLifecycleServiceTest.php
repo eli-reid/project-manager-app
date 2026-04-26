@@ -6,16 +6,26 @@ use App\Domains\Submittals\Models\SubmittalApproval;
 use App\Domains\Submittals\Services\SubmittalLifecycleService;
 use Illuminate\Validation\ValidationException;
 
-it('submits a draft submittal', function (): void {
+it('submits a draft submittal with assigned reviewer', function (): void {
+    $reviewer = User::factory()->create();
+
     $submittal = Submittal::factory()->create([
         'status' => Submittal::STATUS_DRAFT,
         'submitted_at' => null,
+    ]);
+
+    SubmittalApproval::factory()->create([
+        'submittal_id' => $submittal->id,
+        'step' => 1,
+        'reviewer_id' => $reviewer->id,
+        'status' => SubmittalApproval::STATUS_PENDING,
     ]);
 
     $service = app(SubmittalLifecycleService::class);
     $submitted = $service->submit($submittal);
 
     expect($submitted->statusValue())->toBe(Submittal::STATUS_UNDER_REVIEW)
+        ->and((string) $submitted->current_reviewer_id)->toBe((string) $reviewer->id)
         ->and($submitted->submitted_at)->not->toBeNull();
 });
 
@@ -69,6 +79,17 @@ it('rejects at a review step and captures reason', function (): void {
     expect($rejected->statusValue())->toBe(Submittal::STATUS_REJECTED)
         ->and($rejected->rejection_reason)->toBe('Fixture wattage does not match spec.')
         ->and($rejected->rejected_at)->not->toBeNull();
+});
+
+it('requires at least one reviewer before submitting', function (): void {
+    $submittal = Submittal::factory()->create([
+        'status' => Submittal::STATUS_DRAFT,
+    ]);
+
+    $service = app(SubmittalLifecycleService::class);
+
+    expect(fn () => $service->submit($submittal))
+        ->toThrow(ValidationException::class, 'Assign at least one reviewer before submitting.');
 });
 
 it('prevents distribution when not approved', function (): void {

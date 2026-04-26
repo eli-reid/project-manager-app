@@ -29,6 +29,42 @@
         </div>
     </div>
 
+    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+            <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Submittal Items</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                <thead class="bg-zinc-50 dark:bg-zinc-800/50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Manufacturer</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Model</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Part #</th>
+                        <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Qty</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Unit</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                    @forelse ($submittal->items as $item)
+                        <tr>
+                            <td class="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">{{ $item->description }}</td>
+                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $item->manufacturer ?? '—' }}</td>
+                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $item->model ?? '—' }}</td>
+                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $item->part_number ?? '—' }}</td>
+                            <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ $item->quantity ?? '—' }}</td>
+                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $item->unit ?? '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No items added yet.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
             <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Approval Chain</p>
@@ -44,6 +80,19 @@
                 </div>
             @empty
                 <p class="px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">No reviewers assigned yet.</p>
+            @endforelse
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+            <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Attached Documents</p>
+        </div>
+        <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
+            @forelse ($submittal->documents as $document)
+                <div class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $document->title ?: $document->original_name }}</div>
+            @empty
+                <p class="px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">No documents attached.</p>
             @endforelse
         </div>
     </div>

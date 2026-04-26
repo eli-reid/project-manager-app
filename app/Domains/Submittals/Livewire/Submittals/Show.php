@@ -26,6 +26,7 @@ class Show extends Component
             'currentReviewer:id,first_name,last_name,email',
             'items',
             'approvals.reviewer:id,first_name,last_name,email',
+            'documents:id,title,original_name',
         ]);
     }
 
@@ -41,6 +42,7 @@ class Show extends Component
             'currentReviewer:id,first_name,last_name,email',
             'items',
             'approvals.reviewer:id,first_name,last_name,email',
+            'documents:id,title,original_name',
         ]);
 
         session()->flash('success', 'Submittal submitted for review.');
