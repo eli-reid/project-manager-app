@@ -46,7 +46,7 @@ class Form extends Component
      */
     public array $documentIds = [];
 
-    public function mount(?Submittal $submittal = null): void
+    public function mount(?Submittal $submittal = null, ?string $projectId = null): void
     {
         $this->submittal = $submittal;
 
@@ -92,6 +92,10 @@ class Form extends Component
 
         $this->authorize('create', Submittal::class);
         $this->items = [$this->emptyItemRow()];
+
+        if ($projectId !== null && $projectId !== '') {
+            $this->projectId = $projectId;
+        }
     }
 
     public function addItem(): void
