@@ -97,4 +97,20 @@
             <flux:button wire:click="distribute" variant="primary">Mark as Distributed</flux:button>
         </div>
     @endcan
+
+    @can('revise', $submittal)
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-700 dark:bg-amber-900/20">
+            <p class="mb-3 text-sm font-semibold text-amber-900 dark:text-amber-200">Request Revision</p>
+            <p class="mb-3 text-sm text-amber-800 dark:text-amber-300">Mark this submittal for revision and resubmission. The original submitter will be able to edit and resubmit it.</p>
+            <div class="flex justify-end">
+                <flux:button wire:click="revise" variant="warning" wire:confirm="Mark this submittal as Revise & Resubmit? All approval steps will be reset.">Request Revision</flux:button>
+            </div>
+        </div>
+    @endcan
+
+    @can('cancel', $submittal)
+        <div class="flex justify-end">
+            <flux:button wire:click="cancel" variant="danger" wire:confirm="Are you sure you want to cancel this submittal? This cannot be undone.">Cancel Submittal</flux:button>
+        </div>
+    @endcan
 </div>

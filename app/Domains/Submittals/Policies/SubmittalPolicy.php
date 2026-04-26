@@ -88,4 +88,32 @@ class SubmittalPolicy
         return $user->hasPermission('submittals.distribute')
             && $submittal->statusValue() === Submittal::STATUS_APPROVED;
     }
+
+    public function cancel(User $user, Submittal $submittal): bool
+    {
+        $cancellable = [
+            Submittal::STATUS_DRAFT,
+            Submittal::STATUS_UNDER_REVIEW,
+            Submittal::STATUS_ARCHITECT_REVIEW,
+            Submittal::STATUS_OWNER_REVIEW,
+            Submittal::STATUS_REVISE,
+        ];
+
+        if (! in_array($submittal->statusValue(), $cancellable, true)) {
+            return false;
+        }
+
+        if ($user->hasPermission('submittals.cancel') && $user->hasPermission('submittals.view-any')) {
+            return true;
+        }
+
+        return $user->hasPermission('submittals.cancel')
+            && (string) $submittal->submitted_by_id === (string) $user->id;
+    }
+
+    public function revise(User $user, Submittal $submittal): bool
+    {
+        return $user->hasPermission('submittals.revise')
+            && $submittal->statusValue() === Submittal::STATUS_REJECTED;
+    }
 }

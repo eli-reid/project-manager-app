@@ -163,4 +163,48 @@ class SubmittalLifecycleService
 
         return $submittal->fresh();
     }
+
+    public function cancel(Submittal $submittal): Submittal
+    {
+        $cancellable = [
+            Submittal::STATUS_DRAFT,
+            Submittal::STATUS_UNDER_REVIEW,
+            Submittal::STATUS_ARCHITECT_REVIEW,
+            Submittal::STATUS_OWNER_REVIEW,
+            Submittal::STATUS_REVISE,
+        ];
+
+        if (! in_array($submittal->statusValue(), $cancellable, true)) {
+            throw ValidationException::withMessages([
+                'submittal' => 'This submittal cannot be cancelled in its current state.',
+            ]);
+        }
+
+        $submittal->update([
+            'status' => Submittal::STATUS_CANCELLED,
+            'cancelled_at' => now(),
+        ]);
+
+        return $submittal->fresh();
+    }
+
+    public function revise(Submittal $submittal): Submittal
+    {
+        if ($submittal->statusValue() !== Submittal::STATUS_REJECTED) {
+            throw ValidationException::withMessages([
+                'submittal' => 'Only rejected submittals may be marked for revision.',
+            ]);
+        }
+
+        $submittal->update([
+            'status' => Submittal::STATUS_REVISE,
+            'rejected_at' => null,
+            'rejection_reason' => null,
+            'current_reviewer_id' => null,
+        ]);
+
+        $submittal->approvals()->update(['status' => SubmittalApproval::STATUS_PENDING, 'reviewed_at' => null, 'comments' => null]);
+
+        return $submittal->fresh();
+    }
 }

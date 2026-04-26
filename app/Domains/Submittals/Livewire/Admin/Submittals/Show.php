@@ -46,14 +46,7 @@ class Show extends Component
         app(SubmittalLifecycleService::class)->approve($this->submittal, $reviewer, $this->comment);
 
         $this->comment = '';
-        $this->submittal->refresh()->load([
-            'project:id,name,project_number',
-            'submittedBy:id,first_name,last_name,email',
-            'currentReviewer:id,first_name,last_name,email',
-            'items',
-            'approvals.reviewer:id,first_name,last_name,email',
-            'documents:id,title,original_name',
-        ]);
+        $this->reloadSubmittal();
 
         session()->flash('success', 'Review step approved.');
     }
@@ -72,14 +65,7 @@ class Show extends Component
         app(SubmittalLifecycleService::class)->reject($this->submittal, $reviewer, $this->rejectionReason);
 
         $this->rejectionReason = '';
-        $this->submittal->refresh()->load([
-            'project:id,name,project_number',
-            'submittedBy:id,first_name,last_name,email',
-            'currentReviewer:id,first_name,last_name,email',
-            'items',
-            'approvals.reviewer:id,first_name,last_name,email',
-            'documents:id,title,original_name',
-        ]);
+        $this->reloadSubmittal();
 
         session()->flash('success', 'Submittal rejected.');
     }
@@ -90,6 +76,35 @@ class Show extends Component
 
         app(SubmittalLifecycleService::class)->distribute($this->submittal);
 
+        $this->reloadSubmittal();
+
+        session()->flash('success', 'Submittal distributed.');
+    }
+
+    public function cancel(): void
+    {
+        $this->authorize('cancel', $this->submittal);
+
+        app(SubmittalLifecycleService::class)->cancel($this->submittal);
+
+        $this->reloadSubmittal();
+
+        session()->flash('success', 'Submittal cancelled.');
+    }
+
+    public function revise(): void
+    {
+        $this->authorize('revise', $this->submittal);
+
+        app(SubmittalLifecycleService::class)->revise($this->submittal);
+
+        $this->reloadSubmittal();
+
+        session()->flash('success', 'Submittal marked for revision. The submitter can now edit and resubmit.');
+    }
+
+    private function reloadSubmittal(): void
+    {
         $this->submittal->refresh()->load([
             'project:id,name,project_number',
             'submittedBy:id,first_name,last_name,email',
@@ -98,8 +113,6 @@ class Show extends Component
             'approvals.reviewer:id,first_name,last_name,email',
             'documents:id,title,original_name',
         ]);
-
-        session()->flash('success', 'Submittal distributed.');
     }
 
     public function render()

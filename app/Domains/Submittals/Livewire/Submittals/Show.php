@@ -36,6 +36,24 @@ class Show extends Component
 
         app(SubmittalLifecycleService::class)->submit($this->submittal);
 
+        $this->reloadSubmittal();
+
+        session()->flash('success', 'Submittal submitted for review.');
+    }
+
+    public function cancel(): void
+    {
+        $this->authorize('cancel', $this->submittal);
+
+        app(SubmittalLifecycleService::class)->cancel($this->submittal);
+
+        $this->reloadSubmittal();
+
+        session()->flash('success', 'Submittal cancelled.');
+    }
+
+    private function reloadSubmittal(): void
+    {
         $this->submittal->refresh()->load([
             'project:id,name,project_number',
             'submittedBy:id,first_name,last_name,email',
@@ -44,8 +62,6 @@ class Show extends Component
             'approvals.reviewer:id,first_name,last_name,email',
             'documents:id,title,original_name',
         ]);
-
-        session()->flash('success', 'Submittal submitted for review.');
     }
 
     public function render()

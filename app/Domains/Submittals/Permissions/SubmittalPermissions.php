@@ -58,6 +58,18 @@ class SubmittalPermissions
         'description' => 'Distribute approved submittals',
     ];
 
+    public const CANCEL = [
+        'resource' => 'submittals',
+        'action' => 'cancel',
+        'description' => 'Cancel submittals',
+    ];
+
+    public const REVISE = [
+        'resource' => 'submittals',
+        'action' => 'revise',
+        'description' => 'Mark submittals for revision and resubmission',
+    ];
+
     public static function all(): array
     {
         return [
@@ -70,6 +82,8 @@ class SubmittalPermissions
             self::APPROVE,
             self::REJECT,
             self::DISTRIBUTE,
+            self::CANCEL,
+            self::REVISE,
         ];
     }
 }

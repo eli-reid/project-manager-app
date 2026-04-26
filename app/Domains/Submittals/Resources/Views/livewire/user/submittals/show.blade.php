@@ -11,6 +11,9 @@
             @can('submit', $submittal)
                 <flux:button wire:click="submit" variant="primary">Submit for Review</flux:button>
             @endcan
+            @can('cancel', $submittal)
+                <flux:button wire:click="cancel" variant="danger" wire:confirm="Are you sure you want to cancel this submittal? This cannot be undone.">Cancel Submittal</flux:button>
+            @endcan
         </div>
     </div>
 
