@@ -15,6 +15,7 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
+use App\Domains\Tasks\Models\TaskTemplate;
 use Livewire\Livewire;
 
 it('redirects guests from domain admin routes', function (): void {
@@ -851,6 +852,71 @@ it('copies a category multiple times with unit-style names', function (): void {
         ->where('task_category_id', $unit202?->id)
         ->where('title', 'Install cabinets')
         ->exists())->toBeTrue();
+});
+
+it('saves a category branch as a task template', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'task-categories.view',
+        'tasks.view',
+        'task-templates.create',
+    ]);
+
+    $project = Project::factory()->create();
+    $source = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Apartment Unit Scope',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $source->id,
+        'name' => 'Punch',
+    ]);
+
+    $parentTask = Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $source->id,
+        'parent_task_id' => null,
+        'title' => 'Install flooring',
+        'priority' => Task::PRIORITY_HIGH,
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $source->id,
+        'parent_task_id' => $parentTask->id,
+        'title' => 'Cleanup flooring debris',
+        'priority' => Task::PRIORITY_MEDIUM,
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $child->id,
+        'parent_task_id' => null,
+        'title' => 'Final paint touch-up',
+        'priority' => Task::PRIORITY_LOW,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->call('startSaveCategoryAsTemplate', $source->id)
+        ->set('saveTemplateName', 'Unit Turnover Template')
+        ->call('saveCategoryAsTemplate')
+        ->assertHasNoErrors();
+
+    $template = TaskTemplate::query()
+        ->where('name', 'Unit Turnover Template')
+        ->latest('created_at')
+        ->first();
+
+    expect($template)->not->toBeNull();
+    expect($template?->task_category_id)->toBe($source->id);
+
+    $templateTaskTitles = collect($template?->template_tasks ?? [])->pluck('title')->all();
+    expect($templateTaskTitles)->toContain('Install flooring');
+    expect($templateTaskTitles)->toContain('Cleanup flooring debris');
+    expect($templateTaskTitles)->toContain('Final paint touch-up');
 });
 
 it('deletes an empty category from project show when user has permission', function (): void {

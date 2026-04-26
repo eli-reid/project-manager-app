@@ -5,10 +5,12 @@ namespace App\Domains\Tasks\Livewire\Admin\Projects;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
+use App\Domains\Tasks\Models\TaskTemplate;
 use App\Domains\Tasks\Services\ProjectTaskHierarchyViewDataService;
 use App\Domains\Tasks\Services\TaskTreeService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -30,6 +32,12 @@ class TaskHierarchyWidget extends Component
     public string $copyCategoryNamePrefix = '';
 
     public ?int $copyCategoryStartNumber = null;
+
+    public ?string $saveTemplateSourceCategoryId = null;
+
+    public string $saveTemplateName = '';
+
+    public ?string $saveTemplateDescription = null;
 
     public bool $copyIncludeSubtasks = true;
 
@@ -178,6 +186,62 @@ class TaskHierarchyWidget extends Component
 
         $this->copyCategorySourceId = $categoryId;
         $this->dispatch('open-copy-category-modal');
+    }
+
+    public function startSaveCategoryAsTemplate(?string $categoryId): void
+    {
+        if (! $categoryId) {
+            return;
+        }
+
+        $this->authorize('create', TaskTemplate::class);
+
+        $category = TaskCategory::query()
+            ->where('project_id', $this->project->id)
+            ->findOrFail($categoryId);
+
+        $this->saveTemplateSourceCategoryId = (string) $category->id;
+        $this->saveTemplateName = $this->nextTemplateName($category->name.' Template');
+        $this->saveTemplateDescription = "Template created from project category: {$category->name}";
+
+        $this->dispatch('open-save-template-modal');
+    }
+
+    public function saveCategoryAsTemplate(): void
+    {
+        $this->authorize('create', TaskTemplate::class);
+
+        $validated = $this->validate([
+            'saveTemplateSourceCategoryId' => [
+                'required',
+                Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
+            ],
+            'saveTemplateName' => ['required', 'string', 'max:255'],
+            'saveTemplateDescription' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $category = TaskCategory::query()
+            ->where('project_id', $this->project->id)
+            ->findOrFail($validated['saveTemplateSourceCategoryId']);
+
+        $templateTasks = $this->buildTemplateTasksForCategoryBranch($category);
+
+        TaskTemplate::query()->create([
+            'name' => $validated['saveTemplateName'],
+            'description' => $validated['saveTemplateDescription'],
+            'task_category_id' => $category->id,
+            'priority' => Task::PRIORITY_MEDIUM,
+            'estimated_hours' => null,
+            'is_billable' => false,
+            'template_tasks' => $templateTasks,
+            'is_active' => true,
+            'created_by' => Auth::id(),
+        ]);
+
+        $this->reset('saveTemplateSourceCategoryId', 'saveTemplateName', 'saveTemplateDescription');
+        $this->dispatch('close-save-template-modal');
+
+        session()->flash('success', "Saved category {$category->name} as a task template.");
     }
 
     public function deleteCategory(?string $categoryId): void
@@ -837,6 +901,90 @@ class TaskHierarchyWidget extends Component
             ->where('title', $candidate)
             ->exists()) {
             $candidate = $baseTitle.' '.$counter;
+            $counter++;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * @return array<int, array{title: string, priority: string, estimated_hours: float|int|string|null}>
+     */
+    protected function buildTemplateTasksForCategoryBranch(TaskCategory $rootCategory): array
+    {
+        $categoryIds = $this->categoryBranchIds((string) $rootCategory->id);
+
+        /** @var EloquentCollection<int, Task> $parentTasks */
+        $parentTasks = Task::query()
+            ->where('project_id', $this->project->id)
+            ->whereIn('task_category_id', $categoryIds)
+            ->whereNull('parent_task_id')
+            ->with('subTasks')
+            ->orderBy('task_category_id')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
+
+        $templateTasks = [];
+
+        foreach ($parentTasks as $task) {
+            $templateTasks[] = [
+                'title' => $task->title,
+                'priority' => $task->priority,
+                'estimated_hours' => $task->estimated_hours,
+            ];
+
+            foreach ($task->subTasks as $subTask) {
+                $templateTasks[] = [
+                    'title' => $subTask->title,
+                    'priority' => $subTask->priority,
+                    'estimated_hours' => $subTask->estimated_hours,
+                ];
+            }
+        }
+
+        return $templateTasks;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function categoryBranchIds(string $rootCategoryId): array
+    {
+        $ids = [$rootCategoryId];
+        $queue = [$rootCategoryId];
+
+        while ($queue !== []) {
+            $currentId = array_shift($queue);
+            if ($currentId === null) {
+                continue;
+            }
+
+            $children = TaskCategory::query()
+                ->where('project_id', $this->project->id)
+                ->where('parent_id', $currentId)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->pluck('id')
+                ->map(fn ($id): string => (string) $id)
+                ->all();
+
+            foreach ($children as $childId) {
+                $ids[] = $childId;
+                $queue[] = $childId;
+            }
+        }
+
+        return $ids;
+    }
+
+    protected function nextTemplateName(string $baseName): string
+    {
+        $candidate = $baseName;
+        $counter = 2;
+
+        while (TaskTemplate::query()->where('name', $candidate)->exists()) {
+            $candidate = $baseName.' '.$counter;
             $counter++;
         }
 

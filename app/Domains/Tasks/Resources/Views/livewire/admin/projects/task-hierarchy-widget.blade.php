@@ -2,6 +2,7 @@
     showCopyModal: false,
     showCopyCategoryModal: false,
     showCopyTaskModal: false,
+    showSaveTemplateModal: false,
     contextMenuOpen: false,
     contextMenuX: 0,
     contextMenuY: 0,
@@ -10,6 +11,7 @@
     contextMenuCanUpdate: false,
     contextMenuCanDelete: false,
     contextMenuCanCreateTask: false,
+    contextMenuCanCreateTemplate: false,
     openContextMenu(event, payload) {
         this.contextMenuOpen = true;
         this.contextMenuX = event.clientX;
@@ -19,6 +21,7 @@
         this.contextMenuCanUpdate = !!payload.canUpdate;
         this.contextMenuCanDelete = !!payload.canDelete;
         this.contextMenuCanCreateTask = !!payload.canCreateTask;
+        this.contextMenuCanCreateTemplate = !!payload.canCreateTemplate;
     },
     closeContextMenu() {
         this.contextMenuOpen = false;
@@ -47,7 +50,7 @@
             },
         };
     },
-}" @click="closeContextMenu()" @keydown.escape.window="closeContextMenu()" @open-copy-category-modal.window="showCopyCategoryModal = true" @close-copy-category-modal.window="showCopyCategoryModal = false" @open-copy-task-modal.window="showCopyTaskModal = true" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+}" @click="closeContextMenu()" @keydown.escape.window="closeContextMenu()" @open-copy-category-modal.window="showCopyCategoryModal = true" @close-copy-category-modal.window="showCopyCategoryModal = false" @open-copy-task-modal.window="showCopyTaskModal = true" @open-save-template-modal.window="showSaveTemplateModal = true" @close-save-template-modal.window="showSaveTemplateModal = false" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
     @if (session('success'))
         <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{{ session('success') }}</div>
     @endif
@@ -154,6 +157,36 @@
         </div>
     </div>
 
+    <div x-show="showSaveTemplateModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 p-4" @click.self="showSaveTemplateModal = false">
+        <div class="w-full max-w-lg rounded-xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Save Category as Template</h3>
+                <button type="button" @click="showSaveTemplateModal = false" class="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800" aria-label="Close">x</button>
+            </div>
+
+            <form wire:submit="saveCategoryAsTemplate" class="space-y-4">
+                <div>
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Template Name</label>
+                    <input type="text" wire:model="saveTemplateName" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                    @error('saveTemplateName') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
+                    <textarea rows="2" wire:model="saveTemplateDescription" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>
+                    @error('saveTemplateDescription') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                @error('saveTemplateSourceCategoryId') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+
+                <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                    <button type="button" @click="showSaveTemplateModal = false" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</button>
+                    <button type="submit" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Save Template</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div x-show="showCopyTaskModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 p-4" @click.self="showCopyTaskModal = false">
         <div class="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
             <div class="mb-4 flex items-center justify-between">
@@ -174,7 +207,6 @@
             </form>
         </div>
     </div>
-
     @if ($showInlineCategoryForm)
         <form wire:submit="createInlineCategory" class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-800/40">
             <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Add Category</p>
@@ -521,6 +553,14 @@
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Copy Category Tasks
+                </button>
+                <button
+                    type="button"
+                    x-show="contextMenuCanCreateTemplate"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.startSaveCategoryAsTemplate(id); }"
+                    class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                >
+                    Save as Template
                 </button>
                 <button
                     type="button"

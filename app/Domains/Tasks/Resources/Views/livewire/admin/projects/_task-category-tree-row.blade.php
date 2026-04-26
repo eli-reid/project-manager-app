@@ -25,6 +25,7 @@
         canUpdate: @js(auth()->user()?->can('update', $category)),
         canDelete: @js(auth()->user()?->can('delete', $category)),
         canCreateTask: @js(auth()->user()?->can('create', \App\Domains\Tasks\Models\Task::class)),
+        canCreateTemplate: @js(auth()->user()?->can('create', \App\Domains\Tasks\Models\TaskTemplate::class)),
     })"
 >
     <td class="px-3 py-2 align-top text-sm font-semibold text-zinc-900 dark:text-zinc-100" @style(["padding-left: {$categoryIndent}px"] )>
@@ -81,6 +82,9 @@
                 @endcan
                 <button type="button" @click="open = false" wire:click="copyCategoryFrom('{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category</button>
                 <button type="button" @click="open = false; showCopyModal = true" wire:click="$set('copySourceCategoryId', '{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category Tasks</button>
+                @can('create', \App\Domains\Tasks\Models\TaskTemplate::class)
+                    <button type="button" @click="open = false" wire:click="startSaveCategoryAsTemplate('{{ $categoryId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Save as Template</button>
+                @endcan
                 @can('delete', $category)
                     <button
                         type="button"
