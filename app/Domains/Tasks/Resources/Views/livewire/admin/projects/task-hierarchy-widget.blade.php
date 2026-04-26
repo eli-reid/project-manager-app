@@ -47,7 +47,7 @@
             },
         };
     },
-}" @click="closeContextMenu()" @keydown.escape.window="closeContextMenu()" @open-copy-category-modal.window="showCopyCategoryModal = true" @open-copy-task-modal.window="showCopyTaskModal = true" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+}" @click="closeContextMenu()" @keydown.escape.window="closeContextMenu()" @open-copy-category-modal.window="showCopyCategoryModal = true" @close-copy-category-modal.window="showCopyCategoryModal = false" @open-copy-task-modal.window="showCopyTaskModal = true" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
     @if (session('success'))
         <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{{ session('success') }}</div>
     @endif
@@ -126,9 +126,29 @@
                     </label>
                 </div>
 
+                <div class="grid gap-3 sm:grid-cols-3">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">How Many Copies</label>
+                        <input type="number" wire:model="copyCategoryQuantity" min="1" max="50" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        @error('copyCategoryQuantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name Prefix (Optional)</label>
+                        <input type="text" wire:model="copyCategoryNamePrefix" placeholder="Unit" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                        @error('copyCategoryNamePrefix') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Starting Number (Optional)</label>
+                    <input type="number" wire:model="copyCategoryStartNumber" min="1" max="9999" placeholder="201" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Example: prefix "Unit" + start 201 creates Unit 201, Unit 202, and so on.</p>
+                    @error('copyCategoryStartNumber') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
                 <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
                     <button type="button" @click="showCopyCategoryModal = false" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</button>
-                    <button type="submit" @click="showCopyCategoryModal = false" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Copy Category</button>
+                    <button type="submit" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">Copy Category</button>
                 </div>
             </form>
         </div>

@@ -774,6 +774,85 @@ it('copies category descendants and tasks without renaming them', function (): v
         ->exists())->toBeTrue();
 });
 
+it('copies a category multiple times with unit-style names', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'task-categories.view',
+        'task-categories.create',
+        'tasks.view',
+        'tasks.create',
+    ]);
+
+    $project = Project::factory()->create();
+    $source = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Template Unit',
+    ]);
+    $sourceChild = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $source->id,
+        'name' => 'Punch List',
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $source->id,
+        'parent_task_id' => null,
+        'title' => 'Install cabinets',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->set('copyCategorySourceId', $source->id)
+        ->set('copyIncludeChildCategories', true)
+        ->set('copyIncludeCategoryTasks', true)
+        ->set('copyCategoryQuantity', 2)
+        ->set('copyCategoryNamePrefix', 'Unit')
+        ->set('copyCategoryStartNumber', 201)
+        ->call('copyCategory')
+        ->assertHasNoErrors();
+
+    $unit201 = TaskCategory::query()
+        ->where('project_id', $project->id)
+        ->where('name', 'Unit 201')
+        ->latest('created_at')
+        ->first();
+
+    $unit202 = TaskCategory::query()
+        ->where('project_id', $project->id)
+        ->where('name', 'Unit 202')
+        ->latest('created_at')
+        ->first();
+
+    expect($unit201)->not->toBeNull();
+    expect($unit202)->not->toBeNull();
+
+    expect(TaskCategory::query()
+        ->where('project_id', $project->id)
+        ->where('parent_id', $unit201?->id)
+        ->where('name', $sourceChild->name)
+        ->exists())->toBeTrue();
+
+    expect(TaskCategory::query()
+        ->where('project_id', $project->id)
+        ->where('parent_id', $unit202?->id)
+        ->where('name', $sourceChild->name)
+        ->exists())->toBeTrue();
+
+    expect(Task::query()
+        ->where('project_id', $project->id)
+        ->where('task_category_id', $unit201?->id)
+        ->where('title', 'Install cabinets')
+        ->exists())->toBeTrue();
+
+    expect(Task::query()
+        ->where('project_id', $project->id)
+        ->where('task_category_id', $unit202?->id)
+        ->where('title', 'Install cabinets')
+        ->exists())->toBeTrue();
+});
+
 it('deletes an empty category from project show when user has permission', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',

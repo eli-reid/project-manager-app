@@ -25,6 +25,12 @@ class TaskHierarchyWidget extends Component
 
     public ?string $copyCategorySourceId = null;
 
+    public int $copyCategoryQuantity = 1;
+
+    public string $copyCategoryNamePrefix = '';
+
+    public ?int $copyCategoryStartNumber = null;
+
     public bool $copyIncludeSubtasks = true;
 
     public bool $copyIncludeChildCategories = false;
@@ -440,7 +446,17 @@ class TaskHierarchyWidget extends Component
             ],
             'copyIncludeChildCategories' => ['boolean'],
             'copyIncludeCategoryTasks' => ['boolean'],
+            'copyCategoryQuantity' => ['required', 'integer', 'min:1', 'max:50'],
+            'copyCategoryNamePrefix' => ['nullable', 'string', 'max:120'],
+            'copyCategoryStartNumber' => ['nullable', 'integer', 'min:1', 'max:9999'],
         ]);
+
+        $copyNamePrefix = trim((string) ($validated['copyCategoryNamePrefix'] ?? ''));
+        if ($copyNamePrefix !== '' && ($validated['copyCategoryQuantity'] > 1) && $validated['copyCategoryStartNumber'] === null) {
+            $this->addError('copyCategoryStartNumber', 'Starting number is required when creating multiple named copies.');
+
+            return;
+        }
 
         $sourceCategory = TaskCategory::query()->findOrFail($validated['copyCategorySourceId']);
 
@@ -448,17 +464,23 @@ class TaskHierarchyWidget extends Component
         $copiedTaskCount = 0;
 
         DB::transaction(function () use ($sourceCategory, $validated, &$copiedCategoryCount, &$copiedTaskCount): void {
-            $this->copyCategoryRecursive(
-                $sourceCategory,
-                $sourceCategory->parent_id,
-                $validated['copyIncludeChildCategories'],
-                $validated['copyIncludeCategoryTasks'],
-                $copiedCategoryCount,
-                $copiedTaskCount,
-            );
+            for ($index = 0; $index < $validated['copyCategoryQuantity']; $index++) {
+                $rootName = $this->buildCategoryCopyRootName($sourceCategory, $validated, $index);
+
+                $this->copyCategoryRecursive(
+                    $sourceCategory,
+                    $sourceCategory->parent_id,
+                    $validated['copyIncludeChildCategories'],
+                    $validated['copyIncludeCategoryTasks'],
+                    $copiedCategoryCount,
+                    $copiedTaskCount,
+                    $rootName,
+                );
+            }
         });
 
-        $this->reset('copyCategorySourceId', 'copyIncludeChildCategories', 'copyIncludeCategoryTasks');
+        $this->reset('copyCategorySourceId', 'copyIncludeChildCategories', 'copyIncludeCategoryTasks', 'copyCategoryQuantity', 'copyCategoryNamePrefix', 'copyCategoryStartNumber');
+        $this->copyCategoryQuantity = 1;
 
         app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
 
@@ -471,6 +493,7 @@ class TaskHierarchyWidget extends Component
             $message .= " and {$copiedTaskCount} ".($copiedTaskCount === 1 ? 'task' : 'tasks');
         }
 
+        $this->dispatch('close-copy-category-modal');
         $this->dispatchProjectTasksUpdated();
         session()->flash('success', $message.'.');
     }
@@ -680,8 +703,9 @@ class TaskHierarchyWidget extends Component
         bool $includeTasks,
         int &$copiedCategoryCount,
         int &$copiedTaskCount,
+        ?string $rootNameOverride = null,
     ): TaskCategory {
-        $copyName = $sourceCategory->name;
+        $copyName = $rootNameOverride ?? $sourceCategory->name;
 
         $newCategory = TaskCategory::query()->create([
             'project_id' => $this->project->id,
@@ -776,6 +800,30 @@ class TaskHierarchyWidget extends Component
         }
 
         return $candidate;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    protected function buildCategoryCopyRootName(TaskCategory $sourceCategory, array $validated, int $index): string
+    {
+        $quantity = (int) ($validated['copyCategoryQuantity'] ?? 1);
+        $namePrefix = trim((string) ($validated['copyCategoryNamePrefix'] ?? ''));
+        $startNumber = $validated['copyCategoryStartNumber'] ?? null;
+
+        if ($namePrefix !== '') {
+            if ($startNumber === null) {
+                return $namePrefix;
+            }
+
+            return $namePrefix.' '.((int) $startNumber + $index);
+        }
+
+        if ($quantity > 1) {
+            return $this->nextCategoryCopyName($sourceCategory->name);
+        }
+
+        return $sourceCategory->name;
     }
 
     protected function nextTaskCopyTitle(string $sourceTitle): string
