@@ -163,8 +163,12 @@ class TaskHierarchyWidget extends Component
         session()->flash('success', "Copied {$copiedCount} tasks from {$sourceCategory->name}.");
     }
 
-    public function copyCategoryFrom(string $categoryId): void
+    public function copyCategoryFrom(?string $categoryId): void
     {
+        if (! $categoryId) {
+            return;
+        }
+
         $this->copyCategorySourceId = $categoryId;
         $this->dispatch('open-copy-category-modal');
     }
