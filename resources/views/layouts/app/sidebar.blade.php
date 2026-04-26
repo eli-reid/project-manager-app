@@ -131,5 +131,21 @@
         {{ $slot }}
 
         @fluxScripts
+
+        {{-- When a Livewire component request gets a 419 (session expired),
+             force a full page reload so the server can redirect to the login
+             page and render it fresh — avoiding a stale cached CSRF token. --}}
+        <script>
+            document.addEventListener('livewire:init', () => {
+                Livewire.hook('request', ({ fail }) => {
+                    fail(({ status, preventDefault }) => {
+                        if (status === 419) {
+                            preventDefault();
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
