@@ -50,27 +50,53 @@ class CpanelConfig
 
     public function __construct()
     {
-        $this->url = Settings::get('cpanel.url', null)->toNullableString();
-        $this->username = Settings::get('cpanel.username', null)->toNullableString();
-        $this->apiToken = Settings::get('cpanel.api_token', null)->toNullableString();
-        $this->domain = Settings::get('cpanel.domain', null)->toNullableString();
-        $this->port = Settings::get('cpanel.port', 2083)->toInt();
-        $this->webmailPort = Settings::get('cpanel.webmail_port', 2096)->toInt();
-        $this->webmailUrl = Settings::get('cpanel.webmail_url', null)->toNullableString();
-        $this->defaultEmailQuota = Settings::get('cpanel.default_email_quota', 250)->toInt();
-        $this->autoCreateEmails = Settings::get('cpanel.auto_create_emails', false)->toBool();
-        $this->autoDeleteEmails = Settings::get('cpanel.auto_delete_emails', true)->toBool();
-        $this->syncUserPasswords = Settings::get('cpanel.sync_user_passwords', false)->toBool();
-        $this->queueWriteOperations = Settings::get('cpanel.queue_write_operations', false)->toBool();
-        $this->idempotencyTtlSeconds = Settings::get('cpanel.idempotency_ttl_seconds', 120)->toInt();
-        $this->queueTries = Settings::get('cpanel.queue_tries', 3)->toInt();
-        $this->queueBackoff = Settings::get('cpanel.queue_backoff', '10,30,60')->toString();
-        $this->failureThreshold = Settings::get('cpanel.failure_threshold', 5)->toInt();
-        $this->cooldownSeconds = Settings::get('cpanel.cooldown_seconds', 300)->toInt();
-        $this->telemetryKeyPrefix = Settings::get('cpanel.telemetry_key_prefix', 'cpanel.telemetry')->toString();
-        $this->verifySsl = Settings::get('cpanel.verify_ssl', true)->toBool();
-        $this->timeout = Settings::get('cpanel.timeout', 30)->toInt();
-        $this->connectTimeout = Settings::get('cpanel.connect_timeout', 10)->toInt();
+        $settings = Settings::getMultiple([
+            'cpanel.url',
+            'cpanel.username',
+            'cpanel.api_token',
+            'cpanel.domain',
+            'cpanel.port',
+            'cpanel.webmail_port',
+            'cpanel.webmail_url',
+            'cpanel.default_email_quota',
+            'cpanel.auto_create_emails',
+            'cpanel.auto_delete_emails',
+            'cpanel.sync_user_passwords',
+            'cpanel.queue_write_operations',
+            'cpanel.idempotency_ttl_seconds',
+            'cpanel.queue_tries',
+            'cpanel.queue_backoff',
+            'cpanel.failure_threshold',
+            'cpanel.cooldown_seconds',
+            'cpanel.telemetry_key_prefix',
+            'cpanel.verify_ssl',
+            'cpanel.timeout',
+            'cpanel.connect_timeout',
+        ]);
+
+        $value = static fn (string $key) => $settings[$key] ?? Settings::get($key, null);
+
+        $this->url = $value('cpanel.url')->toNullableString();
+        $this->username = $value('cpanel.username')->toNullableString();
+        $this->apiToken = $value('cpanel.api_token')->toNullableString();
+        $this->domain = $value('cpanel.domain')->toNullableString();
+        $this->port = $value('cpanel.port')->toInt(2083);
+        $this->webmailPort = $value('cpanel.webmail_port')->toInt(2096);
+        $this->webmailUrl = $value('cpanel.webmail_url')->toNullableString();
+        $this->defaultEmailQuota = $value('cpanel.default_email_quota')->toInt(250);
+        $this->autoCreateEmails = $value('cpanel.auto_create_emails')->toBool(false);
+        $this->autoDeleteEmails = $value('cpanel.auto_delete_emails')->toBool(true);
+        $this->syncUserPasswords = $value('cpanel.sync_user_passwords')->toBool(false);
+        $this->queueWriteOperations = $value('cpanel.queue_write_operations')->toBool(false);
+        $this->idempotencyTtlSeconds = $value('cpanel.idempotency_ttl_seconds')->toInt(120);
+        $this->queueTries = $value('cpanel.queue_tries')->toInt(3);
+        $this->queueBackoff = $value('cpanel.queue_backoff')->toString('10,30,60');
+        $this->failureThreshold = $value('cpanel.failure_threshold')->toInt(5);
+        $this->cooldownSeconds = $value('cpanel.cooldown_seconds')->toInt(300);
+        $this->telemetryKeyPrefix = $value('cpanel.telemetry_key_prefix')->toString('cpanel.telemetry');
+        $this->verifySsl = $value('cpanel.verify_ssl')->toBool(true);
+        $this->timeout = $value('cpanel.timeout')->toInt(30);
+        $this->connectTimeout = $value('cpanel.connect_timeout')->toInt(10);
     }
 
     public function isConfigured(): bool

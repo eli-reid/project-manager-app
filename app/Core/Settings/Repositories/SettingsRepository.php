@@ -143,6 +143,27 @@ class SettingsRepository
     }
 
     /**
+     * Find multiple settings by keys.
+     *
+     * @param  array<int, string>  $keys
+     * @return EloquentCollection<int, SettingsSqlite>
+     */
+    public function findMany(array $keys): EloquentCollection
+    {
+        try {
+            if ($keys === []) {
+                return new EloquentCollection;
+            }
+
+            return SettingsSqlite::query()
+                ->whereIn('key', $keys)
+                ->get();
+        } catch (\Exception $e) {
+            return new EloquentCollection;
+        }
+    }
+
+    /**
      * Delete a setting by key
      */
     public function delete(string $key): bool

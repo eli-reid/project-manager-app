@@ -312,9 +312,34 @@ class SettingsSqliteService
      */
     public function getMultiple(array $keys): array
     {
+        if ($keys === []) {
+            return [];
+        }
+
+        // Check if we should use .env file in development mode
+        if ($this->shouldUseEnvInDev()) {
+            $results = [];
+            foreach ($keys as $key) {
+                $results[$key] = new SettingValue($this->getFromEnv($key, null));
+            }
+
+            return $results;
+        }
+
+        if (self::$settingsLoaded && self::$allSettings !== null) {
+            $results = [];
+            foreach ($keys as $key) {
+                $results[$key] = new SettingValue(self::$allSettings->get($key));
+            }
+
+            return $results;
+        }
+
         $results = [];
+        $settings = $this->repository->findMany($keys)->keyBy('key');
+
         foreach ($keys as $key) {
-            $results[$key] = $this->get($key);
+            $results[$key] = new SettingValue($settings->get($key)?->value);
         }
 
         return $results;
