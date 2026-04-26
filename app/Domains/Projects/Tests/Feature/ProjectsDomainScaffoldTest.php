@@ -671,16 +671,107 @@ it('copies a category from project show actions', function (): void {
     Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->set('copyCategorySourceId', $source->id)
         ->call('copyCategory')
+        ->assertDispatched('project-tasks-updated')
         ->assertHasNoErrors();
 
     $copied = TaskCategory::query()
         ->where('project_id', $project->id)
-        ->where('name', 'Electrical (Copy)')
+        ->where('name', 'Electrical')
+        ->where('id', '!=', $source->id)
         ->first();
 
     expect($copied)->not->toBeNull();
     expect($copied?->parent_id)->toBe($parent->id);
     expect($copied?->description)->toBe('Original category');
+});
+
+it('copies category descendants and tasks without renaming them', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'task-categories.view',
+        'task-categories.create',
+        'tasks.view',
+        'tasks.create',
+    ]);
+
+    $project = Project::factory()->create();
+    $source = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Electrical',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $source->id,
+        'name' => 'Rough-In',
+    ]);
+
+    $sourceTask = Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $source->id,
+        'parent_task_id' => null,
+        'title' => 'Run conduit',
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $source->id,
+        'parent_task_id' => $sourceTask->id,
+        'title' => 'Inspect conduit',
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $child->id,
+        'parent_task_id' => null,
+        'title' => 'Install boxes',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->set('copyCategorySourceId', $source->id)
+        ->set('copyIncludeChildCategories', true)
+        ->set('copyIncludeCategoryTasks', true)
+        ->call('copyCategory')
+        ->assertHasNoErrors();
+
+    $copiedSource = TaskCategory::query()
+        ->where('project_id', $project->id)
+        ->where('name', 'Electrical')
+        ->where('id', '!=', $source->id)
+        ->first();
+
+    expect($copiedSource)->not->toBeNull();
+
+    $copiedChild = TaskCategory::query()
+        ->where('project_id', $project->id)
+        ->where('name', 'Rough-In')
+        ->where('parent_id', $copiedSource?->id)
+        ->first();
+
+    expect($copiedChild)->not->toBeNull();
+
+    $copiedParentTask = Task::query()
+        ->where('project_id', $project->id)
+        ->where('task_category_id', $copiedSource?->id)
+        ->whereNull('parent_task_id')
+        ->where('title', 'Run conduit')
+        ->first();
+
+    expect($copiedParentTask)->not->toBeNull();
+
+    expect(Task::query()
+        ->where('project_id', $project->id)
+        ->where('task_category_id', $copiedSource?->id)
+        ->where('parent_task_id', $copiedParentTask?->id)
+        ->where('title', 'Inspect conduit')
+        ->exists())->toBeTrue();
+
+    expect(Task::query()
+        ->where('project_id', $project->id)
+        ->where('task_category_id', $copiedChild?->id)
+        ->where('title', 'Install boxes')
+        ->exists())->toBeTrue();
 });
 
 it('deletes an empty category from project show when user has permission', function (): void {
@@ -700,6 +791,7 @@ it('deletes an empty category from project show when user has permission', funct
 
     Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('deleteCategory', $category->id)
+        ->assertDispatched('project-tasks-updated')
         ->assertHasNoErrors();
 
     expect(TaskCategory::query()->whereKey($category->id)->exists())->toBeFalse();
@@ -784,6 +876,10 @@ it('copies a task from project show task row action', function (): void {
 
     Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->call('copyTaskFrom', $task->id)
+        ->assertSet('copyTaskSourceId', $task->id)
+        ->assertDispatched('open-copy-task-modal')
+        ->call('copyTask')
+        ->assertDispatched('project-tasks-updated')
         ->assertHasNoErrors();
 
     $copiedTask = Task::query()

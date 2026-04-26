@@ -160,6 +160,7 @@ class TaskHierarchyWidget extends Component
         $this->reset('copySourceCategoryId', 'copyTargetCategoryId', 'copyIncludeSubtasks');
         $this->copyIncludeSubtasks = true;
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', "Copied {$copiedCount} tasks from {$sourceCategory->name}.");
     }
 
@@ -213,6 +214,7 @@ class TaskHierarchyWidget extends Component
         // Mass deletes bypass Eloquent observers, so clear the cache manually.
         app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', "Deleted category branch for {$categoryName}.");
     }
 
@@ -288,6 +290,7 @@ class TaskHierarchyWidget extends Component
         $this->reset('copyTaskSourceId', 'copyIncludeSubtasksOnTask');
         $this->copyIncludeSubtasksOnTask = true;
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', "Copied task {$sourceTask->title}.");
     }
 
@@ -313,6 +316,7 @@ class TaskHierarchyWidget extends Component
         $taskTitle = $task->title;
         $task->delete();
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', "Deleted task {$taskTitle}.");
     }
 
@@ -366,6 +370,7 @@ class TaskHierarchyWidget extends Component
             }
         });
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Task order updated.');
     }
 
@@ -420,6 +425,7 @@ class TaskHierarchyWidget extends Component
 
         app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Category order updated.');
     }
 
@@ -463,6 +469,7 @@ class TaskHierarchyWidget extends Component
             $message .= " and {$copiedTaskCount} ".($copiedTaskCount === 1 ? 'task' : 'tasks');
         }
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', $message.'.');
     }
 
@@ -504,6 +511,7 @@ class TaskHierarchyWidget extends Component
 
         $this->cancelInlineCategoryForm();
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Category created successfully.');
     }
 
@@ -551,6 +559,7 @@ class TaskHierarchyWidget extends Component
 
         $this->cancelInlineTaskForm();
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Task created successfully.');
     }
 
@@ -589,6 +598,7 @@ class TaskHierarchyWidget extends Component
         $task->update(['title' => $validated['editingTaskTitleValue']]);
         $this->cancelEditTaskTitle();
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Task renamed successfully.');
     }
 
@@ -627,6 +637,7 @@ class TaskHierarchyWidget extends Component
         $category->update(['name' => $validated['editingCategoryNameValue']]);
         $this->cancelEditCategoryName();
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Category renamed successfully.');
     }
 
@@ -666,7 +677,7 @@ class TaskHierarchyWidget extends Component
         int &$copiedCategoryCount,
         int &$copiedTaskCount,
     ): TaskCategory {
-        $copyName = $this->nextCategoryCopyName($sourceCategory->name);
+        $copyName = $sourceCategory->name;
 
         $newCategory = TaskCategory::query()->create([
             'project_id' => $this->project->id,
@@ -694,7 +705,7 @@ class TaskHierarchyWidget extends Component
                     'project_id' => $this->project->id,
                     'task_category_id' => $newCategory->id,
                     'parent_task_id' => null,
-                    'title' => $this->nextTaskCopyTitle($task->title),
+                    'title' => $task->title,
                     'description' => $task->description,
                     'status' => $task->status,
                     'priority' => $task->priority,
@@ -713,7 +724,7 @@ class TaskHierarchyWidget extends Component
                         'project_id' => $this->project->id,
                         'task_category_id' => $newCategory->id,
                         'parent_task_id' => $taskCopy->id,
-                        'title' => $this->nextTaskCopyTitle($subTask->title),
+                        'title' => $subTask->title,
                         'description' => $subTask->description,
                         'status' => $subTask->status,
                         'priority' => $subTask->priority,
@@ -815,6 +826,7 @@ class TaskHierarchyWidget extends Component
         $task->update(['status' => $validated['editingTaskStatusValue']]);
         $this->cancelEditTaskStatus();
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Task status updated successfully.');
     }
 
@@ -853,6 +865,12 @@ class TaskHierarchyWidget extends Component
         $task->update(['priority' => $validated['editingTaskPriorityValue']]);
         $this->cancelEditTaskPriority();
 
+        $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Task priority updated successfully.');
+    }
+
+    protected function dispatchProjectTasksUpdated(): void
+    {
+        $this->dispatch('project-tasks-updated', projectId: (string) $this->project->id);
     }
 }

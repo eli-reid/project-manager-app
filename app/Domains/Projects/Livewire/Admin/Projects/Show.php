@@ -19,6 +19,7 @@ use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -60,6 +61,14 @@ class Show extends Component
         }
 
         $this->activeTab = $tab;
+    }
+
+    #[On('project-tasks-updated')]
+    public function refreshTaskMetrics(string $projectId): void
+    {
+        if ($projectId !== (string) $this->project->id) {
+            return;
+        }
     }
 
     /**

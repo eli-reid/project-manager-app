@@ -416,7 +416,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanCreateTask"
-                    @click="closeContextMenu(); $wire.startInlineTaskForm(contextMenuId)"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.startInlineTaskForm(id); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Quick Add Task
@@ -424,7 +424,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanUpdate"
-                    @click="closeContextMenu(); $wire.startEditCategoryName(contextMenuId)"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.startEditCategoryName(id); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Rename Category
@@ -432,7 +432,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanUpdate"
-                    @click="closeContextMenu(); $wire.moveCategory(contextMenuId, 'up')"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.moveCategory(id, 'up'); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Move Up
@@ -440,21 +440,21 @@
                 <button
                     type="button"
                     x-show="contextMenuCanUpdate"
-                    @click="closeContextMenu(); $wire.moveCategory(contextMenuId, 'down')"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.moveCategory(id, 'down'); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Move Down
                 </button>
                 <button
                     type="button"
-                    @click="closeContextMenu(); $wire.copyCategoryFrom(contextMenuId)"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.copyCategoryFrom(id); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Copy Category
                 </button>
                 <button
                     type="button"
-                    @click="closeContextMenu(); $wire.$set('copySourceCategoryId', contextMenuId); showCopyModal = true"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.$set('copyCategorySourceId', id); showCopyModal = true; }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Copy Category Tasks
@@ -462,7 +462,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanDelete"
-                    @click="if (confirm('Delete this category branch? This deletes the category, all subcategories, and all tasks in that branch.')) { closeContextMenu(); $wire.deleteCategory(contextMenuId); }"
+                    @click="const id = contextMenuId; if (id && confirm('Delete this category branch? This deletes the category, all subcategories, and all tasks in that branch.')) { closeContextMenu(); $wire.deleteCategory(id); }"
                     class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30"
                 >
                     Delete Category
@@ -475,7 +475,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanUpdate"
-                    @click="closeContextMenu(); $wire.startEditTaskTitle(contextMenuId)"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.startEditTaskTitle(id); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Rename Task
@@ -483,7 +483,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanUpdate"
-                    @click="closeContextMenu(); $wire.moveTask(contextMenuId, 'up')"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.moveTask(id, 'up'); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Move Up
@@ -491,7 +491,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanUpdate"
-                    @click="closeContextMenu(); $wire.moveTask(contextMenuId, 'down')"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.moveTask(id, 'down'); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Move Down
@@ -499,7 +499,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanCreateTask"
-                    @click="closeContextMenu(); $wire.copyTaskFrom(contextMenuId)"
+                    @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.copyTaskFrom(id); }"
                     class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                     Copy Task
@@ -507,7 +507,7 @@
                 <button
                     type="button"
                     x-show="contextMenuCanDelete"
-                    @click="if (confirm('Delete this task?')) { closeContextMenu(); $wire.deleteTask(contextMenuId); }"
+                    @click="const id = contextMenuId; if (id && confirm('Delete this task?')) { closeContextMenu(); $wire.deleteTask(id); }"
                     class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30"
                 >
                     Delete Task
