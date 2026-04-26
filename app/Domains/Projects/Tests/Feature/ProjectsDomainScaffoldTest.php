@@ -775,6 +775,37 @@ it('copies category descendants and tasks without renaming them', function (): v
         ->exists())->toBeTrue();
 });
 
+it('renders nested category copy options as breadcrumbs', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'task-categories.view',
+        'task-categories.create',
+    ]);
+
+    $project = Project::factory()->create();
+    $parent = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Building A',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $parent->id,
+        'name' => 'Level 2',
+    ]);
+    $grandchild = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $child->id,
+        'name' => 'Unit 201',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSee($parent->name)
+        ->assertSee('Building A -> Level 2')
+        ->assertSee('Building A -> Level 2 -> Unit 201');
+});
+
 it('copies a category multiple times with unit-style names', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',

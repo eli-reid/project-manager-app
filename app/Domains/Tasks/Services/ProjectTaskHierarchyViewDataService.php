@@ -116,7 +116,7 @@ class ProjectTaskHierarchyViewDataService
         $options = [];
 
         foreach ($categories as $category) {
-            $this->appendCategoryOption($options, $category, 0);
+            $this->appendCategoryOption($options, $category, []);
         }
 
         return $options;
@@ -125,18 +125,18 @@ class ProjectTaskHierarchyViewDataService
     /**
      * @param  array<int, array{id: string, label: string}>  $options
      */
-    protected function appendCategoryOption(array &$options, mixed $category, int $depth): void
+    protected function appendCategoryOption(array &$options, mixed $category, array $ancestors): void
     {
-        $prefix = str_repeat('  ', $depth);
+        $labelParts = [...$ancestors, $category->name];
 
         $options[] = [
             'id' => (string) $category->id,
-            'label' => $prefix.$category->name,
+            'label' => implode(' -> ', $labelParts),
         ];
 
         $children = $category->childrenRecursive ?? collect();
         foreach ($children as $child) {
-            $this->appendCategoryOption($options, $child, $depth + 1);
+            $this->appendCategoryOption($options, $child, $labelParts);
         }
     }
 
