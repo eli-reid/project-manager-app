@@ -460,6 +460,8 @@ class TaskHierarchyWidget extends Component
 
         $this->reset('copyCategorySourceId', 'copyIncludeChildCategories', 'copyIncludeCategoryTasks');
 
+        app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
+
         $message = "Copied category {$sourceCategory->name}";
         $extraCount = $copiedCategoryCount - 1;
         if ($extraCount > 0) {
@@ -510,6 +512,8 @@ class TaskHierarchyWidget extends Component
         ]);
 
         $this->cancelInlineCategoryForm();
+
+        app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
 
         $this->dispatchProjectTasksUpdated();
         session()->flash('success', 'Category created successfully.');
