@@ -4,28 +4,72 @@ namespace App\Domains\Submittals\Permissions;
 
 class SubmittalPermissions
 {
-    public const CREATE = 'submittals.create';
-    public const VIEW = 'submittals.view';
-    public const EDIT = 'submittals.edit';
-    public const SUBMIT = 'submittals.submit';
-    public const APPROVE = 'submittals.approve';
-    public const REJECT = 'submittals.reject';
-    public const COMMENT = 'submittals.comment';
-    public const DISTRIBUTE = 'submittals.distribute';
-    public const MANAGE = 'submittals.manage';
+    public const VIEW_ANY = [
+        'resource' => 'submittals',
+        'action' => 'view-any',
+        'description' => 'View all submittals',
+    ];
+
+    public const VIEW = [
+        'resource' => 'submittals',
+        'action' => 'view',
+        'description' => 'View submittals',
+    ];
+
+    public const CREATE = [
+        'resource' => 'submittals',
+        'action' => 'create',
+        'description' => 'Create submittals',
+    ];
+
+    public const UPDATE = [
+        'resource' => 'submittals',
+        'action' => 'update',
+        'description' => 'Update submittals',
+    ];
+
+    public const SUBMIT = [
+        'resource' => 'submittals',
+        'action' => 'submit',
+        'description' => 'Submit submittals for review',
+    ];
+
+    public const REVIEW = [
+        'resource' => 'submittals',
+        'action' => 'review',
+        'description' => 'Review and comment on submittals',
+    ];
+
+    public const APPROVE = [
+        'resource' => 'submittals',
+        'action' => 'approve',
+        'description' => 'Approve submittals',
+    ];
+
+    public const REJECT = [
+        'resource' => 'submittals',
+        'action' => 'reject',
+        'description' => 'Reject submittals',
+    ];
+
+    public const DISTRIBUTE = [
+        'resource' => 'submittals',
+        'action' => 'distribute',
+        'description' => 'Distribute approved submittals',
+    ];
 
     public static function all(): array
     {
         return [
-            self::CREATE,
+            self::VIEW_ANY,
             self::VIEW,
-            self::EDIT,
+            self::CREATE,
+            self::UPDATE,
             self::SUBMIT,
+            self::REVIEW,
             self::APPROVE,
             self::REJECT,
-            self::COMMENT,
             self::DISTRIBUTE,
-            self::MANAGE,
         ];
     }
 }

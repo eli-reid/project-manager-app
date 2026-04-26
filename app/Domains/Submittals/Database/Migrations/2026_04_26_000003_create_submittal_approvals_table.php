@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('submittal_approvals')) {
+        if (! Schema::hasTable('submittal_approvals')) {
             Schema::create('submittal_approvals', function (Blueprint $table) {
                 $table->ulid('id')->primary();
                 $table->ulid('submittal_id');
@@ -18,6 +19,9 @@ return new class extends Migration {
                 $table->text('comments')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
+
+                $table->index(['submittal_id', 'step']);
+                $table->index(['reviewer_id', 'status']);
 
                 $table->foreign('submittal_id')->references('id')->on('submittals');
                 $table->foreign('reviewer_id')->references('id')->on('users');

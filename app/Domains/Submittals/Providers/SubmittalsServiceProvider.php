@@ -2,9 +2,10 @@
 
 namespace App\Domains\Submittals\Providers;
 
+use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Submittals\Models\Submittal;
-use App\Domains\Submittals\Policies\SubmittalPolicy;
 use App\Domains\Submittals\Permissions\SubmittalPermissions;
+use App\Domains\Submittals\Policies\SubmittalPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -17,13 +18,13 @@ class SubmittalsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
+        $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
-        $this->registerPermissions();
     }
 
     private function registerAuthorization(): void
@@ -50,19 +51,19 @@ class SubmittalsServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/admin.php');
 
         Route::middleware(['web', 'auth', 'verified'])
-            ->group(__DIR__.'/../Routes/web.php');
+            ->group(__DIR__.'/../Routes/mobile.php');
 
         Route::middleware(['web', 'auth', 'verified'])
-            ->group(__DIR__.'/../Routes/mobile.php');
+            ->group(__DIR__.'/../Routes/web.php');
+
+        Route::prefix('api')
+            ->name('api.')
+            ->middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/api.php');
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        if (method_exists(app(), 'make')) {
-            $permissionRegistry = app('permission.registry');
-            if ($permissionRegistry) {
-                $permissionRegistry->registerPermissions(SubmittalPermissions::all());
-            }
-        }
+        $permissionRegistry->registerPermissions(SubmittalPermissions::all());
     }
 }

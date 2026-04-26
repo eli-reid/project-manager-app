@@ -2,25 +2,40 @@
 
 namespace App\Domains\Submittals\Models;
 
-use App\Domains\Projects\Models\Project;
+use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Submittals\Database\Factories\SubmittalFactory;
 use App\Domains\Submittals\Enums\SubmittalStatusEnum;
-use App\Domains\Submittals\Models\SubmittalItem;
-use App\Domains\Submittals\Models\SubmittalApproval;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Submittal extends Model
 {
-    use SoftDeletes;
+    use HasFactory, HasUlids, SoftDeletes;
 
-    protected $table = 'submittals';
-    protected $keyType = 'string';
-    public $incrementing = false;
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_UNDER_REVIEW = 'under_review';
+
+    public const STATUS_ARCHITECT_REVIEW = 'architect_review';
+
+    public const STATUS_OWNER_REVIEW = 'owner_review';
+
+    public const STATUS_APPROVED = 'approved';
+
+    public const STATUS_REJECTED = 'rejected';
+
+    public const STATUS_REVISE = 'revise';
+
+    public const STATUS_DISTRIBUTED = 'distributed';
+
+    public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
         'project_id',
@@ -32,20 +47,45 @@ class Submittal extends Model
         'submitted_by_id',
         'current_reviewer_id',
         'rejection_reason',
+        'submitted_at',
+        'approved_at',
+        'rejected_at',
         'cancelled_at',
         'distributed_at',
     ];
 
-    protected $casts = [
-        'status' => SubmittalStatusEnum::class,
-        'need_by_date' => 'date',
-        'cancelled_at' => 'datetime',
-        'distributed_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => SubmittalStatusEnum::class,
+            'need_by_date' => 'date',
+            'submitted_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'rejected_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'distributed_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
+    }
 
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function submittedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_by_id');
+    }
+
+    public function currentReviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'current_reviewer_id');
     }
 
     public function items(): HasMany
@@ -58,8 +98,41 @@ class Submittal extends Model
         return $this->hasMany(SubmittalApproval::class);
     }
 
-    public function documents(): MorphMany
+    public function documents(): BelongsToMany
     {
-        return $this->morphMany(Document::class, 'documentable');
+        return $this->belongsToMany(Document::class, 'submittal_documents', 'submittal_id', 'document_id')
+            ->withTimestamps();
+    }
+
+    public function isEditable(): bool
+    {
+        return in_array($this->statusValue(), [self::STATUS_DRAFT, self::STATUS_REJECTED, self::STATUS_REVISE], true);
+    }
+
+    public function statusValue(): string
+    {
+        $status = $this->status;
+
+        if ($status instanceof SubmittalStatusEnum) {
+            return $status->value;
+        }
+
+        return (string) $status;
+    }
+
+    public function statusLabel(): string
+    {
+        $status = $this->status;
+
+        if ($status instanceof SubmittalStatusEnum) {
+            return $status->label();
+        }
+
+        return ucfirst((string) $status);
+    }
+
+    protected static function newFactory(): SubmittalFactory
+    {
+        return SubmittalFactory::new();
     }
 }

@@ -44,6 +44,13 @@
                 </button>
             @endif
 
+            @if (in_array('submittals', $tabs, true))
+                <button type="button" wire:click="setTab('submittals')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'submittals' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    Submittals
+                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $submittalCount }}</span>
+                </button>
+            @endif
+
             @if (in_array('documents', $tabs, true))
                 <button type="button" wire:click="setTab('documents')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'documents' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
                     Documents
@@ -145,6 +152,14 @@
             'project' => $project,
             'stockOrders' => $projectStockOrders,
             'stockOrderCount' => $stockOrderCount,
+        ])
+    @endif
+
+    @if ($activeTab === 'submittals' && in_array('submittals', $tabs, true))
+        @include('submittals::components.project-tab', [
+            'project' => $project,
+            'submittals' => $projectSubmittals,
+            'submittalCount' => $submittalCount,
         ])
     @endif
 

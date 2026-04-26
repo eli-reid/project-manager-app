@@ -13,6 +13,7 @@ use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Services\ProjectAccessService;
 use App\Domains\Projects\Services\ProjectFinancialsService;
 use App\Domains\Stock\Models\StockOrder;
+use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Services\ProjectTimecardMetricsService;
@@ -97,6 +98,10 @@ class Show extends Component
 
         if ($user?->can('viewAny', StockOrder::class)) {
             $tabs[] = 'stock';
+        }
+
+        if ($user?->can('viewAny', Submittal::class)) {
+            $tabs[] = 'submittals';
         }
 
         if ($user?->can('viewAny', Document::class)) {
@@ -219,6 +224,8 @@ class Show extends Component
         $projectInvoices = collect();
         $stockOrderCount = 0;
         $projectStockOrders = collect();
+        $submittalCount = 0;
+        $projectSubmittals = collect();
         $documentCount = 0;
 
         $accessAssignments = collect();
@@ -312,6 +319,25 @@ class Show extends Component
             }
         }
 
+        if (in_array('submittals', $tabs, true)) {
+            $submittalCount = Submittal::query()
+                ->where('project_id', $this->project->id)
+                ->count();
+
+            if ($this->activeTab === 'submittals') {
+                $projectSubmittals = Submittal::query()
+                    ->with([
+                        'submittedBy:id,first_name,last_name',
+                        'currentReviewer:id,first_name,last_name',
+                    ])
+                    ->withCount(['items', 'approvals'])
+                    ->where('project_id', $this->project->id)
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+            }
+        }
+
         if (in_array('documents', $tabs, true)) {
             $documentCount = Document::query()
                 ->projectOwned()
@@ -357,6 +383,8 @@ class Show extends Component
             'projectInvoices' => $projectInvoices,
             'stockOrderCount' => $stockOrderCount,
             'projectStockOrders' => $projectStockOrders,
+            'submittalCount' => $submittalCount,
+            'projectSubmittals' => $projectSubmittals,
             'documentCount' => $documentCount,
             'accessAssignments' => $accessAssignments,
             'roleAccessAssignments' => $roleAccessAssignments,
