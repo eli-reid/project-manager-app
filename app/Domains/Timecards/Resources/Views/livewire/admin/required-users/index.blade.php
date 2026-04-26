@@ -43,21 +43,21 @@
                                 <button
                                     type="button"
                                     wire:click="toggleRequired({{ $item['user']->id }})"
+                                    role="switch"
+                                    aria-checked="{{ $item['is_required'] ? 'true' : 'false' }}"
                                     @class([
-                                        'inline-flex items-center justify-center rounded-full p-2 transition-colors',
-                                        'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300' => $item['is_required'],
-                                        'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-500' => !$item['is_required'],
+                                        'relative inline-flex h-6 w-11 items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900',
+                                        'border-emerald-500 bg-emerald-500/90 hover:bg-emerald-500 dark:border-emerald-400 dark:bg-emerald-500' => $item['is_required'],
+                                        'border-zinc-300 bg-zinc-200 hover:bg-zinc-300 dark:border-zinc-700 dark:bg-zinc-700 dark:hover:bg-zinc-600' => !$item['is_required'],
                                     ])
                                 >
-                                    @if ($item['is_required'])
-                                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    @else
-                                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    @endif
+                                    <span
+                                        @class([
+                                            'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform',
+                                            'translate-x-5' => $item['is_required'],
+                                            'translate-x-0' => !$item['is_required'],
+                                        ])
+                                    ></span>
                                 </button>
                             </td>
                             <td class="px-4 py-3 text-center">
