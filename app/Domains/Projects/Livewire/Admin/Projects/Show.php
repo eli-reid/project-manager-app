@@ -15,7 +15,7 @@ use App\Domains\Projects\Services\ProjectFinancialsService;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Timecards\Models\Timecard;
-use App\Domains\Timecards\Models\TimecardEntry;
+use App\Domains\Timecards\Services\ProjectTimecardMetricsService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -323,27 +323,19 @@ class Show extends Component
         $recentTimeEntries = collect();
         $hoursByUser = collect();
         if (in_array('time', $tabs, true)) {
-            $timeQuery = TimecardEntry::query()->where('project_id', $this->project->id);
+            $metricsService = app(ProjectTimecardMetricsService::class);
+            $summary = $metricsService->summaryForProject((string) $this->project->id);
 
-            $timeEntryCount = (clone $timeQuery)->count();
-            $totalHours = (float) (clone $timeQuery)->sum('hours');
-            $regularHours = (float) (clone $timeQuery)->sum('regular_hours');
-            $overtimeHours = (float) (clone $timeQuery)->sum('overtime_hours');
-            $doubleTimeHours = (float) (clone $timeQuery)->sum('double_time_hours');
+            $timeEntryCount = $summary['time_entry_count'];
+            $totalHours = $summary['total_hours'];
+            $regularHours = $summary['regular_hours'];
+            $overtimeHours = $summary['overtime_hours'];
+            $doubleTimeHours = $summary['double_time_hours'];
 
             if ($this->activeTab === 'time') {
-                $recentTimeEntries = (clone $timeQuery)
-                    ->with(['user:id,first_name,last_name', 'costCode:id,code,name'])
-                    ->latest('date')
-                    ->limit(25)
-                    ->get();
-
-                $hoursByUser = (clone $timeQuery)
-                    ->selectRaw('user_id, SUM(hours) as total_hours')
-                    ->with('user:id,first_name,last_name')
-                    ->groupBy('user_id')
-                    ->orderByDesc('total_hours')
-                    ->get();
+                $detail = $metricsService->detailForProject((string) $this->project->id);
+                $recentTimeEntries = $detail['recent_time_entries'];
+                $hoursByUser = $detail['hours_by_user'];
             }
         }
 
