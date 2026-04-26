@@ -129,7 +129,7 @@
     @endif
 
     @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))
-        <livewire:tasks::admin.projects.task-hierarchy-widget :project="$project" :key="'project-task-widget-'.$project->id" />
+        <livewire:tasks::admin.projects.task-hierarchy-widget :project="$project" :key="'project-task-widget-'.$project->id.'-'.$taskWidgetVersion" />
     @endif
 
     @if ($activeTab === 'invoices' && in_array('invoices', $tabs, true))

@@ -20,7 +20,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Renderless;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -45,6 +44,8 @@ class Show extends Component
     #[Url(as: 'tab')]
     public string $activeTab = 'overview';
 
+    public int $taskWidgetVersion = 0;
+
     public function mount(Project $project): void
     {
         $this->authorize('view', $project);
@@ -64,13 +65,14 @@ class Show extends Component
         $this->activeTab = $tab;
     }
 
-    #[Renderless]
     #[On('project-tasks-updated')]
     public function refreshTaskMetrics(string $projectId): void
     {
         if ($projectId !== (string) $this->project->id) {
             return;
         }
+
+        $this->taskWidgetVersion++;
     }
 
     /**
