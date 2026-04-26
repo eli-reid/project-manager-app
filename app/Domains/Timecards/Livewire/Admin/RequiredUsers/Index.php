@@ -27,11 +27,13 @@ class Index extends Component
 
         if ($entry) {
             $entry->delete();
+            session()->flash('success', 'Removed required timecard status.');
         } else {
             TimecardRequiredUser::create([
                 'user_id' => $user->id,
                 'reminders_enabled' => true,
             ]);
+            session()->flash('success', 'Marked employee as required for timecards.');
         }
     }
 
@@ -40,14 +42,39 @@ class Index extends Component
         TimecardRequiredUser::where('user_id', $user->id)->update([
             'reminders_enabled' => $enabled,
         ]);
+
+        session()->flash('success', $enabled ? 'Enabled reminders for this employee.' : 'Disabled reminders for this employee.');
     }
 
     public function setEffectiveDates(User $user, ?string $startDate, ?string $endDate): void
     {
+        if (blank($startDate) && blank($endDate)) {
+            TimecardRequiredUser::where('user_id', $user->id)->update([
+                'effective_start_date' => null,
+                'effective_end_date' => null,
+            ]);
+
+            session()->flash('success', 'Cleared effective dates.');
+
+            return;
+        }
+
+        $parsedStart = filled($startDate) ? Carbon::parse($startDate)->startOfDay() : null;
+        $parsedEnd = filled($endDate) ? Carbon::parse($endDate)->endOfDay() : null;
+
+        if ($parsedStart !== null && $parsedEnd !== null && $parsedEnd->lt($parsedStart)) {
+            $this->addError('effectiveDates', 'End date must be on or after start date.');
+
+            return;
+        }
+
         TimecardRequiredUser::where('user_id', $user->id)->update([
-            'effective_start_date' => $startDate ? Carbon::parse($startDate) : null,
-            'effective_end_date' => $endDate ? Carbon::parse($endDate) : null,
+            'effective_start_date' => $parsedStart,
+            'effective_end_date' => $parsedEnd,
         ]);
+
+        $this->resetErrorBag('effectiveDates');
+        session()->flash('success', 'Updated effective dates.');
     }
 
     /**

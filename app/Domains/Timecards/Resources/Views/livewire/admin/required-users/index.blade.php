@@ -27,7 +27,7 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Email</th>
                         <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Required</th>
                         <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Reminders Enabled</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Effective Date Range</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -74,15 +74,26 @@
                             </td>
                             <td class="px-4 py-3 text-center text-sm">
                                 @if ($item['is_required'])
-                                    <button
-                                        type="button"
-                                        class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
-                                        onclick="alert('Edit effective dates feature coming soon')"
-                                    >
-                                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                        </svg>
-                                    </button>
+                                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        <div class="text-left">
+                                            <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Start</label>
+                                            <input
+                                                type="date"
+                                                value="{{ $item['entry']?->effective_start_date?->format('Y-m-d') }}"
+                                                wire:change="setEffectiveDates({{ $item['user']->id }}, $event.target.value || null, '{{ $item['entry']?->effective_end_date?->format('Y-m-d') }}')"
+                                                class="w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                            />
+                                        </div>
+                                        <div class="text-left">
+                                            <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">End</label>
+                                            <input
+                                                type="date"
+                                                value="{{ $item['entry']?->effective_end_date?->format('Y-m-d') }}"
+                                                wire:change="setEffectiveDates({{ $item['user']->id }}, '{{ $item['entry']?->effective_start_date?->format('Y-m-d') }}', $event.target.value || null)"
+                                                class="w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                            />
+                                        </div>
+                                    </div>
                                 @endif
                             </td>
                         </tr>
@@ -103,4 +114,10 @@
             Showing {{ $users->count() }} employee(s).
         </p>
     @endif
+
+    @error('effectiveDates')
+        <div class="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300">
+            {{ $message }}
+        </div>
+    @enderror
 </div>
