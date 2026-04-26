@@ -42,7 +42,7 @@
                             <td class="px-4 py-3 text-center">
                                 <button
                                     type="button"
-                                    wire:click="toggleRequired({{ $item['user']->id }})"
+                                    wire:click="toggleRequired('{{ $item['user']->id }}')"
                                     role="switch"
                                     aria-checked="{{ $item['is_required'] ? 'true' : 'false' }}"
                                     @class([
@@ -65,7 +65,7 @@
                                     <input
                                         type="checkbox"
                                         @checked($item['entry']?->reminders_enabled ?? true)
-                                        wire:change="updateRemindersEnabled({{ $item['user']->id }}, $event.target.checked)"
+                                        wire:change="updateRemindersEnabled('{{ $item['user']->id }}', $event.target.checked)"
                                         class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
                                     />
                                 @else
@@ -80,7 +80,7 @@
                                             <input
                                                 type="date"
                                                 value="{{ $item['entry']?->effective_start_date?->format('Y-m-d') }}"
-                                                wire:change="setEffectiveDates({{ $item['user']->id }}, $event.target.value || null, '{{ $item['entry']?->effective_end_date?->format('Y-m-d') }}')"
+                                                wire:change="setEffectiveDates('{{ $item['user']->id }}', $event.target.value || null, '{{ $item['entry']?->effective_end_date?->format('Y-m-d') }}')"
                                                 class="w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                                             />
                                         </div>
@@ -89,7 +89,7 @@
                                             <input
                                                 type="date"
                                                 value="{{ $item['entry']?->effective_end_date?->format('Y-m-d') }}"
-                                                wire:change="setEffectiveDates({{ $item['user']->id }}, '{{ $item['entry']?->effective_start_date?->format('Y-m-d') }}', $event.target.value || null)"
+                                                wire:change="setEffectiveDates('{{ $item['user']->id }}', '{{ $item['entry']?->effective_start_date?->format('Y-m-d') }}', $event.target.value || null)"
                                                 class="w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                                             />
                                         </div>
