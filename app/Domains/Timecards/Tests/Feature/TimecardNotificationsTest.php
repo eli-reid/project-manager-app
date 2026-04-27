@@ -12,6 +12,7 @@ use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use App\Domains\Timecards\Notifications\TimecardRejectedNotification;
 use App\Domains\Timecards\Notifications\TimecardSubmittedNotification;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Notification;
 
 it('sends submitted notifications to users with timecards approve permission', function (): void {
@@ -98,6 +99,30 @@ it('uses admin-configured allowed channels for timecard approval notifications',
     $channels = (new TimecardApprovedNotification($timecard))->via($owner);
 
     expect($channels)->toBe(['database']);
+});
+
+it('stores database notifications with uuid notification ids for ulid users', function (): void {
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["database"]');
+
+    $owner = User::factory()->create(['is_admin' => false]);
+    $approver = User::factory()->create(['is_admin' => false]);
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $owner->id,
+        'status' => Timecard::STATUS_SUBMITTED,
+    ]);
+
+    app(TimecardLifecycleService::class)->approve($timecard, $approver);
+
+    $notification = DatabaseNotification::query()
+        ->where('notifiable_id', $owner->id)
+        ->latest('created_at')
+        ->first();
+
+    expect($notification)->not->toBeNull()
+        ->and(strlen((string) $notification?->id))->toBe(36)
+        ->and($notification?->type)->toBe(TimecardApprovedNotification::class);
 });
 
 function userWithNotificationPermission(string $permissionKey): User
