@@ -36,7 +36,7 @@ class Index extends Component
                 ->withCount('entries')
                 ->latest('week_starting')
                 ->paginate(10),
-            'futureWeeks' => $timecardWeekService->futureWeekOptions((string) $user->id),
+            'futureWeeks' => $timecardWeekService->futureWeekOptions((string) $user->id, includePreviousWeek: true),
         ]);
     }
 }

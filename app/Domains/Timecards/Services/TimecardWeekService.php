@@ -44,11 +44,17 @@ class TimecardWeekService
     /**
      * @return Collection<int, array{start:string,label:string}>
      */
-    public function futureWeekOptions(string $userId, int $weeksAhead = 4): Collection
+    public function futureWeekOptions(string $userId, int $weeksAhead = 4, bool $includePreviousWeek = false): Collection
     {
         $currentWeekStart = $this->currentWeekStart();
 
-        return collect(range(0, max($weeksAhead - 1, 0)))
+        $offsets = collect(range(0, max($weeksAhead - 1, 0)));
+
+        if ($includePreviousWeek) {
+            $offsets->prepend(-1);
+        }
+
+        return $offsets
             ->map(function (int $offset) use ($currentWeekStart, $userId): ?array {
                 $weekStart = $currentWeekStart->copy()->addWeeks($offset);
 

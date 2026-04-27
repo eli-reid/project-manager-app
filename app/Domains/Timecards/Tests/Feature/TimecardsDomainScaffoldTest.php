@@ -12,6 +12,8 @@ use App\Domains\Timecards\Livewire\User\Timecards\Index as UserIndex;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
+use App\Domains\Timecards\Services\TimecardWeekService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -258,6 +260,46 @@ it('allows users with timecard permissions to access their own index', function 
 
     Livewire::test(UserIndex::class)
         ->assertSee('My Timecards');
+});
+
+it('defaults user timecard create form to prior week and shows prior week quick-create option', function (): void {
+    Carbon::setTestNow('2026-04-27 10:00:00');
+
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create']);
+    actingAs($user);
+
+    $timecardWeekService = app(TimecardWeekService::class);
+    $expectedPriorWeek = $timecardWeekService->currentWeekStart()->copy()->subWeek()->toDateString();
+
+    Livewire::test(UserForm::class)
+        ->assertSet('week_starting', $expectedPriorWeek);
+
+    Livewire::test(UserIndex::class)
+        ->assertSee(route('timecards.create', ['week_starting' => $expectedPriorWeek]), false);
+
+    Carbon::setTestNow();
+});
+
+it('falls back to current week when prior week timecard already exists', function (): void {
+    Carbon::setTestNow('2026-04-27 10:00:00');
+
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create']);
+    actingAs($user);
+
+    $timecardWeekService = app(TimecardWeekService::class);
+    $priorWeekStart = $timecardWeekService->currentWeekStart()->copy()->subWeek();
+
+    Timecard::factory()->create([
+        'user_id' => $user->id,
+        'week_starting' => $priorWeekStart,
+        'week_ending' => $priorWeekStart->copy()->addDays(6),
+        'status' => Timecard::STATUS_DRAFT,
+    ]);
+
+    Livewire::test(UserForm::class)
+        ->assertSet('week_starting', $timecardWeekService->currentWeekStart()->toDateString());
+
+    Carbon::setTestNow();
 });
 
 it('creates draft timecards through the lifecycle service and prevents duplicates', function (): void {

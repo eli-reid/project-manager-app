@@ -71,7 +71,18 @@ class Form extends Component
         }
 
         $this->authorize('create', Timecard::class);
-        $requestedWeek = request()->query('week_starting', $timecardWeekService->currentWeekStart()->toDateString());
+
+        $userId = Auth::id();
+        abort_unless(is_string($userId), 401);
+
+        $currentWeekStart = $timecardWeekService->currentWeekStart();
+        $defaultWeekStart = $currentWeekStart->copy()->subWeek();
+
+        if ($timecardWeekService->hasExistingTimecardForWeek($userId, $defaultWeekStart)) {
+            $defaultWeekStart = $currentWeekStart;
+        }
+
+        $requestedWeek = request()->query('week_starting', $defaultWeekStart->toDateString());
         $this->week_starting = $timecardWeekService->normalizeWeekStart((string) $requestedWeek)->toDateString();
         $this->addEntry();
     }
