@@ -12,8 +12,12 @@
 @props(['document'])
 
 @php
-    $isPdf = strtolower($document->extension ?? '') === 'pdf'
-        || $document->mime_type === 'application/pdf';
+    $ext = strtolower(
+        $document->extension
+            ?? pathinfo($document->original_name ?? '', PATHINFO_EXTENSION)
+            ?? ''
+    );
+    $isPdf = $ext === 'pdf' || $document->mime_type === 'application/pdf';
 
     $displayName = $document->title ?: $document->original_name;
 
@@ -45,48 +49,51 @@
             <flux:icon.arrow-down-tray class="size-4" />
         </a>
 
-        {{-- Overlay viewer --}}
-        <template x-teleport="body">
-            <div
-                x-show="open"
-                x-transition.opacity
-                x-cloak
-                class="fixed inset-0 z-50 flex flex-col bg-zinc-950/90"
-                @keydown.escape.window="open = false"
-            >
-                {{-- Toolbar --}}
-                <div class="flex shrink-0 items-center justify-between border-b border-zinc-700 bg-zinc-900 px-4 py-3">
-                    <div class="flex items-center gap-2 text-sm font-medium text-zinc-100">
-                        <flux:icon.document-text class="size-4 text-red-400" />
-                        {{ $displayName }}
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <a
-                            href="{{ $downloadUrl }}"
-                            class="inline-flex items-center gap-1.5 rounded-md border border-zinc-600 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
-                        >
-                            <flux:icon.arrow-down-tray class="size-3.5" />
-                            Download
-                        </a>
-                        <button
-                            type="button"
-                            @click="open = false"
-                            class="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100"
-                            aria-label="Close"
-                        >
-                            <flux:icon.x-mark class="size-5" />
-                        </button>
-                    </div>
+        {{-- Overlay viewer (no x-teleport — keep in same scope as x-data) --}}
+        <div
+            x-show="open"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            style="display: none;"
+            class="fixed inset-0 z-50 flex flex-col bg-zinc-950/90"
+            @keydown.escape.window="open = false"
+        >
+            {{-- Toolbar --}}
+            <div class="flex shrink-0 items-center justify-between border-b border-zinc-700 bg-zinc-900 px-4 py-3">
+                <div class="flex items-center gap-2 text-sm font-medium text-zinc-100">
+                    <flux:icon.document-text class="size-4 text-red-400" />
+                    {{ $displayName }}
                 </div>
-
-                {{-- PDF iframe --}}
-                <iframe
-                    src="{{ $viewUrl }}"
-                    class="h-full w-full flex-1 border-0 bg-white"
-                    title="{{ $displayName }}"
-                ></iframe>
+                <div class="flex items-center gap-3">
+                    <a
+                        href="{{ $downloadUrl }}"
+                        class="inline-flex items-center gap-1.5 rounded-md border border-zinc-600 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
+                    >
+                        <flux:icon.arrow-down-tray class="size-3.5" />
+                        Download
+                    </a>
+                    <button
+                        type="button"
+                        @click="open = false"
+                        class="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100"
+                        aria-label="Close"
+                    >
+                        <flux:icon.x-mark class="size-5" />
+                    </button>
+                </div>
             </div>
-        </template>
+
+            {{-- PDF iframe --}}
+            <iframe
+                :src="open ? '{{ $viewUrl }}' : ''"
+                class="h-full w-full flex-1 border-0 bg-white"
+                title="{{ $displayName }}"
+            ></iframe>
+        </div>
     </div>
 @else
     {{-- Non-PDF: show name + download icon --}}
