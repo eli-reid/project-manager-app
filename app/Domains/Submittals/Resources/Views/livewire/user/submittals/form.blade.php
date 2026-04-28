@@ -1,7 +1,7 @@
 <div class="mx-auto w-full max-w-5xl space-y-4 px-4 py-6 sm:px-6 lg:px-8">
     <flux:heading size="xl">{{ $submittal ? 'Edit Submittal' : 'Create Submittal' }}</flux:heading>
 
-    <form wire:submit="save" class="space-y-5 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+    <form wire:submit="save" class="space-y-5 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="grid gap-4 md:grid-cols-2">
             <flux:field>
                 <flux:label>Project</flux:label>
@@ -41,47 +41,47 @@
             </flux:field>
         </div>
 
-        <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+        <div class="space-y-3 rounded-lg border border-zinc-200 p-5 dark:border-zinc-700">
             <div class="flex items-center justify-between">
                 <flux:heading size="sm">Submittal Items</flux:heading>
                 <flux:button type="button" variant="ghost" wire:click="addItem">Add Item</flux:button>
             </div>
 
             @foreach ($items as $index => $item)
-                <div class="grid gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700 md:grid-cols-6" wire:key="submittal-item-{{ $index }}">
-                    <div class="md:col-span-2">
+                <div class="grid gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700 md:grid-cols-12 md:items-start" wire:key="submittal-item-{{ $index }}">
+                    <div class="min-w-0 md:col-span-4">
                         <flux:input wire:model="items.{{ $index }}.description" placeholder="Description" />
                         <flux:error name="items.{{ $index }}.description" />
                     </div>
-                    <div>
+                    <div class="min-w-0 md:col-span-2">
                         <flux:input wire:model="items.{{ $index }}.manufacturer" placeholder="Manufacturer" />
                         <flux:error name="items.{{ $index }}.manufacturer" />
                     </div>
-                    <div>
+                    <div class="min-w-0 md:col-span-2">
                         <flux:input wire:model="items.{{ $index }}.model" placeholder="Model" />
                         <flux:error name="items.{{ $index }}.model" />
                     </div>
-                    <div>
+                    <div class="min-w-0 md:col-span-2">
                         <flux:input wire:model="items.{{ $index }}.part_number" placeholder="Part #" />
                         <flux:error name="items.{{ $index }}.part_number" />
                     </div>
-                    <div class="flex gap-2">
-                        <div class="w-28">
+                    <div class="flex flex-wrap items-start gap-2 md:col-span-2 md:justify-end">
+                        <div class="w-full sm:w-24">
                             <flux:input wire:model="items.{{ $index }}.quantity" placeholder="Qty" />
                             <flux:error name="items.{{ $index }}.quantity" />
                         </div>
-                        <div class="w-24">
+                        <div class="w-full sm:w-20">
                             <flux:input wire:model="items.{{ $index }}.unit" placeholder="Unit" />
                             <flux:error name="items.{{ $index }}.unit" />
                         </div>
-                        <flux:button type="button" variant="danger" wire:click="removeItem({{ $index }})">Remove</flux:button>
+                        <flux:button type="button" variant="danger" wire:click="removeItem({{ $index }})" class="shrink-0">Remove</flux:button>
                     </div>
                 </div>
             @endforeach
         </div>
 
         <div class="grid gap-4 lg:grid-cols-2">
-            <div class="space-y-2 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+            <div class="space-y-2 rounded-lg border border-zinc-200 p-5 dark:border-zinc-700">
                 <flux:heading size="sm">Reviewer Chain</flux:heading>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400">Select reviewers in sequence. Order is top to bottom.</p>
                 <div class="space-y-2">
@@ -96,7 +96,7 @@
                 <flux:error name="reviewerIds.*" />
             </div>
 
-            <div class="space-y-2 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+            <div class="space-y-2 rounded-lg border border-zinc-200 p-5 dark:border-zinc-700">
                 <flux:heading size="sm">Attachments</flux:heading>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400">Attach existing project documents to this submittal.</p>
                 <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
