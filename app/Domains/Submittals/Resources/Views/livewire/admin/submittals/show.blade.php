@@ -85,7 +85,9 @@
         </div>
         <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
             @forelse ($submittal->documents as $document)
-                <div class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $document->title ?: $document->original_name }}</div>
+                <div class="px-4 py-1">
+                    <x-ui.pdf-viewer :document="$document" />
+                </div>
             @empty
                 <p class="px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">No documents attached.</p>
             @endforelse

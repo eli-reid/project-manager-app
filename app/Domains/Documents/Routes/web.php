@@ -22,4 +22,17 @@ Route::prefix('documents')
         })
             ->middleware('can:view,document')
             ->name('download');
+
+        Route::get('/{document}/view', function (Document $document) {
+            return Storage::disk($document->storage_disk)->response(
+                $document->storage_path,
+                $document->original_name,
+                [
+                    'Content-Type' => $document->mime_type ?: 'application/octet-stream',
+                    'Content-Disposition' => 'inline; filename="'.addslashes($document->original_name).'"',
+                ]
+            );
+        })
+            ->middleware('can:view,document')
+            ->name('view');
     });
