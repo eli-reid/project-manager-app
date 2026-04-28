@@ -9,6 +9,7 @@ use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectsIndex;
 use App\Domains\Projects\Models\Project;
@@ -297,8 +298,35 @@ it('shows inline client and address widgets on project create form', function ()
         ->get(route('admin.projects.create'))
         ->assertSuccessful()
         ->assertSee('Leave Tracking')
+        ->assertSee('Default Pay Rate Type')
         ->assertSee('Quick Add Client')
         ->assertSee('Quick Add Address');
+});
+
+it('persists default pay rate type when creating a project', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'projects.create',
+    ]);
+
+    $payRateType = PayRateType::factory()->create([
+        'name' => 'Standard Labor',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Form::class)
+        ->set('name', 'Project With Default Rate Type')
+        ->set('status', 'pending')
+        ->set('pay_rate_type_id', (string) $payRateType->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $project = Project::query()->where('name', 'Project With Default Rate Type')->first();
+
+    expect($project)->not->toBeNull()
+        ->and($project?->pay_rate_type_id)->toBe($payRateType->id);
 });
 
 it('allows authorized users to edit and update a project', function (): void {

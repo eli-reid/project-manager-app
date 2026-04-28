@@ -4,6 +4,7 @@ namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
+use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -41,6 +42,8 @@ class Form extends Component
 
     public ?string $leave_category = null;
 
+    public ?string $pay_rate_type_id = null;
+
     public bool $is_active = true;
 
     public function mount(?Project $project = null): void
@@ -59,6 +62,7 @@ class Form extends Component
             $this->client_id = $project->client_id;
             $this->address_id = $project->address_id;
             $this->leave_category = $project->leave_category;
+            $this->pay_rate_type_id = $project->pay_rate_type_id;
             $this->is_active = (bool) $project->is_active;
 
             return;
@@ -84,6 +88,7 @@ class Form extends Component
             'client_id' => ['nullable', 'exists:clients,id'],
             'address_id' => ['nullable', 'exists:addresses,id'],
             'leave_category' => ['nullable', Rule::in(['sick', 'vacation'])],
+            'pay_rate_type_id' => ['nullable', 'exists:pay_rate_types,id'],
             'is_active' => ['boolean'],
         ];
     }
@@ -141,6 +146,11 @@ class Form extends Component
         return view('projects::livewire.admin.projects.form', [
             'statuses' => ProjectStatusEnum::toArray(),
             'clients' => Client::query()->orderBy('company_name')->get(['id', 'company_name']),
+            'payRateTypes' => PayRateType::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'addresses' => Address::query()
                 ->when($clientId || $selectedAddressId, function ($query) use ($clientId, $selectedAddressId): void {
                     $query->where(function ($addressQuery) use ($clientId, $selectedAddressId): void {
