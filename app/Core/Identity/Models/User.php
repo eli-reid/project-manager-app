@@ -96,6 +96,17 @@ class User extends Authenticatable
         return Str::upper(Str::substr($this->first_name, 0, 1).Str::substr($this->last_name, 0, 1));
     }
 
+    public function getNameAttribute(): string
+    {
+        $fullName = trim((string) $this->first_name.' '.(string) $this->last_name);
+
+        if ($fullName !== '') {
+            return $fullName;
+        }
+
+        return (string) ($this->username ?: $this->email);
+    }
+
     /**
      * The roles that belong to the user.
      */

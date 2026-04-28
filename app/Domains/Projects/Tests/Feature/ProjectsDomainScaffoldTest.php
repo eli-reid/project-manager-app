@@ -16,6 +16,7 @@ use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
+use App\Domains\Timecards\Models\TimecardEntry;
 use Livewire\Livewire;
 
 it('redirects guests from domain admin routes', function (): void {
@@ -472,6 +473,37 @@ it('shows dailies tab on project view when user can view all dailies', function 
         ->assertSee('Submitted')
         ->assertSee('8.00')
         ->assertDontSee('12.00');
+});
+
+it('shows employee names on project time tab recent entries', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'timecards.view',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Time Entries',
+        'project_number' => 'PRJ-TIME-1',
+    ]);
+
+    $employee = User::factory()->create([
+        'first_name' => 'Taylor',
+        'last_name' => 'Foreman',
+    ]);
+
+    TimecardEntry::factory()->create([
+        'project_id' => $project->id,
+        'user_id' => $employee->id,
+        'hours' => 8,
+        'date' => now()->toDateString(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=time')
+        ->assertSuccessful()
+        ->assertSee('Recent Time Entries')
+        ->assertSee('Taylor Foreman')
+        ->assertDontSee('Unknown');
 });
 
 it('auto generates project numbers with configured prefix when enabled', function (): void {
