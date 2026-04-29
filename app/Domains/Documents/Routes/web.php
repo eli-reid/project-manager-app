@@ -24,13 +24,13 @@ Route::prefix('documents')
             ->name('download');
 
         Route::get('/{document}/view', function (Document $document) {
-            return Storage::disk($document->storage_disk)->response(
-                $document->storage_path,
-                $document->original_name,
-                [
-                    'Content-Type' => $document->mime_type ?: 'application/octet-stream',
-                    'Content-Disposition' => 'inline; filename="'.addslashes($document->original_name).'"',
-                ]
+            $disk = Storage::disk($document->storage_disk);
+
+            abort_unless($disk->exists($document->storage_path), 404, 'File not found.');
+
+            return response()->file(
+                $disk->path($document->storage_path),
+                ['Content-Type' => 'application/pdf']
             );
         })
             ->middleware('can:view,document')
