@@ -23,37 +23,45 @@
         </div>
     </div>
 
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
-        <div class="flex-1">
-            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Week Starting</label>
-            <input
-                type="date"
-                wire:model.live="weekStart"
+    <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Year</label>
+            <select
+                wire:model.live="year"
                 class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-            />
+            >
+                @foreach ($this->availableYears as $availableYear)
+                    <option value="{{ $availableYear }}">{{ $availableYear }}</option>
+                @endforeach
+            </select>
         </div>
-        <div class="flex gap-2">
-            <button
-                wire:click="previousWeek"
-                class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Employee</label>
+            <select
+                wire:model.live="employeeId"
+                class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             >
-                Previous Week
-            </button>
-            <button
-                wire:click="nextWeek"
-                class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-            >
-                Next Week
-            </button>
+                <option value="all">All Employees</option>
+                @foreach ($this->employees as $employee)
+                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                @endforeach
+            </select>
         </div>
     </div>
 
     <div class="space-y-2 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/30">
         <p class="text-sm font-medium text-blue-900 dark:text-blue-200">
-            <strong>Week of {{ \Carbon\CarbonImmutable::parse($weekStart)->format('M j, Y') }} to {{ $this->weekEnd->format('M j, Y') }}</strong>
+            <strong>
+                {{ $year }} Adjustment Summary
+                @if ($employeeId !== 'all')
+                    for {{ $this->employees->firstWhere('id', $employeeId)?->name ?? 'Selected Employee' }}
+                @endif
+            </strong>
         </p>
         <p class="text-sm text-blue-800 dark:text-blue-300">
             Total adjustments: <strong>{{ $this->adjustments->count() }}</strong>
+            | Source total: <strong>{{ number_format($this->totalSourceHours, 2) }}</strong> hours
+            | Adjusted total: <strong>{{ number_format($this->totalAdjustedHours, 2) }}</strong> hours
             | Net delta: <strong>{{ number_format($this->totalDelta, 2) }}</strong> hours
         </p>
     </div>
@@ -63,6 +71,7 @@
             <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Week Starting</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Employee</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Source</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Adjusted</th>
@@ -75,6 +84,9 @@
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($this->adjustments as $adjustment)
                         <tr>
+                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
+                                {{ $adjustment->week_start?->format('M j, Y') ?? 'N/A' }}
+                            </td>
                             <td class="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                 {{ $adjustment->employee?->name ?? $adjustment->user_id }}
                             </td>
@@ -99,8 +111,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                                No manual hour adjustments recorded for this week.
+                            <td colspan="8" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                                No manual hour adjustments recorded for the selected filters.
                             </td>
                         </tr>
                     @endforelse

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Payroll\Livewire\Admin\Reports;
 
-use App\Core\Settings\Services\WeekSettingsService;
+use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Models\WeeklyEmployeeHoursAdjustment;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -21,70 +21,132 @@ class WeeklyHourAdjustmentReport extends Component
     #[Url(as: 'week_start')]
     public ?string $weekStart = null;
 
+    #[Url(as: 'year')]
+    public ?int $year = null;
+
+    #[Url(as: 'employee')]
+    public string $employeeId = 'all';
+
     public function mount(): void
     {
         $this->authorize('payroll-runs.preview');
 
-        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
-
-        if (! $this->weekStart) {
-            $this->weekStart = today()->startOfWeek($weekStartsAt)->toDateString();
+        if ($this->weekStart) {
+            $this->weekStart = CarbonImmutable::parse($this->weekStart)->toDateString();
         }
 
-        $this->weekStart = CarbonImmutable::parse($this->weekStart)
-            ->startOfWeek($weekStartsAt)
-            ->toDateString();
+        $defaultYear = $this->weekStart
+            ? CarbonImmutable::parse($this->weekStart)->year
+            : today()->year;
+
+        $this->year = $this->normalizeYear($this->year ?? $defaultYear);
+
+        if ($this->employeeId === '') {
+            $this->employeeId = 'all';
+        }
     }
 
-    public function getWeekEndProperty(): CarbonImmutable
+    private function normalizeYear(null|int|string $year): int
     {
-        return app(WeekSettingsService::class)->weekEndFromStart($this->weekStart);
+        $normalized = filter_var($year, FILTER_VALIDATE_INT);
+
+        if ($normalized === false || $normalized < 2000 || $normalized > 2100) {
+            return (int) today()->year;
+        }
+
+        return (int) $normalized;
     }
 
-    public function previousWeek(): void
+    public function updatedYear(): void
     {
-        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
-
-        $this->weekStart = CarbonImmutable::parse($this->weekStart)
-            ->subWeek()
-            ->startOfWeek($weekStartsAt)
-            ->toDateString();
+        $this->year = $this->normalizeYear($this->year);
     }
 
-    public function nextWeek(): void
+    public function updatedEmployeeId(): void
     {
-        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
-
-        $this->weekStart = CarbonImmutable::parse($this->weekStart)
-            ->addWeek()
-            ->startOfWeek($weekStartsAt)
-            ->toDateString();
+        if ($this->employeeId === '') {
+            $this->employeeId = 'all';
+        }
     }
 
-    public function updatedWeekStart(): void
+    public function getAvailableYearsProperty(): Collection
     {
-        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
+        $years = WeeklyEmployeeHoursAdjustment::query()
+            ->orderByDesc('week_start')
+            ->pluck('week_start')
+            ->map(static fn ($date): int => CarbonImmutable::parse($date)->year)
+            ->unique()
+            ->values();
 
-        $this->weekStart = CarbonImmutable::parse($this->weekStart)
-            ->startOfWeek($weekStartsAt)
-            ->toDateString();
+        if (! $years->contains($this->year)) {
+            $years->prepend($this->year);
+        }
+
+        return $years
+            ->map(static fn (int $year): int => $year)
+            ->sortDesc()
+            ->values();
+    }
+
+    public function getEmployeesProperty(): Collection
+    {
+        $employeeIds = WeeklyEmployeeHoursAdjustment::query()
+            ->whereYear('week_start', $this->year)
+            ->distinct()
+            ->pluck('user_id');
+
+        if ($employeeIds->isEmpty()) {
+            return collect();
+        }
+
+        return User::query()
+            ->whereIn('id', $employeeIds)
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'first_name', 'last_name']);
     }
 
     public function getAdjustmentsProperty(): Collection
     {
-        return WeeklyEmployeeHoursAdjustment::query()
-            ->whereDate('week_start', $this->weekStart)
+        $query = WeeklyEmployeeHoursAdjustment::query()
+            ->whereYear('week_start', $this->year)
             ->with(['employee:id,first_name,last_name', 'editor:id,first_name,last_name'])
+            ->orderByDesc('week_start')
             ->orderByDesc('edited_at')
-            ->orderByDesc('updated_at')
-            ->get();
+            ->orderByDesc('updated_at');
+
+        if ($this->employeeId !== 'all') {
+            $query->where('user_id', $this->employeeId);
+        }
+
+        return $query->get();
+    }
+
+    public function getTotalSourceHoursProperty(): float
+    {
+        return round(
+            $this->adjustments->sum(
+                static fn (WeeklyEmployeeHoursAdjustment $adjustment): float => (float) $adjustment->source_hours
+            ),
+            2
+        );
+    }
+
+    public function getTotalAdjustedHoursProperty(): float
+    {
+        return round(
+            $this->adjustments->sum(
+                static fn (WeeklyEmployeeHoursAdjustment $adjustment): float => (float) $adjustment->adjusted_hours
+            ),
+            2
+        );
     }
 
     public function getTotalDeltaProperty(): float
     {
         return round(
             $this->adjustments->sum(
-                fn (WeeklyEmployeeHoursAdjustment $adjustment): float => (float) $adjustment->adjusted_hours - (float) $adjustment->source_hours
+                static fn (WeeklyEmployeeHoursAdjustment $adjustment): float => (float) $adjustment->adjusted_hours - (float) $adjustment->source_hours
             ),
             2
         );

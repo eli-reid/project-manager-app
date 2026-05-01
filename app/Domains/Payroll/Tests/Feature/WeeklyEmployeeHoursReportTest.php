@@ -4,6 +4,7 @@ use App\Core\Audit\Models\AuditLog;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyEmployeeHours;
+use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyHourAdjustmentReport;
 use App\Domains\Payroll\Models\WeeklyEmployeeHoursAdjustment;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
@@ -309,4 +310,53 @@ it('shows weekly hour adjustments in dedicated report view', function (): void {
         ->assertSee($employee->first_name)
         ->assertSee('18.50')
         ->assertSee('Payroll correction for approved manual work');
+});
+
+it('filters weekly hour adjustments by year and employee with correct totals', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $employeeA = User::factory()->create();
+    $employeeB = User::factory()->create();
+
+    WeeklyEmployeeHoursAdjustment::factory()->create([
+        'week_start' => '2026-03-29',
+        'user_id' => $employeeA->id,
+        'source_hours' => 10.0,
+        'adjusted_hours' => 12.0,
+        'reason' => 'Yearly correction A',
+        'edited_by_id' => $admin->id,
+    ]);
+
+    WeeklyEmployeeHoursAdjustment::factory()->create([
+        'week_start' => '2026-05-10',
+        'user_id' => $employeeB->id,
+        'source_hours' => 5.0,
+        'adjusted_hours' => 7.0,
+        'reason' => 'Yearly correction B',
+        'edited_by_id' => $admin->id,
+    ]);
+
+    WeeklyEmployeeHoursAdjustment::factory()->create([
+        'week_start' => '2025-06-01',
+        'user_id' => $employeeB->id,
+        'source_hours' => 8.0,
+        'adjusted_hours' => 9.0,
+        'reason' => 'Prior year correction',
+        'edited_by_id' => $admin->id,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(WeeklyHourAdjustmentReport::class, ['year' => 2026])
+        ->assertSee('Yearly correction A')
+        ->assertSee('Yearly correction B')
+        ->assertDontSee('Prior year correction')
+        ->assertSee('15.00')
+        ->assertSee('19.00')
+        ->assertSee('4.00')
+        ->set('employeeId', $employeeA->id)
+        ->assertSee('Yearly correction A')
+        ->assertDontSee('Yearly correction B')
+        ->assertDontSee('Prior year correction')
+        ->assertSee('10.00')
+        ->assertSee('12.00')
+        ->assertSee('2.00');
 });
