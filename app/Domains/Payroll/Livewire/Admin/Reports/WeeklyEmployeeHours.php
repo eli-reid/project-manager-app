@@ -163,16 +163,6 @@ class WeeklyEmployeeHours extends Component
         return Gate::allows('payroll-runs.adjust-hours');
     }
 
-    public function getAdjustmentHistoryProperty(): Collection
-    {
-        return WeeklyEmployeeHoursAdjustment::query()
-            ->whereDate('week_start', $this->weekStart)
-            ->with(['employee:id,first_name,last_name', 'editor:id,first_name,last_name'])
-            ->orderByDesc('edited_at')
-            ->orderByDesc('updated_at')
-            ->get();
-    }
-
     public function startEditing(string $userId): void
     {
         if (! $this->canAdjustHours) {

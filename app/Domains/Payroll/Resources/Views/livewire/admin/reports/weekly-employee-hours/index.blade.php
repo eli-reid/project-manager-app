@@ -187,59 +187,20 @@
     </div>
 
     <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-            <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Weekly Hour Adjustment Report</h2>
-            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                Separate audit of manual weekly-hour overrides. Timecard entries are not modified.
-            </p>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Employee</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Source</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Adjusted</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Delta</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Reason</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Edited By</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Edited At</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                    @forelse ($this->adjustmentHistory as $adjustment)
-                        <tr>
-                            <td class="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                {{ $adjustment->employee?->name ?? $adjustment->user_id }}
-                            </td>
-                            <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ number_format((float) $adjustment->source_hours, 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                                {{ number_format((float) $adjustment->adjusted_hours, 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ number_format((float) $adjustment->adjusted_hours - (float) $adjustment->source_hours, 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ $adjustment->reason }}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ $adjustment->editor?->name ?? 'Unknown' }}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ $adjustment->edited_at?->format('M j, Y g:i A') ?? 'N/A' }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                                No manual hour adjustments recorded for this week.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <div class="flex items-center justify-between gap-4 px-4 py-4">
+            <div>
+                <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Weekly Hour Adjustment Report</h2>
+                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    View a dedicated report of weekly-hour overrides tracked separately from timecards.
+                </p>
+            </div>
+            <a
+                href="{{ route('admin.payroll.reports.weekly-hour-adjustments', ['week_start' => $weekStart]) }}"
+                class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                wire:navigate
+            >
+                Open Report
+            </a>
         </div>
     </div>
 

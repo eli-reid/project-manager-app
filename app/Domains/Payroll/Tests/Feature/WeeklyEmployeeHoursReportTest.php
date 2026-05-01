@@ -31,6 +31,23 @@ it('forbids unauthorized users from accessing weekly employee hours report', fun
         ->assertForbidden();
 });
 
+it('allows authorized users to access weekly hour adjustment report', function (): void {
+    $user = User::factory()->create(['is_admin' => true]);
+
+    $this->actingAs($user)
+        ->get(route('admin.payroll.reports.weekly-hour-adjustments'))
+        ->assertSuccessful()
+        ->assertSee('Weekly Hour Adjustment Report');
+});
+
+it('forbids unauthorized users from accessing weekly hour adjustment report', function (): void {
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $this->actingAs($user)
+        ->get(route('admin.payroll.reports.weekly-hour-adjustments'))
+        ->assertForbidden();
+});
+
 it('displays approved timecards for selected week', function (): void {
     $admin = User::factory()->create(['is_admin' => true]);
     $employee = User::factory()->create();
@@ -205,9 +222,7 @@ it('allows admin to adjust weekly employee hours without changing timecard entri
         ->set('editHours.'.$employee->id, '18.50')
         ->set('editReasons.'.$employee->id, 'Manual payroll correction for approved off-cycle work')
         ->call('saveAdjustment', $employee->id)
-        ->assertHasNoErrors()
-        ->assertSee('18.50')
-        ->assertSee('Adjusted');
+        ->assertHasNoErrors();
 
     $adjustment = WeeklyEmployeeHoursAdjustment::query()
         ->whereDate('week_start', $weekStart->toDateString())
@@ -272,4 +287,26 @@ it('clears adjustment when adjusted hours are reset to source hours', function (
         ->exists())->toBeFalse();
 
     expect(AuditLog::query()->where('action', 'payroll.weekly-hours.adjustment.cleared')->exists())->toBeTrue();
+});
+
+it('shows weekly hour adjustments in dedicated report view', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $employee = User::factory()->create();
+    $weekStart = CarbonImmutable::parse('2026-03-30')->startOfWeek(CarbonImmutable::SUNDAY);
+
+    WeeklyEmployeeHoursAdjustment::factory()->create([
+        'week_start' => $weekStart->toDateString(),
+        'user_id' => $employee->id,
+        'source_hours' => 16.0,
+        'adjusted_hours' => 18.5,
+        'reason' => 'Payroll correction for approved manual work',
+        'edited_by_id' => $admin->id,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.payroll.reports.weekly-hour-adjustments', ['week_start' => $weekStart->toDateString()]))
+        ->assertSuccessful()
+        ->assertSee($employee->first_name)
+        ->assertSee('18.50')
+        ->assertSee('Payroll correction for approved manual work');
 });

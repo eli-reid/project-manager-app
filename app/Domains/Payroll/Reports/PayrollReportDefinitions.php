@@ -71,6 +71,17 @@ class PayrollReportDefinitions
                 'sort' => 25,
                 'ability' => 'payroll-runs.preview',
             ],
+            [
+                'key' => 'operational.payroll-weekly-hour-adjustments',
+                'section' => 'operational',
+                'title' => 'Weekly Hour Adjustment Report',
+                'description' => 'Review weekly hour overrides that are tracked separately from timecards.',
+                'route' => 'admin.payroll.reports.weekly-hour-adjustments',
+                'badge_label' => 'Payroll',
+                'badge_color' => 'orange',
+                'sort' => 26,
+                'ability' => 'payroll-runs.preview',
+            ],
         ];
     }
 }
