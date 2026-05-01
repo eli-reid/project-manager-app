@@ -3,6 +3,8 @@
 namespace App\Domains\Dailies\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Data\WidgetDefinition;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;
@@ -19,14 +21,32 @@ class DailiesServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
+        $this->registerDashboardWidgets($widgetRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
+    }
+
+    private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
+    {
+        $widgetRegistry->registerDefinitions([
+            new WidgetDefinition(
+                key: 'dailies.field-summary',
+                component: 'dailies::dashboard.widget',
+                section: 'operations',
+                sort: 25,
+                span: 'half',
+                ability: 'viewAny',
+                abilityModel: DailyReport::class,
+                title: 'Daily Reports',
+                description: 'Draft and submitted daily report activity.',
+            ),
+        ]);
     }
 
     private function registerAuthorization(): void

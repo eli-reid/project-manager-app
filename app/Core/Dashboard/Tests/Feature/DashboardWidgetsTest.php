@@ -9,6 +9,8 @@ use App\Core\Scheduler\Livewire\Dashboard\Widget as SchedulerWidget;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Dailies\Livewire\Dashboard\Widget as DailyReportWidget;
+use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
 use App\Domains\Projects\Livewire\Dashboard\Widget as ProjectWidget;
 use App\Domains\Projects\Models\Project;
@@ -109,6 +111,24 @@ it('the scheduler widget is in the admin section with full span', function (): v
     expect($widget)->not->toBeNull()
         ->and($widget['section'])->toBe('admin')
         ->and($widget['span'])->toBe('full');
+});
+
+it('the dailies widget is registered in the container registry', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $keys = collect($registry->all())->pluck('key')->all();
+
+    expect($keys)->toContain('dailies.field-summary');
+});
+
+it('the dailies widget is in the operations section with half span', function (): void {
+    $registry = app(DashboardWidgetRegistry::class);
+
+    $widget = collect($registry->all())->firstWhere('key', 'dailies.field-summary');
+
+    expect($widget)->not->toBeNull()
+        ->and($widget['section'])->toBe('operations')
+        ->and($widget['span'])->toBe('half');
 });
 
 // ─── Timecards Widget ─────────────────────────────────────────────────────────
@@ -215,6 +235,43 @@ it('projects widget shows active project names for an admin', function (): void 
         ->assertStatus(200)
         ->assertSee('Alpha Project')
         ->assertDontSee('Beta Project');
+});
+
+// ─── Dailies Widget ───────────────────────────────────────────────────────────
+
+it('renders the dailies widget for a user with dailies.view permission', function (): void {
+    $user = dashboardWidgetUserWithPermissions(['dailies.view']);
+
+    Livewire::actingAs($user)
+        ->test(DailyReportWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Daily Reports');
+});
+
+it('dailies widget scopes reports to the authenticated user', function (): void {
+    $user = dashboardWidgetUserWithPermissions(['dailies.view']);
+    $otherUser = User::factory()->create();
+
+    $usersProject = Project::factory()->create(['name' => 'Users Project']);
+    $otherProject = Project::factory()->create(['name' => 'Other Project']);
+
+    DailyReport::factory()->create([
+        'user_id' => $user->id,
+        'project_id' => $usersProject->id,
+        'status' => DailyReport::STATUS_SUBMITTED,
+    ]);
+
+    DailyReport::factory()->create([
+        'user_id' => $otherUser->id,
+        'project_id' => $otherProject->id,
+        'status' => DailyReport::STATUS_SUBMITTED,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(DailyReportWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Users Project')
+        ->assertDontSee('Other Project');
 });
 
 // ─── Scheduler Widget ─────────────────────────────────────────────────────────
