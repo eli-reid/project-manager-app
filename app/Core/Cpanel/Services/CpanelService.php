@@ -649,6 +649,7 @@ class CpanelService
             $result = $this->request('Session', 'create_webmail_session_for_mail_user', 'get', [
                 'login' => $loginPart,
                 'domain' => $domainPart,
+                'app' => 'roundcube',
             ]);
 
             $url = (string) ($result['data']['url'] ?? '');

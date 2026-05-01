@@ -40,7 +40,11 @@ class WebmailController
             return response(view('cpanel::webmail.auto-login', [
                 'loginUrl' => $result['login_url'],
                 'session' => $result['session'],
-            ]));
+            ]))
+                // Prevent stale one-time sessions from being cached by browsers/proxies.
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
         }
 
         if ($result['success'] && isset($result['url'])) {

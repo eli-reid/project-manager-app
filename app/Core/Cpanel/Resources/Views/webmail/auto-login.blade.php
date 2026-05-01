@@ -7,6 +7,10 @@
 <body>
 <form id="webmail-login" method="POST" action="{{ $loginUrl }}">
     <input type="hidden" name="session" value="{{ $session }}">
+    <noscript>
+        <p>JavaScript is required to auto-login to webmail.</p>
+    </noscript>
+    <button type="submit">Continue to Webmail</button>
 </form>
 <script>document.getElementById('webmail-login').submit();</script>
 </body>
