@@ -78,3 +78,23 @@ test('forced password change validates password confirmation mismatch', function
     expect(Hash::check('password', $user->fresh()->password))->toBeTrue()
         ->and($user->fresh()->password_change_required)->toBeTrue();
 });
+
+test('middleware does not redirect standard livewire update endpoint requests', function () {
+    $user = User::factory()->create([
+        'password_change_required' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->post('/livewire/update', [])
+        ->assertNotFound();
+});
+
+test('middleware does not redirect versioned livewire endpoint requests', function () {
+    $user = User::factory()->create([
+        'password_change_required' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->post('/livewire-a66a1e2c/update', [])
+        ->assertNotFound();
+});

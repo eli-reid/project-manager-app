@@ -31,14 +31,28 @@ class EnsurePasswordChanged
 
     private function shouldPassThrough(Request $request): bool
     {
+        if ($this->isLivewireRequest($request)) {
+            return true;
+        }
+
         return $request->routeIs('password.*')
             || $request->routeIs('logout')
             || $request->routeIs('verification.*')
             || $request->routeIs('two-factor.*')
-            || $request->is('livewire/*')
             || $request->is('logout')
             || $request->is('telescope')
             || $request->is('telescope/*')
             || $request->is('up');
+    }
+
+    private function isLivewireRequest(Request $request): bool
+    {
+        if ($request->hasHeader('X-Livewire') || $request->hasHeader('X-Livewire-Navigate')) {
+            return true;
+        }
+
+        return $request->routeIs('livewire.*')
+            || $request->is('livewire/*')
+            || $request->is('livewire-*/*');
     }
 }
