@@ -76,6 +76,7 @@ class PayrollServiceProvider extends ServiceProvider
         Gate::define('payroll-runs.approve', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.approve'));
         Gate::define('payroll-runs.finalize', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.finalize'));
         Gate::define('payroll-runs.void', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.void'));
+        Gate::define('payroll-runs.adjust-hours', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-runs.adjust-hours'));
         Gate::define('payroll-stubs.view-own', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-stubs.view-own'));
         Gate::define('payroll-stubs.view-all', fn ($user): bool => $user->isAdmin() || $user->hasPermission('payroll-stubs.view-all'));
 

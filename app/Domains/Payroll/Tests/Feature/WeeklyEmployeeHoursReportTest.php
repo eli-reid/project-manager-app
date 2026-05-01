@@ -1,8 +1,10 @@
 <?php
 
+use App\Core\Audit\Models\AuditLog;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyEmployeeHours;
+use App\Domains\Payroll\Models\WeeklyEmployeeHoursAdjustment;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use Carbon\CarbonImmutable;
@@ -172,4 +174,102 @@ it('loads weekly hours by entry dates even when stored week_starting differs fro
         ->test(WeeklyEmployeeHours::class, ['weekStart' => '2026-03-30'])
         ->assertSet('totalHours', 8.0)
         ->assertSee($employee->first_name);
+});
+
+it('allows admin to adjust weekly employee hours without changing timecard entries', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $employee = User::factory()->create();
+    $weekStart = CarbonImmutable::parse('2026-03-30')->startOfWeek(CarbonImmutable::SUNDAY);
+
+    $timecard = Timecard::factory()
+        ->for($employee, 'user')
+        ->create([
+            'week_starting' => $weekStart,
+            'week_ending' => $weekStart->endOfWeek(),
+            'status' => Timecard::STATUS_APPROVED,
+        ]);
+
+    TimecardEntry::factory()
+        ->for($timecard)
+        ->for($employee, 'user')
+        ->create(['hours' => 8.0, 'date' => $weekStart]);
+
+    TimecardEntry::factory()
+        ->for($timecard)
+        ->for($employee, 'user')
+        ->create(['hours' => 8.0, 'date' => $weekStart->addDay()]);
+
+    Livewire::actingAs($admin)
+        ->test(WeeklyEmployeeHours::class, ['weekStart' => $weekStart->toDateString()])
+        ->call('startEditing', $employee->id)
+        ->set('editHours.'.$employee->id, '18.50')
+        ->set('editReasons.'.$employee->id, 'Manual payroll correction for approved off-cycle work')
+        ->call('saveAdjustment', $employee->id)
+        ->assertHasNoErrors()
+        ->assertSee('18.50')
+        ->assertSee('Adjusted');
+
+    $adjustment = WeeklyEmployeeHoursAdjustment::query()
+        ->whereDate('week_start', $weekStart->toDateString())
+        ->where('user_id', $employee->id)
+        ->first();
+
+    expect($adjustment)->not->toBeNull()
+        ->and((float) $adjustment->source_hours)->toBe(16.0)
+        ->and((float) $adjustment->adjusted_hours)->toBe(18.5)
+        ->and($adjustment->reason)->toContain('Manual payroll correction');
+
+    expect((float) TimecardEntry::query()
+        ->where('user_id', $employee->id)
+        ->sum('hours'))->toBe(16.0);
+
+    $auditLog = AuditLog::query()
+        ->where('action', 'payroll.weekly-hours.adjusted')
+        ->where('target_id', (string) $adjustment->id)
+        ->first();
+
+    expect($auditLog)->not->toBeNull()
+        ->and($auditLog->after['adjusted_hours'] ?? null)->toBe(18.5);
+});
+
+it('clears adjustment when adjusted hours are reset to source hours', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $employee = User::factory()->create();
+    $weekStart = CarbonImmutable::parse('2026-03-30')->startOfWeek(CarbonImmutable::SUNDAY);
+
+    WeeklyEmployeeHoursAdjustment::factory()->create([
+        'week_start' => $weekStart->toDateString(),
+        'user_id' => $employee->id,
+        'source_hours' => 16.0,
+        'adjusted_hours' => 18.0,
+        'reason' => 'Initial correction',
+        'edited_by_id' => $admin->id,
+    ]);
+
+    $timecard = Timecard::factory()
+        ->for($employee, 'user')
+        ->create([
+            'week_starting' => $weekStart,
+            'status' => Timecard::STATUS_APPROVED,
+        ]);
+
+    TimecardEntry::factory()
+        ->for($timecard)
+        ->for($employee, 'user')
+        ->create(['hours' => 16.0, 'date' => $weekStart]);
+
+    Livewire::actingAs($admin)
+        ->test(WeeklyEmployeeHours::class, ['weekStart' => $weekStart->toDateString()])
+        ->call('startEditing', $employee->id)
+        ->set('editHours.'.$employee->id, '16.00')
+        ->set('editReasons.'.$employee->id, 'Reset to source hours')
+        ->call('saveAdjustment', $employee->id)
+        ->assertHasNoErrors();
+
+    expect(WeeklyEmployeeHoursAdjustment::query()
+        ->whereDate('week_start', $weekStart->toDateString())
+        ->where('user_id', $employee->id)
+        ->exists())->toBeFalse();
+
+    expect(AuditLog::query()->where('action', 'payroll.weekly-hours.adjustment.cleared')->exists())->toBeTrue();
 });

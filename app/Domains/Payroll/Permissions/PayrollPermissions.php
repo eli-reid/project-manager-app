@@ -120,6 +120,12 @@ class PayrollPermissions
         'description' => 'Void a finalized pay run (System Admin only)',
     ];
 
+    public const RUNS_ADJUST_HOURS = [
+        'resource' => 'payroll-runs',
+        'action' => 'adjust-hours',
+        'description' => 'Adjust weekly employee hour totals for payroll reporting without changing timecards',
+    ];
+
     // ─── Pay Stubs ────────────────────────────────────────────────────────────
 
     public const STUBS_VIEW_OWN = [
@@ -189,6 +195,7 @@ class PayrollPermissions
             self::RUNS_APPROVE,
             self::RUNS_FINALIZE,
             self::RUNS_VOID,
+            self::RUNS_ADJUST_HOURS,
             // Pay Stubs
             self::STUBS_VIEW_OWN,
             self::STUBS_VIEW_ALL,
