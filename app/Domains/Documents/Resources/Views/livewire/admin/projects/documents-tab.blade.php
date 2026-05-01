@@ -131,7 +131,9 @@
                     @forelse ($documents as $document)
                         <tr wire:key="project-document-{{ $document->id }}" class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                             <td class="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">{{ $document->title }}</td>
-                            <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ $document->original_name }}</td>
+                            <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">
+                                <x-ui.pdf-viewer :document="$document" />
+                            </td>
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ trim(($document->uploadedBy?->first_name ?? '').' '.($document->uploadedBy?->last_name ?? '')) ?: '—' }}</td>
                             <td class="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400">{{ $document->created_at?->format('M j, Y') ?? '—' }}</td>
                             <td class="px-4 py-3 text-right">
