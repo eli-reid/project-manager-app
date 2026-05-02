@@ -60,6 +60,10 @@ class DocumentPolicy
             return true;
         }
 
+        if (! Document::internalSharesTableExists()) {
+            return false;
+        }
+
         $hasDirectUserShare = $document->internalShares()
             ->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_USER)
             ->where('grantee_id', $user->id)
@@ -144,6 +148,10 @@ class DocumentPolicy
                 && $this->update($user, $document);
         }
 
+        if (! Document::internalSharesTableExists()) {
+            return false;
+        }
+
         return $this->manageProjectDocuments($user, $project)
             && $document->internalShares()
                 ->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_PROJECT)
@@ -174,6 +182,10 @@ class DocumentPolicy
 
     private function hasActiveProjectShareForUser(Document $document, User $user): bool
     {
+        if (! Document::internalSharesTableExists()) {
+            return false;
+        }
+
         $sharedProjectIds = $document->internalShares()
             ->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_PROJECT)
             ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))

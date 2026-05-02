@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * @mixin IdeHelperDocument
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Document extends Model
 {
     use HasFactory, HasUlids, SoftDeletes;
+
+    protected static ?bool $internalSharesTableExists = null;
 
     public const OWNER_SCOPE_USER = 'user';
 
@@ -131,6 +134,10 @@ class Document extends Model
 
     public function scopeSharedWithUser(Builder $query, string $userId): Builder
     {
+        if (! self::internalSharesTableExists()) {
+            return $query->whereRaw('1 = 0');
+        }
+
         return $query->whereHas('internalShares', function (Builder $shareQuery) use ($userId): void {
             $shareQuery->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_USER)
                 ->where('grantee_id', $userId);
@@ -139,10 +146,25 @@ class Document extends Model
 
     public function scopeSharedWithProject(Builder $query, string $projectId): Builder
     {
+        if (! self::internalSharesTableExists()) {
+            return $query->whereRaw('1 = 0');
+        }
+
         return $query->whereHas('internalShares', function (Builder $shareQuery) use ($projectId): void {
             $shareQuery->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_PROJECT)
                 ->where('grantee_id', $projectId);
         });
+    }
+
+    public static function internalSharesTableExists(): bool
+    {
+        if (self::$internalSharesTableExists !== null) {
+            return self::$internalSharesTableExists;
+        }
+
+        self::$internalSharesTableExists = Schema::hasTable('document_internal_shares');
+
+        return self::$internalSharesTableExists;
     }
 
     public function isUserOwned(): bool
