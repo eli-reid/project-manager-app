@@ -4,7 +4,7 @@
             {{ $submittalCount }} {{ Str::plural('submittal', $submittalCount) }} for this project.
         </p>
         @can('create', \App\Domains\Submittals\Models\Submittal::class)
-            <a href="{{ route('submittals.create', ['project_id' => $project->id]) }}" class="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">+ New Submittal</a>
+            <a href="{{ route('submittals.create', ['projectId' => $project->id, 'returnTo' => route('admin.projects.show', ['project' => $project, 'tab' => 'submittals'], false)]) }}" class="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">+ New Submittal</a>
         @endcan
     </div>
 

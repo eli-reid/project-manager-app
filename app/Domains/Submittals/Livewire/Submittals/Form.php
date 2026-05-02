@@ -9,6 +9,7 @@ use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Models\SubmittalApproval;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -24,6 +25,9 @@ class Form extends Component
 
     #[Url]
     public string $projectId = '';
+
+    #[Url]
+    public string $returnTo = '';
 
     public string $type = '';
 
@@ -48,9 +52,13 @@ class Form extends Component
      */
     public array $documentIds = [];
 
-    public function mount(?Submittal $submittal = null, ?string $projectId = null): void
+    public function mount(?Submittal $submittal = null, ?string $projectId = null, ?string $returnTo = null): void
     {
         $this->submittal = $submittal;
+
+        if ($returnTo !== null && $this->isSafeReturnPath($returnTo)) {
+            $this->returnTo = $returnTo;
+        }
 
         if ($submittal instanceof Submittal) {
             $this->authorize('update', $submittal);
@@ -155,7 +163,7 @@ class Form extends Component
             $this->syncDocuments($this->submittal, $validated['documentIds'] ?? []);
 
             session()->flash('success', 'Submittal updated successfully.');
-            $this->redirectRoute('submittals.show', $this->submittal);
+            $this->redirectAfterSave($this->submittal);
 
             return;
         }
@@ -171,7 +179,7 @@ class Form extends Component
         $this->syncDocuments($created, $validated['documentIds'] ?? []);
 
         session()->flash('success', 'Submittal created successfully.');
-        $this->redirectRoute('submittals.show', $created);
+        $this->redirectAfterSave($created);
     }
 
     public function render()
@@ -207,7 +215,37 @@ class Form extends Component
                 ->get(['id', 'first_name', 'last_name', 'email']),
             'availableDocuments' => $availableDocuments,
             'uploadDocumentUrl' => $uploadDocumentUrl,
+            'cancelUrl' => $this->cancelUrl(),
         ]);
+    }
+
+    private function cancelUrl(): string
+    {
+        if ($this->returnTo !== '') {
+            return $this->returnTo;
+        }
+
+        if ($this->submittal instanceof Submittal) {
+            return route('submittals.show', $this->submittal);
+        }
+
+        return route('submittals.index');
+    }
+
+    private function redirectAfterSave(Submittal $submittal): void
+    {
+        if ($this->returnTo !== '') {
+            $this->redirect($this->returnTo, navigate: true);
+
+            return;
+        }
+
+        $this->redirectRoute('submittals.show', $submittal);
+    }
+
+    private function isSafeReturnPath(string $path): bool
+    {
+        return Str::startsWith($path, '/') && ! Str::startsWith($path, '//');
     }
 
     /**
