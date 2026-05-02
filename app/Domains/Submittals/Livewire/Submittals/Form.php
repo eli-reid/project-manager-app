@@ -4,6 +4,7 @@ namespace App\Domains\Submittals\Livewire\Submittals;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
+use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Models\SubmittalApproval;
@@ -14,12 +15,14 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('layouts.app')]
 #[Title('Submittal Form')]
 class Form extends Component
 {
     use AuthorizesRequests;
+    use WithFileUploads;
 
     public ?Submittal $submittal = null;
 
@@ -30,6 +33,21 @@ class Form extends Component
     public string $returnTo = '';
 
     public bool $embedded = false;
+
+    public bool $showUploadModal = false;
+
+    public string $uploadTitle = '';
+
+    public string $uploadDescription = '';
+
+    public mixed $uploadFile = null;
+
+    public int $uploadMaxKilobytes = 0;
+
+    /**
+     * @var array<int, string>
+     */
+    public array $uploadAllowedExtensions = [];
 
     public string $type = '';
 
@@ -113,6 +131,71 @@ class Form extends Component
         if ($projectId !== null && $projectId !== '') {
             $this->projectId = $projectId;
         }
+
+        $this->syncUploadConstraints();
+    }
+
+    public function openUploadModal(): void
+    {
+        if ($this->projectId === '') {
+            return;
+        }
+
+        $project = Project::query()->find($this->projectId);
+
+        if (! $project instanceof Project) {
+            return;
+        }
+
+        $this->authorize('manageProjectDocuments', [Document::class, $project]);
+
+        $this->showUploadModal = true;
+    }
+
+    public function uploadDocument(DocumentService $documentService): void
+    {
+        $project = Project::query()->find($this->projectId);
+
+        if (! $project instanceof Project) {
+            return;
+        }
+
+        $this->authorize('manageProjectDocuments', [Document::class, $project]);
+
+        $rules = $documentService->validationRules();
+
+        $this->validate([
+            'uploadTitle' => ['required', 'string', 'max:255'],
+            'uploadDescription' => ['nullable', 'string', 'max:1000'],
+            'uploadFile' => ['required', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
+        ]);
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        $document = $documentService->uploadProjectDocument(
+            $project,
+            $user,
+            $this->uploadFile,
+            [
+                'title' => $this->uploadTitle,
+                'description' => $this->uploadDescription !== '' ? $this->uploadDescription : null,
+            ]
+        );
+
+        $this->documentIds[] = (string) $document->id;
+
+        $this->resetUploadModal();
+    }
+
+    public function resetUploadModal(): void
+    {
+        $this->uploadTitle = '';
+        $this->uploadDescription = '';
+        $this->uploadFile = null;
+        $this->resetValidation(['uploadTitle', 'uploadDescription', 'uploadFile']);
+        $this->showUploadModal = false;
+        $this->dispatch('submittal-upload-reset');
     }
 
     public function addItem(): void
@@ -210,13 +293,13 @@ class Form extends Component
                 ->orderBy('title')
                 ->get(['id', 'title', 'original_name']);
 
-            if ($selectedProject instanceof Project && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject])) {
-                $uploadDocumentUrl = route('admin.projects.show', [
-                    'project' => $selectedProject,
-                    'tab' => 'documents',
-                ]);
-            }
+            $canUploadDocument = $selectedProject instanceof Project
+                && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject]);
         }
+
+        $uploadMaxFileSizeLabel = $this->uploadMaxKilobytes >= 1024
+            ? number_format($this->uploadMaxKilobytes / 1024, 1).' MB'
+            : $this->uploadMaxKilobytes.' KB';
 
         return view('submittals::livewire.user.submittals.form', [
             'projects' => $projects,
@@ -226,7 +309,10 @@ class Form extends Component
                 ->orderBy('last_name')
                 ->get(['id', 'first_name', 'last_name', 'email']),
             'availableDocuments' => $availableDocuments,
-            'uploadDocumentUrl' => $uploadDocumentUrl,
+            'canUploadDocument' => $canUploadDocument ?? false,
+            'uploadMaxFileSizeLabel' => $uploadMaxFileSizeLabel,
+            'uploadAllowedExtensionsLabel' => strtoupper(implode(', ', $this->uploadAllowedExtensions)),
+            'uploadAcceptAttribute' => collect($this->uploadAllowedExtensions)->map(fn (string $ext): string => '.'.$ext)->implode(','),
             'cancelUrl' => $this->cancelUrl(),
             'embedded' => $this->embedded,
             'isProjectLocked' => $this->embedded && $selectedProject instanceof Project,
@@ -234,6 +320,18 @@ class Form extends Component
                 ? trim($selectedProject->name.' ('.($selectedProject->project_number ?? 'N/A').')')
                 : '',
         ]);
+    }
+
+    private function syncUploadConstraints(): void
+    {
+        $rules = app(DocumentService::class)->validationRules();
+
+        $this->uploadMaxKilobytes = max(1, (int) ($rules['max_kilobytes'] ?? 10240));
+        $this->uploadAllowedExtensions = collect($rules['allowed_extensions'] ?? [])
+            ->map(fn (string $extension): string => trim(strtolower($extension)))
+            ->filter()
+            ->values()
+            ->all();
     }
 
     private function cancelUrl(): string

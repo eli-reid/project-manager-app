@@ -111,22 +111,12 @@
                         <p class="text-xs text-zinc-500 dark:text-zinc-400">Attach existing project documents to this submittal, or upload a new project document first.</p>
                     </div>
 
-                    @if ($uploadDocumentUrl)
-                        @if ($embedded)
-                            <flux:button size="sm" variant="ghost" :href="$uploadDocumentUrl" wire:navigate icon="arrow-up-tray">
-                                Upload Document
-                            </flux:button>
-                        @else
-                            <flux:button size="sm" variant="ghost" :href="$uploadDocumentUrl" target="_blank" icon="arrow-up-tray">
-                                Upload Document
-                            </flux:button>
-                        @endif
+                    @if ($canUploadDocument)
+                        <flux:button size="sm" variant="ghost" wire:click="openUploadModal" icon="arrow-up-tray">
+                            Upload Document
+                        </flux:button>
                     @endif
                 </div>
-
-                @if ($uploadDocumentUrl && ! $embedded)
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400">The upload form opens in the project documents tab in a new tab so you can return here and select the file after it saves.</p>
-                @endif
 
                 <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
                     @forelse ($availableDocuments as $document)
@@ -147,4 +137,113 @@
             <flux:button type="submit" variant="primary">Save</flux:button>
         </div>
     </form>
+
+    {{-- Inline document upload modal --}}
+    <flux:modal wire:model="showUploadModal" class="w-full max-w-xl">
+        <div
+            x-data="{
+                titleValue: $wire.entangle('uploadTitle'),
+                selectedFileName: '',
+                lastAutoTitle: '',
+                isUploading: false,
+                uploadProgress: 0,
+                fileBaseName(fileName) { return fileName.replace(/\.[^/.]+$/, '') },
+                syncSelectedFile(fileName) {
+                    this.selectedFileName = fileName
+                    if (! fileName) { return }
+                    const nextTitle = this.fileBaseName(fileName)
+                    if (this.titleValue.trim() === '' || this.titleValue === this.lastAutoTitle) {
+                        this.titleValue = nextTitle
+                        this.lastAutoTitle = nextTitle
+                    }
+                }
+            }"
+            x-on:submittal-upload-reset.window="titleValue = ''; selectedFileName = ''; lastAutoTitle = ''; isUploading = false; uploadProgress = 0; if ($refs.submittalUploadFile) $refs.submittalUploadFile.value = null"
+            x-on:livewire-upload-start="isUploading = true; uploadProgress = 0"
+            x-on:livewire-upload-finish="isUploading = false; uploadProgress = 100"
+            x-on:livewire-upload-error="isUploading = false; uploadProgress = 0"
+            x-on:livewire-upload-cancel="isUploading = false; uploadProgress = 0"
+            x-on:livewire-upload-progress="uploadProgress = $event.detail.progress"
+            class="space-y-4"
+        >
+            <flux:heading size="lg">Upload Document</flux:heading>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</label>
+                <input type="text" x-model="titleValue" class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" placeholder="Document title" />
+                @error('uploadTitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">File</label>
+                    <span class="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        Max {{ $uploadMaxFileSizeLabel }}
+                    </span>
+                </div>
+
+                <label
+                    for="submittal-upload-file"
+                    x-bind:class="isUploading ? 'pointer-events-none opacity-75' : ''"
+                    class="relative flex cursor-pointer flex-col gap-2 overflow-hidden rounded-lg border border-zinc-300 bg-white px-3 py-3 text-sm shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600"
+                >
+                    <div
+                        x-show="isUploading"
+                        class="absolute inset-y-0 left-0 bg-sky-100/80 transition-[width] duration-200 ease-out dark:bg-sky-900/30"
+                        x-bind:style="`width: ${uploadProgress}%`"
+                    ></div>
+                    <div class="relative z-10 flex flex-col gap-1">
+                        <span class="font-medium text-zinc-900 dark:text-zinc-100">Choose file</span>
+                        <span x-text="selectedFileName || 'No file selected yet.'" class="text-xs text-zinc-500 dark:text-zinc-400"></span>
+                    </div>
+                </label>
+
+                <input
+                    id="submittal-upload-file"
+                    x-ref="submittalUploadFile"
+                    type="file"
+                    wire:model="uploadFile"
+                    accept="{{ $uploadAcceptAttribute }}"
+                    x-bind:disabled="isUploading"
+                    x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? '')"
+                    class="sr-only"
+                />
+
+                <p class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">Allowed: {{ $uploadAllowedExtensionsLabel }}</p>
+
+                <div wire:loading wire:target="uploadFile" class="mt-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300">
+                    <div class="flex items-center justify-between gap-3">
+                        <span>Uploading selection...</span>
+                        <span x-text="`${uploadProgress}%`" class="font-semibold"></span>
+                    </div>
+                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-sky-200/80 dark:bg-sky-950">
+                        <div class="h-full rounded-full bg-sky-500 transition-[width] duration-200 ease-out dark:bg-sky-400" x-bind:style="`width: ${uploadProgress}%`"></div>
+                    </div>
+                </div>
+
+                @error('uploadFile') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    Description <span class="font-normal normal-case text-zinc-400">(optional)</span>
+                </label>
+                <textarea wire:model="uploadDescription" rows="2" class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" placeholder="Brief description"></textarea>
+                @error('uploadDescription') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-zinc-100 pt-4 dark:border-zinc-700">
+                <flux:button type="button" variant="ghost" wire:click="resetUploadModal">Cancel</flux:button>
+                <flux:button
+                    type="button"
+                    variant="primary"
+                    wire:click="uploadDocument"
+                    wire:loading.attr="disabled"
+                    wire:target="uploadDocument,uploadFile"
+                >
+                    Upload
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

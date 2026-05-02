@@ -89,7 +89,7 @@ it('shows an upload document action when the selected project can manage project
     get(route('submittals.create', ['projectId' => (string) $project->id]))
         ->assertSuccessful()
         ->assertSee('Upload Document')
-        ->assertSee(route('admin.projects.show', ['project' => $project, 'tab' => 'documents']), escape: false);
+        ->assertSee('openUploadModal', escape: false);
 });
 
 it('prepopulates the selected project and preserves the project-tab return link on create', function (): void {
