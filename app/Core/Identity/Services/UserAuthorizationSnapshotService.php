@@ -10,7 +10,7 @@ use Throwable;
 
 class UserAuthorizationSnapshotService
 {
-    private const SESSION_PERMISSION_SNAPSHOT_PREFIX = 'auth.permission_snapshot.';
+    private const SNAPSHOT_CACHE_PREFIX = 'auth.snapshot.';
 
     private const PERMISSION_CACHE_VERSION_KEY = 'auth.permission_cache.version';
 
@@ -26,23 +26,27 @@ class UserAuthorizationSnapshotService
 
         $cacheVersion = $this->permissionCacheVersion();
 
-        if ($this->hasSessionContext()) {
-            $snapshot = session()->get($this->sessionSnapshotKey($user));
+        try {
+            $cached = Cache::get($this->snapshotCacheKey($user));
 
-            if (is_array($snapshot)
-                && isset($snapshot['version'], $snapshot['permission_keys'], $snapshot['has_admin_role'])
-                && $snapshot['version'] === $cacheVersion
-                && is_array($snapshot['permission_keys'])
-                && is_bool($snapshot['has_admin_role'])) {
-                /** @var array{version:string, permission_keys:array<int, string>, has_admin_role:bool} $snapshot */
-                return $snapshot;
+            if (is_array($cached)
+                && isset($cached['version'], $cached['permission_keys'], $cached['has_admin_role'])
+                && $cached['version'] === $cacheVersion
+                && is_array($cached['permission_keys'])
+                && is_bool($cached['has_admin_role'])) {
+                /** @var array{version:string, permission_keys:array<int, string>, has_admin_role:bool} $cached */
+                return $cached;
             }
+        } catch (Throwable) {
+            // Fall through to rebuild if cache is unavailable.
         }
 
         $snapshot = $this->buildAuthorizationSnapshot($user, $cacheVersion);
 
-        if ($this->hasSessionContext()) {
-            session()->put($this->sessionSnapshotKey($user), $snapshot);
+        try {
+            Cache::forever($this->snapshotCacheKey($user), $snapshot);
+        } catch (Throwable) {
+            // Ignore cache-store availability errors; snapshot will be rebuilt next request.
         }
 
         return $snapshot;
@@ -50,8 +54,10 @@ class UserAuthorizationSnapshotService
 
     public function flush(User $user): void
     {
-        if ($this->hasSessionContext()) {
-            session()->forget($this->sessionSnapshotKey($user));
+        try {
+            Cache::forget($this->snapshotCacheKey($user));
+        } catch (Throwable) {
+            // Ignore cache-store availability errors.
         }
     }
 
@@ -95,24 +101,9 @@ class UserAuthorizationSnapshotService
         ];
     }
 
-    private function sessionSnapshotKey(User $user): string
+    private function snapshotCacheKey(User $user): string
     {
-        return self::SESSION_PERMISSION_SNAPSHOT_PREFIX.(string) $user->getAuthIdentifier();
-    }
-
-    private function hasSessionContext(): bool
-    {
-        if (! app()->bound('session')) {
-            return false;
-        }
-
-        try {
-            session()->getName();
-
-            return true;
-        } catch (Throwable) {
-            return false;
-        }
+        return self::SNAPSHOT_CACHE_PREFIX.(string) $user->getAuthIdentifier();
     }
 
     private function permissionCacheVersion(): string
