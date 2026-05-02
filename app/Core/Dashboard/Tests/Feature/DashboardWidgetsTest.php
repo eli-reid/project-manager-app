@@ -145,6 +145,20 @@ it('renders dashboard widgets with consistent span classes', function (): void {
         ->assertSee('lg:col-span-6', false);
 });
 
+it('expands single-widget sections to full width', function (): void {
+    $user = User::factory()->create([
+        'is_admin' => false,
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('lg:grid-cols-6', false)
+        ->assertSee('lg:col-span-6', false)
+        ->assertDontSee('lg:col-span-3', false);
+});
+
 // ─── Timecards Widget ─────────────────────────────────────────────────────────
 
 it('renders the timecards widget for a user with timecards.view permission', function (): void {

@@ -1,24 +1,24 @@
-<section class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-    <div class="mb-4 flex items-start justify-between gap-4">
-        <div>
-            <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                {{ __('Active Projects') }}
-                @if ($total > 0)
-                    <span class="ml-1.5 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">
-                        {{ $total }}
-                    </span>
-                @endif
-            </h3>
-            <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Currently active projects.') }}</p>
-        </div>
+<x-dashboard.widget-card :subheading="__('Currently active projects.')">
+    <x-slot:title>
+        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            {{ __('Active Projects') }}
+            @if ($total > 0)
+                <span class="ml-1.5 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">
+                    {{ $total }}
+                </span>
+            @endif
+        </h3>
+    </x-slot:title>
+
+    <x-slot:action>
         <a
             href="{{ route('projects.index') }}"
-            class="shrink-0 text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+            class="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             wire:navigate
         >
             {{ __('View all') }}
         </a>
-    </div>
+    </x-slot:action>
 
     @forelse ($projects as $project)
         <a
@@ -47,4 +47,4 @@
             {{ __('+ :count more', ['count' => $total - $projects->count()]) }}
         </p>
     @endif
-</section>
+</x-dashboard.widget-card>
