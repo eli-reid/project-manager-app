@@ -11,6 +11,7 @@ use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Database\Factories\ProjectFactory;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
+use DomainException;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Project extends Model
 {
     use HasFactory, HasUlids, SoftDeletes;
+
+    public const BUILT_IN_SICK_PROJECT_NUMBER = 'LEAVE-SICK';
+
+    public const BUILT_IN_VACATION_PROJECT_NUMBER = 'LEAVE-VACATION';
 
     private const PROJECT_NUMBER_PADDING = 4;
 
@@ -81,6 +86,26 @@ class Project extends Model
             }
 
             $project->project_number = self::nextAutoProjectNumber();
+        });
+
+        static::updating(function (Project $project): void {
+            if (! $project->isBuiltInLeaveProject()) {
+                return;
+            }
+
+            if ($project->isDirty('project_number')) {
+                throw new DomainException('Built-in leave projects cannot change project number.');
+            }
+
+            if ($project->isDirty('leave_category')) {
+                throw new DomainException('Built-in leave projects cannot change leave category.');
+            }
+        });
+
+        static::deleting(function (Project $project): void {
+            if ($project->isBuiltInLeaveProject()) {
+                throw new DomainException('Built-in leave projects cannot be deleted.');
+            }
         });
     }
 
@@ -161,6 +186,14 @@ class Project extends Model
     public function isLeaveProject(): bool
     {
         return filled($this->leave_category);
+    }
+
+    public function isBuiltInLeaveProject(): bool
+    {
+        return in_array($this->project_number, [
+            self::BUILT_IN_SICK_PROJECT_NUMBER,
+            self::BUILT_IN_VACATION_PROJECT_NUMBER,
+        ], true);
     }
 
     public function userAccesses(): HasMany
