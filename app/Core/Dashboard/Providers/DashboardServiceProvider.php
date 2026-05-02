@@ -5,6 +5,7 @@ namespace App\Core\Dashboard\Providers;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\View as ViewInstance;
@@ -24,7 +25,10 @@ class DashboardServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        View::composer(['dashboard', 'mobile.dashboard'], function (ViewInstance $view): void {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'dashboard');
+        $this->registerRoutes();
+
+        View::composer(['dashboard::index', 'dashboard::mobile.index'], function (ViewInstance $view): void {
             try {
                 /** @var DashboardWidgetRegistry $registry */
                 $registry = $this->app->make(DashboardWidgetRegistry::class);
@@ -74,5 +78,11 @@ class DashboardServiceProvider extends ServiceProvider
                 $view->with('sections', []);
             }
         });
+    }
+
+    private function registerRoutes(): void
+    {
+        Route::middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/web.php');
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 it('includes timecards and dailies in the time management admin navbar', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../resources/views/layouts/time-management-admin.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../app/Domains/Timecards/Resources/Views/layouts/time-management-admin.blade.php');
 
     expect($view)->toContain(":href=\"route('admin.timecards.index')\"");
     expect($view)->toContain(":current=\"request()->routeIs('admin.timecards.*')\"");

@@ -2,12 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
-    Route::view('mobile/dashboard', 'mobile.dashboard')->name('mobile.dashboard');
-});
+    return view('user::auth.login');
+})->name('home');
 
 if (app()->environment('local')) {
 }

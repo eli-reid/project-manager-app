@@ -3,6 +3,21 @@
 use App\Core\Identity\Models\User;
 use Laravel\Fortify\Features;
 
+test('home route renders the login screen for guests', function () {
+    $response = $this->get(route('home'));
+
+    $response->assertSuccessful()
+        ->assertSee('Log in to your account');
+});
+
+test('authenticated users are redirected from home to dashboard', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertRedirect(route('dashboard', absolute: false));
+});
+
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
 

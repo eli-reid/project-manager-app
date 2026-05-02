@@ -9,7 +9,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.stock-invoices-admin')]
+#[Layout('stock::layouts.stock-invoices-admin')]
 #[Title('Stock Order Templates')]
 class Index extends Component
 {

@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.time-management-admin')]
+#[Layout('timecards::layouts.time-management-admin')]
 #[Title('Timecard Review')]
 class Show extends Component
 {
