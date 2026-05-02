@@ -106,10 +106,6 @@ class Form extends Component
             return;
         }
 
-        if (! $this->embedded) {
-            $this->authorize('create', Submittal::class);
-        }
-
         $this->items = [$this->emptyItemRow()];
 
         if ($projectId !== null && $projectId !== '') {
@@ -166,6 +162,8 @@ class Form extends Component
         ];
 
         if ($this->submittal instanceof Submittal) {
+            $this->authorize('update', $this->submittal);
+
             $this->submittal->update($payload);
             $this->syncItems($this->submittal, $validated['items']);
             $this->syncApprovals($this->submittal, $validated['reviewerIds']);
@@ -176,6 +174,8 @@ class Form extends Component
 
             return;
         }
+
+        $this->authorize('create', Submittal::class);
 
         $created = Submittal::query()->create([
             ...$payload,
