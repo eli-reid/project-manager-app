@@ -64,6 +64,8 @@ it('creates a payroll profile from the user edit widget', function (): void {
         ->set('profile_hire_date', '2026-01-01')
         ->set('profile_status', 'active')
         ->set('profile_pay_type', 'hourly')
+        ->set('profile_sick_hours_allowance', '56')
+        ->set('profile_vacation_hours_allowance', '120')
         ->set('profile_direct_deposit_active', true)
         ->call('createPayrollProfile')
         ->assertHasNoErrors();
@@ -72,6 +74,8 @@ it('creates a payroll profile from the user edit widget', function (): void {
         'user_id' => $managedUser->id,
         'employee_number' => 'EMP-1001',
         'job_classification' => 'Laborer',
+        'sick_hours_allowance' => 56.0,
+        'vacation_hours_allowance' => 120.0,
     ])->exists())->toBeTrue();
 });
 
@@ -143,6 +147,8 @@ it('updates an existing payroll profile from the user edit widget', function ():
         ->set('profile_pay_type', 'salary')
         ->set('profile_department', 'Field')
         ->set('profile_union_code', 'UN-7')
+        ->set('profile_sick_hours_allowance', '72.5')
+        ->set('profile_vacation_hours_allowance', '144')
         ->set('profile_direct_deposit_active', true)
         ->set('profile_ssn', '')
         ->call('updatePayrollProfile')
@@ -156,6 +162,8 @@ it('updates an existing payroll profile from the user edit widget', function ():
         ->and($profile->pay_type)->toBe('salary')
         ->and($profile->department)->toBe('Field')
         ->and($profile->union_code)->toBe('UN-7')
+        ->and($profile->sick_hours_allowance)->toBe(72.5)
+        ->and($profile->vacation_hours_allowance)->toBe(144.0)
         ->and($profile->direct_deposit_active)->toBeTrue();
 });
 

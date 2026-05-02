@@ -89,6 +89,10 @@ class Form extends Component
 
     public bool $profile_direct_deposit_active = false;
 
+    public string $profile_sick_hours_allowance = '0.00';
+
+    public string $profile_vacation_hours_allowance = '0.00';
+
     public function boot(CreateInvitedUser $createInvitedUser): void
     {
         $this->createInvitedUser = $createInvitedUser;
@@ -266,6 +270,8 @@ class Form extends Component
             'job_classification' => $validated['profile_job_classification'],
             'union_code' => ($validated['profile_union_code'] ?? '') !== '' ? $validated['profile_union_code'] : null,
             'direct_deposit_active' => (bool) $validated['profile_direct_deposit_active'],
+            'sick_hours_allowance' => (float) $validated['profile_sick_hours_allowance'],
+            'vacation_hours_allowance' => (float) $validated['profile_vacation_hours_allowance'],
         ]);
 
         if ($this->canManagePayrollRates) {
@@ -303,6 +309,8 @@ class Form extends Component
             'job_classification' => $validated['profile_job_classification'],
             'union_code' => ($validated['profile_union_code'] ?? '') !== '' ? $validated['profile_union_code'] : null,
             'direct_deposit_active' => (bool) $validated['profile_direct_deposit_active'],
+            'sick_hours_allowance' => (float) $validated['profile_sick_hours_allowance'],
+            'vacation_hours_allowance' => (float) $validated['profile_vacation_hours_allowance'],
         ];
 
         if (($validated['profile_ssn'] ?? '') !== '') {
@@ -366,6 +374,8 @@ class Form extends Component
             'profile_job_classification' => ['required', 'string', 'max:255'],
             'profile_union_code' => ['nullable', 'string', 'max:20'],
             'profile_direct_deposit_active' => ['boolean'],
+            'profile_sick_hours_allowance' => ['required', 'numeric', 'min:0', 'max:9999.99'],
+            'profile_vacation_hours_allowance' => ['required', 'numeric', 'min:0', 'max:9999.99'],
         ];
     }
 
@@ -391,6 +401,8 @@ class Form extends Component
         $this->profile_job_classification = '';
         $this->profile_union_code = '';
         $this->profile_direct_deposit_active = false;
+        $this->profile_sick_hours_allowance = '0.00';
+        $this->profile_vacation_hours_allowance = '0.00';
 
         if ($user->id !== '') {
             $this->profile_employee_number = 'EMP-'.strtoupper(substr($user->id, -6));
@@ -414,6 +426,8 @@ class Form extends Component
         $this->profile_job_classification = (string) $this->payrollProfile->job_classification;
         $this->profile_union_code = (string) ($this->payrollProfile->union_code ?? '');
         $this->profile_direct_deposit_active = (bool) $this->payrollProfile->direct_deposit_active;
+        $this->profile_sick_hours_allowance = number_format((float) ($this->payrollProfile->sick_hours_allowance ?? 0), 2, '.', '');
+        $this->profile_vacation_hours_allowance = number_format((float) ($this->payrollProfile->vacation_hours_allowance ?? 0), 2, '.', '');
     }
 
     protected function isSsnRequired(): bool

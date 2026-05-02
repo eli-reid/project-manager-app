@@ -171,6 +171,18 @@
                                 @error('profile_union_code') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
 
+                            <div>
+                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Sick Hours Allowance</label>
+                                <input type="number" min="0" step="0.25" wire:model.live="profile_sick_hours_allowance" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                @error('profile_sick_hours_allowance') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Vacation Hours Allowance</label>
+                                <input type="number" min="0" step="0.25" wire:model.live="profile_vacation_hours_allowance" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                @error('profile_vacation_hours_allowance') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
                             <div class="md:col-span-2">
                                 <label class="inline-flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
                                     <input type="checkbox" wire:model.live="profile_direct_deposit_active" class="rounded border-zinc-300 text-zinc-900 dark:border-zinc-700" />
@@ -264,6 +276,18 @@
                                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Union Code (optional)</label>
                                 <input type="text" wire:model.live="profile_union_code" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
                                 @error('profile_union_code') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Sick Hours Allowance</label>
+                                <input type="number" min="0" step="0.25" wire:model.live="profile_sick_hours_allowance" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                @error('profile_sick_hours_allowance') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Vacation Hours Allowance</label>
+                                <input type="number" min="0" step="0.25" wire:model.live="profile_vacation_hours_allowance" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                @error('profile_vacation_hours_allowance') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="md:col-span-2">
