@@ -87,10 +87,9 @@ class Form extends Component
         } else {
             $this->authorize('create', Announcement::class);
 
-            Announcement::query()->create([
-                ...$validated,
-                'created_by' => (string) Auth::id(),
-            ]);
+            $announcement = new Announcement($validated);
+            $announcement->created_by = (string) Auth::id();
+            $announcement->save();
 
             session()->flash('success', 'Announcement created successfully.');
         }

@@ -11,8 +11,19 @@
         @forelse ($announcements as $announcement)
             <article wire:key="dashboard-announcement-{{ $announcement->id }}" class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
                 <div class="mb-1 flex items-center justify-between gap-2">
-                    <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $announcement->title }}</h3>
-                    <span class="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{{ $announcement->type->label() }}</span>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $announcement->title }}</h3>
+                        <span class="rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide {{ $announcement->type->badgeClass() }}">{{ $announcement->type->label() }}</span>
+                    </div>
+                    @if ($announcement->is_dismissable)
+                        <button
+                            type="button"
+                            wire:click="dismissAnnouncement('{{ $announcement->id }}')"
+                            class="rounded-md border border-zinc-300 px-2 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                        >
+                            {{ __('Dismiss') }}
+                        </button>
+                    @endif
                 </div>
                 <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ $announcement->content }}</p>
             </article>

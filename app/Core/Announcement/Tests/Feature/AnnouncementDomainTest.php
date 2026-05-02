@@ -3,6 +3,7 @@
 use App\Core\Announcement\Enums\AnnouncementType;
 use App\Core\Announcement\Livewire\Admin\Announcements\Form;
 use App\Core\Announcement\Livewire\Admin\Announcements\Index;
+use App\Core\Announcement\Livewire\Dashboard\Widget;
 use App\Core\Announcement\Models\Announcement;
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
@@ -42,6 +43,66 @@ it('forbids users without announcement permissions from admin index', function (
     $this->actingAs($user)
         ->get(route('admin.announcements.index'))
         ->assertForbidden();
+});
+
+it('returns announcements from the api for users with announcement view permission', function (): void {
+    $user = announcementUserWithPermissions(['announcements.view']);
+
+    Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'API Visible',
+        'content' => 'Visible through api.',
+        'type' => AnnouncementType::Warning,
+        'is_active' => true,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    $dismissedAnnouncement = Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'Dismissed API Announcement',
+        'content' => 'Dismissed before loading the api.',
+        'type' => AnnouncementType::Info,
+        'is_active' => true,
+        'is_dismissable' => true,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    $dismissedAnnouncement->dismissFor($user);
+
+    $response = $this->actingAs($user)
+        ->getJson(route('api.announcements.index'));
+
+    $response->assertSuccessful()
+        ->assertJsonStructure([
+            'data' => [[
+                'id',
+                'title',
+                'content',
+                'type',
+                'is_dismissable',
+                'start_date',
+                'end_date',
+                'created_at',
+            ]],
+        ])
+        ->assertJsonPath('data.0.title', 'API Visible')
+        ->assertJsonPath('data.0.type', AnnouncementType::Warning->value)
+        ->assertJsonCount(1, 'data');
+});
+
+it('forbids announcement api access without announcement view permission', function (): void {
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $this->actingAs($user)
+        ->getJson(route('api.announcements.index'))
+        ->assertForbidden();
+});
+
+it('requires authentication for the announcement api', function (): void {
+    $this->getJson(route('api.announcements.index'))
+        ->assertUnauthorized();
 });
 
 it('stores announcements with validated data through livewire form', function (): void {
@@ -129,6 +190,129 @@ it('returns only active announcements for active scope', function (): void {
     $titles = Announcement::query()->active()->pluck('title')->all();
 
     expect($titles)->toBe(['Visible']);
+});
+
+it('excludes soft deleted announcements from the active scope', function (): void {
+    $user = User::factory()->create();
+
+    $announcement = Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'Soft Deleted',
+        'is_active' => true,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    $announcement->delete();
+
+    expect(Announcement::query()->active()->pluck('title')->all())->toBe([]);
+});
+
+it('hides dismissed announcements from the dashboard widget for the dismissing user', function (): void {
+    $user = announcementUserWithPermissions(['announcements.view']);
+
+    $dismissableAnnouncement = Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'Dismiss Me',
+        'content' => 'Dismissable content.',
+        'is_active' => true,
+        'is_dismissable' => true,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'Keep Me',
+        'content' => 'Still visible content.',
+        'is_active' => true,
+        'is_dismissable' => false,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Widget::class)
+        ->assertSee('Dismiss Me')
+        ->assertSee('Keep Me')
+        ->call('dismissAnnouncement', (string) $dismissableAnnouncement->id)
+        ->assertDontSee('Dismiss Me')
+        ->assertSee('Keep Me');
+
+    $this->assertDatabaseHas('announcement_user_dismissals', [
+        'announcement_id' => (string) $dismissableAnnouncement->id,
+        'user_id' => (string) $user->id,
+    ]);
+
+    $this->get(route('announcements.index'))
+        ->assertSuccessful()
+        ->assertDontSee('Dismiss Me')
+        ->assertSee('Keep Me');
+});
+
+it('ignores dismissal requests for announcements that are not dismissable', function (): void {
+    $user = announcementUserWithPermissions(['announcements.view']);
+
+    $announcement = Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'Cannot Dismiss',
+        'is_active' => true,
+        'is_dismissable' => false,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Widget::class)
+        ->call('dismissAnnouncement', (string) $announcement->id)
+        ->assertSee('Cannot Dismiss');
+
+    $this->assertDatabaseMissing('announcement_user_dismissals', [
+        'announcement_id' => (string) $announcement->id,
+        'user_id' => (string) $user->id,
+    ]);
+});
+
+it('excludes expired announcements from the active scope', function (): void {
+    $user = User::factory()->create();
+
+    Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'Expired',
+        'is_active' => true,
+        'start_date' => now()->subDays(2),
+        'end_date' => now()->subMinute(),
+    ]);
+
+    Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'Still Active',
+        'is_active' => true,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    $titles = Announcement::query()->active()->pluck('title')->all();
+
+    expect($titles)->toBe(['Still Active']);
+});
+
+it('includes announcements with null end_date in the active scope', function (): void {
+    $user = User::factory()->create();
+
+    Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'No Expiry',
+        'is_active' => true,
+        'start_date' => now()->subHour(),
+        'end_date' => null,
+    ]);
+
+    $titles = Announcement::query()->active()->pluck('title')->all();
+
+    expect($titles)->toBe(['No Expiry']);
 });
 
 /**

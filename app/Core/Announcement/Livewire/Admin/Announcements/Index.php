@@ -35,7 +35,7 @@ class Index extends Component
     {
         return view('announcement::livewire.admin.announcements.index', [
             'announcements' => Announcement::query()
-                ->with('creator:id,first_name,last_name')
+                ->withCreator()
                 ->latest()
                 ->paginate(10),
         ]);

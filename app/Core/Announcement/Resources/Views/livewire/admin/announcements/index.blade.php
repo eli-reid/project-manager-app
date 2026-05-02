@@ -30,7 +30,9 @@
                     @forelse ($announcements as $announcement)
                         <tr wire:key="announcement-{{ $announcement->id }}">
                             <td class="px-4 py-3 align-top text-sm text-zinc-900 dark:text-zinc-100">{{ $announcement->title }}</td>
-                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $announcement->type->label() }}</td>
+                            <td class="px-4 py-3 align-top">
+                                <span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide {{ $announcement->type->badgeClass() }}">{{ $announcement->type->label() }}</span>
+                            </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $announcement->is_active ? 'Active' : 'Inactive' }}</td>
                             <td class="px-4 py-3 align-top">
                                 <x-ui.row-actions-dropdown label="Announcement actions" width="w-36" :menu-height="130">

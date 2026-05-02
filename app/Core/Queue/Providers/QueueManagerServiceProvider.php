@@ -87,7 +87,7 @@ class QueueManagerServiceProvider extends ServiceProvider
             ->group(__DIR__.'/../Routes/mobile.php');
 
         Route::prefix('api')
-            ->middleware(['api', 'auth:sanctum'])
+            ->middleware(['api', 'auth'])
             ->group(__DIR__.'/../Routes/api.php');
     }
 }

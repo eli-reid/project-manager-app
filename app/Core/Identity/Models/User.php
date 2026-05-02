@@ -3,6 +3,7 @@
 namespace App\Core\Identity\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Core\Announcement\Models\Announcement;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\User\Database\Factories\UserFactory;
 use App\Core\Identity\Services\UserAuthorizationSnapshotService;
@@ -113,6 +114,13 @@ class User extends Authenticatable
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')->withTimestamps();
+    }
+
+    public function dismissedAnnouncements(): BelongsToMany
+    {
+        return $this->belongsToMany(Announcement::class, 'announcement_user_dismissals', 'user_id', 'announcement_id')
+            ->withPivot('dismissed_at')
+            ->withTimestamps();
     }
 
     public function notificationPreferences(): HasMany
