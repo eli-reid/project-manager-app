@@ -1,0 +1,62 @@
+{
+    "name": "Project Manager App",
+    "short_name": "PM App",
+    "description": "Mobile workspace for dashboard, timecards, projects, dailies, stock orders, and documents.",
+    "start_url": "/mobile/dashboard",
+    "display": "standalone",
+    "background_color": "#171717",
+    "theme_color": "#171717",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "en-US",
+    "categories": ["business", "productivity"],
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "url": "/mobile/dashboard",
+            "icons": [
+                {
+                    "src": "/apple-touch-icon.png",
+                    "sizes": "180x180"
+                }
+            ]
+        },
+        {
+            "name": "Timecards",
+            "short_name": "Timecards",
+            "url": "/timecards/mobile",
+            "icons": [
+                {
+                    "src": "/apple-touch-icon.png",
+                    "sizes": "180x180"
+                }
+            ]
+        },
+        {
+            "name": "Projects",
+            "short_name": "Projects",
+            "url": "/projects",
+            "icons": [
+                {
+                    "src": "/apple-touch-icon.png",
+                    "sizes": "180x180"
+                }
+            ]
+        }
+    ]
+}

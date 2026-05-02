@@ -22,7 +22,7 @@ class DashboardServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        View::composer('dashboard', function (ViewInstance $view): void {
+        View::composer(['dashboard', 'mobile.dashboard'], function (ViewInstance $view): void {
             /** @var DashboardWidgetRegistry $registry */
             $registry = $this->app->make(DashboardWidgetRegistry::class);
 

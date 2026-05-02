@@ -37,7 +37,13 @@ it('redirects guests from user project routes', function (): void {
     $this->get(route('projects.index'))
         ->assertRedirect(route('login'));
 
+    $this->get(route('projects.mobile.index'))
+        ->assertRedirect(route('login'));
+
     $this->get(route('projects.show', $project))
+        ->assertRedirect(route('login'));
+
+    $this->get(route('projects.mobile.show', $project))
         ->assertRedirect(route('login'));
 });
 
@@ -66,7 +72,15 @@ it('forbids authenticated users without project view permission from user projec
         ->assertForbidden();
 
     $this->actingAs($user)
+        ->get(route('projects.mobile.index'))
+        ->assertForbidden();
+
+    $this->actingAs($user)
         ->get(route('projects.show', $project))
+        ->assertForbidden();
+
+    $this->actingAs($user)
+        ->get(route('projects.mobile.show', $project))
         ->assertForbidden();
 });
 
@@ -111,6 +125,11 @@ it('shows only assigned active and open projects by default on user project list
 
     $this->actingAs($user)
         ->get(route('projects.show', $visibleProject))
+        ->assertSuccessful()
+        ->assertSee('Open Job Visible');
+
+    $this->actingAs($user)
+        ->get(route('projects.mobile.index'))
         ->assertSuccessful()
         ->assertSee('Open Job Visible');
 

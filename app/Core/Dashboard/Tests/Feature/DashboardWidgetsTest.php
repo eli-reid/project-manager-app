@@ -132,12 +132,13 @@ it('the dailies widget is in the operations section with half span', function ()
 });
 
 it('renders dashboard widgets with consistent span classes', function (): void {
-    $admin = User::factory()->create([
-        'is_admin' => true,
-        'email_verified_at' => now(),
+    $user = dashboardWidgetUserWithPermissions([
+        'projects.view',
+        'dailies.view',
+        'timecards.view',
     ]);
 
-    $this->actingAs($admin)
+    $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('lg:grid-cols-6', false)

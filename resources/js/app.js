@@ -1,3 +1,6 @@
+import './mobile';
+import './pwa';
+
 /**
  * Force a full page load when navigating to auth pages.
  *

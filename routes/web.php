@@ -6,6 +6,7 @@ Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::view('mobile/dashboard', 'mobile.dashboard')->name('mobile.dashboard');
 });
 
 if (app()->environment('local')) {
