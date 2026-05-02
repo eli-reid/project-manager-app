@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Core\Identity\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
@@ -22,13 +23,24 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $isLocal = $this->app->environment('local');
 
         Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
-            return $isLocal ||
-                   $entry->isReportableException() ||
-                   $entry->isFailedRequest() ||
-                   $entry->isFailedJob() ||
-                   $entry->isScheduledTask() ||
-                   $entry->hasMonitoredTag();
+            return $this->shouldRecordEntry($entry, $isLocal);
         });
+    }
+
+    protected function shouldRecordEntry(IncomingEntry $entry, bool $isLocal): bool
+    {
+        return $isLocal
+            || $this->canAccessTelescope(Auth::user())
+            || $entry->isReportableException()
+            || $entry->isFailedRequest()
+            || $entry->isFailedJob()
+            || $entry->isScheduledTask()
+            || $entry->hasMonitoredTag();
+    }
+
+    protected function canAccessTelescope(mixed $user): bool
+    {
+        return $user instanceof User && $user->isAdmin();
     }
 
     /**
@@ -57,9 +69,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     protected function gate(): void
     {
         Gate::define('viewTelescope', function (User $user) {
-            return in_array($user->email, [
-                //
-            ]);
+            return $this->canAccessTelescope($user);
         });
     }
 }
