@@ -348,8 +348,10 @@ class Show extends Component
 
         if (in_array('documents', $tabs, true)) {
             $documentCount = Document::query()
-                ->projectOwned()
-                ->ownedByProject((string) $this->project->id)
+                ->where(function ($query): void {
+                    $query->ownedByProject((string) $this->project->id)
+                        ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject((string) $this->project->id));
+                })
                 ->count();
         }
 

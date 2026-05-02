@@ -35,12 +35,11 @@ class DocumentService
             'storage_disk' => $disk,
             'storage_path' => $storedPath,
             'owner_scope' => Document::OWNER_SCOPE_USER,
+            'owner_id' => $owner->id,
             'visibility' => Document::VISIBILITY_PRIVATE,
             'replace_mode' => $this->replaceBehavior(),
             'uploaded_by_id' => $owner->id,
         ]);
-
-        $document->ownerUsers()->sync([$owner->id]);
 
         return $document->fresh();
     }
@@ -69,12 +68,11 @@ class DocumentService
             'storage_disk' => $disk,
             'storage_path' => $storedPath,
             'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+            'owner_id' => $project->id,
             'visibility' => Document::VISIBILITY_PROJECT,
             'replace_mode' => $this->replaceBehavior(),
             'uploaded_by_id' => $actor->id,
         ]);
-
-        $document->ownerProjects()->sync([$project->id]);
 
         return $document->fresh();
     }
@@ -88,8 +86,8 @@ class DocumentService
 
         $disk = $this->storageDisk();
         $folder = $document->isProjectOwned()
-            ? 'documents/project/'.($document->ownerProjects()->value('projects.id') ?? 'unknown')
-            : 'documents/user/'.($document->ownerUsers()->value('users.id') ?? 'unknown');
+            ? 'documents/project/'.($document->owner_id ?? 'unknown')
+            : 'documents/user/'.($document->owner_id ?? 'unknown');
 
         $oldPath = $document->storage_path;
         $storedPath = $file->store($folder, $disk);

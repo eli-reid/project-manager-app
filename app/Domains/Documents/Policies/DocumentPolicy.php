@@ -4,6 +4,7 @@ namespace App\Domains\Documents\Policies;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
+use App\Domains\Documents\Models\DocumentInternalShare;
 use App\Domains\Projects\Models\Project;
 
 class DocumentPolicy
@@ -30,16 +31,46 @@ class DocumentPolicy
         }
 
         if ($document->isProjectOwned()) {
-            $project = $document->ownerProjects()->first();
+            $project = Project::query()->find($document->owner_id);
 
-            return $project !== null && $user->can('view', $project);
+            if ($project !== null && $user->can('view', $project)) {
+                return true;
+            }
+
+            $sharedProjectIds = $document->internalShares()
+                ->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_PROJECT)
+                ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                ->pluck('grantee_id');
+
+            if ($sharedProjectIds->isEmpty()) {
+                return false;
+            }
+
+            return Project::query()
+                ->whereIn('id', $sharedProjectIds->all())
+                ->get(['id'])
+                ->contains(fn (Project $sharedProject): bool => $user->can('view', $sharedProject));
         }
 
         if ($document->visibility === Document::VISIBILITY_GLOBAL) {
             return true;
         }
 
-        return $document->ownerUsers()->where('users.id', $user->id)->exists();
+        if ($document->owner_id === $user->id) {
+            return true;
+        }
+
+        $hasDirectUserShare = $document->internalShares()
+            ->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_USER)
+            ->where('grantee_id', $user->id)
+            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->exists();
+
+        if ($hasDirectUserShare) {
+            return true;
+        }
+
+        return $this->hasActiveProjectShareForUser($document, $user);
     }
 
     public function create(User $user): bool
@@ -54,14 +85,14 @@ class DocumentPolicy
         }
 
         if ($document->isProjectOwned()) {
-            $project = $document->ownerProjects()->first();
+            $project = Project::query()->find($document->owner_id);
 
             return $project !== null
                 && $user->hasPermission('documents.manage-project')
                 && $user->can('view', $project);
         }
 
-        return $document->ownerUsers()->where('users.id', $user->id)->exists();
+        return $document->owner_id === $user->id;
     }
 
     public function delete(User $user, Document $document): bool
@@ -75,28 +106,28 @@ class DocumentPolicy
         }
 
         if ($document->isProjectOwned()) {
-            $project = $document->ownerProjects()->first();
+            $project = Project::query()->find($document->owner_id);
 
             return $project !== null
                 && $user->hasPermission('documents.manage-project')
                 && $user->can('view', $project);
         }
 
-        return $document->ownerUsers()->where('users.id', $user->id)->exists();
+        return $document->owner_id === $user->id;
     }
 
     public function promoteToGlobal(User $user, Document $document): bool
     {
         return $document->isUserOwned()
             && $user->hasPermission('documents.promote-global')
-            && $document->ownerUsers()->where('users.id', $user->id)->exists();
+            && $document->owner_id === $user->id;
     }
 
     public function demoteToPrivate(User $user, Document $document): bool
     {
         return $document->isUserOwned()
             && $user->hasPermission('documents.demote-private')
-            && $document->ownerUsers()->where('users.id', $user->id)->exists();
+            && $document->owner_id === $user->id;
     }
 
     public function manageProjectDocuments(User $user, Project $project): bool
@@ -108,12 +139,18 @@ class DocumentPolicy
 
     public function attachToProject(User $user, Document $document, Project $project): bool
     {
-        if (! $document->isProjectOwned()) {
-            return false;
+        if ($document->isProjectOwned()) {
+            return $this->manageProjectDocuments($user, $project)
+                && $this->update($user, $document);
         }
 
         return $this->manageProjectDocuments($user, $project)
-            && $this->update($user, $document);
+            && $document->internalShares()
+                ->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_PROJECT)
+                ->where('grantee_id', $project->id)
+                ->where('permission_level', DocumentInternalShare::PERMISSION_ATTACH)
+                ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                ->exists();
     }
 
     public function detachFromProject(User $user, Document $document, Project $project): bool
@@ -133,5 +170,22 @@ class DocumentPolicy
         }
 
         return $this->view($user, $document);
+    }
+
+    private function hasActiveProjectShareForUser(Document $document, User $user): bool
+    {
+        $sharedProjectIds = $document->internalShares()
+            ->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_PROJECT)
+            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->pluck('grantee_id');
+
+        if ($sharedProjectIds->isEmpty()) {
+            return false;
+        }
+
+        return Project::query()
+            ->whereIn('id', $sharedProjectIds->all())
+            ->get(['id'])
+            ->contains(fn (Project $sharedProject): bool => $user->can('view', $sharedProject));
     }
 }

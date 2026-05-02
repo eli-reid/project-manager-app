@@ -288,8 +288,10 @@ class Form extends Component
             $selectedProject = $projects->firstWhere('id', $this->projectId);
 
             $availableDocuments = Document::query()
-                ->projectOwned()
-                ->ownedByProject($this->projectId)
+                ->where(function ($query): void {
+                    $query->ownedByProject($this->projectId)
+                        ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject($this->projectId));
+                })
                 ->orderBy('title')
                 ->get(['id', 'title', 'original_name']);
 
@@ -413,8 +415,10 @@ class Form extends Component
     private function syncDocuments(Submittal $submittal, array $selectedDocumentIds): void
     {
         $allowedDocumentIds = Document::query()
-            ->projectOwned()
-            ->ownedByProject((string) $submittal->project_id)
+            ->where(function ($query) use ($submittal): void {
+                $query->ownedByProject((string) $submittal->project_id)
+                    ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject((string) $submittal->project_id));
+            })
             ->whereIn('id', $selectedDocumentIds)
             ->pluck('id')
             ->values()

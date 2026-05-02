@@ -103,9 +103,8 @@ it('supports project tab full crud for project-owned documents', function (): vo
 
     expect($document)->not->toBeNull();
     expect($document?->owner_scope)->toBe(Document::OWNER_SCOPE_PROJECT);
+    expect($document?->owner_id)->toBe($project->id);
     expect($document?->visibility)->toBe(Document::VISIBILITY_PROJECT);
-    expect($document?->ownerProjects()->where('projects.id', $project->id)->exists())->toBeTrue();
-    expect($document?->ownerUsers()->exists())->toBeFalse();
 
     Livewire::test(DocumentsTab::class, ['project' => $project])
         ->call('edit', (string) $document?->id)
@@ -195,10 +194,10 @@ it('supports user promote and demote livewire interactions for user-owned docume
 
     $document = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $user->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $user->id,
     ]);
-    $document->ownerUsers()->sync([$user->id]);
 
     actingAs($user);
 
@@ -223,10 +222,10 @@ it('renders the documents page with the share panel open for an owned document',
 
     $document = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $user->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $user->id,
     ]);
-    $document->ownerUsers()->sync([$user->id]);
 
     actingAs($user);
 
@@ -243,13 +242,13 @@ it('allows owner to download their user-owned document', function (): void {
 
     $document = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $user->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $user->id,
         'storage_disk' => 'local',
         'storage_path' => 'documents/user/'.$user->id.'/download-test.pdf',
         'original_name' => 'download-test.pdf',
     ]);
-    $document->ownerUsers()->sync([$user->id]);
     Storage::disk('local')->put($document->storage_path, 'document-content');
 
     actingAs($user);
@@ -266,13 +265,13 @@ it('forbids non-owners from downloading private user-owned documents', function 
 
     $document = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $owner->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $owner->id,
         'storage_disk' => 'local',
         'storage_path' => 'documents/user/'.$owner->id.'/private-download-test.pdf',
         'original_name' => 'private-download-test.pdf',
     ]);
-    $document->ownerUsers()->sync([$owner->id]);
     Storage::disk('local')->put($document->storage_path, 'document-content');
 
     actingAs($otherUser);
@@ -290,13 +289,13 @@ it('allows authorized user to download a project-owned document', function (): v
 
     $document = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'owner_id' => $project->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $user->id,
         'storage_disk' => 'local',
         'storage_path' => 'documents/project/'.$project->id.'/project-doc.pdf',
         'original_name' => 'project-doc.pdf',
     ]);
-    $document->ownerProjects()->sync([$project->id]);
     Storage::disk('local')->put($document->storage_path, 'project-document-content');
 
     actingAs($user);
@@ -315,13 +314,13 @@ it('forbids users without project access from downloading project-owned document
 
     $document = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'owner_id' => $project->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $uploader->id,
         'storage_disk' => 'local',
         'storage_path' => 'documents/project/'.$project->id.'/restricted-doc.pdf',
         'original_name' => 'restricted-doc.pdf',
     ]);
-    $document->ownerProjects()->sync([$project->id]);
     Storage::disk('local')->put($document->storage_path, 'content');
 
     actingAs($outsider);
@@ -342,12 +341,12 @@ it('allows admins to delete any document from the admin queue', function (): voi
 
     $document = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $owner->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $owner->id,
         'storage_disk' => 'local',
         'storage_path' => 'documents/user/'.$owner->id.'/admin-delete.pdf',
     ]);
-    $document->ownerUsers()->sync([$owner->id]);
     Storage::disk('local')->put($document->storage_path, 'document');
 
     actingAs($admin);

@@ -113,9 +113,9 @@
                             </td>
                             <td class="px-4 py-3 align-top text-xs text-zinc-600 dark:text-zinc-300">
                                 @if ($document->owner_scope === \App\Domains\Documents\Models\Document::OWNER_SCOPE_PROJECT)
-                                    {{ $document->ownerProjects->first()?->name ?? '—' }}
+                                    {{ $document->ownerProject?->name ?? '—' }}
                                 @else
-                                    {{ trim(($document->ownerUsers->first()?->first_name ?? '').' '.($document->ownerUsers->first()?->last_name ?? '')) ?: '—' }}
+                                    {{ trim(($document->ownerUser?->first_name ?? '').' '.($document->ownerUser?->last_name ?? '')) ?: '—' }}
                                 @endif
                             </td>
                             <td class="px-4 py-3 align-top text-xs text-zinc-600 dark:text-zinc-300">{{ $document->storage_disk }}</td>

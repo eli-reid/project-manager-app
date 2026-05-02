@@ -21,6 +21,7 @@ return new class extends Migration
                 $table->string('storage_disk', 30)->default('local');
                 $table->string('storage_path');
                 $table->string('owner_scope', 20)->default('user');
+                $table->char('owner_id', 26);
                 $table->string('visibility', 20)->default('private');
                 $table->string('replace_mode', 20)->default('replace');
                 $table->foreignUlid('uploaded_by_id')->nullable()->constrained('users')->nullOnDelete();
@@ -28,6 +29,7 @@ return new class extends Migration
                 $table->timestamps();
                 $table->softDeletes();
 
+                $table->index(['owner_scope', 'owner_id']);
                 $table->index(['owner_scope', 'visibility']);
                 $table->index(['uploaded_by_id', 'visibility']);
                 $table->index('created_at');

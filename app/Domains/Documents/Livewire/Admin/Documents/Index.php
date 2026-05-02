@@ -65,7 +65,7 @@ class Index extends Component
         $this->authorize('manageStorage', Document::class);
 
         $documentsQuery = Document::query()
-            ->with(['uploadedBy:id,first_name,last_name', 'ownerUsers:id,first_name,last_name', 'ownerProjects:id,name,project_number'])
+            ->with(['uploadedBy:id,first_name,last_name', 'ownerUser:id,first_name,last_name', 'ownerProject:id,name,project_number'])
             ->latest();
 
         if ($this->search !== '') {

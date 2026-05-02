@@ -276,21 +276,31 @@ class DomainDemoSeeder extends Seeder
                         ])->toArray()
                     );
 
-                    $document->ownerProjects()->sync([$project->id]);
+                    $document->update([
+                        'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+                        'owner_id' => $project->id,
+                    ]);
 
                     return $document;
                 });
+
+            $userOwner = $users->random();
 
             $userDocument = Document::query()->updateOrCreate(
                 ['stored_name' => sprintf('demo-user-guide-%s.pdf', strtolower($project->project_number))],
                 DocumentFactory::new()->make([
                     'title' => $project->name.' User Guide',
+                    'owner_scope' => Document::OWNER_SCOPE_USER,
+                    'owner_id' => $userOwner->id,
                     'stored_name' => sprintf('demo-user-guide-%s.pdf', strtolower($project->project_number)),
                     'uploaded_by_id' => $users->random()->id,
                 ])->toArray()
             );
 
-            $userDocument->ownerUsers()->sync([$users->random()->id]);
+            $userDocument->update([
+                'owner_scope' => Document::OWNER_SCOPE_USER,
+                'owner_id' => $userOwner->id,
+            ]);
 
             if ($projectDocuments->isEmpty()) {
                 return;

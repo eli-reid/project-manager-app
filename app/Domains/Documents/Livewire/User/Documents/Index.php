@@ -220,7 +220,7 @@ class Index extends Component
     {
         $share = DocumentShare::query()
             ->whereKey($shareId)
-            ->whereHas('document.ownerUsers', fn ($query) => $query->where('users.id', Auth::id()))
+            ->whereHas('document', fn ($query) => $query->where('owner_scope', Document::OWNER_SCOPE_USER)->where('owner_id', Auth::id()))
             ->firstOrFail();
 
         $this->authorize('share', $share->document);
@@ -232,7 +232,7 @@ class Index extends Component
     {
         $share = DocumentShare::query()
             ->whereKey($shareId)
-            ->whereHas('document.ownerUsers', fn ($query) => $query->where('users.id', Auth::id()))
+            ->whereHas('document', fn ($query) => $query->where('owner_scope', Document::OWNER_SCOPE_USER)->where('owner_id', Auth::id()))
             ->firstOrFail();
 
         $this->authorize('share', $share->document);

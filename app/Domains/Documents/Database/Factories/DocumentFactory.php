@@ -4,6 +4,7 @@ namespace App\Domains\Documents\Database\Factories;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
+use App\Domains\Projects\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -31,6 +32,7 @@ class DocumentFactory extends Factory
             'storage_disk' => 'local',
             'storage_path' => 'documents/user/'.$name,
             'owner_scope' => Document::OWNER_SCOPE_USER,
+            'owner_id' => User::factory(),
             'visibility' => Document::VISIBILITY_PRIVATE,
             'replace_mode' => Document::REPLACE_MODE_REPLACE,
             'uploaded_by_id' => User::factory(),
@@ -48,6 +50,7 @@ class DocumentFactory extends Factory
     {
         return $this->state([
             'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+            'owner_id' => Project::factory(),
             'visibility' => Document::VISIBILITY_PROJECT,
         ]);
     }

@@ -16,8 +16,11 @@ beforeEach(function (): void {
 
 describe('share creation', function (): void {
     it('allows user to create a share with permission', function (): void {
-        $document = Document::factory()->create();
-        $document->ownerUsers()->sync([$this->user->id]);
+        $document = Document::factory()->create([
+            'owner_scope' => Document::OWNER_SCOPE_USER,
+            'owner_id' => $this->user->id,
+            'uploaded_by_id' => $this->user->id,
+        ]);
 
         $this->actingAs($this->user);
 
@@ -213,11 +216,13 @@ describe('share routes', function (): void {
         Storage::fake('local');
 
         $document = Document::factory()->create([
+            'owner_scope' => Document::OWNER_SCOPE_USER,
+            'owner_id' => $this->user->id,
+            'uploaded_by_id' => $this->user->id,
             'storage_disk' => 'local',
             'storage_path' => 'documents/user/'.$this->user->id.'/shared-download-test.pdf',
             'original_name' => 'shared-download-test.pdf',
         ]);
-        $document->ownerUsers()->sync([$this->user->id]);
 
         Storage::disk('local')->put($document->storage_path, 'shared-content');
 

@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -46,6 +46,7 @@ class Document extends Model
         'storage_disk',
         'storage_path',
         'owner_scope',
+        'owner_id',
         'visibility',
         'replace_mode',
         'uploaded_by_id',
@@ -71,21 +72,34 @@ class Document extends Model
         return $this->belongsTo(User::class, 'uploaded_by_id');
     }
 
-    public function ownerUsers(): BelongsToMany
+    public function owner(): MorphTo
     {
-        return $this->belongsToMany(User::class, 'document_user_owners', 'document_id', 'user_id')
-            ->withTimestamps();
+        return $this->morphTo(name: 'owner', type: 'owner_scope', id: 'owner_id');
     }
 
-    public function ownerProjects(): BelongsToMany
+    public function ownerUser(): BelongsTo
     {
-        return $this->belongsToMany(Project::class, 'document_project_owners', 'document_id', 'project_id')
-            ->withTimestamps();
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function ownerProject(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'owner_id');
+    }
+
+    public function externalShares(): HasMany
+    {
+        return $this->hasMany(DocumentShare::class);
     }
 
     public function shares(): HasMany
     {
-        return $this->hasMany(DocumentShare::class);
+        return $this->externalShares();
+    }
+
+    public function internalShares(): HasMany
+    {
+        return $this->hasMany(DocumentInternalShare::class);
     }
 
     public function scopeUserOwned(Builder $query): Builder
@@ -105,12 +119,30 @@ class Document extends Model
 
     public function scopeOwnedByUser(Builder $query, string $userId): Builder
     {
-        return $query->whereHas('ownerUsers', fn (Builder $ownerQuery): Builder => $ownerQuery->where('users.id', $userId));
+        return $query->where('owner_scope', self::OWNER_SCOPE_USER)
+            ->where('owner_id', $userId);
     }
 
     public function scopeOwnedByProject(Builder $query, string $projectId): Builder
     {
-        return $query->whereHas('ownerProjects', fn (Builder $ownerQuery): Builder => $ownerQuery->where('projects.id', $projectId));
+        return $query->where('owner_scope', self::OWNER_SCOPE_PROJECT)
+            ->where('owner_id', $projectId);
+    }
+
+    public function scopeSharedWithUser(Builder $query, string $userId): Builder
+    {
+        return $query->whereHas('internalShares', function (Builder $shareQuery) use ($userId): void {
+            $shareQuery->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_USER)
+                ->where('grantee_id', $userId);
+        });
+    }
+
+    public function scopeSharedWithProject(Builder $query, string $projectId): Builder
+    {
+        return $query->whereHas('internalShares', function (Builder $shareQuery) use ($projectId): void {
+            $shareQuery->where('grantee_scope', DocumentInternalShare::GRANTEE_SCOPE_PROJECT)
+                ->where('grantee_id', $projectId);
+        });
     }
 
     public function isUserOwned(): bool

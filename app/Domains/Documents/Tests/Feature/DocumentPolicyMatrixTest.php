@@ -21,16 +21,16 @@ it('applies document view policy matrix for user-owned visibility', function ():
 
     $privateDocument = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $owner->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $owner->id,
     ]);
-    $privateDocument->ownerUsers()->sync([$owner->id]);
 
     $globalDocument = Document::factory()->global()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $owner->id,
         'uploaded_by_id' => $owner->id,
     ]);
-    $globalDocument->ownerUsers()->sync([$owner->id]);
 
     expect($owner->can('view', $privateDocument))->toBeTrue();
     expect($owner->can('update', $privateDocument))->toBeTrue();
@@ -62,9 +62,9 @@ it('requires manage-project and project access for project-owned document change
     ]);
 
     $projectDocument = Document::factory()->projectOwned()->create([
+        'owner_id' => $project->id,
         'uploaded_by_id' => $manager->id,
     ]);
-    $projectDocument->ownerProjects()->sync([$project->id]);
 
     expect($manager->can('view', $projectDocument))->toBeTrue();
     expect($manager->can('update', $projectDocument))->toBeTrue();
@@ -88,10 +88,10 @@ it('denies attaching user-owned documents to projects', function (): void {
 
     $userOwnedDocument = Document::factory()->create([
         'owner_scope' => Document::OWNER_SCOPE_USER,
+        'owner_id' => $user->id,
         'visibility' => Document::VISIBILITY_PRIVATE,
         'uploaded_by_id' => $user->id,
     ]);
-    $userOwnedDocument->ownerUsers()->sync([$user->id]);
 
     expect($user->can('attachToProject', [$userOwnedDocument, $project]))->toBeFalse();
     expect($user->can('detachFromProject', [$userOwnedDocument, $project]))->toBeFalse();
