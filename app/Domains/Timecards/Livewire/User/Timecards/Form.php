@@ -120,8 +120,8 @@ class Form extends Component
         }
 
         $leaveProjectId = Project::query()
-            ->where('is_active', true)
             ->where('leave_category', $leaveCategory)
+            ->orderByDesc('is_active')
             ->orderBy('name')
             ->value('id');
 
@@ -196,7 +196,10 @@ class Form extends Component
     public function render()
     {
         $projects = Project::query()
-            ->where('is_active', true)
+            ->where(function ($query): void {
+                $query->where('is_active', true)
+                    ->orWhereNotNull('leave_category');
+            })
             ->orderBy('name')
             ->get(['id', 'name', 'leave_category']);
 
