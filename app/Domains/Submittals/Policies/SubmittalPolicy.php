@@ -18,8 +18,12 @@ class SubmittalPolicy
             return true;
         }
 
+        if ((string) $submittal->submitted_by_id !== (string) $user->id) {
+            return false;
+        }
+
         return $user->hasPermission('submittals.view')
-            && (string) $submittal->submitted_by_id === (string) $user->id;
+            || $user->hasPermission('submittals.create');
     }
 
     public function create(User $user): bool

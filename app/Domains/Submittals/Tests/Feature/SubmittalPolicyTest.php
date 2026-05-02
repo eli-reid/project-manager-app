@@ -68,6 +68,16 @@ it('allows distribute only when approved', function (): void {
     expect($user->can('distribute', $draft))->toBeFalse();
 });
 
+it('allows owners with create permission to view their own submittal', function (): void {
+    $owner = userWithSubmittalPolicyPermissions(['submittals.create']);
+
+    $ownSubmittal = Submittal::factory()->create([
+        'submitted_by_id' => $owner->id,
+    ]);
+
+    expect($owner->can('view', $ownSubmittal))->toBeTrue();
+});
+
 /**
  * @param  array<int, string>  $permissions
  */
