@@ -9,7 +9,10 @@
     "orientation": "portrait-primary",
     "scope": "/",
     "lang": "en-US",
-    "categories": ["business", "productivity"],
+    "categories": [
+        "business",
+        "productivity"
+    ],
     "icons": [
         {
             "src": "/favicon.svg",

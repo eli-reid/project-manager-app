@@ -36,7 +36,7 @@ class PwaManager {
     }
 
     async registerServiceWorker() {
-        if (! ('serviceWorker' in navigator)) {
+        if (!('serviceWorker' in navigator)) {
             return;
         }
 
@@ -46,7 +46,7 @@ class PwaManager {
             this.registration.addEventListener('updatefound', () => {
                 const worker = this.registration?.installing;
 
-                if (! worker) {
+                if (!worker) {
                     return;
                 }
 

@@ -11,7 +11,7 @@ window.handleBackNavigation = function handleBackNavigation(fallbackUrl = '/mobi
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-mobile-haptic]');
 
-    if (! trigger || typeof navigator.vibrate !== 'function') {
+    if (!trigger || typeof navigator.vibrate !== 'function') {
         return;
     }
 
