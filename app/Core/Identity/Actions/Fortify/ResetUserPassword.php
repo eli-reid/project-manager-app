@@ -2,6 +2,7 @@
 
 namespace App\Core\Identity\Actions\Fortify;
 
+use App\Core\Audit\Services\AuditLogger;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Concerns\PasswordValidationRules;
 use App\Core\Identity\Models\User;
@@ -28,10 +29,21 @@ class ResetUserPassword implements ResetsUserPasswords
             'password' => $this->passwordRules(),
         ])->validate();
 
+        $before = [
+            'password_change_required' => (bool) $user->password_change_required,
+        ];
+
         $user->forceFill([
             'password' => $input['password'],
             'password_change_required' => false,
         ])->save();
+
+        app(AuditLogger::class)->record('auth.password.reset', $user, [
+            'before' => $before,
+            'after' => [
+                'password_change_required' => false,
+            ],
+        ], $user);
 
         if ($user->company_email !== null) {
             try {

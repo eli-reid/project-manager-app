@@ -2,10 +2,14 @@
 
 namespace App\Core\Identity\Providers;
 
+use App\Core\Audit\Services\AuditLogger;
 use App\Core\Identity\Actions\Fortify\CreateNewUser;
 use App\Core\Identity\Actions\Fortify\ResetUserPassword;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -29,6 +33,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureAuthEventAuditing();
     }
 
     /**
@@ -68,6 +73,29 @@ class FortifyServiceProvider extends ServiceProvider
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
+        });
+    }
+
+    /**
+     * Configure auth success event auditing.
+     */
+    private function configureAuthEventAuditing(): void
+    {
+        Event::listen(Login::class, function (Login $event): void {
+            app(AuditLogger::class)->record('auth.login', $event->user, [
+                'guard' => $event->guard,
+                'remember' => $event->remember,
+            ], $event->user);
+        });
+
+        Event::listen(Logout::class, function (Logout $event): void {
+            if ($event->user === null) {
+                return;
+            }
+
+            app(AuditLogger::class)->record('auth.logout', $event->user, [
+                'guard' => $event->guard,
+            ], $event->user);
         });
     }
 }

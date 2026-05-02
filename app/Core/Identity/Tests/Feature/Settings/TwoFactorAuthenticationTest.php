@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Audit\Models\AuditLog;
 use App\Core\Identity\Livewire\Settings\TwoFactor;
 use App\Core\Identity\Models\User;
 use Laravel\Fortify\Features;
@@ -68,4 +69,50 @@ test('two factor authentication disabled when confirmation abandoned between req
         'two_factor_secret' => null,
         'two_factor_recovery_codes' => null,
     ]);
+});
+
+test('two factor disable action writes an audit log', function () {
+    $user = User::factory()->create();
+
+    $user->forceFill([
+        'two_factor_secret' => encrypt('test-secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
+        'two_factor_confirmed_at' => now(),
+    ])->save();
+
+    $this->actingAs($user);
+
+    Livewire::test(TwoFactor::class)
+        ->call('disable')
+        ->assertSet('twoFactorEnabled', false);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'auth.two-factor.disabled',
+        'actor_id' => (string) $user->id,
+        'target_id' => (string) $user->id,
+    ]);
+});
+
+test('two factor enable without confirmation writes an audit log', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => false,
+        'confirmPassword' => false,
+    ]);
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(TwoFactor::class)
+        ->call('enable')
+        ->assertSet('twoFactorEnabled', true);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'auth.two-factor.enabled',
+        'actor_id' => (string) $user->id,
+        'target_id' => (string) $user->id,
+    ]);
+
+    expect(AuditLog::query()->where('action', 'auth.two-factor.enabled')->latest('created_at')->first()?->metadata)
+        ->toMatchArray(['confirmed' => false]);
 });

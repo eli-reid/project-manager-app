@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Audit\Models\AuditLog;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Actions\Fortify\ResetUserPassword;
 use App\Core\Identity\Models\User;
@@ -63,6 +64,15 @@ test('password can be reset with valid token', function () {
             ->assertRedirect(route('login', absolute: false));
 
         expect($user->fresh()->password_change_required)->toBeFalse();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'auth.password.reset',
+            'actor_id' => (string) $user->id,
+            'target_id' => (string) $user->id,
+        ]);
+
+        expect(AuditLog::query()->where('action', 'auth.password.reset')->latest('created_at')->first()?->after)
+            ->toMatchArray(['password_change_required' => false]);
 
         return true;
     });

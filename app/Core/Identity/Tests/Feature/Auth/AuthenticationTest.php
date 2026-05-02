@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Audit\Models\AuditLog;
 use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -39,6 +40,17 @@ test('users can authenticate using the login screen', function () {
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'auth.login',
+        'actor_id' => (string) $user->id,
+        'target_id' => (string) $user->id,
+    ]);
+
+    expect(AuditLog::query()->where('action', 'auth.login')->first()?->metadata)->toMatchArray([
+        'guard' => 'web',
+        'remember' => false,
+    ]);
 });
 
 test('users can not authenticate with invalid password', function () {
@@ -108,4 +120,10 @@ test('users can logout', function () {
 
     $response->assertRedirect(route('home'));
     $this->assertGuest();
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'auth.logout',
+        'actor_id' => (string) $user->id,
+        'target_id' => (string) $user->id,
+    ]);
 });

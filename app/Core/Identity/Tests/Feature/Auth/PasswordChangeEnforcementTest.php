@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Audit\Models\AuditLog;
 use App\Core\Identity\Livewire\Auth\ForcePasswordChange;
 use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -44,6 +45,15 @@ test('users can complete the forced password change flow', function () {
 
     expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue()
         ->and($user->fresh()->password_change_required)->toBeFalse();
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'auth.password.force-change',
+        'actor_id' => (string) $user->id,
+        'target_id' => (string) $user->id,
+    ]);
+
+    expect(AuditLog::query()->where('action', 'auth.password.force-change')->latest('created_at')->first()?->after)
+        ->toMatchArray(['password_change_required' => false]);
 });
 
 test('forced password change form does not use live model bindings', function () {
