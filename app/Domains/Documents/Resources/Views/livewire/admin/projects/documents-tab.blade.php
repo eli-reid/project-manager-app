@@ -6,7 +6,7 @@
         </div>
 
         <div class="w-full lg:w-72">
-            <input type="text" wire:model.live="search" placeholder="Search documents..." class="w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
+            <input type="text" wire:model.live="search" placeholder="Search documents..." class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
         </div>
     </div>
 
@@ -46,7 +46,7 @@
         <div class="grid gap-3 md:grid-cols-2">
             <div>
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</label>
-                <input type="text" x-model="titleValue" class="w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
+                <input type="text" x-model="titleValue" class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
                 @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
@@ -98,7 +98,7 @@
 
         <div class="mt-3">
             <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
-            <textarea wire:model="description" rows="3" class="w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"></textarea>
+            <textarea wire:model="description" rows="3" class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"></textarea>
             @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
 

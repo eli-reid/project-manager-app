@@ -142,6 +142,24 @@ it('shows project upload constraints in project documents tab ui', function (): 
         ->assertSee('Allowed: PDF, PNG, JPG');
 });
 
+it('renders bordered form controls in the project documents tab', function (): void {
+    $user = userWithDocumentDomainPermissions([
+        'projects.view',
+        'documents.view',
+        'documents.create',
+        'documents.manage-project',
+    ]);
+
+    $project = Project::factory()->create();
+
+    actingAs($user);
+
+    Livewire::test(DocumentsTab::class, ['project' => $project])
+        ->assertSeeHtml('wire:model.live="search" placeholder="Search documents..." class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"')
+        ->assertSeeHtml('x-model="titleValue" class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"')
+        ->assertSeeHtml('wire:model="description" rows="3" class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"');
+});
+
 it('validates project upload size using documents max file size setting', function (): void {
     Storage::fake('local');
     Settings::set('documents.storage_disk', 'local');
