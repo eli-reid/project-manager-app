@@ -515,7 +515,7 @@
     <div
         x-show="contextMenuOpen"
         x-cloak
-        @click.stop
+        x-on:click.stop=""
         class="fixed z-40 w-48 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
         :style="'top: ' + contextMenuY + 'px; left: ' + contextMenuX + 'px;'"
     >

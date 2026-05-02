@@ -42,8 +42,8 @@
                                     TBD
                                 @endif
                             </td>
-                            <td class="px-4 py-3 align-top" data-prevent-row-nav @click.stop>
-                                <x-ui.row-actions-dropdown label="Project actions" width="w-36" :menu-height="160" data-prevent-row-nav @click.stop>
+                            <td class="px-4 py-3 align-top" data-prevent-row-nav x-on:click.stop="">
+                                <x-ui.row-actions-dropdown label="Project actions" width="w-36" :menu-height="160" data-prevent-row-nav x-on:click.stop="">
                                     @can('view', $project)
                                         <a href="{{ route('admin.projects.show', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
                                     @endcan
