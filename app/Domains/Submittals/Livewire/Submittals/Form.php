@@ -8,8 +8,11 @@ use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Models\SubmittalApproval;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -87,7 +90,7 @@ class Form extends Component
         $hasExplicitProjectContext = $projectId !== null && $projectId !== '';
 
         if ($submittal instanceof Submittal && ! $hasExplicitProjectContext) {
-            $this->authorize('update', $submittal);
+            $this->authorizeWithTrace('update', $submittal, 'mount.edit');
             $this->projectId = (string) $submittal->project_id;
             $this->type = (string) $submittal->type;
             $this->specReference = (string) ($submittal->spec_reference ?? '');
@@ -147,7 +150,7 @@ class Form extends Component
             return;
         }
 
-        $this->authorize('manageProjectDocuments', [Document::class, $project]);
+        $this->authorizeWithTrace('manageProjectDocuments', [Document::class, $project], 'openUploadModal');
 
         $this->showUploadModal = true;
     }
@@ -160,7 +163,7 @@ class Form extends Component
             return;
         }
 
-        $this->authorize('manageProjectDocuments', [Document::class, $project]);
+        $this->authorizeWithTrace('manageProjectDocuments', [Document::class, $project], 'uploadDocument');
 
         $rules = $documentService->validationRules();
 
@@ -219,6 +222,14 @@ class Form extends Component
 
     public function save(): void
     {
+        Log::info('Submittal form save invoked.', [
+            'user_id' => Auth::id(),
+            'submittal_id' => $this->submittal?->id,
+            'project_id' => $this->projectId,
+            'embedded' => $this->embedded,
+            'return_to' => $this->returnTo,
+        ]);
+
         $validated = $this->validate([
             'projectId' => ['required', 'string', 'exists:projects,id'],
             'type' => ['required', 'string', 'max:120'],
@@ -247,7 +258,7 @@ class Form extends Component
         ];
 
         if ($this->submittal instanceof Submittal) {
-            $this->authorize('update', $this->submittal);
+            $this->authorizeWithTrace('update', $this->submittal, 'save.update');
 
             $this->submittal->update($payload);
             $this->syncItems($this->submittal, $validated['items']);
@@ -260,7 +271,7 @@ class Form extends Component
             return;
         }
 
-        $this->authorize('create', Submittal::class);
+        $this->authorizeWithTrace('create', Submittal::class, 'save.create');
 
         $created = Submittal::query()->create([
             ...$payload,
@@ -358,6 +369,39 @@ class Form extends Component
         }
 
         $this->redirectRoute('submittals.show', $submittal);
+    }
+
+    private function authorizeWithTrace(string $ability, mixed $arguments, string $context): void
+    {
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            Log::warning('Submittal authorization denied: no authenticated user.', [
+                'ability' => $ability,
+                'context' => $context,
+                'submittal_id' => $this->submittal?->id,
+                'project_id' => $this->projectId,
+            ]);
+
+            throw new AuthorizationException('Authentication required.');
+        }
+
+        $response = Gate::forUser($user)->inspect($ability, $arguments);
+        if ($response->allowed()) {
+            return;
+        }
+
+        Log::warning('Submittal authorization denied.', [
+            'ability' => $ability,
+            'context' => $context,
+            'user_id' => $user->id,
+            'submittal_id' => $this->submittal?->id,
+            'project_id' => $this->projectId,
+            'embedded' => $this->embedded,
+            'return_to' => $this->returnTo,
+            'message' => $response->message(),
+        ]);
+
+        throw new AuthorizationException($response->message() ?: 'This action is unauthorized.');
     }
 
     private function isSafeReturnPath(string $path): bool
