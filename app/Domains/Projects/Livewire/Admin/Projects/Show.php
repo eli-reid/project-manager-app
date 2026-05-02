@@ -102,6 +102,8 @@ class Show extends Component
 
         if ($user?->can('viewAny', Submittal::class)) {
             $tabs[] = 'submittals';
+        } elseif ($user?->can('create', Submittal::class)) {
+            $tabs[] = 'submittals';
         }
 
         if ($user?->can('viewAny', Document::class)) {
@@ -320,11 +322,17 @@ class Show extends Component
         }
 
         if (in_array('submittals', $tabs, true)) {
-            $submittalCount = Submittal::query()
-                ->where('project_id', $this->project->id)
-                ->count();
+            $canViewAnySubmittals = $user->can('viewAny', Submittal::class);
+            $isSubmittalCreateMode = $this->activeTab === 'submittals'
+                && request()->query('submittalMode') === 'create';
 
-            if ($this->activeTab === 'submittals') {
+            if ($canViewAnySubmittals) {
+                $submittalCount = Submittal::query()
+                    ->where('project_id', $this->project->id)
+                    ->count();
+            }
+
+            if ($canViewAnySubmittals && $this->activeTab === 'submittals' && ! $isSubmittalCreateMode) {
                 $projectSubmittals = Submittal::query()
                     ->with([
                         'submittedBy:id,first_name,last_name',

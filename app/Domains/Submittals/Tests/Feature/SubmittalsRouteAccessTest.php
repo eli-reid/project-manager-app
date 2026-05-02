@@ -117,6 +117,20 @@ it('builds the new submittal link from the project submittals tab with project c
         ->assertSee('/admin/projects/'.$project->id.'?tab=submittals&amp;submittalMode=create', escape: false);
 });
 
+it('allows create-mode project submittals URL for users with create permission', function (): void {
+    $user = userWithSubmittalPermissions(['projects.view', 'submittals.create']);
+    $project = Project::factory()->create();
+
+    actingAs($user);
+
+    get(route('admin.projects.show', [
+        'project' => $project,
+        'tab' => 'submittals',
+        'submittalMode' => 'create',
+    ]))
+        ->assertSuccessful();
+});
+
 it('forbids non-owners with submittals.view from opening another user submittal', function (): void {
     $viewer = userWithSubmittalPermissions(['submittals.view']);
 

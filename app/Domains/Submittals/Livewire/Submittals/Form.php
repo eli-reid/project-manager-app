@@ -66,7 +66,9 @@ class Form extends Component
             $this->returnTo = $returnTo;
         }
 
-        if ($submittal instanceof Submittal) {
+        $hasExplicitProjectContext = $projectId !== null && $projectId !== '';
+
+        if ($submittal instanceof Submittal && ! $hasExplicitProjectContext) {
             $this->authorize('update', $submittal);
             $this->projectId = (string) $submittal->project_id;
             $this->type = (string) $submittal->type;
