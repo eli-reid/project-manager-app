@@ -97,8 +97,23 @@
             </div>
 
             <div class="space-y-2 rounded-lg border border-zinc-200 p-5 dark:border-zinc-700">
-                <flux:heading size="sm">Attachments</flux:heading>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400">Attach existing project documents to this submittal.</p>
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="space-y-1">
+                        <flux:heading size="sm">Attachments</flux:heading>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">Attach existing project documents to this submittal, or upload a new project document first.</p>
+                    </div>
+
+                    @if ($uploadDocumentUrl)
+                        <flux:button size="sm" variant="ghost" :href="$uploadDocumentUrl" target="_blank" icon="arrow-up-tray">
+                            Upload Document
+                        </flux:button>
+                    @endif
+                </div>
+
+                @if ($uploadDocumentUrl)
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">The upload form opens in the project documents tab in a new tab so you can return here and select the file after it saves.</p>
+                @endif
+
                 <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
                     @forelse ($availableDocuments as $document)
                         <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
@@ -106,7 +121,7 @@
                             <span>{{ $document->title ?: $document->original_name }}</span>
                         </label>
                     @empty
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400">Select a project to load documents.</p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ $projectId !== '' ? 'No project documents are available yet. Use Upload Document to add one.' : 'Select a project to load documents.' }}</p>
                     @endforelse
                 </div>
                 <flux:error name="documentIds.*" />

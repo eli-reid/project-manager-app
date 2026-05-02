@@ -4,6 +4,7 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Domains\Projects\Models\Project;
 use App\Domains\Submittals\Models\Submittal;
 
 use function Pest\Laravel\actingAs;
@@ -70,6 +71,25 @@ it('allows owners with view/update/submit permissions to access own submittal pa
     get(route('submittals.show', $submittal))->assertSuccessful();
     get(route('submittals.edit', $submittal))->assertSuccessful();
     get(route('submittals.create'))->assertSuccessful();
+});
+
+it('shows an upload document action when the selected project can manage project documents', function (): void {
+    $user = userWithSubmittalPermissions([
+        'submittals.create',
+        'projects.view',
+        'projects.view-any',
+        'documents.view',
+        'documents.manage-project',
+    ]);
+
+    $project = Project::factory()->create();
+
+    actingAs($user);
+
+    get(route('submittals.create', ['projectId' => (string) $project->id]))
+        ->assertSuccessful()
+        ->assertSee('Upload Document')
+        ->assertSee(route('admin.projects.show', ['project' => $project, 'tab' => 'documents']), escape: false);
 });
 
 it('forbids non-owners with submittals.view from opening another user submittal', function (): void {

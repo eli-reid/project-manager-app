@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
@@ -21,6 +22,7 @@ class Form extends Component
 
     public ?Submittal $submittal = null;
 
+    #[Url]
     public string $projectId = '';
 
     public string $type = '';
@@ -174,7 +176,10 @@ class Form extends Component
 
     public function render()
     {
+        $projects = Project::query()->orderBy('name')->get(['id', 'name', 'project_number']);
+
         $availableDocuments = collect();
+        $uploadDocumentUrl = null;
 
         if ($this->projectId !== '') {
             $availableDocuments = Document::query()
@@ -182,16 +187,26 @@ class Form extends Component
                 ->ownedByProject($this->projectId)
                 ->orderBy('title')
                 ->get(['id', 'title', 'original_name']);
+
+            $selectedProject = $projects->firstWhere('id', $this->projectId);
+
+            if ($selectedProject instanceof Project && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject])) {
+                $uploadDocumentUrl = route('admin.projects.show', [
+                    'project' => $selectedProject,
+                    'tab' => 'documents',
+                ]);
+            }
         }
 
         return view('submittals::livewire.user.submittals.form', [
-            'projects' => Project::query()->orderBy('name')->get(['id', 'name', 'project_number']),
+            'projects' => $projects,
             'reviewers' => User::query()
                 ->where('is_active', true)
                 ->orderBy('first_name')
                 ->orderBy('last_name')
                 ->get(['id', 'first_name', 'last_name', 'email']),
             'availableDocuments' => $availableDocuments,
+            'uploadDocumentUrl' => $uploadDocumentUrl,
         ]);
     }
 
