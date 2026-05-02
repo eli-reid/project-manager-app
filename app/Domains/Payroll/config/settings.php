@@ -164,4 +164,21 @@ return [
         'is_required' => false,
         'encrypted' => false,
     ],
+    [
+        'key' => 'payroll.leave.reset_policy',
+        'value' => env('PAYROLL_LEAVE_RESET_POLICY', 'calendar_year'),
+        'display_name' => 'Leave Reset Policy',
+        'description' => 'Select when sick and vacation balances reset each cycle.',
+        'type' => 'select',
+        'group' => 'payroll',
+        'options' => [
+            'calendar_year' => 'End of calendar year',
+            'hire_date' => 'Hire date anniversary',
+        ],
+        'order' => 12,
+        'is_visible' => true,
+        'is_public' => false,
+        'is_required' => false,
+        'encrypted' => false,
+    ],
 ];

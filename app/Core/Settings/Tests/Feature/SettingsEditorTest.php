@@ -103,3 +103,48 @@ it('updates all settings in a group without cache service initialization errors'
     expect(SettingsSqlite::query()->where('key', $fromNameKey)->value('value'))
         ->toBe('New Name');
 });
+
+it('updates payroll leave reset policy from settings editor', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $this->actingAs($admin);
+
+    SettingsSqlite::query()->updateOrCreate(
+        ['key' => 'payroll.leave.reset_policy'],
+        [
+            'value' => 'calendar_year',
+            'default_value' => 'calendar_year',
+            'display_name' => 'Leave Reset Policy',
+            'description' => 'Select when sick and vacation balances reset each cycle.',
+            'type' => 'select',
+            'group' => 'payroll',
+            'options' => json_encode([
+                'calendar_year' => 'End of calendar year',
+                'hire_date' => 'Hire date anniversary',
+            ]),
+            'order' => 12,
+            'is_public' => false,
+            'is_visible' => true,
+            'is_required' => false,
+            'encrypted' => false,
+        ]
+    );
+
+    $component = Livewire::test(SettingsEditor::class)
+        ->call('loadSettings', 'payroll')
+        ->assertSet('errorMessage', null);
+
+    $settingsMetadata = $component->get('settingsMetadata');
+
+    $fieldId = collect($settingsMetadata)
+        ->search(fn (array $meta): bool => ($meta['setting_key'] ?? null) === 'payroll.leave.reset_policy');
+
+    expect($fieldId)->not->toBeFalse();
+
+    $component
+        ->set("formData.{$fieldId}", 'hire_date')
+        ->call('updateSetting', $fieldId)
+        ->assertSet('errorMessage', null);
+
+    expect(SettingsSqlite::query()->where('key', 'payroll.leave.reset_policy')->value('value'))
+        ->toBe('hire_date');
+});

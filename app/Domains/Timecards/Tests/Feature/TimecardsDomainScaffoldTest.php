@@ -4,6 +4,7 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
@@ -473,6 +474,129 @@ it('shows remaining leave balances on the user timecard details page', function 
         ->assertSee('30.00')
         ->assertSee('Vacation Remaining')
         ->assertSee('80.00');
+});
+
+it('resets leave usage on calendar year policy', function (): void {
+    Carbon::setTestNow('2026-06-15 09:00:00');
+    Settings::set('payroll.leave.reset_policy', 'calendar_year');
+
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit']);
+
+    PayrollEmployeeProfile::factory()->create([
+        'user_id' => $user->id,
+        'sick_hours_allowance' => 40,
+        'vacation_hours_allowance' => 80,
+    ]);
+
+    $sickProject = Project::factory()->create([
+        'leave_category' => 'sick',
+        'is_active' => true,
+    ]);
+
+    $currentYear = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_APPROVED,
+        'week_starting' => '2026-01-05',
+        'week_ending' => '2026-01-11',
+    ]);
+
+    $currentYear->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => $sickProject->id,
+        'date' => '2026-03-10',
+        'hours' => 8,
+    ]);
+
+    $priorYear = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_APPROVED,
+        'week_starting' => '2025-12-22',
+        'week_ending' => '2025-12-28',
+    ]);
+
+    $priorYear->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => $sickProject->id,
+        'date' => '2025-12-29',
+        'hours' => 12,
+    ]);
+
+    $draft = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+        'week_starting' => '2026-06-08',
+        'week_ending' => '2026-06-14',
+    ]);
+
+    actingAs($user);
+
+    Livewire::test(UserShow::class, ['timecard' => $draft])
+        ->assertSee('Sick Remaining')
+        ->assertSee('32.00');
+
+    Carbon::setTestNow();
+});
+
+it('resets leave usage on hire date anniversary policy', function (): void {
+    Carbon::setTestNow('2026-06-15 09:00:00');
+    Settings::set('payroll.leave.reset_policy', 'hire_date');
+
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit']);
+
+    PayrollEmployeeProfile::factory()->create([
+        'user_id' => $user->id,
+        'hire_date' => '2020-03-15',
+        'sick_hours_allowance' => 40,
+        'vacation_hours_allowance' => 80,
+    ]);
+
+    $sickProject = Project::factory()->create([
+        'leave_category' => 'sick',
+        'is_active' => true,
+    ]);
+
+    $beforeAnniversaryWindow = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_APPROVED,
+        'week_starting' => '2026-03-01',
+        'week_ending' => '2026-03-07',
+    ]);
+
+    $beforeAnniversaryWindow->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => $sickProject->id,
+        'date' => '2026-03-10',
+        'hours' => 8,
+    ]);
+
+    $insideCycle = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_APPROVED,
+        'week_starting' => '2026-03-16',
+        'week_ending' => '2026-03-22',
+    ]);
+
+    $insideCycle->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => $sickProject->id,
+        'date' => '2026-04-01',
+        'hours' => 10,
+    ]);
+
+    $draft = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+        'week_starting' => '2026-06-08',
+        'week_ending' => '2026-06-14',
+    ]);
+
+    actingAs($user);
+
+    Livewire::test(UserShow::class, ['timecard' => $draft])
+        ->assertSee('Sick Remaining')
+        ->assertSee('30.00');
+
+    Carbon::setTestNow();
 });
 
 it('creates a timecard for another user through the admin form component', function (): void {
