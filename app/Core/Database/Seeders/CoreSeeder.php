@@ -22,7 +22,7 @@ class CoreSeeder extends Seeder
         $this->call(SettingsSeeder::class);
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(UserSeeder::class);
-        $this->call(BuiltInLeaveProjectsSeeder::class);
         $this->call(PayRateTypeSeeder::class);
+        $this->call(BuiltInLeaveProjectsSeeder::class);
     }
 }
