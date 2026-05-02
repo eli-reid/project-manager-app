@@ -23,17 +23,14 @@ class Widget extends Component
             $baseQuery->where('user_id', $user->id);
         }
 
-        $draftCount = (clone $baseQuery)
-            ->where('status', DailyReport::STATUS_DRAFT)
-            ->count();
+        $statusCounts = (clone $baseQuery)
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
 
-        $submittedCount = (clone $baseQuery)
-            ->where('status', DailyReport::STATUS_SUBMITTED)
-            ->count();
-
-        $approvedCount = (clone $baseQuery)
-            ->where('status', DailyReport::STATUS_APPROVED)
-            ->count();
+        $draftCount = (int) ($statusCounts[DailyReport::STATUS_DRAFT] ?? 0);
+        $submittedCount = (int) ($statusCounts[DailyReport::STATUS_SUBMITTED] ?? 0);
+        $approvedCount = (int) ($statusCounts[DailyReport::STATUS_APPROVED] ?? 0);
 
         $reports = (clone $baseQuery)
             ->with(['project:id,name'])

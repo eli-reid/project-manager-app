@@ -17,6 +17,7 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\Dashboard\Widget as TimecardWidget;
 use App\Domains\Timecards\Models\Timecard;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
@@ -301,6 +302,58 @@ it('dailies widget scopes reports to the authenticated user', function (): void 
         ->assertStatus(200)
         ->assertSee('Users Project')
         ->assertDontSee('Other Project');
+});
+
+it('dailies widget uses a single grouped status aggregation query', function (): void {
+    $user = dashboardWidgetUserWithPermissions(['dailies.view']);
+
+    $project = Project::factory()->create();
+
+    DailyReport::factory()->count(2)->create([
+        'user_id' => $user->id,
+        'project_id' => $project->id,
+        'status' => DailyReport::STATUS_DRAFT,
+    ]);
+
+    DailyReport::factory()->count(2)->create([
+        'user_id' => $user->id,
+        'project_id' => $project->id,
+        'status' => DailyReport::STATUS_SUBMITTED,
+    ]);
+
+    DailyReport::factory()->count(1)->create([
+        'user_id' => $user->id,
+        'project_id' => $project->id,
+        'status' => DailyReport::STATUS_APPROVED,
+    ]);
+
+    $connection = DB::connection();
+    $connection->flushQueryLog();
+    $connection->enableQueryLog();
+
+    Livewire::actingAs($user)
+        ->test(DailyReportWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Daily Reports');
+
+    $queries = collect($connection->getQueryLog())
+        ->pluck('query')
+        ->map(fn (string $query): string => strtolower($query));
+
+    $groupedAggregationQueries = $queries->filter(
+        fn (string $query): bool => str_contains($query, 'from "daily_reports"')
+            && str_contains($query, 'count(*) as aggregate')
+            && str_contains($query, 'group by "status"')
+    );
+
+    $statusSpecificCountQueries = $queries->filter(
+        fn (string $query): bool => str_contains($query, 'from "daily_reports"')
+            && str_contains($query, 'count(*) as aggregate')
+            && str_contains($query, 'where "status" =')
+    );
+
+    expect($groupedAggregationQueries)->toHaveCount(1)
+        ->and($statusSpecificCountQueries)->toHaveCount(0);
 });
 
 // ─── Scheduler Widget ─────────────────────────────────────────────────────────
