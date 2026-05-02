@@ -18,18 +18,13 @@
                         {{ $sectionLabels[$sectionKey] ?? ucfirst($sectionKey) }}
                     </h2>
                 @endif
-                <div class="grid gap-4 lg:grid-cols-3">
-                    @php
-                        $isSingleWidgetSection = count($widgets) === 1;
-                    @endphp
+                <div class="grid gap-4 lg:grid-cols-6">
                     @foreach($widgets as $widget)
-                        <div class="{{ $isSingleWidgetSection
-                            ? 'lg:col-span-3'
-                            : match($widget['span']) {
-                                'full' => 'lg:col-span-3',
-                                'half' => 'lg:col-span-2',
-                                default => 'lg:col-span-1',
-                            } }}">
+                        <div class="{{ match($widget['span']) {
+                            'full' => 'lg:col-span-6',
+                            'half' => 'lg:col-span-3',
+                            default => 'lg:col-span-2',
+                        } }}">
                             @livewire($widget['component'], [], $widget['key'])
                         </div>
                     @endforeach

@@ -131,6 +131,20 @@ it('the dailies widget is in the operations section with half span', function ()
         ->and($widget['span'])->toBe('half');
 });
 
+it('renders dashboard widgets with consistent span classes', function (): void {
+    $admin = User::factory()->create([
+        'is_admin' => true,
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('lg:grid-cols-6', false)
+        ->assertSee('lg:col-span-3', false)
+        ->assertSee('lg:col-span-6', false);
+});
+
 // ─── Timecards Widget ─────────────────────────────────────────────────────────
 
 it('renders the timecards widget for a user with timecards.view permission', function (): void {
