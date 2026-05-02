@@ -26,6 +26,7 @@ class Widget extends Component
 
         $query = Project::query()
             ->where('is_active', true)
+            ->whereNull('leave_category')
             ->whereNotIn('status', $closedStatuses);
 
         if (! $user->isAdmin()) {

@@ -267,6 +267,38 @@ it('projects widget shows active project names for an admin', function (): void 
         ->assertDontSee('Beta Project');
 });
 
+it('projects widget hides leave projects from the active projects list', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    Project::factory()->create([
+        'name' => 'Operations Project',
+        'is_active' => true,
+        'status' => ProjectStatusEnum::IN_PROGRESS,
+        'leave_category' => null,
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Sick Time',
+        'is_active' => true,
+        'status' => ProjectStatusEnum::ACTIVE,
+        'leave_category' => 'sick',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Vacation Time',
+        'is_active' => true,
+        'status' => ProjectStatusEnum::ACTIVE,
+        'leave_category' => 'vacation',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(ProjectWidget::class)
+        ->assertStatus(200)
+        ->assertSee('Operations Project')
+        ->assertDontSee('Sick Time')
+        ->assertDontSee('Vacation Time');
+});
+
 // ─── Dailies Widget ───────────────────────────────────────────────────────────
 
 it('renders the dailies widget for a user with dailies.view permission', function (): void {

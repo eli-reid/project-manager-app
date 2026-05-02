@@ -138,6 +138,43 @@ it('shows only assigned active and open projects by default on user project list
         ->and($unassignedOpenProject->exists)->toBeTrue();
 });
 
+it('hides leave projects from user project list', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Standard Assigned Project',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+        'leave_category' => null,
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Sick Leave Project Hidden',
+        'project_manager_id' => $user->id,
+        'status' => 'active',
+        'is_active' => true,
+        'leave_category' => 'sick',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Vacation Leave Project Hidden',
+        'project_manager_id' => $user->id,
+        'status' => 'active',
+        'is_active' => true,
+        'leave_category' => 'vacation',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee('Standard Assigned Project')
+        ->assertDontSee('Sick Leave Project Hidden')
+        ->assertDontSee('Vacation Leave Project Hidden');
+});
+
 it('does not offer include closed filter on user project list', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
