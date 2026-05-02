@@ -29,6 +29,8 @@ class Form extends Component
     #[Url]
     public string $returnTo = '';
 
+    public bool $embedded = false;
+
     public string $type = '';
 
     public string $specReference = '';
@@ -52,9 +54,13 @@ class Form extends Component
      */
     public array $documentIds = [];
 
-    public function mount(?Submittal $submittal = null, ?string $projectId = null, ?string $returnTo = null): void
+    public function mount(?Submittal $submittal = null, ?string $projectId = null, ?string $returnTo = null, ?bool $embedded = null): void
     {
         $this->submittal = $submittal;
+
+        if ($embedded !== null) {
+            $this->embedded = $embedded;
+        }
 
         if ($returnTo !== null && $this->isSafeReturnPath($returnTo)) {
             $this->returnTo = $returnTo;
@@ -100,7 +106,10 @@ class Form extends Component
             return;
         }
 
-        $this->authorize('create', Submittal::class);
+        if (! $this->embedded) {
+            $this->authorize('create', Submittal::class);
+        }
+
         $this->items = [$this->emptyItemRow()];
 
         if ($projectId !== null && $projectId !== '') {
@@ -188,15 +197,16 @@ class Form extends Component
 
         $availableDocuments = collect();
         $uploadDocumentUrl = null;
+        $selectedProject = null;
 
         if ($this->projectId !== '') {
+            $selectedProject = $projects->firstWhere('id', $this->projectId);
+
             $availableDocuments = Document::query()
                 ->projectOwned()
                 ->ownedByProject($this->projectId)
                 ->orderBy('title')
                 ->get(['id', 'title', 'original_name']);
-
-            $selectedProject = $projects->firstWhere('id', $this->projectId);
 
             if ($selectedProject instanceof Project && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject])) {
                 $uploadDocumentUrl = route('admin.projects.show', [
@@ -216,6 +226,11 @@ class Form extends Component
             'availableDocuments' => $availableDocuments,
             'uploadDocumentUrl' => $uploadDocumentUrl,
             'cancelUrl' => $this->cancelUrl(),
+            'embedded' => $this->embedded,
+            'isProjectLocked' => $this->embedded && $selectedProject instanceof Project,
+            'selectedProjectLabel' => $selectedProject instanceof Project
+                ? trim($selectedProject->name.' ('.($selectedProject->project_number ?? 'N/A').')')
+                : '',
         ]);
     }
 

@@ -109,13 +109,12 @@ it('prepopulates the selected project and preserves the project-tab return link 
 it('builds the new submittal link from the project submittals tab with project context', function (): void {
     $user = userWithSubmittalPermissions(['projects.view', 'submittals.view-any', 'submittals.create']);
     $project = Project::factory()->create();
-    $returnTo = route('admin.projects.show', ['project' => $project, 'tab' => 'submittals'], false);
 
     actingAs($user);
 
     get(route('admin.projects.show', ['project' => $project, 'tab' => 'submittals']))
         ->assertSuccessful()
-        ->assertSee('href="'.route('submittals.create', ['projectId' => (string) $project->id]).'&amp;returnTo='.urlencode($returnTo).'"', escape: false);
+        ->assertSee('/admin/projects/'.$project->id.'?tab=submittals&amp;submittalMode=create', escape: false);
 });
 
 it('forbids non-owners with submittals.view from opening another user submittal', function (): void {

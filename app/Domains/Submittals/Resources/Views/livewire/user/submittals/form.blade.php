@@ -1,18 +1,26 @@
-<div class="mx-auto w-full max-w-5xl space-y-4 px-4 py-6 sm:px-6 lg:px-8">
-    <flux:heading size="xl">{{ $submittal ? 'Edit Submittal' : 'Create Submittal' }}</flux:heading>
+<div class="{{ $embedded ? 'space-y-4' : 'mx-auto w-full max-w-5xl space-y-4 px-4 py-6 sm:px-6 lg:px-8' }}">
+    <flux:heading size="{{ $embedded ? 'lg' : 'xl' }}">{{ $submittal ? 'Edit Submittal' : 'Create Submittal' }}</flux:heading>
 
     <form wire:submit="save" class="space-y-5 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="grid gap-4 md:grid-cols-2">
-            <flux:field>
-                <flux:label>Project</flux:label>
-                <flux:select wire:model.live="projectId">
-                    <option value="">Select project</option>
-                    @foreach ($projects as $project)
-                        <option value="{{ $project->id }}">{{ $project->name }} ({{ $project->project_number ?? 'N/A' }})</option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="projectId" />
-            </flux:field>
+            @if ($isProjectLocked)
+                <flux:field>
+                    <flux:label>Project</flux:label>
+                    <flux:input :value="$selectedProjectLabel" readonly />
+                    <flux:error name="projectId" />
+                </flux:field>
+            @else
+                <flux:field>
+                    <flux:label>Project</flux:label>
+                    <flux:select wire:model.live="projectId">
+                        <option value="">Select project</option>
+                        @foreach ($projects as $project)
+                            <option value="{{ $project->id }}">{{ $project->name }} ({{ $project->project_number ?? 'N/A' }})</option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="projectId" />
+                </flux:field>
+            @endif
 
             <flux:field>
                 <flux:label>Package Type</flux:label>
@@ -129,7 +137,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-2">
-            <a href="{{ $cancelUrl }}" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</a>
+            <a href="{{ $cancelUrl }}" wire:navigate class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</a>
             <flux:button type="submit" variant="primary">Save</flux:button>
         </div>
     </form>
