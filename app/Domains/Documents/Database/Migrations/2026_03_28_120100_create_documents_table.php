@@ -34,6 +34,14 @@ return new class extends Migration
                 $table->index(['uploaded_by_id', 'visibility']);
                 $table->index('created_at');
             });
+        } else {
+            // Ensure owner_id column exists (handles case where table was created before this column was added)
+            if (! Schema::hasColumn('documents', 'owner_id')) {
+                Schema::table('documents', function (Blueprint $table): void {
+                    $table->char('owner_id', 26)->nullable()->after('storage_path');
+                    $table->index(['owner_scope', 'owner_id']);
+                });
+            }
         }
     }
 
