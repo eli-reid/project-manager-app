@@ -4,11 +4,14 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Domains\Payroll\Models\PayrollEmployeeProfile;
+use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Form as AdminForm;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Index;
 use App\Domains\Timecards\Livewire\Admin\Timecards\Show as AdminShow;
 use App\Domains\Timecards\Livewire\User\Timecards\Form as UserForm;
 use App\Domains\Timecards\Livewire\User\Timecards\Index as UserIndex;
+use App\Domains\Timecards\Livewire\User\Timecards\Show as UserShow;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
@@ -375,6 +378,101 @@ it('creates a timecard with entries through the user form component', function (
     expect($timecard)->not->toBeNull()
         ->and($timecard?->entries()->count())->toBe(1)
         ->and($timecard?->fresh()->total_hours)->toBe(8.0);
+});
+
+it('supports quick sick leave entries and shows remaining leave balances on the user form', function (): void {
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit']);
+
+    PayrollEmployeeProfile::factory()->create([
+        'user_id' => $user->id,
+        'sick_hours_allowance' => 40,
+        'vacation_hours_allowance' => 80,
+    ]);
+
+    $sickProject = Project::factory()->create([
+        'leave_category' => 'sick',
+        'is_active' => true,
+    ]);
+
+    $vacationProject = Project::factory()->create([
+        'leave_category' => 'vacation',
+        'is_active' => true,
+    ]);
+
+    $approved = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_APPROVED,
+        'week_starting' => '2026-03-29',
+        'week_ending' => '2026-04-04',
+    ]);
+
+    $approved->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => $sickProject->id,
+        'date' => '2026-04-06',
+        'hours' => 8,
+    ]);
+
+    $approved->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => $vacationProject->id,
+        'date' => '2026-04-07',
+        'hours' => 16,
+    ]);
+
+    actingAs($user);
+
+    Livewire::test(UserForm::class)
+        ->call('addLeaveEntry', 'sick')
+        ->assertSet('entries.1.project_id', (string) $sickProject->id)
+        ->assertSee('Sick Remaining')
+        ->assertSee('32.00')
+        ->assertSee('Vacation Remaining')
+        ->assertSee('64.00');
+});
+
+it('shows remaining leave balances on the user timecard details page', function (): void {
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit']);
+
+    PayrollEmployeeProfile::factory()->create([
+        'user_id' => $user->id,
+        'sick_hours_allowance' => 40,
+        'vacation_hours_allowance' => 80,
+    ]);
+
+    $sickProject = Project::factory()->create([
+        'leave_category' => 'sick',
+        'is_active' => true,
+    ]);
+
+    $approved = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_APPROVED,
+        'week_starting' => '2026-03-29',
+        'week_ending' => '2026-04-04',
+    ]);
+
+    $approved->entries()->create([
+        'user_id' => $user->id,
+        'project_id' => $sickProject->id,
+        'date' => '2026-04-08',
+        'hours' => 10,
+    ]);
+
+    $draft = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+        'week_starting' => '2026-04-05',
+        'week_ending' => '2026-04-11',
+    ]);
+
+    actingAs($user);
+
+    Livewire::test(UserShow::class, ['timecard' => $draft])
+        ->assertSee('Sick Remaining')
+        ->assertSee('30.00')
+        ->assertSee('Vacation Remaining')
+        ->assertSee('80.00');
 });
 
 it('creates a timecard for another user through the admin form component', function (): void {

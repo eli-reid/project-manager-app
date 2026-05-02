@@ -31,6 +31,8 @@ class PayrollEmployeeProfileFactory extends Factory
             'job_classification' => fake()->randomElement(['Laborer', 'Foreman', 'Operator']),
             'union_code' => fake()->optional()->bothify('UN-###'),
             'direct_deposit_active' => fake()->boolean(),
+            'sick_hours_allowance' => 40,
+            'vacation_hours_allowance' => 80,
         ];
     }
 }

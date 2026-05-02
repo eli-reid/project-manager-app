@@ -2,9 +2,11 @@
 
 namespace App\Domains\Timecards\Livewire\User\Timecards;
 
+use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Services\LeaveBalanceService;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
 use App\Domains\Timecards\Services\TimecardWeekService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -108,18 +110,28 @@ class Form extends Component
 
     public function addEntry(): void
     {
-        $this->entries[] = [
-            'id' => null,
-            'row_key' => 'entry-'.(string) Str::ulid(),
-            'day_of_week' => 1, // Default to Monday
-            'start_time' => null,
-            'project_id' => null,
-            'cost_code_id' => null,
-            'custom_project_name' => null,
-            'hours' => '0.00',
-            'notes' => null,
-            'delete' => false,
-        ];
+        $this->entries[] = $this->newEntry();
+    }
+
+    public function addLeaveEntry(string $leaveCategory): void
+    {
+        if (! in_array($leaveCategory, ['sick', 'vacation'], true)) {
+            return;
+        }
+
+        $leaveProjectId = Project::query()
+            ->where('is_active', true)
+            ->where('leave_category', $leaveCategory)
+            ->orderBy('name')
+            ->value('id');
+
+        if (! is_string($leaveProjectId)) {
+            $this->addError('entries', 'No active '.str($leaveCategory)->title().' leave project is configured.');
+
+            return;
+        }
+
+        $this->entries[] = $this->newEntry($leaveProjectId);
     }
 
     public function removeEntry(int $index): void
@@ -183,11 +195,23 @@ class Form extends Component
 
     public function render()
     {
+        $projects = Project::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'leave_category']);
+
+        $leaveProjectsByCategory = $projects
+            ->whereNotNull('leave_category')
+            ->keyBy('leave_category');
+
+        $user = Auth::user();
+
         return view('timecards::livewire.user.timecards.form', [
-            'projects' => Project::query()
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name']),
+            'projects' => $projects,
+            'leaveProjectsByCategory' => $leaveProjectsByCategory,
+            'leaveBalances' => $user instanceof User
+                ? app(LeaveBalanceService::class)->forUser($user)
+                : ['sick' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0], 'vacation' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0]],
             'costCodesByProject' => CostCode::query()
                 ->where('is_active', true)
                 ->orderBy('code')
@@ -220,14 +244,34 @@ class Form extends Component
      */
     private function assertValidCostCodeMapping(array $entries): void
     {
+        $projectIds = collect($entries)
+            ->pluck('project_id')
+            ->filter(fn ($projectId) => filled($projectId))
+            ->map(fn ($projectId): string => (string) $projectId)
+            ->unique()
+            ->values()
+            ->all();
+
+        $leaveProjectIds = Project::query()
+            ->whereIn('id', $projectIds)
+            ->whereNotNull('leave_category')
+            ->pluck('id')
+            ->map(fn ($projectId): string => (string) $projectId)
+            ->all();
+
         foreach ($entries as $index => $entry) {
             $costCodeId = (string) ($entry['cost_code_id'] ?? '');
+            $projectId = (string) ($entry['project_id'] ?? '');
+
+            if ($costCodeId !== '' && in_array($projectId, $leaveProjectIds, true)) {
+                throw ValidationException::withMessages([
+                    "entries.{$index}.cost_code_id" => 'Leave entries cannot use cost codes.',
+                ]);
+            }
 
             if ($costCodeId === '') {
                 continue;
             }
-
-            $projectId = (string) ($entry['project_id'] ?? '');
 
             if ($projectId === '') {
                 throw ValidationException::withMessages([
@@ -246,5 +290,21 @@ class Form extends Component
                 ]);
             }
         }
+    }
+
+    private function newEntry(?string $projectId = null): array
+    {
+        return [
+            'id' => null,
+            'row_key' => 'entry-'.(string) Str::ulid(),
+            'day_of_week' => 1,
+            'start_time' => null,
+            'project_id' => $projectId,
+            'cost_code_id' => null,
+            'custom_project_name' => null,
+            'hours' => '0.00',
+            'notes' => null,
+            'delete' => false,
+        ];
     }
 }

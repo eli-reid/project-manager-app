@@ -40,6 +40,20 @@
         </div>
     </div>
 
+    <div class="grid gap-4 md:grid-cols-2">
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/30">
+            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{{ __('Sick Remaining') }}</p>
+            <p class="mt-2 text-xl font-semibold text-emerald-900 dark:text-emerald-100">{{ number_format((float) data_get($leaveBalances, 'sick.remaining', 0), 2) }} {{ __('hrs') }}</p>
+            <p class="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">{{ __('Used: :used / :allowed', ['used' => number_format((float) data_get($leaveBalances, 'sick.used', 0), 2), 'allowed' => number_format((float) data_get($leaveBalances, 'sick.allowed', 0), 2)]) }}</p>
+        </div>
+
+        <div class="rounded-xl border border-sky-200 bg-sky-50/70 p-4 dark:border-sky-900/60 dark:bg-sky-950/30">
+            <p class="text-xs font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">{{ __('Vacation Remaining') }}</p>
+            <p class="mt-2 text-xl font-semibold text-sky-900 dark:text-sky-100">{{ number_format((float) data_get($leaveBalances, 'vacation.remaining', 0), 2) }} {{ __('hrs') }}</p>
+            <p class="mt-1 text-xs text-sky-700/80 dark:text-sky-300/80">{{ __('Used: :used / :allowed', ['used' => number_format((float) data_get($leaveBalances, 'vacation.used', 0), 2), 'allowed' => number_format((float) data_get($leaveBalances, 'vacation.allowed', 0), 2)]) }}</p>
+        </div>
+    </div>
+
     <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Notes') }}</p>
         <p class="mt-2 text-sm text-zinc-700 dark:text-zinc-300">{{ $timecard->notes ?: __('No notes added.') }}</p>

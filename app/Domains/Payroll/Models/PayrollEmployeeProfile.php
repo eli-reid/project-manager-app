@@ -32,6 +32,8 @@ class PayrollEmployeeProfile extends Model
         'job_classification',
         'union_code',
         'direct_deposit_active',
+        'sick_hours_allowance',
+        'vacation_hours_allowance',
     ];
 
     /**
@@ -45,6 +47,8 @@ class PayrollEmployeeProfile extends Model
             'hire_date' => 'date',
             'termination_date' => 'date',
             'direct_deposit_active' => 'boolean',
+            'sick_hours_allowance' => 'float',
+            'vacation_hours_allowance' => 'float',
         ];
     }
 
