@@ -58,26 +58,30 @@
         </div>
     </div>
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <flux:field>
-            <flux:label>Approval Comment</flux:label>
-            <flux:textarea wire:model="comment" placeholder="Add optional review notes..." rows="3" />
-        </flux:field>
-        <div class="mt-3 flex justify-end">
-            <flux:button wire:click="approve" variant="primary">Approve Step</flux:button>
+    @can('approve', $submittal)
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:field>
+                <flux:label>Approval Comment</flux:label>
+                <flux:textarea wire:model="comment" placeholder="Add optional review notes..." rows="3" />
+            </flux:field>
+            <div class="mt-3 flex justify-end">
+                <flux:button wire:click="approve" variant="primary">Approve Step</flux:button>
+            </div>
         </div>
-    </div>
+    @endcan
 
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <flux:field>
-            <flux:label>Rejection Reason</flux:label>
-            <flux:textarea wire:model="rejectionReason" placeholder="Provide reason for rejection" rows="3" />
-            <flux:error name="rejectionReason" />
-        </flux:field>
-        <div class="mt-3 flex justify-end">
-            <flux:button wire:click="reject" variant="danger">Reject</flux:button>
+    @can('reject', $submittal)
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:field>
+                <flux:label>Rejection Reason</flux:label>
+                <flux:textarea wire:model="rejectionReason" placeholder="Provide reason for rejection" rows="3" />
+                <flux:error name="rejectionReason" />
+            </flux:field>
+            <div class="mt-3 flex justify-end">
+                <flux:button wire:click="reject" variant="danger">Reject</flux:button>
+            </div>
         </div>
-    </div>
+    @endcan
 
     <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">

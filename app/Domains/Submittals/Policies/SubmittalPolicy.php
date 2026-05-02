@@ -69,7 +69,7 @@ class SubmittalPolicy
 
     public function approve(User $user, Submittal $submittal): bool
     {
-        return $user->hasPermission('submittals.approve')
+        return ($user->hasPermission('submittals.approve') || $user->hasPermission('submittals.review'))
             && in_array($submittal->statusValue(), [
                 Submittal::STATUS_UNDER_REVIEW,
                 Submittal::STATUS_ARCHITECT_REVIEW,
@@ -79,7 +79,7 @@ class SubmittalPolicy
 
     public function reject(User $user, Submittal $submittal): bool
     {
-        return $user->hasPermission('submittals.reject')
+        return ($user->hasPermission('submittals.reject') || $user->hasPermission('submittals.review'))
             && in_array($submittal->statusValue(), [
                 Submittal::STATUS_UNDER_REVIEW,
                 Submittal::STATUS_ARCHITECT_REVIEW,
