@@ -112,13 +112,19 @@
                     </div>
 
                     @if ($uploadDocumentUrl)
-                        <flux:button size="sm" variant="ghost" :href="$uploadDocumentUrl" target="_blank" icon="arrow-up-tray">
-                            Upload Document
-                        </flux:button>
+                        @if ($embedded)
+                            <flux:button size="sm" variant="ghost" :href="$uploadDocumentUrl" wire:navigate icon="arrow-up-tray">
+                                Upload Document
+                            </flux:button>
+                        @else
+                            <flux:button size="sm" variant="ghost" :href="$uploadDocumentUrl" target="_blank" icon="arrow-up-tray">
+                                Upload Document
+                            </flux:button>
+                        @endif
                     @endif
                 </div>
 
-                @if ($uploadDocumentUrl)
+                @if ($uploadDocumentUrl && ! $embedded)
                     <p class="text-xs text-zinc-500 dark:text-zinc-400">The upload form opens in the project documents tab in a new tab so you can return here and select the file after it saves.</p>
                 @endif
 
