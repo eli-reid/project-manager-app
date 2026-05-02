@@ -1,10 +1,12 @@
 <?php
 
+use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Actions\Fortify\ResetUserPassword;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 
@@ -61,6 +63,29 @@ test('password can be reset with valid token', function () {
             ->assertRedirect(route('login', absolute: false));
 
         expect($user->fresh()->password_change_required)->toBeFalse();
+
+        return true;
+    });
+});
+
+test('password reset token expires after configured window', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $this->post(route('password.request'), ['email' => $user->email]);
+
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        $this->travel(31)->minutes();
+
+        $response = $this->post(route('password.update'), [
+            'token' => $notification->token,
+            'email' => $user->email,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ]);
+
+        $response->assertSessionHasErrors('email');
 
         return true;
     });
@@ -125,4 +150,31 @@ test('forgot-password reset does not sync cpanel mailbox password when sync is d
     ]);
 
     Http::assertNothingSent();
+});
+
+test('forgot-password reset does not fail when cpanel sync throws', function () {
+    $user = User::factory()->create([
+        'username' => 'jane',
+        'company_email' => 'jane@example.test',
+        'password_change_required' => true,
+    ]);
+
+    $this->mock(CpanelMailboxManager::class, function ($mock) use ($user): void {
+        $mock->shouldIgnoreMissing();
+
+        $mock->shouldReceive('syncPasswordForUser')
+            ->once()
+            ->withArgs(function (User $targetUser, string $password) use ($user): bool {
+                return $targetUser->is($user) && $password === 'new-password';
+            })
+            ->andThrow(new RuntimeException('cPanel is unavailable'));
+    });
+
+    app(ResetUserPassword::class)->reset($user, [
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ]);
+
+    expect(Hash::check('new-password', (string) $user->fresh()?->password))->toBeTrue()
+        ->and($user->fresh()?->password_change_required)->toBeFalse();
 });

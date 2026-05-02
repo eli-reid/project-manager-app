@@ -1,6 +1,8 @@
 <?php
 
 use App\Core\Identity\Models\User;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Features;
 
 test('home route renders the login screen for guests', function () {
@@ -48,6 +50,33 @@ test('users can not authenticate with invalid password', function () {
     ]);
 
     $response->assertSessionHasErrorsIn('email');
+
+    $this->assertGuest();
+});
+
+test('login attempts are throttled after repeated failures', function () {
+    $user = User::factory()->create();
+
+    $throttleKey = Str::transliterate(Str::lower($user->email.'|127.0.0.1'));
+    RateLimiter::clear($throttleKey);
+
+    for ($attempt = 1; $attempt <= 5; $attempt++) {
+        $this->from(route('login'))
+            ->post(route('login.store'), [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+            ])
+            ->assertSessionHasErrors('email');
+    }
+
+    expect(RateLimiter::tooManyAttempts($throttleKey, 5))->toBeTrue();
+
+    $this->from(route('login'))
+        ->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ])
+        ->assertTooManyRequests();
 
     $this->assertGuest();
 });

@@ -5,6 +5,7 @@ namespace App\Core\Identity\Actions\Fortify;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Concerns\PasswordValidationRules;
 use App\Core\Identity\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
 
@@ -32,6 +33,16 @@ class ResetUserPassword implements ResetsUserPasswords
             'password_change_required' => false,
         ])->save();
 
-        $this->mailboxManager->syncPasswordForUser($user, $input['password']);
+        if ($user->company_email !== null) {
+            try {
+                $this->mailboxManager->syncPasswordForUser($user, $input['password']);
+            } catch (\Throwable $exception) {
+                Log::warning('Failed to sync reset password to cPanel mailbox.', [
+                    'user_id' => (string) $user->id,
+                    'company_email' => $user->company_email,
+                    'exception' => $exception->getMessage(),
+                ]);
+            }
+        }
     }
 }
