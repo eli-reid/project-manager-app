@@ -27,12 +27,15 @@ namespace App\Core\Announcement\Models{
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
  * @property-read \App\Core\Identity\Models\User $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Identity\Models\User> $dismissedByUsers
+ * @property-read int|null $dismissed_by_users_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement active()
  * @method static \App\Core\Announcement\Database\Factories\AnnouncementFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement visibleTo(?\App\Core\Identity\Models\User $user)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement whereContent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement whereCreatedBy($value)
@@ -45,6 +48,7 @@ namespace App\Core\Announcement\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement withCreator()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Announcement withoutTrashed()
  */
@@ -213,6 +217,9 @@ namespace App\Core\Identity\Models{
  * @property-read int|null $approved_pay_runs_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Payroll\Models\PayRun> $createdPayRuns
  * @property-read int|null $created_pay_runs_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Announcement\Models\Announcement> $dismissedAnnouncements
+ * @property-read int|null $dismissed_announcements_count
+ * @property-read string $name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Notification\Models\UserNotificationPreference> $notificationPreferences
  * @property-read int|null $notification_preferences_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
@@ -222,6 +229,7 @@ namespace App\Core\Identity\Models{
  * @property-read int|null $payroll_statements_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Auth\Role\Models\Role> $roles
  * @property-read int|null $roles_count
+ * @property-read \App\Domains\Timecards\Models\TimecardRequiredUser|null $timecardRequiredEntry
  * @method static \App\Core\Auth\User\Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
@@ -564,6 +572,70 @@ namespace App\Domains\Addresses\Models{
 	class Address extends \Eloquent {}
 }
 
+namespace App\Domains\ChangeOrders\Models{
+/**
+ * @mixin IdeHelperChangeOrder
+ * @property string $id
+ * @property string $project_id
+ * @property string $title
+ * @property string|null $description
+ * @property string $status
+ * @property numeric $labor_amount
+ * @property numeric $materials_amount
+ * @property numeric $total_amount
+ * @property string|null $requested_by_id
+ * @property string|null $approved_by_id
+ * @property string|null $rejected_by_id
+ * @property \Carbon\CarbonImmutable|null $submitted_at
+ * @property \Carbon\CarbonImmutable|null $approved_at
+ * @property \Carbon\CarbonImmutable|null $rejected_at
+ * @property \Carbon\CarbonImmutable|null $implemented_at
+ * @property \Carbon\CarbonImmutable|null $cancelled_at
+ * @property \Carbon\CarbonImmutable|null $client_approved_at
+ * @property string|null $client_approval_reference
+ * @property string|null $rejection_reason
+ * @property string|null $notes
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Core\Identity\Models\User|null $approvedBy
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Core\Identity\Models\User|null $rejectedBy
+ * @property-read \App\Core\Identity\Models\User|null $requestedBy
+ * @method static \App\Domains\ChangeOrders\Database\Factories\ChangeOrderFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereApprovedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereApprovedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereClientApprovalReference($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereClientApprovedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereImplementedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereLaborAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereMaterialsAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereRejectedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereRejectedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereRejectionReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereRequestedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereSubmittedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereTotalAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ChangeOrder withoutTrashed()
+ */
+	class ChangeOrder extends \Eloquent {}
+}
+
 namespace App\Domains\Clients\Models{
 /**
  * @mixin IdeHelperClient
@@ -696,6 +768,8 @@ namespace App\Domains\Documents\Models{
  * @property-read int|null $owner_projects_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Identity\Models\User> $ownerUsers
  * @property-read int|null $owner_users_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Documents\Models\DocumentShare> $shares
+ * @property-read int|null $shares_count
  * @property-read \App\Core\Identity\Models\User|null $uploadedBy
  * @method static \App\Domains\Documents\Database\Factories\DocumentFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document global()
@@ -729,6 +803,47 @@ namespace App\Domains\Documents\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withoutTrashed()
  */
 	class Document extends \Eloquent {}
+}
+
+namespace App\Domains\Documents\Models{
+/**
+ * @mixin IdeHelperDocumentShare
+ * @property string $id
+ * @property string $document_id
+ * @property string $created_by_id
+ * @property string $share_token
+ * @property string|null $share_password
+ * @property \Carbon\CarbonImmutable|null $expires_at
+ * @property int|null $max_downloads
+ * @property int $download_count
+ * @property bool $is_active
+ * @property string|null $access_notes
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Core\Identity\Models\User $createdBy
+ * @property-read \App\Domains\Documents\Models\Document|null $document
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereAccessNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereCreatedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereDocumentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereDownloadCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereExpiresAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereMaxDownloads($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereSharePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereShareToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentShare withoutTrashed()
+ */
+	class DocumentShare extends \Eloquent {}
 }
 
 namespace App\Domains\Invoices\Models{
@@ -1151,6 +1266,19 @@ namespace App\Domains\Payroll\Models{
 	class PayrollStatement extends \Eloquent {}
 }
 
+namespace App\Domains\Payroll\Models{
+/**
+ * @mixin IdeHelperWeeklyEmployeeHoursAdjustment
+ * @property-read \App\Core\Identity\Models\User|null $editor
+ * @property-read \App\Core\Identity\Models\User|null $employee
+ * @method static \App\Domains\Payroll\Database\Factories\WeeklyEmployeeHoursAdjustmentFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment query()
+ */
+	class WeeklyEmployeeHoursAdjustment extends \Eloquent {}
+}
+
 namespace App\Domains\Projects\Models{
 /**
  * @mixin IdeHelperCostCode
@@ -1211,6 +1339,8 @@ namespace App\Domains\Projects\Models{
  * @property-read \App\Domains\Addresses\Models\Address|null $address
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Addresses\Models\Address> $availableClientAddresses
  * @property-read int|null $available_client_addresses_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\ChangeOrders\Models\ChangeOrder> $changeOrders
+ * @property-read int|null $change_orders_count
  * @property-read \App\Domains\Clients\Models\Client|null $client
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\CostCode> $costCodes
  * @property-read int|null $cost_codes_count
@@ -1415,6 +1545,58 @@ namespace App\Domains\Stock\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockOrderTemplate withoutTrashed()
  */
 	class StockOrderTemplate extends \Eloquent {}
+}
+
+namespace App\Domains\Submittals\Models{
+/**
+ * @property \App\Domains\Submittals\Enums\SubmittalStatusEnum $status
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Submittals\Models\SubmittalApproval> $approvals
+ * @property-read int|null $approvals_count
+ * @property-read \App\Core\Identity\Models\User|null $currentReviewer
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Documents\Models\Document> $documents
+ * @property-read int|null $documents_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Submittals\Models\SubmittalItem> $items
+ * @property-read int|null $items_count
+ * @property-read \App\Domains\Projects\Models\Project|null $project
+ * @property-read \App\Core\Identity\Models\User|null $submittedBy
+ * @method static \App\Domains\Submittals\Database\Factories\SubmittalFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal withoutTrashed()
+ */
+	class Submittal extends \Eloquent {}
+}
+
+namespace App\Domains\Submittals\Models{
+/**
+ * @property-read \App\Core\Identity\Models\User|null $reviewer
+ * @property-read \App\Domains\Submittals\Models\Submittal|null $submittal
+ * @method static \App\Domains\Submittals\Database\Factories\SubmittalApprovalFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval withoutTrashed()
+ */
+	class SubmittalApproval extends \Eloquent {}
+}
+
+namespace App\Domains\Submittals\Models{
+/**
+ * @property-read \App\Domains\Submittals\Models\Submittal|null $submittal
+ * @method static \App\Domains\Submittals\Database\Factories\SubmittalItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem withoutTrashed()
+ */
+	class SubmittalItem extends \Eloquent {}
 }
 
 namespace App\Domains\Tasks\Models{
@@ -1652,5 +1834,31 @@ namespace App\Domains\Timecards\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardEntry whereWorkClassification($value)
  */
 	class TimecardEntry extends \Eloquent {}
+}
+
+namespace App\Domains\Timecards\Models{
+/**
+ * @mixin IdeHelperTimecardRequiredUser
+ * @property string $id
+ * @property string $user_id
+ * @property bool $reminders_enabled
+ * @property \Carbon\CarbonImmutable|null $effective_start_date
+ * @property \Carbon\CarbonImmutable|null $effective_end_date
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property-read \App\Core\Identity\Models\User $user
+ * @method static \App\Domains\Timecards\Database\Factories\TimecardRequiredUserFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser whereEffectiveEndDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser whereEffectiveStartDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser whereRemindersEnabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TimecardRequiredUser whereUserId($value)
+ */
+	class TimecardRequiredUser extends \Eloquent {}
 }
 

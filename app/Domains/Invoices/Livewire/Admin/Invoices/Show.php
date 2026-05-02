@@ -4,6 +4,7 @@ namespace App\Domains\Invoices\Livewire\Admin\Invoices;
 
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Models\Invoice;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -29,7 +30,7 @@ class Show extends Component
 
         $this->invoice->update([
             'status' => InvoiceStatusEnum::Verified->value,
-            'verified_by' => auth()->id(),
+            'verified_by' => Auth::id(),
             'verified_at' => now(),
         ]);
 

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-
+use Illuminate\Support\Facades\Auth;
 #[Layout('stock::layouts.stock-invoices-admin')]
 #[Title('Invoice Form')]
 class Form extends Component
@@ -246,7 +246,7 @@ class Form extends Component
             $this->authorize('create', Invoice::class);
             $invoice = Invoice::query()->create([
                 ...$invoiceData,
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
             ]);
 
             foreach ($validated['lineItems'] as $i => $item) {
