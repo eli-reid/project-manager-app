@@ -368,9 +368,29 @@ class Form extends Component
     private function redirectAfterSave(Submittal $submittal): void
     {
         if ($this->returnTo !== '') {
-            $this->redirect($this->returnTo, navigate: true);
+            $user = Auth::user();
 
-            return;
+            if ($user instanceof User) {
+                $project = Project::query()->find((string) $submittal->project_id);
+
+                $canReturnToProjectAdmin = $project instanceof Project
+                    && $user->can('viewAny', Project::class)
+                    && $user->can('view', $project);
+
+                Log::info('Submittal post-save redirect decision.', [
+                    'user_id' => $user->id,
+                    'submittal_id' => $submittal->id,
+                    'project_id' => $submittal->project_id,
+                    'return_to' => $this->returnTo,
+                    'can_return_to_project_admin' => $canReturnToProjectAdmin,
+                ]);
+
+                if ($canReturnToProjectAdmin) {
+                    $this->redirect($this->returnTo, navigate: true);
+
+                    return;
+                }
+            }
         }
 
         $this->redirectRoute('submittals.show', $submittal);
