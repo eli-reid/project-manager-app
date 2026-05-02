@@ -89,7 +89,7 @@ class Form extends Component
 
         $hasExplicitProjectContext = $projectId !== null && $projectId !== '';
 
-        if ($submittal instanceof Submittal && ! $hasExplicitProjectContext) {
+        if ($submittal instanceof Submittal && $submittal->exists && ! $hasExplicitProjectContext) {
             $this->authorizeWithTrace('update', $submittal, 'mount.edit');
             $this->projectId = (string) $submittal->project_id;
             $this->type = (string) $submittal->type;
@@ -222,9 +222,14 @@ class Form extends Component
 
     public function save(): void
     {
+        if ($this->submittal instanceof Submittal && ! $this->submittal->exists) {
+            $this->submittal = null;
+        }
+
         Log::info('Submittal form save invoked.', [
             'user_id' => Auth::id(),
             'submittal_id' => $this->submittal?->id,
+            'submittal_exists' => $this->submittal?->exists ?? false,
             'project_id' => $this->projectId,
             'embedded' => $this->embedded,
             'return_to' => $this->returnTo,
@@ -257,7 +262,7 @@ class Form extends Component
             'need_by_date' => $validated['needByDate'],
         ];
 
-        if ($this->submittal instanceof Submittal) {
+        if ($this->submittal instanceof Submittal && $this->submittal->exists) {
             $this->authorizeWithTrace('update', $this->submittal, 'save.update');
 
             $this->submittal->update($payload);
@@ -353,7 +358,7 @@ class Form extends Component
             return $this->returnTo;
         }
 
-        if ($this->submittal instanceof Submittal) {
+        if ($this->submittal instanceof Submittal && $this->submittal->exists) {
             return route('submittals.show', $this->submittal);
         }
 
