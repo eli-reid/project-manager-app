@@ -764,10 +764,14 @@ namespace App\Domains\Documents\Models{
  * @property \Carbon\CarbonImmutable|null $created_at
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property \Carbon\CarbonImmutable|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Projects\Models\Project> $ownerProjects
- * @property-read int|null $owner_projects_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Core\Identity\Models\User> $ownerUsers
- * @property-read int|null $owner_users_count
+ * @property string|null $owner_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Documents\Models\DocumentShare> $externalShares
+ * @property-read int|null $external_shares_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Documents\Models\DocumentInternalShare> $internalShares
+ * @property-read int|null $internal_shares_count
+ * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $owner
+ * @property-read \App\Domains\Projects\Models\Project|null $ownerProject
+ * @property-read \App\Core\Identity\Models\User|null $ownerUser
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Documents\Models\DocumentShare> $shares
  * @property-read int|null $shares_count
  * @property-read \App\Core\Identity\Models\User|null $uploadedBy
@@ -780,6 +784,8 @@ namespace App\Domains\Documents\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document ownedByUser(string $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document projectOwned()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document sharedWithProject(string $projectId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document sharedWithUser(string $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document userOwned()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDeletedAt($value)
@@ -790,6 +796,7 @@ namespace App\Domains\Documents\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereLastReplacedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereMimeType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereOriginalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereOwnerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereOwnerScope($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereReplaceMode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereStorageDisk($value)
@@ -803,6 +810,46 @@ namespace App\Domains\Documents\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withoutTrashed()
  */
 	class Document extends \Eloquent {}
+}
+
+namespace App\Domains\Documents\Models{
+/**
+ * @mixin IdeHelperDocumentInternalShare
+ * @property string $id
+ * @property string $document_id
+ * @property string $grantee_scope
+ * @property string $grantee_id
+ * @property string $permission_level
+ * @property string $granted_by_id
+ * @property \Carbon\CarbonImmutable|null $expires_at
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Domains\Documents\Models\Document|null $document
+ * @property-read \App\Core\Identity\Models\User $grantedBy
+ * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $grantee
+ * @property-read \App\Domains\Projects\Models\Project|null $granteeProject
+ * @property-read \App\Core\Identity\Models\User|null $granteeUser
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare forProject(string $projectId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare forUser(string $userId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereDocumentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereExpiresAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereGrantedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereGranteeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereGranteeScope($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare wherePermissionLevel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentInternalShare withoutTrashed()
+ */
+	class DocumentInternalShare extends \Eloquent {}
 }
 
 namespace App\Domains\Documents\Models{
@@ -1269,12 +1316,34 @@ namespace App\Domains\Payroll\Models{
 namespace App\Domains\Payroll\Models{
 /**
  * @mixin IdeHelperWeeklyEmployeeHoursAdjustment
+ * @property string $id
+ * @property \Carbon\CarbonImmutable $week_start
+ * @property string $user_id
+ * @property float $source_hours
+ * @property float $adjusted_hours
+ * @property string $reason
+ * @property string|null $edited_by_id
+ * @property \Carbon\CarbonImmutable|null $edited_at
+ * @property array<array-key, mixed>|null $metadata
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
  * @property-read \App\Core\Identity\Models\User|null $editor
- * @property-read \App\Core\Identity\Models\User|null $employee
+ * @property-read \App\Core\Identity\Models\User $employee
  * @method static \App\Domains\Payroll\Database\Factories\WeeklyEmployeeHoursAdjustmentFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereAdjustedHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereEditedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereEditedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereMetadata($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereSourceHours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WeeklyEmployeeHoursAdjustment whereWeekStart($value)
  */
 	class WeeklyEmployeeHoursAdjustment extends \Eloquent {}
 }
@@ -1549,7 +1618,24 @@ namespace App\Domains\Stock\Models{
 
 namespace App\Domains\Submittals\Models{
 /**
+ * @property string $id
+ * @property string $project_id
+ * @property string $type
+ * @property string|null $spec_reference
+ * @property string|null $vendor
+ * @property \Carbon\CarbonImmutable|null $need_by_date
  * @property \App\Domains\Submittals\Enums\SubmittalStatusEnum $status
+ * @property string $submitted_by_id
+ * @property string|null $current_reviewer_id
+ * @property string|null $rejection_reason
+ * @property \Carbon\CarbonImmutable|null $submitted_at
+ * @property \Carbon\CarbonImmutable|null $approved_at
+ * @property \Carbon\CarbonImmutable|null $rejected_at
+ * @property \Carbon\CarbonImmutable|null $cancelled_at
+ * @property \Carbon\CarbonImmutable|null $distributed_at
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Submittals\Models\SubmittalApproval> $approvals
  * @property-read int|null $approvals_count
  * @property-read \App\Core\Identity\Models\User|null $currentReviewer
@@ -1558,12 +1644,30 @@ namespace App\Domains\Submittals\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Domains\Submittals\Models\SubmittalItem> $items
  * @property-read int|null $items_count
  * @property-read \App\Domains\Projects\Models\Project|null $project
- * @property-read \App\Core\Identity\Models\User|null $submittedBy
+ * @property-read \App\Core\Identity\Models\User $submittedBy
  * @method static \App\Domains\Submittals\Database\Factories\SubmittalFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereApprovedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereCurrentReviewerId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereDistributedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereNeedByDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereRejectedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereRejectionReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereSpecReference($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereSubmittedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereSubmittedById($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal whereVendor($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Submittal withoutTrashed()
  */
@@ -1572,13 +1676,33 @@ namespace App\Domains\Submittals\Models{
 
 namespace App\Domains\Submittals\Models{
 /**
- * @property-read \App\Core\Identity\Models\User|null $reviewer
+ * @property string $id
+ * @property string $submittal_id
+ * @property int $step
+ * @property string $reviewer_id
+ * @property string $status
+ * @property \Carbon\CarbonImmutable|null $reviewed_at
+ * @property string|null $comments
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
+ * @property-read \App\Core\Identity\Models\User $reviewer
  * @property-read \App\Domains\Submittals\Models\Submittal|null $submittal
  * @method static \App\Domains\Submittals\Database\Factories\SubmittalApprovalFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereComments($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereReviewedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereReviewerId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereStep($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereSubmittalId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalApproval withoutTrashed()
  */
@@ -1587,12 +1711,38 @@ namespace App\Domains\Submittals\Models{
 
 namespace App\Domains\Submittals\Models{
 /**
+ * @property string $id
+ * @property string $submittal_id
+ * @property string $description
+ * @property string|null $manufacturer
+ * @property string|null $model
+ * @property string|null $part_number
+ * @property numeric|null $quantity
+ * @property string|null $unit
+ * @property string $status
+ * @property string|null $comments
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property \Carbon\CarbonImmutable|null $deleted_at
  * @property-read \App\Domains\Submittals\Models\Submittal|null $submittal
  * @method static \App\Domains\Submittals\Database\Factories\SubmittalItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereComments($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereManufacturer($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereModel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem wherePartNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereSubmittalId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SubmittalItem withoutTrashed()
  */
