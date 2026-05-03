@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Dashboard\Middleware\RedirectMobileDashboard;
 use App\Core\Identity\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\AddSecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustHosts(subdomains: false);
         $middleware->web(append: [
             EnsurePasswordChanged::class,
+            RedirectMobileDashboard::class,
             AddSecurityHeaders::class,
         ]);
     })
