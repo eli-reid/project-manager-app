@@ -251,7 +251,7 @@
                 <button
                     type="submit"
                     data-mobile-haptic
-                    class="flex min-h-12 flex-[2] items-center justify-center rounded-2xl bg-zinc-100 text-sm font-semibold text-zinc-900 active:bg-zinc-300"
+                    class="flex min-h-12 flex-2 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-semibold text-zinc-900 active:bg-zinc-300"
                     wire:loading.class="opacity-60"
                     wire:loading.attr="disabled"
                 >
