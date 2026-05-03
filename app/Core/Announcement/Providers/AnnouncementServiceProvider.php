@@ -39,7 +39,7 @@ class AnnouncementServiceProvider extends ServiceProvider
                 section: 'primary',
                 sort: 10,
                 span: 'half',
-                ability: '',
+                ability: 'announcement.view',
                 title: 'Company Announcements',
                 description: 'Latest updates for the team.',
             ),
@@ -60,7 +60,6 @@ class AnnouncementServiceProvider extends ServiceProvider
     {
         /** @var PermissionRegistryContract $registry */
         $registry = $this->app->make(PermissionRegistryContract::class);
-
         $registry->registerPermissions(AnnouncementPermissions::all());
     }
 

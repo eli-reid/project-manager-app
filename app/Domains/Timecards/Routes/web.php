@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Reports\Livewire\User\LaborCostAnalysis\Index as LaborCostAnalysisIndex;
+use App\Domains\Reports\Livewire\User\LeaveBalanceSummary\Index as LeaveBalanceSummaryIndex;
 use App\Domains\Timecards\Livewire\User\Timecards\Form;
 use App\Domains\Timecards\Livewire\User\Timecards\Index;
 use App\Domains\Timecards\Livewire\User\Timecards\Show;
@@ -33,4 +34,8 @@ Route::prefix('reports')
         Route::livewire('/financial/labor-cost-analysis', LaborCostAnalysisIndex::class)
             ->middleware('can:reports.financial.view')
             ->name('financial.labor-cost-analysis.index');
+
+        Route::livewire('/operational/leave-balance-summary', LeaveBalanceSummaryIndex::class)
+            ->middleware('can:reports.operational.view')
+            ->name('operational.leave-balance-summary.index');
     });

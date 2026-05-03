@@ -21,6 +21,16 @@ class TimecardReportDefinitions
                 'sort' => 20,
             ],
             [
+                'key' => 'operational.leave-balance-summary',
+                'section' => 'operational',
+                'title' => 'Leave Balance Summary',
+                'description' => 'View allotted and used sick and vacation hours for all employees.',
+                'route' => 'reports.operational.leave-balance-summary.index',
+                'badge_label' => 'Available',
+                'badge_color' => 'green',
+                'sort' => 40,
+            ],
+            [
                 'key' => 'operational.timecard-activity',
                 'section' => 'operational',
                 'title' => 'Timecard Activity',
