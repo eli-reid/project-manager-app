@@ -8,6 +8,7 @@ use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
 use App\Domains\Payroll\Permissions\PayrollPermissions;
+use App\Domains\Payroll\Reports\PayrollReportDefinitions;
 use App\Domains\Reports\Services\ReportRegistry;
 
 it('keeps payroll persistence classes inside the payroll domain', function () {
@@ -77,10 +78,10 @@ it('registers payroll report cards in financial reports registry', function () {
     $financialCards = collect(app(ReportRegistry::class)->forSection('financial'));
 
     expect($financialCards->pluck('key')->all())
-        ->toContain('financial.payroll-certified-wh347')
-        ->toContain('financial.payroll-tax-filings')
-        ->toContain('financial.payroll-labor-cost')
-        ->toContain('financial.payroll-union-remittance');
+        ->toContain(PayrollReportDefinitions::CERTIFIED_WH347)
+        ->toContain(PayrollReportDefinitions::TAX_FILINGS)
+        ->toContain(PayrollReportDefinitions::LABOR_COST)
+        ->toContain(PayrollReportDefinitions::UNION_REMITTANCE);
 });
 
 it('registers payroll report placeholder routes', function () {

@@ -4,6 +4,20 @@ namespace App\Domains\Payroll\Reports;
 
 class PayrollReportDefinitions
 {
+    public const CERTIFIED_WH347 = 'financial.payroll-certified-wh347';
+
+    public const TAX_FILINGS = 'financial.payroll-tax-filings';
+
+    public const LABOR_COST = 'financial.payroll-labor-cost';
+
+    public const UNION_REMITTANCE = 'financial.payroll-union-remittance';
+
+    public const AUDIT_TRAIL = 'financial.payroll-audit-trail';
+
+    public const WEEKLY_EMPLOYEE_HOURS = 'operational.payroll-weekly-employee-hours';
+
+    public const WEEKLY_HOUR_ADJUSTMENTS = 'operational.payroll-weekly-hour-adjustments';
+
     /**
      * @return array<int, array{key:string,section:string,title:string,description:string,route:string,badge_label:string,badge_color:string,sort:int}>
      */
@@ -11,7 +25,7 @@ class PayrollReportDefinitions
     {
         return [
             [
-                'key' => 'financial.payroll-certified-wh347',
+                'key' => self::CERTIFIED_WH347,
                 'section' => 'financial',
                 'title' => 'Certified Payroll (WH-347)',
                 'description' => 'Generate certified payroll by project and week.',
@@ -21,7 +35,7 @@ class PayrollReportDefinitions
                 'sort' => 60,
             ],
             [
-                'key' => 'financial.payroll-tax-filings',
+                'key' => self::TAX_FILINGS,
                 'section' => 'financial',
                 'title' => 'Payroll Tax Filings (941 and W-2)',
                 'description' => 'Generate quarterly and annual payroll tax filing datasets.',
@@ -31,7 +45,7 @@ class PayrollReportDefinitions
                 'sort' => 70,
             ],
             [
-                'key' => 'financial.payroll-labor-cost',
+                'key' => self::LABOR_COST,
                 'section' => 'financial',
                 'title' => 'Payroll Labor Cost by Project and Cost Code',
                 'description' => 'Analyze payroll labor cost by project, cost code, and employee.',
@@ -41,7 +55,7 @@ class PayrollReportDefinitions
                 'sort' => 80,
             ],
             [
-                'key' => 'financial.payroll-union-remittance',
+                'key' => self::UNION_REMITTANCE,
                 'section' => 'financial',
                 'title' => 'Union Remittance',
                 'description' => 'Generate union remittance reports and export-ready files.',
@@ -51,7 +65,7 @@ class PayrollReportDefinitions
                 'sort' => 90,
             ],
             [
-                'key' => 'financial.payroll-audit-trail',
+                'key' => self::AUDIT_TRAIL,
                 'section' => 'financial',
                 'title' => 'Payroll Audit Trail',
                 'description' => 'Review payroll mutations and digest chain integrity status.',
@@ -61,7 +75,7 @@ class PayrollReportDefinitions
                 'sort' => 100,
             ],
             [
-                'key' => 'operational.payroll-weekly-employee-hours',
+                'key' => self::WEEKLY_EMPLOYEE_HOURS,
                 'section' => 'operational',
                 'title' => 'Weekly Employee Hours',
                 'description' => 'Review and export weekly employee totals for payroll approval.',
@@ -72,7 +86,7 @@ class PayrollReportDefinitions
                 'ability' => 'payroll-runs.preview',
             ],
             [
-                'key' => 'operational.payroll-weekly-hour-adjustments',
+                'key' => self::WEEKLY_HOUR_ADJUSTMENTS,
                 'section' => 'operational',
                 'title' => 'Weekly Hour Adjustment Report',
                 'description' => 'Review weekly hour overrides that are tracked separately from timecards.',

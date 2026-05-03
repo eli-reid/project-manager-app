@@ -148,10 +148,8 @@ it('renders dashboard widgets with consistent span classes', function (): void {
 });
 
 it('expands single-widget sections to full width', function (): void {
-    $user = User::factory()->create([
-        'is_admin' => false,
-        'email_verified_at' => now(),
-    ]);
+    // A user with only timecards.view sees one widget (personal section) → full-width, no half-span multi-widget columns
+    $user = dashboardWidgetUserWithPermissions(['timecards.view']);
 
     $this->actingAs($user)
         ->get(route('dashboard'))
