@@ -1,6 +1,6 @@
 <?php
 
-use App\Domains\Timecards\Livewire\User\Timecards\Form;
+use App\Domains\Timecards\Livewire\Mobile\Timecards\Form as MobileForm;
 use App\Domains\Timecards\Livewire\User\Timecards\Index;
 use App\Domains\Timecards\Livewire\User\Timecards\Show;
 use App\Domains\Timecards\Models\Timecard;
@@ -13,7 +13,7 @@ Route::prefix('timecards/mobile')
             ->middleware('can:viewAny,'.Timecard::class)
             ->name('index');
 
-        Route::livewire('/create', Form::class)
+        Route::livewire('/create', MobileForm::class)
             ->middleware('can:create,'.Timecard::class)
             ->name('create');
 
@@ -21,7 +21,7 @@ Route::prefix('timecards/mobile')
             ->middleware('can:view,timecard')
             ->name('show');
 
-        Route::livewire('/{timecard}/edit', Form::class)
+        Route::livewire('/{timecard}/edit', MobileForm::class)
             ->middleware('can:update,timecard')
             ->name('edit');
     });

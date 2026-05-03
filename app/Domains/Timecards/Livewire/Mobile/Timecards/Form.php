@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Domains\Timecards\Livewire\Mobile\Timecards;
+
+use App\Core\Identity\Models\User;
+use App\Domains\Projects\Models\CostCode;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Timecards\Livewire\User\Timecards\Form as DesktopForm;
+use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Services\LeaveBalanceService;
+use App\Domains\Timecards\Services\TimecardLifecycleService;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
+
+#[Layout('layouts.mobile')]
+class Form extends DesktopForm
+{
+    public function save(): void
+    {
+        $validated = $this->validate();
+        $this->assertValidCostCodeMapping($validated['entries'] ?? []);
+
+        $entries = $this->convertDayOfWeekToDate($validated['entries'] ?? []);
+        $validated['entries'] = $entries;
+
+        $lifecycleService = app(TimecardLifecycleService::class);
+        $user = Auth::user();
+        abort_unless($user !== null, 401);
+
+        if ($this->isEdit) {
+            $timecard = $this->timecard;
+            if ($timecard === null) {
+                return;
+            }
+
+            $this->authorize('update', $timecard);
+            $timecard = $lifecycleService->updateDraft($timecard, $validated, $validated['entries'] ?? []);
+
+            session()->flash('success', 'Timecard updated successfully.');
+        } else {
+            $this->authorize('create', Timecard::class);
+            $timecard = $lifecycleService->createDraftForUser($user, $validated['week_starting'], $validated);
+            $timecard = $lifecycleService->updateDraft($timecard, $validated, $validated['entries'] ?? []);
+
+            session()->flash('success', 'Timecard created successfully.');
+        }
+
+        $this->redirectRoute('timecards.mobile.show', ['timecard' => $timecard], navigate: true);
+    }
+
+    public function render()
+    {
+        $projects = Project::query()
+            ->where(function ($query): void {
+                $query->where('is_active', true)
+                    ->orWhereNotNull('leave_category');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'leave_category']);
+
+        $leaveProjectsByCategory = $projects
+            ->whereNotNull('leave_category')
+            ->keyBy('leave_category');
+
+        $user = Auth::user();
+
+        return view('timecards::livewire.mobile.timecards.form', [
+            'projects' => $projects,
+            'leaveProjectsByCategory' => $leaveProjectsByCategory,
+            'leaveBalances' => $user instanceof User
+                ? app(LeaveBalanceService::class)->forUser($user)
+                : ['sick' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0], 'vacation' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0]],
+            'costCodesByProject' => CostCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'project_id', 'code', 'description'])
+                ->groupBy('project_id'),
+        ])->title($this->isEdit ? __('Edit Timecard') : __('Create Timecard'));
+    }
+}

@@ -229,7 +229,7 @@ class Form extends Component
      * @param  array<int, array<string, mixed>>  $entries
      * @return array<int, array<string, mixed>>
      */
-    private function convertDayOfWeekToDate(array $entries): array
+    protected function convertDayOfWeekToDate(array $entries): array
     {
         $weekStart = Carbon::parse($this->week_starting);
 
@@ -245,7 +245,7 @@ class Form extends Component
     /**
      * @param  array<int, array<string, mixed>>  $entries
      */
-    private function assertValidCostCodeMapping(array $entries): void
+    protected function assertValidCostCodeMapping(array $entries): void
     {
         $projectIds = collect($entries)
             ->pluck('project_id')
@@ -295,7 +295,7 @@ class Form extends Component
         }
     }
 
-    private function newEntry(?string $projectId = null): array
+    protected function newEntry(?string $projectId = null): array
     {
         return [
             'id' => null,

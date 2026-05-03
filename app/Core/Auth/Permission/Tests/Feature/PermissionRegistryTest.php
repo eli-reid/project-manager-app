@@ -2,13 +2,14 @@
 
 use App\Core\Auth\Permission\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Log;
-
+use Tests\Feature\PermissionTestContext;
 
 beforeEach(function (): void {
     $this->registry = new PermissionRegistry;
 });
 
 it('registers a permission definition', function (): void {
+    
     $this->registry->registerPermissions([
         [
             'resource' => 'timecards',
