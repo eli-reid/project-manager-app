@@ -2,8 +2,8 @@
 
 use App\Core\Auth\Permission\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Log;
-use Tests\Feature\PermissionTestContext;
 
+/** @var PermissionRegistry $registry */
 beforeEach(function (): void {
     $this->registry = new PermissionRegistry;
 });
