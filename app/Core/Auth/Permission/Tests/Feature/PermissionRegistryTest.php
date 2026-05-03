@@ -3,6 +3,7 @@
 use App\Core\Auth\Permission\Services\PermissionRegistry;
 use Illuminate\Support\Facades\Log;
 
+
 beforeEach(function (): void {
     $this->registry = new PermissionRegistry;
 });
