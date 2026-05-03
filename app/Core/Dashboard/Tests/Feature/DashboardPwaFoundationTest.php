@@ -43,6 +43,9 @@ it('renders the mobile dashboard shell for authenticated users', function (): vo
     $this->actingAs($user)
         ->get(route('mobile.dashboard'))
         ->assertOk()
+        ->assertSee('data-pwa-mobile-nav', false)
+        ->assertSee('data-pwa-install-action', false)
+        ->assertSee('Offline mode')
         ->assertSee('Install App')
         ->assertSee('Dashboard');
 });

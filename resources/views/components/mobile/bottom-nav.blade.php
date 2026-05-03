@@ -13,7 +13,36 @@
     $canViewDocuments = $user?->can('viewAny', \App\Domains\Documents\Models\Document::class) ?? false;
 @endphp
 
-<div x-data="{ open: false }" class="pointer-events-none fixed inset-x-0 bottom-0 z-50">
+<div
+    x-data="{
+        open: false,
+        installable: false,
+        isStandalone: false,
+        isOffline: !navigator.onLine,
+        init() {
+            this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+            window.addEventListener('pwa-installable', () => {
+                this.installable = true;
+            });
+
+            window.addEventListener('pwa-installed', () => {
+                this.installable = false;
+                this.isStandalone = true;
+            });
+
+            window.addEventListener('online', () => {
+                this.isOffline = false;
+            });
+
+            window.addEventListener('offline', () => {
+                this.isOffline = true;
+            });
+        },
+    }"
+    data-pwa-mobile-nav
+    class="pointer-events-none fixed inset-x-0 bottom-0 z-50"
+>
     <div x-cloak x-show="open" class="pointer-events-auto absolute inset-0 -top-screen bg-black/60 backdrop-blur-sm" @click="open = false"></div>
 
     <div x-cloak x-show="open" x-transition.opacity x-transition.scale.origin.bottom class="pointer-events-auto absolute inset-x-4 bottom-24 rounded-3xl border border-zinc-800 bg-zinc-950 p-4 shadow-2xl">
@@ -38,36 +67,52 @@
                 </a>
             @endif
 
-            <button type="button" class="flex min-h-11 items-center rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-left text-sm font-medium text-zinc-100" onclick="window.triggerPWAInstall?.()" data-mobile-haptic>
+            <button
+                type="button"
+                x-show="!isStandalone"
+                class="flex min-h-11 items-center rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-left text-sm font-medium text-zinc-100"
+                onclick="window.triggerPWAInstall?.()"
+                data-pwa-install-action
+                data-mobile-haptic
+            >
                 {{ __('Install App') }}
             </button>
         </div>
     </div>
 
+    <div x-cloak x-show="isOffline" class="pointer-events-auto mx-auto mb-2 w-fit rounded-full border border-amber-600/30 bg-amber-500/20 px-3 py-1 text-[11px] font-semibold text-amber-100">
+        {{ __('Offline mode') }}
+    </div>
+
     <nav class="pointer-events-auto mx-auto flex max-w-md items-center justify-between border-t border-zinc-800/90 bg-zinc-950/95 px-3 py-3 safe-area-bottom backdrop-blur">
         <a href="{{ $dashboardHref }}" class="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-semibold {{ request()->routeIs('dashboard') || request()->routeIs('mobile.dashboard') ? 'text-white' : 'text-zinc-500' }}" data-mobile-haptic>
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10.707 1.293a1 1 0 0 0-1.414 0l-7 7A1 1 0 0 0 3 10h1v6a1 1 0 0 0 1 1h3.5a.5.5 0 0 0 .5-.5V13a1 1 0 0 1 1-1h0a1 1 0 0 1 1 1v3.5a.5.5 0 0 0 .5.5H15a1 1 0 0 0 1-1v-6h1a1 1 0 0 0 .707-1.707l-7-7Z" /></svg>
             <span>{{ __('Home') }}</span>
         </a>
 
         @if ($canViewProjects)
             <a href="{{ $projectsHref }}" class="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-semibold {{ request()->routeIs('projects.*') ? 'text-white' : 'text-zinc-500' }}" data-mobile-haptic>
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M3 4a2 2 0 0 1 2-2h2.5a1 1 0 0 1 .8.4l1.2 1.6H15a2 2 0 0 1 2 2v1H3V4Zm0 4h14v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z" /></svg>
                 <span>{{ __('Projects') }}</span>
             </a>
         @endif
 
         @if ($canViewTimecards)
             <a href="{{ $timecardsHref }}" class="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-semibold {{ request()->routeIs('timecards.*') ? 'text-white' : 'text-zinc-500' }}" data-mobile-haptic>
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v2H2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1Zm12 7H2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm-4 2a1 1 0 1 1 0 2H6a1 1 0 1 1 0-2h8Z" /></svg>
                 <span>{{ __('Timecards') }}</span>
             </a>
         @endif
 
         @if ($canViewDailies)
             <a href="{{ $dailiesHref }}" class="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-semibold {{ request()->routeIs('dailies.*') ? 'text-white' : 'text-zinc-500' }}" data-mobile-haptic>
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.414a2 2 0 0 0-.586-1.414l-3.414-3.414A2 2 0 0 0 11.586 2H5Zm5 2.5a.5.5 0 0 1 .5-.5h1.086a1 1 0 0 1 .707.293l2.414 2.414a1 1 0 0 1 .293.707V8.5a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-4Zm-2 7a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1Zm1 2.5a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H9Z" /></svg>
                 <span>{{ __('Dailies') }}</span>
             </a>
         @endif
 
         <button type="button" class="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[11px] font-semibold text-zinc-500" @click="open = true" data-mobile-haptic>
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4ZM4 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm-12 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" /></svg>
             <span>{{ __('More') }}</span>
         </button>
     </nav>

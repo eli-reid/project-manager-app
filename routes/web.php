@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -13,5 +13,3 @@ Route::get('/', function () {
 
 if (app()->environment('local')) {
 }
-
-require __DIR__.'/settings.php';
