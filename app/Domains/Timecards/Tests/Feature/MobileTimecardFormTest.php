@@ -117,6 +117,16 @@ it('validates required week_starting on mobile form', function (): void {
         ->assertHasErrors(['week_starting']);
 });
 
+it('applies a quick hour preset to a mobile entry row', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('entries.0.hours', '1.00')
+        ->call('applyHoursPreset', 0, '8.00')
+        ->assertSet('entries.0.hours', '8.00');
+});
+
 it('prevents unauthorized user from creating timecards via mobile form', function (): void {
     $user = User::factory()->create(['is_admin' => false]);
 

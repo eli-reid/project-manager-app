@@ -1,4 +1,16 @@
+@php
+    $weekStart = \Illuminate\Support\Carbon::parse($week_starting);
+@endphp
+
 <div class="flex flex-col gap-5 px-4 py-5 pb-28">
+    <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Week Range') }}</p>
+        <p class="mt-1 text-sm font-semibold text-zinc-100">
+            {{ $weekStart->copy()->startOfWeek()->format('M j') }} - {{ $weekStart->copy()->endOfWeek()->format('M j, Y') }}
+        </p>
+        <p class="mt-1 text-xs text-zinc-400">{{ __('Tap a quick hour chip for faster entry.') }}</p>
+    </div>
+
     {{-- Leave Balances --}}
     <div class="grid grid-cols-2 gap-3">
         <div class="rounded-2xl border border-emerald-900/60 bg-emerald-950/30 p-3">
@@ -125,6 +137,19 @@
                                 @error('entries.'.$index.'.hours')
                                     <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
                                 @enderror
+
+                                <div class="mt-2 flex flex-wrap gap-1.5">
+                                    @foreach (['4.00', '6.00', '8.00', '10.00', '12.00'] as $presetHours)
+                                        <button
+                                            type="button"
+                                            wire:click="applyHoursPreset({{ $index }}, '{{ $presetHours }}')"
+                                            class="rounded-full border border-zinc-700 px-2.5 py-1 text-[11px] font-semibold text-zinc-300"
+                                            data-mobile-haptic
+                                        >
+                                            {{ $presetHours }}h
+                                        </button>
+                                    @endforeach
+                                </div>
                             </div>
 
                             {{-- Project --}}
@@ -251,7 +276,7 @@
                 <button
                     type="submit"
                     data-mobile-haptic
-                    class="flex min-h-12 flex-2 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-semibold text-zinc-900 active:bg-zinc-300"
+                    class="flex min-h-12 flex-[2] items-center justify-center rounded-2xl bg-zinc-100 text-sm font-semibold text-zinc-900 active:bg-zinc-300"
                     wire:loading.class="opacity-60"
                     wire:loading.attr="disabled"
                 >
