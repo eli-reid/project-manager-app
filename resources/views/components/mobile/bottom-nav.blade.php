@@ -11,6 +11,8 @@
     $canViewDailies = $user?->can('viewAny', \App\Domains\Dailies\Models\DailyReport::class) ?? false;
     $canViewStock = $user?->can('viewAny', \App\Domains\Stock\Models\StockOrder::class) ?? false;
     $canViewDocuments = $user?->can('viewAny', \App\Domains\Documents\Models\Document::class) ?? false;
+    $canCreateTimecards = $user?->can('create', \App\Domains\Timecards\Models\Timecard::class) ?? false;
+    $newTimecardHref = \Illuminate\Support\Facades\Route::has('timecards.mobile.create') ? route('timecards.mobile.create') : route('timecards.create');
 @endphp
 
 <div
@@ -55,6 +57,13 @@
         </div>
 
         <div class="grid gap-2">
+            @if ($canCreateTimecards)
+                <a href="{{ $newTimecardHref }}" class="flex min-h-11 items-center gap-3 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 text-sm font-semibold text-zinc-100" wire:navigate data-mobile-haptic>
+                    <svg class="h-4 w-4 shrink-0 text-zinc-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+                    {{ __('New Timecard') }}
+                </a>
+            @endif
+
             @if ($canViewStock)
                 <a href="{{ route('stock-orders.mobile.index') }}" class="flex min-h-11 items-center rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-sm font-medium text-zinc-100" data-mobile-haptic>
                     {{ __('Stock Orders') }}
