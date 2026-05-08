@@ -2,7 +2,21 @@
     $weekStart = \Illuminate\Support\Carbon::parse($week_starting);
 @endphp
 
-<div class="flex flex-col gap-5 px-4 py-5 pb-36">
+<x-slot:headerAction>
+    <button
+        type="submit"
+        form="mobile-timecard-form"
+        data-mobile-haptic
+        class="inline-flex min-h-10 items-center justify-center rounded-xl bg-zinc-100 px-3 text-xs font-semibold text-zinc-900 active:bg-zinc-300"
+        wire:loading.class="opacity-60"
+        wire:loading.attr="disabled"
+    >
+        <span wire:loading.remove>{{ $isEdit ? __('Save') : __('Create') }}</span>
+        <span wire:loading>{{ __('Saving…') }}</span>
+    </button>
+</x-slot:headerAction>
+
+<div class="flex flex-col gap-5 px-4 py-5 pb-24">
     <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3">
         <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Week Range') }}</p>
         <p class="mt-1 text-sm font-semibold text-zinc-100">
@@ -32,7 +46,7 @@
         </div>
     @endif
 
-    <form wire:submit="save" class="flex flex-col gap-5">
+    <form id="mobile-timecard-form" wire:submit="save" class="flex flex-col gap-5">
         {{-- Week Starting --}}
         <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4">
             <label class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Week Starting') }}</label>
@@ -261,29 +275,13 @@
             </div>
         </div>
 
-        {{-- Sticky Save --}}
-        <div class="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-[60] border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 backdrop-blur">
-            <div class="flex gap-3">
-                <a
-                    href="{{ route('timecards.mobile.index') }}"
-                    wire:navigate
-                    class="flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-zinc-700 text-sm font-semibold text-zinc-400"
-                    data-mobile-haptic
-                >
-                    {{ __('Cancel') }}
-                </a>
-
-                <button
-                    type="submit"
-                    data-mobile-haptic
-                    class="flex min-h-12 flex-[2] items-center justify-center rounded-2xl bg-zinc-100 text-sm font-semibold text-zinc-900 active:bg-zinc-300"
-                    wire:loading.class="opacity-60"
-                    wire:loading.attr="disabled"
-                >
-                    <span wire:loading.remove>{{ $isEdit ? __('Update Timecard') : __('Create Timecard') }}</span>
-                    <span wire:loading>{{ __('Saving…') }}</span>
-                </button>
-            </div>
-        </div>
+        <a
+            href="{{ route('timecards.mobile.index') }}"
+            wire:navigate
+            class="flex min-h-12 items-center justify-center rounded-2xl border border-zinc-700 text-sm font-semibold text-zinc-400"
+            data-mobile-haptic
+        >
+            {{ __('Cancel') }}
+        </a>
     </form>
 </div>
