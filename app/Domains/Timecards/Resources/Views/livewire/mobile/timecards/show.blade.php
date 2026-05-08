@@ -11,7 +11,48 @@
     };
 @endphp
 
-<div class="flex flex-col gap-4 px-4 py-5 pb-32">
+<x-slot:headerAction>
+    <div class="flex items-center gap-2">
+        @if ($isDraft)
+            <a
+                href="{{ route('timecards.mobile.edit', $timecard) }}"
+                class="inline-flex min-h-10 items-center justify-center rounded-xl border border-zinc-700 px-3 text-xs font-semibold text-zinc-200 active:bg-zinc-800"
+                wire:navigate
+                data-mobile-haptic
+            >
+                {{ __('Edit') }}
+            </a>
+
+            <button
+                type="button"
+                wire:click="submit"
+                wire:loading.class="opacity-60"
+                wire:loading.attr="disabled"
+                class="inline-flex min-h-10 items-center justify-center rounded-xl bg-zinc-100 px-3 text-xs font-semibold text-zinc-900 active:bg-zinc-300"
+                data-mobile-haptic
+            >
+                <span wire:loading.remove wire:target="submit">{{ __('Submit') }}</span>
+                <span wire:loading wire:target="submit">{{ __('Submitting…') }}</span>
+            </button>
+        @endif
+
+        @if ($isRejected)
+            <button
+                type="button"
+                wire:click="resetToDraft"
+                wire:loading.class="opacity-60"
+                wire:loading.attr="disabled"
+                class="inline-flex min-h-10 items-center justify-center rounded-xl border border-zinc-700 px-3 text-xs font-semibold text-zinc-200 active:bg-zinc-800"
+                data-mobile-haptic
+            >
+                <span wire:loading.remove wire:target="resetToDraft">{{ __('Reset') }}</span>
+                <span wire:loading wire:target="resetToDraft">{{ __('Resetting…') }}</span>
+            </button>
+        @endif
+    </div>
+</x-slot:headerAction>
+
+<div class="flex flex-col gap-4 px-4 py-5 pb-24">
 
     @if (session('success'))
         <div class="rounded-2xl border border-emerald-700/40 bg-emerald-600/20 px-4 py-3 text-sm font-medium text-emerald-200">
@@ -108,44 +149,4 @@
         @endif
     </div>
 
-    {{-- Sticky action bar --}}
-    @if ($isDraft || $isRejected)
-        <div class="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-[60] px-4 pb-3">
-            <div class="pointer-events-auto flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/95 p-3 shadow-xl backdrop-blur">
-                @if ($isDraft)
-                    <a
-                        href="{{ route('timecards.mobile.edit', $timecard) }}"
-                        class="flex flex-1 items-center justify-center rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-200 active:bg-zinc-800"
-                        wire:navigate
-                        data-mobile-haptic
-                    >
-                        {{ __('Edit') }}
-                    </a>
-                    <button
-                        type="button"
-                        wire:click="submit"
-                        wire:loading.attr="disabled"
-                        class="flex flex-[2] items-center justify-center rounded-xl bg-white py-3 text-sm font-semibold text-zinc-900 active:bg-zinc-200 disabled:opacity-60"
-                        data-mobile-haptic
-                    >
-                        <span wire:loading.remove wire:target="submit">{{ __('Submit Timecard') }}</span>
-                        <span wire:loading wire:target="submit">{{ __('Submitting…') }}</span>
-                    </button>
-                @endif
-
-                @if ($isRejected)
-                    <button
-                        type="button"
-                        wire:click="resetToDraft"
-                        wire:loading.attr="disabled"
-                        class="flex flex-1 items-center justify-center rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-200 active:bg-zinc-800 disabled:opacity-60"
-                        data-mobile-haptic
-                    >
-                        <span wire:loading.remove wire:target="resetToDraft">{{ __('Reset to Draft') }}</span>
-                        <span wire:loading wire:target="resetToDraft">{{ __('Resetting…') }}</span>
-                    </button>
-                @endif
-            </div>
-        </div>
-    @endif
 </div>
