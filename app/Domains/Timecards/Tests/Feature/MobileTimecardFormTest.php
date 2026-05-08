@@ -161,6 +161,16 @@ it('applies a quick hour preset to a mobile entry row', function (): void {
         ->assertSet('entries.0.hours', '8.00');
 });
 
+it('applies a quick start time preset to a mobile entry row', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('entries.0.start_time', '05:00')
+        ->call('applyStartTimePreset', 0, '07:30')
+        ->assertSet('entries.0.start_time', '07:30');
+});
+
 it('prevents unauthorized user from creating timecards via mobile form', function (): void {
     $user = User::factory()->create(['is_admin' => false]);
 

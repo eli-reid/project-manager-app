@@ -15,6 +15,22 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.mobile')]
 class Form extends DesktopForm
 {
+    public function applyStartTimePreset(int $index, string $startTime): void
+    {
+        if (! isset($this->entries[$index]) || ($this->entries[$index]['delete'] ?? false)) {
+            return;
+        }
+
+        $allowedPresets = ['06:00', '06:30', '07:00', '07:30', '08:00'];
+
+        if (! in_array($startTime, $allowedPresets, true)) {
+            return;
+        }
+
+        $this->entries[$index]['start_time'] = $startTime;
+        $this->resetValidation('entries.'.$index.'.start_time');
+    }
+
     public function applyHoursPreset(int $index, string $hours): void
     {
         if (! isset($this->entries[$index]) || ($this->entries[$index]['delete'] ?? false)) {

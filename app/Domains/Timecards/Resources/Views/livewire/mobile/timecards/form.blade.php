@@ -3,17 +3,27 @@
 @endphp
 
 <x-slot:headerAction>
-    <button
-        type="submit"
-        form="mobile-timecard-form"
-        data-mobile-haptic
-        class="inline-flex min-h-10 items-center justify-center rounded-xl bg-zinc-100 px-3 text-xs font-semibold text-zinc-900 active:bg-zinc-300"
-        wire:loading.class="opacity-60"
-        wire:loading.attr="disabled"
-    >
-        <span wire:loading.remove>{{ $isEdit ? __('Save') : __('Create') }}</span>
-        <span wire:loading>{{ __('Saving…') }}</span>
-    </button>
+    <div class="flex items-center gap-2">
+        <span
+            wire:dirty
+            wire:target="week_starting,notes,entries"
+            class="inline-flex h-8 items-center rounded-full border border-amber-700/60 bg-amber-900/40 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200"
+        >
+            {{ __('Unsaved') }}
+        </span>
+
+        <button
+            type="submit"
+            form="mobile-timecard-form"
+            data-mobile-haptic
+            class="inline-flex min-h-10 items-center justify-center rounded-xl bg-zinc-100 px-3 text-xs font-semibold text-zinc-900 active:bg-zinc-300"
+            wire:loading.class="opacity-60"
+            wire:loading.attr="disabled"
+        >
+            <span wire:loading.remove>{{ $isEdit ? __('Save') : __('Create') }}</span>
+            <span wire:loading>{{ __('Saving…') }}</span>
+        </button>
+    </div>
 </x-slot:headerAction>
 
 <div class="flex flex-col gap-5 px-4 py-5 pb-24">
@@ -134,6 +144,19 @@
                                 @error('entries.'.$index.'.start_time')
                                     <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
                                 @enderror
+
+                                <div class="mt-2 flex flex-wrap gap-1.5">
+                                    @foreach ([['value' => '06:00', 'label' => '6:00 AM'], ['value' => '06:30', 'label' => '6:30 AM'], ['value' => '07:00', 'label' => '7:00 AM'], ['value' => '07:30', 'label' => '7:30 AM'], ['value' => '08:00', 'label' => '8:00 AM']] as $presetStart)
+                                        <button
+                                            type="button"
+                                            wire:click="applyStartTimePreset({{ $index }}, '{{ $presetStart['value'] }}')"
+                                            class="rounded-full border border-zinc-700 px-2.5 py-1 text-[11px] font-semibold text-zinc-300"
+                                            data-mobile-haptic
+                                        >
+                                            {{ $presetStart['label'] }}
+                                        </button>
+                                    @endforeach
+                                </div>
                             </div>
 
                             {{-- Hours --}}
