@@ -110,7 +110,7 @@
 
     {{-- Sticky action bar --}}
     @if ($isDraft || $isRejected)
-        <div class="pointer-events-none fixed inset-x-0 bottom-16 z-40 px-4 pb-3 safe-area-bottom">
+        <div class="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-[60] px-4 pb-3">
             <div class="pointer-events-auto flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/95 p-3 shadow-xl backdrop-blur">
                 @if ($isDraft)
                     <a

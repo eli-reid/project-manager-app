@@ -262,7 +262,7 @@
         </div>
 
         {{-- Sticky Save --}}
-        <div class="fixed inset-x-0 bottom-16 z-40 border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 safe-area-bottom backdrop-blur">
+        <div class="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-[60] border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 backdrop-blur">
             <div class="flex gap-3">
                 <a
                     href="{{ route('timecards.mobile.index') }}"
