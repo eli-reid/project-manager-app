@@ -1,8 +1,6 @@
 @php
     $isDraft = $timecard->status === \App\Domains\Timecards\Models\Timecard::STATUS_DRAFT;
     $isRejected = $timecard->status === \App\Domains\Timecards\Models\Timecard::STATUS_REJECTED;
-    $isSubmitted = $timecard->status === \App\Domains\Timecards\Models\Timecard::STATUS_SUBMITTED;
-    $isApproved = $timecard->status === \App\Domains\Timecards\Models\Timecard::STATUS_APPROVED;
 
     $statusColor = match ($timecard->status) {
         \App\Domains\Timecards\Models\Timecard::STATUS_DRAFT => 'text-zinc-300 border-zinc-700 bg-zinc-800',
@@ -110,45 +108,44 @@
         @endif
     </div>
 
-</div>
+    {{-- Sticky action bar --}}
+    @if ($isDraft || $isRejected)
+        <div class="pointer-events-none fixed inset-x-0 bottom-16 z-40 px-4 pb-3 safe-area-bottom">
+            <div class="pointer-events-auto flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/95 p-3 shadow-xl backdrop-blur">
+                @if ($isDraft)
+                    <a
+                        href="{{ route('timecards.mobile.edit', $timecard) }}"
+                        class="flex flex-1 items-center justify-center rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-200 active:bg-zinc-800"
+                        wire:navigate
+                        data-mobile-haptic
+                    >
+                        {{ __('Edit') }}
+                    </a>
+                    <button
+                        type="button"
+                        wire:click="submit"
+                        wire:loading.attr="disabled"
+                        class="flex flex-[2] items-center justify-center rounded-xl bg-white py-3 text-sm font-semibold text-zinc-900 active:bg-zinc-200 disabled:opacity-60"
+                        data-mobile-haptic
+                    >
+                        <span wire:loading.remove wire:target="submit">{{ __('Submit Timecard') }}</span>
+                        <span wire:loading wire:target="submit">{{ __('Submitting…') }}</span>
+                    </button>
+                @endif
 
-{{-- Sticky action bar --}}
-@if ($isDraft || $isRejected)
-    <div class="pointer-events-none fixed inset-x-0 bottom-16 z-40 px-4 pb-3 safe-area-bottom">
-        <div class="pointer-events-auto flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/95 p-3 shadow-xl backdrop-blur">
-            @if ($isDraft)
-                <a
-                    href="{{ route('timecards.mobile.edit', $timecard) }}"
-                    class="flex flex-1 items-center justify-center rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-200 active:bg-zinc-800"
-                    wire:navigate
-                    data-mobile-haptic
-                >
-                    {{ __('Edit') }}
-                </a>
-                <button
-                    type="button"
-                    wire:click="submit"
-                    wire:loading.attr="disabled"
-                    class="flex flex-[2] items-center justify-center rounded-xl bg-white py-3 text-sm font-semibold text-zinc-900 active:bg-zinc-200 disabled:opacity-60"
-                    data-mobile-haptic
-                >
-                    <span wire:loading.remove wire:target="submit">{{ __('Submit Timecard') }}</span>
-                    <span wire:loading wire:target="submit">{{ __('Submitting…') }}</span>
-                </button>
-            @endif
-
-            @if ($isRejected)
-                <button
-                    type="button"
-                    wire:click="resetToDraft"
-                    wire:loading.attr="disabled"
-                    class="flex flex-1 items-center justify-center rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-200 active:bg-zinc-800 disabled:opacity-60"
-                    data-mobile-haptic
-                >
-                    <span wire:loading.remove wire:target="resetToDraft">{{ __('Reset to Draft') }}</span>
-                    <span wire:loading wire:target="resetToDraft">{{ __('Resetting…') }}</span>
-                </button>
-            @endif
+                @if ($isRejected)
+                    <button
+                        type="button"
+                        wire:click="resetToDraft"
+                        wire:loading.attr="disabled"
+                        class="flex flex-1 items-center justify-center rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-200 active:bg-zinc-800 disabled:opacity-60"
+                        data-mobile-haptic
+                    >
+                        <span wire:loading.remove wire:target="resetToDraft">{{ __('Reset to Draft') }}</span>
+                        <span wire:loading wire:target="resetToDraft">{{ __('Resetting…') }}</span>
+                    </button>
+                @endif
+            </div>
         </div>
-    </div>
-@endif
+    @endif
+</div>

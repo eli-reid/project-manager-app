@@ -5,6 +5,8 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Form as MobileForm;
+use App\Domains\Timecards\Livewire\Mobile\Timecards\Index as MobileIndex;
+use App\Domains\Timecards\Livewire\Mobile\Timecards\Show as MobileShow;
 use App\Domains\Timecards\Models\Timecard;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -36,6 +38,38 @@ it('renders the mobile timecard create form', function (): void {
     get(route('timecards.mobile.create'))
         ->assertOk()
         ->assertSeeLivewire(MobileForm::class);
+});
+
+it('renders the mobile timecard index', function (): void {
+    $user = mobileTimecardUser(['timecards.view']);
+
+    Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+    ]);
+
+    actingAs($user);
+
+    get(route('timecards.mobile.index'))
+        ->assertOk()
+        ->assertSeeLivewire(MobileIndex::class)
+        ->assertSee('Start New Timecard');
+});
+
+it('renders the mobile timecard show page for the owner', function (): void {
+    $user = mobileTimecardUser(['timecards.view']);
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+    ]);
+
+    actingAs($user);
+
+    get(route('timecards.mobile.show', $timecard))
+        ->assertOk()
+        ->assertSeeLivewire(MobileShow::class)
+        ->assertSee('Entries');
 });
 
 it('renders the mobile timecard edit form for the owner', function (): void {
