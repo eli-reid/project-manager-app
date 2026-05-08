@@ -2,7 +2,7 @@
     $weekStart = \Illuminate\Support\Carbon::parse($week_starting);
 @endphp
 
-<div class="flex flex-col gap-5 px-4 py-5 pb-28">
+<div class="flex flex-col gap-5 px-4 py-5 pb-36">
     <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3">
         <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Week Range') }}</p>
         <p class="mt-1 text-sm font-semibold text-zinc-100">
@@ -262,7 +262,7 @@
         </div>
 
         {{-- Sticky Save --}}
-        <div class="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 safe-area-bottom backdrop-blur">
+        <div class="fixed inset-x-0 bottom-16 z-40 border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 safe-area-bottom backdrop-blur">
             <div class="flex gap-3">
                 <a
                     href="{{ route('timecards.mobile.index') }}"
