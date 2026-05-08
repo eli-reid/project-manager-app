@@ -1,15 +1,15 @@
 <?php
 
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Form as MobileForm;
-use App\Domains\Timecards\Livewire\User\Timecards\Index;
-use App\Domains\Timecards\Livewire\User\Timecards\Show;
+use App\Domains\Timecards\Livewire\Mobile\Timecards\Index as MobileIndex;
+use App\Domains\Timecards\Livewire\Mobile\Timecards\Show as MobileShow;
 use App\Domains\Timecards\Models\Timecard;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('timecards/mobile')
     ->name('timecards.mobile.')
     ->group(function (): void {
-        Route::livewire('/', Index::class)
+        Route::livewire('/', MobileIndex::class)
             ->middleware('can:viewAny,'.Timecard::class)
             ->name('index');
 
@@ -17,7 +17,7 @@ Route::prefix('timecards/mobile')
             ->middleware('can:create,'.Timecard::class)
             ->name('create');
 
-        Route::livewire('/{timecard}', Show::class)
+        Route::livewire('/{timecard}', MobileShow::class)
             ->middleware('can:view,timecard')
             ->name('show');
 
