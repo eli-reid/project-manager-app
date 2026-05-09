@@ -20,7 +20,7 @@ use function Pest\Laravel\get;
 it('redirects guests from documents scaffold routes', function (): void {
     get(route('admin.documents.index'))->assertRedirect(route('login'));
     get(route('documents.index'))->assertRedirect(route('login'));
-    get(route('documents.mobile.index'))->assertRedirect(route('login'));
+    get(route('documents.mobile.global'))->assertRedirect(route('login'));
     get(route('api.documents.index'))->assertRedirect(route('login'));
 });
 
@@ -34,7 +34,7 @@ it('forbids authenticated users without documents permissions', function (): voi
 
     get(route('admin.documents.index'))->assertForbidden();
     get(route('documents.index'))->assertForbidden();
-    get(route('documents.mobile.index'))->assertForbidden();
+    get(route('documents.mobile.global'))->assertForbidden();
     get(route('api.documents.index'))->assertForbidden();
 });
 
@@ -49,9 +49,9 @@ it('allows users with documents view permission to access user-facing documents 
         ->assertSee('Upload a document')
         ->assertSee('Search your library');
 
-    get(route('documents.mobile.index'))
+    get(route('documents.mobile.global'))
         ->assertSuccessful()
-        ->assertSee('Documents Mobile (Scaffold)');
+        ->assertSee('Global Documents');
 
     get(route('api.documents.index'))
         ->assertSuccessful()

@@ -71,7 +71,7 @@
             @endif
 
             @if ($canViewDocuments)
-                <a href="{{ route('documents.mobile.index') }}" class="flex min-h-11 items-center rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-sm font-medium text-zinc-100" data-mobile-haptic>
+                <a href="{{ route('documents.mobile.global') }}" class="flex min-h-11 items-center rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-sm font-medium text-zinc-100" data-mobile-haptic>
                     {{ __('Documents') }}
                 </a>
             @endif
