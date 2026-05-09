@@ -138,6 +138,62 @@ it('shows only assigned active and open projects by default on user project list
         ->and($unassignedOpenProject->exists)->toBeTrue();
 });
 
+it('renders a mobile-friendly project card list on the mobile projects index', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    $client = Client::factory()->create();
+    $address = Address::factory()->create([
+        'client_id' => $client->id,
+        'address1' => '456 Harbor Ave',
+        'city' => 'Long Beach',
+        'state' => 'CA',
+        'zip' => '90802',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'PWA Field Project',
+        'project_number' => 'PRJ-PWA-1',
+        'project_manager_id' => $user->id,
+        'client_id' => $client->id,
+        'address_id' => $address->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.mobile.index'))
+        ->assertSuccessful()
+        ->assertSee('Project Access')
+        ->assertSee('Assigned Only')
+        ->assertSee('PWA Field Project')
+        ->assertSee('456 Harbor Ave')
+        ->assertSee('Documents')
+        ->assertSee('Open Project')
+        ->assertDontSee('<table', false);
+});
+
+it('renders a projects mobile view link in the app navbar for authorized users', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Navbar Link Project',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee('Projects Mobile')
+        ->assertSee('data-test="projects-mobile-navbar-link"', false)
+        ->assertSee(route('projects.mobile.index'), false);
+});
+
 it('hides leave projects from user project list', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',

@@ -67,33 +67,32 @@
             </div>
         @endif
     </div>
-</section>
-        <!-- Project Documents Section -->
-        <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700 flex items-center justify-between">
-                <flux:heading size="sm">{{ __('Project Documents') }}</flux:heading>
-                <a
-                    href="{{ route('documents.global', ['project_id' => $project->id]) }}"
-                    class="text-xs font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
-                    wire:navigate
-                >
-                    {{ __('View all') }}
-                </a>
-            </div>
-            <div class="px-4 py-4">
-                <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                    {{ __('Drawings, specifications, and other project documents shared by your team.') }}
-                </p>
-                <a
-                    href="{{ route('documents.global', ['project_id' => $project->id]) }}"
-                    class="mt-3 inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                    wire:navigate
-                >
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                    </svg>
-                    {{ __('Browse Project Documents') }}
-                </a>
-            </div>
+
+    <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+            <flux:heading size="sm">{{ __('Project Documents') }}</flux:heading>
+            <a
+                href="{{ route('documents.global', ['project_id' => $project->id]) }}"
+                class="text-xs font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                wire:navigate
+            >
+                {{ __('View all') }}
+            </a>
         </div>
-    </section>
+        <div class="px-4 py-4">
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                {{ __('Drawings, specifications, and other project documents shared by your team.') }}
+            </p>
+            <a
+                href="{{ route('documents.global', ['project_id' => $project->id]) }}"
+                class="mt-3 inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                wire:navigate
+            >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                {{ __('Browse Project Documents') }}
+            </a>
+        </div>
+    </div>
+</section>

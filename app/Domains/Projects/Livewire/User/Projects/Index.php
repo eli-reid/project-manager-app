@@ -50,6 +50,18 @@ class Index extends Component
         $user = Auth::user();
         abort_unless($user instanceof User, 401);
 
+        $projects = $this->projectsQuery($user)
+            ->orderByDesc('start_date')
+            ->orderBy('name')
+            ->paginate(10);
+
+        return view('projects::livewire.user.projects.index', [
+            'projects' => $projects,
+        ]);
+    }
+
+    protected function projectsQuery(User $user): Builder
+    {
         $closedStatuses = [
             ProjectStatusEnum::COMPLETED->value,
             ProjectStatusEnum::FINAL_INSPECTION->value,
@@ -80,17 +92,10 @@ class Index extends Component
 
         $this->applyVisibilityScope($projects, $user);
 
-        $projects = $projects
-            ->orderByDesc('start_date')
-            ->orderBy('name')
-            ->paginate(10);
-
-        return view('projects::livewire.user.projects.index', [
-            'projects' => $projects,
-        ]);
+        return $projects;
     }
 
-    private function applyVisibilityScope(Builder $query, User $user): void
+    protected function applyVisibilityScope(Builder $query, User $user): void
     {
         if ($user->isAdmin()) {
             return;
@@ -105,7 +110,7 @@ class Index extends Component
         $this->applyAssignedScope($query, $user);
     }
 
-    private function applyAssignedScope(Builder $query, User $user): void
+    protected function applyAssignedScope(Builder $query, User $user): void
     {
         $activeRoleIds = $user->roles()
             ->where('is_active', true)
@@ -130,7 +135,7 @@ class Index extends Component
         });
     }
 
-    private function applyPermittedScope(Builder $query, User $user): void
+    protected function applyPermittedScope(Builder $query, User $user): void
     {
         $activeRoleIds = $user->roles()
             ->where('is_active', true)

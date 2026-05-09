@@ -1,6 +1,6 @@
 <?php
 
-use App\Domains\Projects\Livewire\User\Projects\Index;
+use App\Domains\Projects\Livewire\Mobile\Projects\Index;
 use App\Domains\Projects\Livewire\User\Projects\Show;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Support\Facades\Route;
