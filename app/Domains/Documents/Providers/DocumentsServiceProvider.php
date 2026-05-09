@@ -3,6 +3,8 @@
 namespace App\Domains\Documents\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Dashboard\Data\WidgetDefinition;
+use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Models\Document;
@@ -20,7 +22,7 @@ class DocumentsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->configureLivewireTemporaryUploadRules();
@@ -28,6 +30,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
+        $this->registerDashboardWidgets($widgetRegistry);
         $this->registerRoutes();
     }
 
@@ -45,6 +48,23 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerUIComponents(): void
     {
         Livewire::addNamespace('documents', classNamespace: 'App\Domains\Documents\Livewire');
+    }
+
+    private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
+    {
+        $widgetRegistry->registerDefinitions([
+            new WidgetDefinition(
+                key: 'documents.project-documents',
+                component: 'documents::dashboard.widget',
+                section: 'personal',
+                sort: 25,
+                span: 'half',
+                ability: 'viewAny',
+                abilityModel: Document::class,
+                title: 'Project Documents',
+                description: 'Project documents shared by your team.',
+            ),
+        ]);
     }
 
     private function registerRoutes(): void

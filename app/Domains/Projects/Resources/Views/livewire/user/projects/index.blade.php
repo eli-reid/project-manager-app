@@ -31,6 +31,7 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Address') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -66,11 +67,23 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</td>
+                                <td class="px-4 py-3 align-top text-right">
+                                    <a
+                                        href="{{ route('documents.global', ['project_id' => $project->id]) }}"
+                                        class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                                        title="{{ __('View project documents') }}"
+                                    >
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span class="hidden sm:inline">{{ __('Documents') }}</span>
+                                    </a>
+                                </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="3" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No projects found for the selected filters.') }}</td>
-                        </tr>
+                            <tr>
+                                <td colspan="4" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No projects found for the selected filters.') }}</td>
+                            </tr>
                     @endforelse
                 </tbody>
             </table>
