@@ -17,20 +17,13 @@ class Widget extends Component
         $user = Auth::user();
         abort_unless($user instanceof User, 401);
 
-        // Get project documents that are public/global or shared with the user
-        $query = Document::query()
-            ->projectOwned()
-            ->where('visibility', Document::VISIBILITY_GLOBAL);
-
-        // Get the user's active project IDs for filtering project-owned documents
+        // Get the user's active project IDs for filtering project-owned documents.
         $userProjectIds = $this->getUserAccessibleProjectIds($user);
 
         $documentsQuery = Document::query()
             ->where(function (Builder $builder) use ($userProjectIds) {
-                // Global documents
                 $builder->where('visibility', Document::VISIBILITY_GLOBAL)
                     ->orWhere(function (Builder $projectQuery) use ($userProjectIds) {
-                        // Project-owned documents the user can access
                         if (! empty($userProjectIds)) {
                             $projectQuery->where('owner_scope', Document::OWNER_SCOPE_PROJECT)
                                 ->whereIn('owner_id', $userProjectIds);
@@ -39,7 +32,7 @@ class Widget extends Component
             });
 
         $documents = (clone $documentsQuery)
-            ->with(['ownerProject:id,name', 'uploadedBy:id,name'])
+            ->with(['ownerProject:id,name'])
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
@@ -84,4 +77,3 @@ class Widget extends Component
             ->all();
     }
 }
-

@@ -1,6 +1,11 @@
 <?php
 
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Domains\Documents\Models\Document;
+use App\Domains\Projects\Models\Project;
 
 it('redirects guests away from dashboard routes', function (): void {
     $this->get(route('dashboard'))
@@ -72,3 +77,68 @@ it('keeps authenticated desktop browsers on dashboard', function (): void {
         ->assertOk()
         ->assertViewIs('dashboard::index');
 });
+
+it('renders project documents widget on mobile dashboard when global project documents exist', function (): void {
+    $user = dashboardUserWithPermissions([
+        'documents.view',
+        'projects.view',
+    ]);
+
+    $project = Project::factory()->create([
+        'project_manager_id' => $user->id,
+        'is_active' => true,
+        'status' => 'in_progress',
+    ]);
+
+    Document::factory()->projectOwned()->create([
+        'title' => 'Issued For Construction Set',
+        'owner_id' => $project->id,
+        'visibility' => Document::VISIBILITY_GLOBAL,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('mobile.dashboard'))
+        ->assertOk()
+        ->assertSee('Project Documents')
+        ->assertSee('Issued For Construction Set');
+});
+
+/**
+ * @param  array<int, string>  $permissions
+ */
+function dashboardUserWithPermissions(array $permissions): User
+{
+    app(DomainPermissionSynchronizer::class)->sync();
+
+    $user = User::factory()->create([
+        'is_admin' => false,
+        'email_verified_at' => now(),
+    ]);
+
+    $role = Role::query()->create([
+        'name' => 'Dashboard Test Role '.str()->uuid(),
+        'description' => 'Role for dashboard feature tests',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 20,
+    ]);
+
+    $permissionIds = collect($permissions)
+        ->map(function (string $permission): ?string {
+            [$resource, $action] = explode('.', $permission, 2);
+
+            return Permission::query()
+                ->where('resource', $resource)
+                ->where('action', $action)
+                ->value('id');
+        })
+        ->filter()
+        ->values()
+        ->all();
+
+    $role->permissions()->sync($permissionIds);
+    $user->roles()->sync([$role->id]);
+
+    return $user->fresh();
+}
