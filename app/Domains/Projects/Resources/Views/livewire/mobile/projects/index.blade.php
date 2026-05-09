@@ -83,7 +83,7 @@
                     </a>
 
                     <a
-                        href="{{ route('documents.global', ['project_id' => $project->id]) }}"
+                        href="{{ route('documents.mobile.global') }}"
                         class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-sky-800/70 bg-sky-950/40 px-4 text-sm font-semibold text-sky-200 active:bg-sky-900/60"
                         wire:navigate
                         data-mobile-haptic
