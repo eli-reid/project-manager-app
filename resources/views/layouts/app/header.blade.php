@@ -27,15 +27,6 @@
                 @endcan
 
                 @can('viewAny', \App\Domains\Projects\Models\Project::class)
-                    <flux:navbar.item
-                        icon="device-phone-mobile"
-                        :href="route('projects.mobile.index')"
-                        :current="request()->routeIs('projects.mobile.*')"
-                        wire:navigate
-                        data-test="projects-mobile-navbar-link"
-                    >
-                        {{ __('Projects Mobile') }}
-                    </flux:navbar.item>
                 @endcan
 
                 @can('create', \App\Domains\Timecards\Models\Timecard::class)
@@ -102,16 +93,6 @@
                             data-test="projects-sidebar-link-mobile"
                         >
                             {{ __('My Projects') }}
-                        </flux:sidebar.item>
-
-                        <flux:sidebar.item
-                            icon="device-phone-mobile"
-                            :href="route('projects.mobile.index')"
-                            :current="request()->routeIs('projects.mobile.*')"
-                            wire:navigate
-                            data-test="projects-mobile-sidebar-link-mobile"
-                        >
-                            {{ __('Projects Mobile') }}
                         </flux:sidebar.item>
                     @endcan
 

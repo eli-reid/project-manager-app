@@ -14,34 +14,36 @@ class RedirectMobileDashboard
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $this->shouldRedirectToMobileDashboard($request)) {
+        $mobileRoute = $this->mobileRedirectRoute($request);
+
+        if ($mobileRoute === null) {
             return $next($request);
         }
 
-        return redirect()->route('mobile.dashboard');
+        return redirect()->route($mobileRoute);
     }
 
-    private function shouldRedirectToMobileDashboard(Request $request): bool
+    private function mobileRedirectRoute(Request $request): ?string
     {
         $user = $request->user();
 
         if (! $user instanceof User) {
-            return false;
+            return null;
         }
 
         if (! $request->isMethod('get') || $request->expectsJson() || $request->ajax()) {
-            return false;
+            return null;
         }
 
-        if (! $request->routeIs('dashboard')) {
-            return false;
+        if ($this->isLivewireRequest($request) || ! $this->isMobileUserAgent($request)) {
+            return null;
         }
 
-        if ($this->isLivewireRequest($request)) {
-            return false;
-        }
-
-        return $this->isMobileUserAgent($request);
+        return match (true) {
+            $request->routeIs('dashboard') => 'mobile.dashboard',
+            $request->routeIs('projects.index') => 'projects.mobile.index',
+            default => null,
+        };
     }
 
     private function isLivewireRequest(Request $request): bool

@@ -174,24 +174,42 @@ it('renders a mobile-friendly project card list on the mobile projects index', f
         ->assertDontSee('<table', false);
 });
 
-it('renders a projects mobile view link in the app navbar for authorized users', function (): void {
+it('redirects authenticated mobile browsers from projects index to mobile projects index', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
     ]);
 
     Project::factory()->create([
-        'name' => 'Navbar Link Project',
+        'name' => 'Mobile Redirect Project',
         'project_manager_id' => $user->id,
         'status' => 'in_progress',
         'is_active' => true,
     ]);
 
     $this->actingAs($user)
+        ->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1')
+        ->get(route('projects.index'))
+        ->assertRedirect(route('projects.mobile.index', absolute: false));
+});
+
+it('keeps desktop browsers on the standard projects index route', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Desktop Projects Index',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36')
         ->get(route('projects.index'))
         ->assertSuccessful()
-        ->assertSee('Projects Mobile')
-        ->assertSee('data-test="projects-mobile-navbar-link"', false)
-        ->assertSee(route('projects.mobile.index'), false);
+        ->assertSee('Desktop Projects Index')
+        ->assertDontSee('Project Access');
 });
 
 it('hides leave projects from user project list', function (): void {
