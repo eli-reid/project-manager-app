@@ -463,6 +463,8 @@ it('supports quick sick leave entries and shows remaining leave balances on the 
 });
 
 it('shows remaining leave balances on the user timecard details page', function (): void {
+    Carbon::setTestNow('2026-04-20 09:00:00');
+
     $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit']);
 
     PayrollEmployeeProfile::factory()->create([
@@ -479,8 +481,8 @@ it('shows remaining leave balances on the user timecard details page', function 
     $approved = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_APPROVED,
-        'week_starting' => '2026-03-29',
-        'week_ending' => '2026-04-04',
+        'week_starting' => '2026-04-05',
+        'week_ending' => '2026-04-11',
     ]);
 
     $approved->entries()->create([
@@ -493,8 +495,8 @@ it('shows remaining leave balances on the user timecard details page', function 
     $draft = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_DRAFT,
-        'week_starting' => '2026-04-05',
-        'week_ending' => '2026-04-11',
+        'week_starting' => '2026-04-12',
+        'week_ending' => '2026-04-18',
     ]);
 
     actingAs($user);
