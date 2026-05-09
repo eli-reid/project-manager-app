@@ -52,7 +52,11 @@
                         <td class="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">
                             {{ number_format($row['sick_used'], 2) }}
                         </td>
-                        <td class="px-4 py-3 text-right font-semibold @if($row['sick_remaining'] < 0) text-red-600 dark:text-red-400 @else text-zinc-900 dark:text-zinc-100 @endif">
+                        <td @class([
+                            'px-4 py-3 text-right font-semibold',
+                            'text-red-600 dark:text-red-400' => $row['sick_remaining'] < 0,
+                            'text-zinc-900 dark:text-zinc-100' => $row['sick_remaining'] >= 0,
+                        ])>
                             {{ number_format($row['sick_remaining'], 2) }}
                         </td>
 
@@ -63,7 +67,11 @@
                         <td class="px-4 py-3 text-right text-zinc-600 dark:text-zinc-400">
                             {{ number_format($row['vacation_used'], 2) }}
                         </td>
-                        <td class="px-4 py-3 text-right font-semibold @if($row['vacation_remaining'] < 0) text-red-600 dark:text-red-400 @else text-zinc-900 dark:text-zinc-100 @endif">
+                        <td @class([
+                            'px-4 py-3 text-right font-semibold',
+                            'text-red-600 dark:text-red-400' => $row['vacation_remaining'] < 0,
+                            'text-zinc-900 dark:text-zinc-100' => $row['vacation_remaining'] >= 0,
+                        ])>
                             {{ number_format($row['vacation_remaining'], 2) }}
                         </td>
                     </tr>

@@ -12,6 +12,7 @@ use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use App\Domains\Timecards\Observers\TimecardEntryObserver;
+use App\Domains\Timecards\Observers\TimecardObserver;
 use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
 use App\Domains\Timecards\Reports\TimecardReportDefinitions;
@@ -46,6 +47,7 @@ class TimecardsServiceProvider extends ServiceProvider
     {
         Gate::policy(Timecard::class, TimecardPolicy::class);
         TimecardEntry::observe(TimecardEntryObserver::class);
+        Timecard::observe(TimecardObserver::class);
     }
 
     private function registerInfrastructure(): void

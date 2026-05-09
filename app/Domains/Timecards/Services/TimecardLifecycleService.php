@@ -256,12 +256,6 @@ class TimecardLifecycleService
         foreach ($timecards as $timecard) {
             try {
                 if ($action === 'approve') {
-                    if ($timecard->status !== Timecard::STATUS_SUBMITTED) {
-                        $skipped++;
-
-                        continue;
-                    }
-
                     $this->approve($timecard, $actor);
                     $processed++;
 

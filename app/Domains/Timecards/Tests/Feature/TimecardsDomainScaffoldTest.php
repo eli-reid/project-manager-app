@@ -18,6 +18,7 @@ use App\Domains\Timecards\Models\TimecardEntry;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
 use App\Domains\Timecards\Services\TimecardWeekService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -102,7 +103,7 @@ it('renders the admin timecards sidebar link for reviewers', function (): void {
         ->assertSee('Timecards');
 });
 
-it('bulk approves submitted timecards and skips ineligible rows', function (): void {
+it('bulk approves submitted and draft timecards, and skips ineligible rows', function (): void {
     $reviewer = userWithTimecardDomainPermissions(['timecards.view', 'timecards.view-all', 'timecards.approve']);
     $employee = User::factory()->create();
 
@@ -127,17 +128,25 @@ it('bulk approves submitted timecards and skips ineligible rows', function (): v
         'week_ending' => '2026-06-27',
     ]);
 
+    $approved = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_APPROVED,
+        'week_starting' => '2026-06-28',
+        'week_ending' => '2026-07-04',
+    ]);
+
     actingAs($reviewer);
 
     Livewire::test(Index::class)
         ->set('bulkAction', 'approve')
-        ->set('selectedTimecardIds', [(string) $submittedOne->id, (string) $submittedTwo->id, (string) $draft->id])
+        ->set('selectedTimecardIds', [(string) $submittedOne->id, (string) $submittedTwo->id, (string) $draft->id, (string) $approved->id])
         ->call('applyBulkAction')
         ->assertHasNoErrors();
 
     expect($submittedOne->fresh()->status)->toBe(Timecard::STATUS_APPROVED)
         ->and($submittedTwo->fresh()->status)->toBe(Timecard::STATUS_APPROVED)
-        ->and($draft->fresh()->status)->toBe(Timecard::STATUS_DRAFT);
+        ->and($draft->fresh()->status)->toBe(Timecard::STATUS_APPROVED)
+        ->and($approved->fresh()->status)->toBe(Timecard::STATUS_APPROVED);
 });
 
 it('bulk rejects submitted timecards with a rejection reason', function (): void {
@@ -160,6 +169,27 @@ it('bulk rejects submitted timecards with a rejection reason', function (): void
 
     expect($submitted->fresh()->status)->toBe(Timecard::STATUS_REJECTED)
         ->and($submitted->fresh()->rejection_reason)->toBe('Needs corrections');
+});
+
+it('requires a rejection reason when running bulk reject', function (): void {
+    $reviewer = userWithTimecardDomainPermissions(['timecards.view', 'timecards.view-all', 'timecards.reject']);
+    $employee = User::factory()->create();
+
+    $submitted = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_SUBMITTED,
+    ]);
+
+    actingAs($reviewer);
+
+    Livewire::test(Index::class)
+        ->set('bulkAction', 'reject')
+        ->set('bulkRejectionReason', '')
+        ->set('selectedTimecardIds', [(string) $submitted->id])
+        ->call('applyBulkAction')
+        ->assertHasErrors(['bulkRejectionReason']);
+
+    expect($submitted->fresh()->status)->toBe(Timecard::STATUS_SUBMITTED);
 });
 
 it('bulk deletes non-approved timecards and keeps approved rows', function (): void {
@@ -874,6 +904,44 @@ it('does not allow users without view-all to approve draft timecards', function 
     ]);
 
     expect(Gate::forUser($approver)->allows('approve', $timecard))->toBeFalse();
+});
+
+it('invalidates user caches when timecard status changes', function (): void {
+    $timecard = Timecard::factory()->create(['status' => Timecard::STATUS_DRAFT]);
+
+    Cache::put("user.{$timecard->user_id}.timecards", ['data' => 'old'], 3600);
+    Cache::put("timecard.{$timecard->id}", ['status' => 'draft'], 3600);
+
+    expect(Cache::has("user.{$timecard->user_id}.timecards"))->toBeTrue();
+    expect(Cache::has("timecard.{$timecard->id}"))->toBeTrue();
+
+    $timecard->update(['status' => Timecard::STATUS_SUBMITTED]);
+
+    expect(Cache::has("user.{$timecard->user_id}.timecards"))->toBeFalse();
+    expect(Cache::has("timecard.{$timecard->id}"))->toBeFalse();
+});
+
+it('does not invalidate caches when non-status fields change', function (): void {
+    $timecard = Timecard::factory()->create(['status' => Timecard::STATUS_DRAFT, 'notes' => 'old notes']);
+
+    Cache::put("user.{$timecard->user_id}.timecards", ['data' => 'should-persist'], 3600);
+
+    $timecard->update(['notes' => 'new notes']);
+
+    expect(Cache::has("user.{$timecard->user_id}.timecards"))->toBeTrue();
+});
+
+it('invalidates tagged caches when timecard is approved', function (): void {
+    $timecard = Timecard::factory()->create(['status' => Timecard::STATUS_SUBMITTED]);
+    $approver = User::factory()->create();
+
+    Cache::tags(['timecards', "user:{$timecard->user_id}"])->put('reminder_key', 'value', 3600);
+
+    expect(Cache::tags(['timecards', "user:{$timecard->user_id}"])->has('reminder_key'))->toBeTrue();
+
+    $timecard->update(['status' => Timecard::STATUS_APPROVED, 'approved_at' => now(), 'approved_by' => $approver->id]);
+
+    expect(Cache::tags(['timecards', "user:{$timecard->user_id}"])->has('reminder_key'))->toBeFalse();
 });
 
 /**

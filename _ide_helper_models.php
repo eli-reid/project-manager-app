@@ -13,7 +13,6 @@
 
 namespace App\Core\Announcement\Models{
 /**
- * @mixin IdeHelperAnnouncement
  * @property string $id
  * @property string $title
  * @property string $content
@@ -1208,7 +1207,6 @@ namespace App\Domains\Payroll\Models{
 
 namespace App\Domains\Payroll\Models{
 /**
- * @mixin IdeHelperPayrollEmployeeProfile
  * @property string $id
  * @property string $user_id
  * @property string $employee_number
@@ -1385,7 +1383,6 @@ namespace App\Domains\Projects\Models{
 
 namespace App\Domains\Projects\Models{
 /**
- * @mixin IdeHelperProject
  * @property string $id
  * @property string $name
  * @property string|null $project_number
