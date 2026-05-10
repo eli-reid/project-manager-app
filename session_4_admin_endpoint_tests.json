@@ -1,0 +1,248 @@
+{
+    "timestamp": "2026-05-10 21:02:48",
+    "test_count": 24,
+    "passed": 0,
+    "failed": 0,
+    "tests": [
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/users",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/settings",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/projects",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/clients",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/stock-orders",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/timecards",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/documents",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "admin",
+            "email": "admin.test@example.com",
+            "is_admin": true,
+            "is_active": true,
+            "endpoint": "/admin/announcements",
+            "should_allow": true,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/users",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/settings",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/projects",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/clients",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/stock-orders",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/timecards",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/documents",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "regular",
+            "email": "regular.user@example.com",
+            "is_admin": false,
+            "is_active": true,
+            "endpoint": "/admin/announcements",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/users",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/settings",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/projects",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/clients",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/stock-orders",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/timecards",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/documents",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        },
+        {
+            "user_type": "inactive",
+            "email": "inactive.user@example.com",
+            "is_admin": false,
+            "is_active": false,
+            "endpoint": "/admin/announcements",
+            "should_allow": false,
+            "tested": true,
+            "status": "PENDING_BROWSER_TEST"
+        }
+    ]
+}

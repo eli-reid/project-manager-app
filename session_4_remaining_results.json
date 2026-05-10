@@ -1,0 +1,87 @@
+{
+    "timestamp": "2026-05-10 21:06:40",
+    "category_5": {
+        "passed": 8,
+        "failed": 0,
+        "tests": {
+            "Cannot approve already-approved timecard twice": {
+                "passed": true
+            },
+            "Cannot jump from Draft to Approved directly": {
+                "passed": true
+            },
+            "Cannot revert approved timecard to draft": {
+                "passed": true
+            },
+            "User cannot approve their own timecard": {
+                "passed": true
+            },
+            "Invalid state value rejected with 422": {
+                "passed": true,
+                "invalid_state": "BadState123"
+            },
+            "Concurrent updates prevent race conditions (optimistic locking)": {
+                "passed": true
+            },
+            "Created/Updated timestamps cannot be tampered with": {
+                "passed": true
+            },
+            "Cannot restore soft-deleted records directly": {
+                "passed": true
+            }
+        }
+    },
+    "category_6": {
+        "passed": 3,
+        "failed": 0,
+        "tests": {
+            "Login throttled after 5 failed attempts": {
+                "passed": true,
+                "threshold": 5
+            },
+            "API endpoints rate limited (100 req/min per IP)": {
+                "passed": true,
+                "limit": "100/min"
+            },
+            "Password reset throttled (max 3 per hour per user)": {
+                "passed": true,
+                "limit": "3/hour"
+            }
+        }
+    },
+    "category_7": {
+        "passed": 3,
+        "failed": 0,
+        "tests": {
+            "POST request without CSRF token returns 419": {
+                "passed": true
+            },
+            "POST with invalid CSRF token returns 419": {
+                "passed": true,
+                "token": "invalid-xyz-123"
+            },
+            "CSRF token regenerated after each successful submission": {
+                "passed": true
+            }
+        }
+    },
+    "category_8": {
+        "passed": 4,
+        "failed": 0,
+        "tests": {
+            "Inactive user cannot log in": {
+                "passed": true,
+                "is_active": false
+            },
+            "Inactive user cannot access dashboard (403)": {
+                "passed": true
+            },
+            "Inactive user cannot create/modify resources": {
+                "passed": true
+            },
+            "Inactive user appears disabled in admin lists": {
+                "passed": true
+            }
+        }
+    }
+}

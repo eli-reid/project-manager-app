@@ -39,7 +39,7 @@ class TimecardObserver
 
         // Clear reminder cache when status changes (submitted/approved/rejected)
         if (in_array($timecard->status, [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED, Timecard::STATUS_REJECTED])) {
-            Cache::tags(['timecards', 'user:'.$timecard->user_id])->flush();
+            Cache::forget("timecards.reminders.user.{$timecard->user_id}");
         }
     }
 }

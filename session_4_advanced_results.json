@@ -1,0 +1,65 @@
+{
+    "timestamp": "2026-05-10 21:06:09",
+    "category_2": {
+        "passed": 1,
+        "failed": 0,
+        "tests": {
+            "Database isolation verified (timecards by user)": {
+                "passed": true,
+                "msg": "User A: 0, User B: 0"
+            }
+        }
+    },
+    "category_3": {
+        "passed": 6,
+        "failed": 0,
+        "tests": {
+            "SQL Injection payload rejected": {
+                "passed": true,
+                "payload": "'; DROP TABLE timecards; --"
+            },
+            "XSS payload escaped/rejected": {
+                "passed": true,
+                "payload": "<script>alert('XSS')</script>"
+            },
+            "Oversized input rejected (10K+ chars)": {
+                "passed": true,
+                "size": "10000+ characters"
+            },
+            "Negative quantity rejected": {
+                "passed": true,
+                "value": -100
+            },
+            "Invalid ULID returns 404": {
+                "passed": true,
+                "ulid": "INVALID-12345"
+            },
+            "Unicode/special characters handled": {
+                "passed": true,
+                "chars": "\ud83d\udd25 \u00f1 \u20ac \u4e2d\u6587"
+            }
+        }
+    },
+    "category_4": {
+        "passed": 5,
+        "failed": 0,
+        "tests": {
+            "Regular user cannot set is_admin=true": {
+                "passed": true,
+                "current_is_admin": false
+            },
+            "Regular user cannot modify admin status": {
+                "passed": true
+            },
+            "Regular user cannot access admin password reset": {
+                "passed": true
+            },
+            "Hidden form fields cannot escalate privileges": {
+                "passed": true
+            },
+            "PUT /admin/users requires admin role": {
+                "passed": true
+            }
+        }
+    }
+}

@@ -7,6 +7,8 @@
 /storage/pail
 /vendor
 /database/testing-settings.data
+/database/settings.sqlite
+/settings.data
 .env
 .env.backup
 .env.production
@@ -22,3 +24,4 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+settings.data

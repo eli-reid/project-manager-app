@@ -3,9 +3,15 @@
 use App\Core\Dashboard\Middleware\RedirectMobileDashboard;
 use App\Core\Identity\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\AddSecurityHeaders;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,6 +22,19 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->trustHosts(subdomains: false);
+
+        $middleware->group('mobile', [
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
+            ShareErrorsFromSession::class,
+            ValidateCsrfToken::class,
+            SubstituteBindings::class,
+            EnsurePasswordChanged::class,
+            RedirectMobileDashboard::class,
+            AddSecurityHeaders::class,
+        ]);
+
         $middleware->web(append: [
             EnsurePasswordChanged::class,
             RedirectMobileDashboard::class,

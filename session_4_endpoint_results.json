@@ -1,0 +1,152 @@
+{
+    "test_date": "2026-05-10 21:08:12",
+    "total": 24,
+    "passed": 24,
+    "failed": 0,
+    "details": [
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/users",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/settings",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/projects",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/clients",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/stock-orders",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/timecards",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/documents",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "admin",
+            "endpoint": "\/admin\/announcements",
+            "status": 200,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/users",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/settings",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/projects",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/clients",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/stock-orders",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/timecards",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/documents",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "regular",
+            "endpoint": "\/admin\/announcements",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/users",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/settings",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/projects",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/clients",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/stock-orders",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/timecards",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/documents",
+            "status": 403,
+            "passed": true
+        },
+        {
+            "user": "inactive",
+            "endpoint": "\/admin\/announcements",
+            "status": 403,
+            "passed": true
+        }
+    ]
+}
