@@ -2,7 +2,7 @@
 
 namespace App\Domains\Payroll\Livewire\Admin\Reports;
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Services\WeekSettingsService;
 use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
@@ -218,7 +218,7 @@ class WeeklyEmployeeHours extends Component
 
         if (abs($adjustedHours - $sourceHours) < 0.01) {
             if ($existing !== null) {
-                app(AuditLogger::class)->record('payroll.weekly-hours.adjustment.cleared', $existing, [
+                app(AuditLoggerContract::class)->record('payroll.weekly-hours.adjustment.cleared', $existing, [
                     'before' => [
                         'week_start' => (string) $existing->week_start?->toDateString(),
                         'source_hours' => (float) $existing->source_hours,
@@ -268,7 +268,7 @@ class WeeklyEmployeeHours extends Component
             ],
         );
 
-        app(AuditLogger::class)->record('payroll.weekly-hours.adjusted', $adjustment, [
+        app(AuditLoggerContract::class)->record('payroll.weekly-hours.adjusted', $adjustment, [
             'before' => $before,
             'after' => [
                 'week_start' => $this->weekStart,

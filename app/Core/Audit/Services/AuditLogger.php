@@ -2,13 +2,14 @@
 
 namespace App\Core\Audit\Services;
 
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Audit\Models\AuditLog;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 
-class AuditLogger
+class AuditLogger implements AuditLoggerContract
 {
     public function record(string $action, mixed $target = null, array $context = [], ?Authenticatable $actor = null): AuditLog
     {

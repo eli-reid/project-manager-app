@@ -2,7 +2,7 @@
 
 namespace App\Core\Identity\Livewire\Auth;
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Concerns\PasswordValidationRules;
 use App\Core\Identity\Models\User;
@@ -52,7 +52,7 @@ class ForcePasswordChange extends Component
             'password_change_required' => false,
         ]);
 
-        app(AuditLogger::class)->record('auth.password.force-change', $user, [
+        app(AuditLoggerContract::class)->record('auth.password.force-change', $user, [
             'before' => [
                 'password_change_required' => true,
             ],

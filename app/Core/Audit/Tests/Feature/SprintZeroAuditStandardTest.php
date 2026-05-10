@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -11,7 +11,7 @@ it('records audit logs using the sprint zero required before/after/metadata shap
 
     actingAs($actor);
 
-    $entry = app(AuditLogger::class)->record('project-access.grant', $target, [
+    $entry = app(AuditLoggerContract::class)->record('project-access.grant', $target, [
         'before' => ['permissions' => []],
         'after' => ['permissions' => ['projects.view']],
         'reason' => 'Project assignment update',

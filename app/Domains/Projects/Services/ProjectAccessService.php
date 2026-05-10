@@ -2,7 +2,7 @@
 
 namespace App\Domains\Projects\Services;
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
@@ -54,7 +54,7 @@ class ProjectAccessService
             ]
         );
 
-        app(AuditLogger::class)->record('project-access.grant', $project, [
+        app(AuditLoggerContract::class)->record('project-access.grant', $project, [
             'before' => $existing ? $this->snapshot($existing) : null,
             'after' => $this->snapshot($access),
             'assignee_user_id' => (string) $user->id,
@@ -85,7 +85,7 @@ class ProjectAccessService
             ]
         );
 
-        app(AuditLogger::class)->record('project-access.grant-role', $project, [
+        app(AuditLoggerContract::class)->record('project-access.grant-role', $project, [
             'before' => $existing ? $this->roleSnapshot($existing) : null,
             'after' => $this->roleSnapshot($access),
             'assignee_role_id' => (string) $role->id,
@@ -108,7 +108,7 @@ class ProjectAccessService
         $before = $this->snapshot($access);
         $access->delete();
 
-        app(AuditLogger::class)->record('project-access.revoke', $project, [
+        app(AuditLoggerContract::class)->record('project-access.revoke', $project, [
             'before' => $before,
             'after' => null,
             'assignee_user_id' => (string) $user->id,
@@ -131,7 +131,7 @@ class ProjectAccessService
         $before = $this->roleSnapshot($access);
         $access->delete();
 
-        app(AuditLogger::class)->record('project-access.revoke-role', $project, [
+        app(AuditLoggerContract::class)->record('project-access.revoke-role', $project, [
             'before' => $before,
             'after' => null,
             'assignee_role_id' => (string) $role->id,

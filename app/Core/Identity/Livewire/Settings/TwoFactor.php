@@ -2,8 +2,9 @@
 
 namespace App\Core\Identity\Livewire\Settings;
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
@@ -14,7 +15,6 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Auth;
 
 #[Title('Two-Factor Authentication')]
 class TwoFactor extends Component
@@ -66,7 +66,7 @@ class TwoFactor extends Component
             $this->twoFactorEnabled = $user->hasEnabledTwoFactorAuthentication();
 
             if ($this->twoFactorEnabled) {
-                app(AuditLogger::class)->record('auth.two-factor.enabled', $user, [
+                app(AuditLoggerContract::class)->record('auth.two-factor.enabled', $user, [
                     'confirmed' => false,
                 ], $user);
             }
@@ -125,7 +125,7 @@ class TwoFactor extends Component
 
         $this->twoFactorEnabled = true;
 
-        app(AuditLogger::class)->record('auth.two-factor.enabled', $user, [
+        app(AuditLoggerContract::class)->record('auth.two-factor.enabled', $user, [
             'confirmed' => true,
         ], $user);
     }
@@ -151,7 +151,7 @@ class TwoFactor extends Component
 
         $this->twoFactorEnabled = false;
 
-        app(AuditLogger::class)->record('auth.two-factor.disabled', $user, [], $user);
+        app(AuditLoggerContract::class)->record('auth.two-factor.disabled', $user, [], $user);
     }
 
     /**

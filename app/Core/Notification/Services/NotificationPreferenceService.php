@@ -2,7 +2,7 @@
 
 namespace App\Core\Notification\Services;
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Models\User;
 use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
@@ -123,7 +123,7 @@ class NotificationPreferenceService
 
         UserNotificationPreference::query()->insert($rows);
 
-        app(AuditLogger::class)->record('notifications.preferences.updated', $user, [
+        app(AuditLoggerContract::class)->record('notifications.preferences.updated', $user, [
             'before' => $this->mapPreferencesForAudit($existingPreferences->all()),
             'after' => $this->mapPreferencesForAudit($rows),
             'notification_keys' => array_values(array_unique(array_keys($preferences))),

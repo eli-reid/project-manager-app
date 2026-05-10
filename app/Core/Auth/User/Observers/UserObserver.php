@@ -7,9 +7,7 @@ use App\Core\Identity\Models\User;
 
 class UserObserver
 {
-    public function __construct(
-        protected CpanelMailboxManager $mailboxManager
-    ) {}
+    public function __construct(protected CpanelMailboxManager $mailboxManager) {}
 
     public function creating(User $user): void
     {

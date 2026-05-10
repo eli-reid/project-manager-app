@@ -1,7 +1,7 @@
 <?php
 
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Audit\Models\AuditLog;
-use App\Core\Audit\Services\AuditLogger;
 use App\Core\Identity\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -12,7 +12,7 @@ it('records an audit log with actor target and context', function (): void {
 
     actingAs($actor);
 
-    $auditLog = app(AuditLogger::class)->record('users.edit', $target, [
+    $auditLog = app(AuditLoggerContract::class)->record('users.edit', $target, [
         'before' => ['is_active' => true],
         'after' => ['is_active' => false],
         'reason' => 'Deactivated by manager',
@@ -36,7 +36,7 @@ it('records an audit log with actor target and context', function (): void {
 });
 
 it('records an audit log without actor and with explicit target keys', function (): void {
-    $auditLog = app(AuditLogger::class)->record('reports.export', null, [
+    $auditLog = app(AuditLoggerContract::class)->record('reports.export', null, [
         'target_type' => 'operational-report',
         'target_id' => 'timecards-weekly',
         'format' => 'csv',

@@ -2,14 +2,14 @@
 
 namespace App\Domains\Payroll\Services;
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
 class PayrollAuditTrailService
 {
     public function __construct(
-        private readonly AuditLogger $auditLogger,
+        private readonly AuditLoggerContract $auditLogger,
         private readonly PayrollAuditDigestService $digestService,
     ) {}
 

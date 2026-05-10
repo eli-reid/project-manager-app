@@ -2,6 +2,7 @@
 
 namespace App\Core\Audit\Providers;
 
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Audit\Permissions\AuditPermissions;
 use App\Core\Audit\Services\AuditLogger;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
@@ -12,6 +13,7 @@ class AuditServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AuditLogger::class, fn (): AuditLogger => new AuditLogger);
+        $this->app->alias(AuditLogger::class, AuditLoggerContract::class);
     }
 
     public function boot(): void

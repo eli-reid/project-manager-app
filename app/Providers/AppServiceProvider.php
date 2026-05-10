@@ -21,7 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
         $this->configureDefaults();
         Model::preventLazyLoading(! app()->isProduction());
     }

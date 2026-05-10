@@ -2,7 +2,7 @@
 
 namespace App\Core\Identity\Providers;
 
-use App\Core\Audit\Services\AuditLogger;
+use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Actions\Fortify\CreateNewUser;
 use App\Core\Identity\Actions\Fortify\ResetUserPassword;
 use Illuminate\Auth\Events\Login;
@@ -82,7 +82,7 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureAuthEventAuditing(): void
     {
         Event::listen(Login::class, function (Login $event): void {
-            app(AuditLogger::class)->record('auth.login', $event->user, [
+            app(AuditLoggerContract::class)->record('auth.login', $event->user, [
                 'guard' => $event->guard,
                 'remember' => $event->remember,
             ], $event->user);
@@ -93,7 +93,7 @@ class FortifyServiceProvider extends ServiceProvider
                 return;
             }
 
-            app(AuditLogger::class)->record('auth.logout', $event->user, [
+            app(AuditLoggerContract::class)->record('auth.logout', $event->user, [
                 'guard' => $event->guard,
             ], $event->user);
         });
