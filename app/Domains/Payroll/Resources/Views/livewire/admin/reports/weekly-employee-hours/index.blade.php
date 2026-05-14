@@ -6,12 +6,22 @@
                 Summary of approved employee hours for payroll submission.
             </p>
         </div>
-        <button
-            onclick="window.print()"
-            class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-        >
-            Print
-        </button>
+        <div class="flex gap-2">
+            <button
+                onclick="window.print()"
+                class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            >
+                Print
+            </button>
+            <button
+                wire:click="openEmailModal"
+                class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:text-white"
+            >
+                Email as PDF
+            </button>
+        </div>
+        {{-- Email Modal --}}
+        <x-ui.email-report-modal wire:model="showEmailModal" :title="'Send Report as Email'" />
     </div>
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end">

@@ -19,8 +19,10 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Layout('layouts.app')]
-#[Title('Weekly Employee Hours')]
+use App\Domains\Payroll\Mail\WeeklyEmployeeHoursReportMailable;
+use App\Domains\Payroll\Services\WeeklyEmployeeHoursPdfService;
+use Illuminate\Support\Facades\Mail;
+
 class WeeklyEmployeeHours extends Component
 {
     use AuthorizesRequests;
@@ -38,7 +40,57 @@ class WeeklyEmployeeHours extends Component
      */
     public array $editReasons = [];
 
+
     public ?string $editingUserId = null;
+
+    // Email modal state and form fields
+    public bool $showEmailModal = false;
+    public array $emailForm = [
+        'recipient' => '',
+        'subject' => '',
+        'body' => '',
+    ];
+    public function openEmailModal(): void
+    {
+        $this->resetErrorBag('emailForm');
+        $this->emailForm['recipient'] = '';
+        $this->emailForm['subject'] = 'Weekly Employee Hours Report';
+        $this->emailForm['body'] = 'Please find the attached Weekly Employee Hours Report.';
+        $this->showEmailModal = true;
+    }
+
+    public function closeEmailModal(): void
+    {
+        $this->showEmailModal = false;
+    }
+
+    public function sendEmail(): void
+    {
+        $this->validate([
+            'emailForm.recipient' => ['required', 'email'],
+            'emailForm.subject' => ['required', 'string', 'max:200'],
+            'emailForm.body' => ['nullable', 'string', 'max:2000'],
+        ], [], [
+            'emailForm.recipient' => 'recipient',
+            'emailForm.subject' => 'subject',
+            'emailForm.body' => 'body',
+        ]);
+
+        // Generate PDF
+        $pdfPath = app(WeeklyEmployeeHoursPdfService::class)
+            ->generate($this->employeeHours, $this->weekStart, $this->weekEnd->toDateString());
+
+        // Send email
+        Mail::to($this->emailForm['recipient'])
+            ->send(new WeeklyEmployeeHoursReportMailable(
+                $this->emailForm['subject'],
+                $this->emailForm['body'],
+                $pdfPath
+            ));
+
+        $this->showEmailModal = false;
+        session()->flash('success', 'Report emailed successfully!');
+    }
 
     public function mount(): void
     {
