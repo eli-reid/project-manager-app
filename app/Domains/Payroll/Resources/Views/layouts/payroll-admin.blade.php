@@ -2,6 +2,16 @@
     <x-slot:domainNavbar>
         <div class="mx-auto w-full max-w-7xl">
             <flux:navbar class="flex flex-wrap items-center gap-2">
+
+                @can('payroll-timecards.view')
+                    <flux:navbar.item
+                        :href="route('admin.payroll.timecards.review')"
+                        :current="request()->routeIs('admin.payroll.timecards.*')"
+                        wire:navigate
+                    >
+                        {{ __('Timecards') }}
+                    </flux:navbar.item>
+                @endcan
                 @can('payroll-rates.view')
                     <flux:navbar.item
                         :href="route('admin.payroll.rates.index')"
@@ -20,15 +30,7 @@
                     </flux:navbar.item>
                 @endcan
 
-                @can('payroll-timecards.view')
-                    <flux:navbar.item
-                        :href="route('admin.payroll.timecards.review')"
-                        :current="request()->routeIs('admin.payroll.timecards.*')"
-                        wire:navigate
-                    >
-                        {{ __('Timecards') }}
-                    </flux:navbar.item>
-                @endcan
+
 
                 @can('payroll-runs.preview')
                     <flux:navbar.item

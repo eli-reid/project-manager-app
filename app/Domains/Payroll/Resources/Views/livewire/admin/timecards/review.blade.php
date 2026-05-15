@@ -4,13 +4,33 @@
         <p class="text-sm text-zinc-500 dark:text-zinc-400">Validate payroll-critical timecard entries and compare them against daily report totals.</p>
     </div>
 
-    <div class="grid gap-3 lg:grid-cols-4">
-        <div>
-            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Week Starting</label>
-            <input type="date" wire:model.live="weekStarting" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end mb-2">
+        <div class="flex-1">
+            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Week Starting</label>
+            <input
+                type="date"
+                wire:model.live="weekStarting"
+                class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            />
             <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Week ending {{ $weekEnding }}</p>
         </div>
+        <div class="flex gap-2">
+            <button
+                wire:click="previousWeek"
+                class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+                Previous Week
+            </button>
+            <button
+                wire:click="nextWeek"
+                class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+                Next Week
+            </button>
+        </div>
+    </div>
 
+    <div class="grid gap-3 lg:grid-cols-4">
         <div>
             <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Employee</label>
             <select wire:model.live="userFilter" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
