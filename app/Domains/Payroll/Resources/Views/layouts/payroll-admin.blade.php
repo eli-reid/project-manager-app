@@ -34,6 +34,22 @@
 
                 @can('payroll-runs.preview')
                     <flux:navbar.item
+                        :href="route('admin.payroll.reports.weekly-employee-hours')"
+                        :current="request()->routeIs('admin.payroll.reports.weekly-employee-hours')"
+                        wire:navigate
+                    >
+                        {{ __('Weekly Employee Hours') }}
+                    </flux:navbar.item>
+
+                    <flux:navbar.item
+                        :href="route('admin.payroll.reports.weekly-hour-adjustments')"
+                        :current="request()->routeIs('admin.payroll.reports.weekly-hour-adjustments')"
+                        wire:navigate
+                    >
+                        {{ __('Weekly Hour Adjustments') }}
+                    </flux:navbar.item>
+
+                    <flux:navbar.item
                         :href="route('admin.payroll.runs.index')"
                         :current="request()->routeIs('admin.payroll.runs.*')"
                         wire:navigate
