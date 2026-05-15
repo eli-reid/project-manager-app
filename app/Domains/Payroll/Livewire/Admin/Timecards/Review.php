@@ -91,6 +91,20 @@ class Review extends Component
         ]);
     }
 
+    public function previousWeek(): void
+    {
+        $this->weekStarting = Carbon::parse($this->weekStarting)
+            ->subWeek()
+            ->toDateString();
+    }
+
+    public function nextWeek(): void
+    {
+        $this->weekStarting = Carbon::parse($this->weekStarting)
+            ->addWeek()
+            ->toDateString();
+    }
+
     /**
      * @return Collection<int, string>
      */

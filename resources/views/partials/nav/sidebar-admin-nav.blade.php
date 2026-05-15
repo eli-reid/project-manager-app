@@ -85,10 +85,10 @@
 @if ($canManagePayroll)
     <flux:sidebar.item
         icon="banknotes"
-        :href="$user?->can('payroll-rates.view')
-            ? route('admin.payroll.rates.index')
-            : ($user?->can('payroll-timecards.view')
-                ? route('admin.payroll.timecards.review')
+        :href="$user?->can('payroll-timecards.view')
+            ? route('admin.payroll.timecards.review')
+            : ($user?->can('payroll-rates.view')
+                ? route('admin.payroll.rates.index')
                 : route('admin.payroll.runs.index'))"
         :current="request()->routeIs('admin.payroll.*')"
         wire:navigate
