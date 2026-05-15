@@ -1,6 +1,7 @@
 <?php
 
 use App\Domains\Documents\Livewire\User\Documents\MobileGlobalIndex;
+use App\Domains\Documents\Livewire\User\Documents\MobileUpload;
 use App\Domains\Documents\Models\Document;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -8,9 +9,14 @@ use Illuminate\Support\Facades\Storage;
 Route::prefix('mobile/documents')
     ->name('documents.mobile.')
     ->group(function (): void {
+
         Route::livewire('/global', MobileGlobalIndex::class)
             ->middleware('can:viewAny,'.Document::class)
             ->name('global');
+
+        Route::livewire('/upload', MobileUpload::class)
+            ->middleware('can:create,'.Document::class)
+            ->name('upload');
 
         Route::get('/{document}/download', function (Document $document) {
             return Storage::disk($document->storage_disk)->download($document->storage_path, $document->original_name);
