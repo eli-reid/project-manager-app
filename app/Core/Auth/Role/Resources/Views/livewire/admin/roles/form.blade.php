@@ -52,7 +52,28 @@
                                 <label class="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300" wire:key="permission-{{ $permission->id }}">
                                     <input type="checkbox" value="{{ $permission->id }}" wire:model.live="selectedPermissionIds" class="mt-0.5 rounded border-zinc-300 text-zinc-900 dark:border-zinc-700" />
                                     <span>
-                                        <span class="font-medium">{{ $permission->label }}</span>
+                                        <span class="font-medium flex items-center gap-2">
+                                            {{ $permission->label }}
+                                            @php
+                                                // Determine scope tag based on action naming and resource
+                                                $action = $permission->action;
+                                                $scopeTag = null;
+                                                if (str_contains($action, 'view-all') || str_contains($action, 'view-any') || str_contains($action, 'approve') || str_contains($action, 'reject')) {
+                                                    $scopeTag = 'All users';
+                                                } elseif (str_contains($action, 'view') || str_contains($action, 'edit') || str_contains($action, 'update') || str_contains($action, 'delete') || str_contains($action, 'submit') || str_contains($action, 'create')) {
+                                                    $scopeTag = 'Own items only';
+                                                }
+                                                // Special cases for project/document/stock domains
+                                                if (in_array($action, ['manage-project', 'promote-global', 'demote-private'])) {
+                                                    $scopeTag = 'Own items only';
+                                                }
+                                            @endphp
+                                            @if ($scopeTag)
+                                                <span class="ml-2 inline-flex items-center rounded bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700">
+                                                    {{ $scopeTag }}
+                                                </span>
+                                            @endif
+                                        </span>
                                         <span class="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">
                                             {{ $permission->description ?: 'Allows users to '.str($permission->action)->replace(['_', '-'], ' ')->lower().' '.str($permission->resource)->replace(['_', '-'], ' ')->lower().'.' }}
                                         </span>
