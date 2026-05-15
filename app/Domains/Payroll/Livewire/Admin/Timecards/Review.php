@@ -50,8 +50,9 @@ class Review extends Component
         TimecardEntryValidationService $validationService,
         TimecardDailyReconciliationService $reconciliationService,
         PayrollTimecardReadGateway $timecardReadGateway,
+        PayPeriodService $payPeriodService,
     ): View {
-        $startDate = Carbon::parse($this->weekStarting)->startOfDay();
+        $startDate = $payPeriodService->periodStartFor(Carbon::parse($this->weekStarting));
         $endDate = $startDate->copy()->addDays(6)->endOfDay();
         $projectFilter = $this->projectFilter !== '' ? $this->projectFilter : null;
 
@@ -62,8 +63,8 @@ class Review extends Component
             projectId: $projectFilter,
         );
 
-        $validationByEntryId = $entries->mapWithKeys(function (TimecardEntry $entry) use ($validationService): array {
-            return [(string) $entry->id => $validationService->validate($entry)];
+        $validationByEntryId = $entries->mapWithKeys(function (TimecardEntry $entry) use ($validationService, $startDate): array {
+            return [(string) $entry->id => $validationService->validate($entry, $startDate)];
         });
 
         $reconciliationMismatchKeys = $this->reconciliationMismatchKeys($entries, $startDate, $endDate, $projectFilter, $reconciliationService);
@@ -93,15 +94,28 @@ class Review extends Component
 
     public function previousWeek(): void
     {
-        $this->weekStarting = Carbon::parse($this->weekStarting)
-            ->subWeek()
+        $payPeriodService = app(PayPeriodService::class);
+
+        $this->weekStarting = $payPeriodService->periodStartFor(
+            Carbon::parse($this->weekStarting)->subWeek()
+        )
             ->toDateString();
     }
 
     public function nextWeek(): void
     {
-        $this->weekStarting = Carbon::parse($this->weekStarting)
-            ->addWeek()
+        $payPeriodService = app(PayPeriodService::class);
+
+        $this->weekStarting = $payPeriodService->periodStartFor(
+            Carbon::parse($this->weekStarting)->addWeek()
+        )
+            ->toDateString();
+    }
+
+    public function updatedWeekStarting(string $value): void
+    {
+        $this->weekStarting = app(PayPeriodService::class)
+            ->periodStartFor(Carbon::parse($value))
             ->toDateString();
     }
 

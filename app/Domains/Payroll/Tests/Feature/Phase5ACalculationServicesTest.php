@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Payroll\Data\OvertimeBreakdown;
 use App\Domains\Payroll\Enums\OvertimeRule;
 use App\Domains\Payroll\Models\PayRate;
@@ -15,22 +16,33 @@ use Illuminate\Support\Carbon;
 // ─── PayPeriodService ─────────────────────────────────────────────────────────
 
 describe('PayPeriodService', function (): void {
-    it('identifies the Saturday start of a Saturday', function (): void {
+    it('identifies the configured week start when the date is already on that day', function (): void {
+        Settings::set('app.week_start_day', 'monday');
+
         $service = new PayPeriodService;
-        $sat = Carbon::parse('2025-04-05'); // known Saturday
-        expect($service->periodStartFor($sat)->toDateString())->toBe('2025-04-05');
+        $monday = Carbon::parse('2025-04-07');
+
+        expect($service->periodStartFor($monday)->toDateString())->toBe('2025-04-07');
     });
 
-    it('walks back to Saturday from a Wednesday', function (): void {
+    it('walks back to the configured week start from midweek', function (): void {
+        Settings::set('app.week_start_day', 'monday');
+
         $service = new PayPeriodService;
         $wed = Carbon::parse('2025-04-09'); // Wednesday
-        expect($service->periodStartFor($wed)->toDateString())->toBe('2025-04-05');
+
+        expect($service->periodStartFor($wed)->toDateString())->toBe('2025-04-07');
     });
 
-    it('walks back to Saturday from a Friday', function (): void {
+    it('returns a seven-day period when week start changes', function (): void {
+        Settings::set('app.week_start_day', 'monday');
+
         $service = new PayPeriodService;
-        $fri = Carbon::parse('2025-04-11'); // Friday
-        expect($service->periodStartFor($fri)->toDateString())->toBe('2025-04-05');
+        $start = $service->periodStartFor(Carbon::parse('2025-04-11')); // Friday
+        $end = $start->copy()->addDays(6);
+
+        expect($start->toDateString())->toBe('2025-04-07')
+            ->and($end->toDateString())->toBe('2025-04-13');
     });
 
     it('returns true for a date within the current period', function (): void {

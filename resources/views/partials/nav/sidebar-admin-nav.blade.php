@@ -30,9 +30,21 @@
     $canViewQueue = $user?->can('queue.viewAny') ?? false;
 @endphp
 
+@if ($canManageAnnouncements)
+    <flux:sidebar.item icon="megaphone" :href="route('admin.announcements.index')" :current="request()->routeIs('admin.announcements.*')" wire:navigate data-test="admin-announcements-sidebar-main-link">
+        {{ __('Announcements') }}
+    </flux:sidebar.item>
+@endif
+
 @if ($canViewAdminProjects)
     <flux:sidebar.item icon="drafting-compass" :href="route('admin.projects.index')" :current="request()->routeIs('admin.projects.*')" wire:navigate>
         {{ __('Projects') }}
+    </flux:sidebar.item>
+@endif
+
+@if ($canManageUsers)
+    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
+        {{ __('User Management') }}
     </flux:sidebar.item>
 @endif
 
@@ -107,18 +119,6 @@
         data-test="admin-reports-sidebar-main-link"
     >
         {{ __('Reports') }}
-    </flux:sidebar.item>
-@endif
-
-@if ($canManageUsers)
-    <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
-        {{ __('User Management') }}
-    </flux:sidebar.item>
-@endif
-
-@if ($canManageAnnouncements)
-    <flux:sidebar.item icon="megaphone" :href="route('admin.announcements.index')" :current="request()->routeIs('admin.announcements.*')" wire:navigate data-test="admin-announcements-sidebar-main-link">
-        {{ __('Announcements') }}
     </flux:sidebar.item>
 @endif
 

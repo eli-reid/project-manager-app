@@ -2,71 +2,68 @@
 
 namespace App\Domains\Payroll\Services;
 
+use App\Core\Settings\Services\WeekSettingsService;
 use Illuminate\Support\Carbon;
 
 class PayPeriodService
 {
     /**
-     * Returns the start (Saturday 00:00) of the pay period containing the given date.
-     * Pay periods run Saturday→Friday.
+     * Returns the configured start (00:00) of the pay period containing the given date.
+     * Pay periods always span seven days.
      */
     public function periodStartFor(Carbon $date): Carbon
     {
-        $copy = $date->copy()->startOfDay();
+        $weekStartsAt = app(WeekSettingsService::class)->weekStartsAt();
 
-        // Carbon: 0=Sunday, 1=Monday, …, 6=Saturday
-        $dayOfWeek = (int) $copy->dayOfWeek;
-
-        // Days to subtract to reach the most recent Saturday
-        $daysBack = $dayOfWeek === 6 ? 0 : $dayOfWeek + 1;
-
-        return $copy->subDays($daysBack);
+        return $date->copy()->startOfDay()->startOfWeek($weekStartsAt);
     }
 
     /**
      * Start of the current pay period.
      */
-    public function currentPeriodStart(): Carbon
+    public function currentPeriodStart(?Carbon $referenceDate = null): Carbon
     {
-        return $this->periodStartFor(Carbon::now());
+        return $this->periodStartFor(($referenceDate ?? Carbon::now())->copy());
     }
 
     /**
      * Start of the previous pay period (one week before current).
      */
-    public function priorPeriodStart(): Carbon
+    public function priorPeriodStart(?Carbon $referenceDate = null): Carbon
     {
-        return $this->currentPeriodStart()->subWeek();
+        return $this->currentPeriodStart($referenceDate)->subWeek();
     }
 
     /**
      * Returns true if the date falls within the current or immediately prior pay period.
      */
-    public function isWithinCurrentOrPriorPeriod(Carbon $date): bool
+    public function isWithinCurrentOrPriorPeriod(Carbon $date, ?Carbon $referenceDate = null): bool
     {
-        $priorStart = $this->priorPeriodStart();
-        $currentEnd = $this->currentPeriodStart()->addDays(6)->endOfDay();
+        $priorStart = $this->priorPeriodStart($referenceDate);
+        $currentEnd = $this->currentPeriodStart($referenceDate)->addDays(6)->endOfDay();
 
         return $date->between($priorStart, $currentEnd);
     }
 
     /**
      * Returns true when a work date that falls in the prior pay period has missed the
-     * submission cut-off. The cut-off is the Saturday that opens the current period at
+     * submission cut-off. The cut-off is the configured start day that opens the current period at
      * 23:59:59 local time.
      */
-    public function isBeyondCutOff(Carbon $workDate): bool
+    public function isBeyondCutOff(Carbon $workDate, ?Carbon $referenceDate = null): bool
     {
-        $currentStart = $this->currentPeriodStart();
+        $currentStart = $this->currentPeriodStart($referenceDate);
 
         // If the work date is in the current period there is no cut-off concern.
         if ($workDate->gte($currentStart)) {
             return false;
         }
 
-        // Cut-off = current period's Saturday at 23:59:59
+        // Cut-off = current period start day at 23:59:59
         $cutOff = $currentStart->copy()->setTime(23, 59, 59);
 
-        return Carbon::now()->gt($cutOff);
+        $comparisonNow = $referenceDate?->copy()->endOfDay() ?? Carbon::now();
+
+        return $comparisonNow->gt($cutOff);
     }
 }

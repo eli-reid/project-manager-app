@@ -21,7 +21,7 @@ class TimecardEntryValidationService
     /**
      * Run all validation rules (V-01 – V-10) against a timecard entry.
      */
-    public function validate(TimecardEntry $entry): ValidationResult
+    public function validate(TimecardEntry $entry, ?Carbon $referenceDate = null): ValidationResult
     {
         $violations = [];
 
@@ -72,7 +72,7 @@ class TimecardEntryValidationService
         }
 
         // V-05 — Work date must be within the current or prior pay period.
-        if (! $this->payPeriodService->isWithinCurrentOrPriorPeriod($workDate)) {
+        if (! $this->payPeriodService->isWithinCurrentOrPriorPeriod($workDate, $referenceDate)) {
             $violations[] = new ValidationViolation(
                 ruleId: 'V-05',
                 severity: ValidationSeverity::Block,
@@ -118,7 +118,7 @@ class TimecardEntryValidationService
         }
 
         // V-10 — Prior-period entry submitted after the pay-period cut-off.
-        if (! $workDate->isFuture() && $this->payPeriodService->isBeyondCutOff($workDate)) {
+        if (! $workDate->isFuture() && $this->payPeriodService->isBeyondCutOff($workDate, $referenceDate)) {
             $violations[] = new ValidationViolation(
                 ruleId: 'V-10',
                 severity: ValidationSeverity::Warning,
