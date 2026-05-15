@@ -86,6 +86,17 @@
             >
                 {{ __('Install App') }}
             </button>
+
+            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                @csrf
+                <button
+                    type="submit"
+                    class="flex min-h-11 w-full items-center rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-left text-sm font-medium text-zinc-100"
+                    data-mobile-haptic
+                >
+                    {{ __('Log out') }}
+                </button>
+            </form>
         </div>
     </div>
 

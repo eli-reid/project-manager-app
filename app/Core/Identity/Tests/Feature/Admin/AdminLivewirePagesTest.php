@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Livewire\Admin\Roles\Users;
 use App\Core\Auth\Role\Models\Role;
@@ -37,6 +38,26 @@ it('forbids non-admin users from admin users and roles pages', function () {
     $this->actingAs($user)
         ->get(route('admin.roles.index'))
         ->assertForbidden();
+});
+
+it('shows permission descriptions on the role form', function () {
+    app(DomainPermissionSynchronizer::class)->sync();
+
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    Permission::query()->updateOrCreate(
+        ['resource' => 'qa', 'action' => 'review'],
+        [
+            'label' => 'Review QA Items',
+            'description' => 'Allows users to review QA checklist items before closeout.',
+        ],
+    );
+
+    $this->actingAs($admin);
+
+    Livewire::test(App\Core\Auth\Role\Livewire\Admin\Roles\Form::class)
+        ->assertSee('Review QA Items')
+        ->assertSee('Allows users to review QA checklist items before closeout.');
 });
 
 it('allows creating users and roles through livewire forms', function () {

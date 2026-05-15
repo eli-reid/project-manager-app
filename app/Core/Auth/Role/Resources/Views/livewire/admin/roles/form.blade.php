@@ -51,7 +51,12 @@
                             @foreach ($resourceData['permissions'] as $permission)
                                 <label class="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300" wire:key="permission-{{ $permission->id }}">
                                     <input type="checkbox" value="{{ $permission->id }}" wire:model.live="selectedPermissionIds" class="mt-0.5 rounded border-zinc-300 text-zinc-900 dark:border-zinc-700" />
-                                    <span>{{ $permission->label }}</span>
+                                    <span>
+                                        <span class="font-medium">{{ $permission->label }}</span>
+                                        <span class="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">
+                                            {{ $permission->description ?: 'Allows users to '.str($permission->action)->replace(['_', '-'], ' ')->lower().' '.str($permission->resource)->replace(['_', '-'], ' ')->lower().'.' }}
+                                        </span>
+                                    </span>
                                 </label>
                             @endforeach
                         </div>
