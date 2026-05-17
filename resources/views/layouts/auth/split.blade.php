@@ -9,7 +9,7 @@
                 <div class="absolute inset-0 bg-neutral-900"></div>
                 <a href="{{ route('login') }}" class="relative z-20 flex items-center text-lg font-medium" wire:navigate>
                     <span class="flex h-10 w-10 items-center justify-center rounded-md">
-                        <x-app-logo-icon class="me-2 h-7 fill-current text-white" />
+                        <x-app-logo-icon class="me-2 h-10 w-10 object-contain" />
                     </span>
                     {{ config('app.name', 'Laravel') }}
                 </a>
@@ -28,8 +28,8 @@
             <div class="w-full lg:p-8">
                 <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-87.5">
                     <a href="{{ route('login') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden" wire:navigate>
-                        <span class="flex h-9 w-9 items-center justify-center rounded-md">
-                            <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
+                        <span class="flex h-16 w-16 items-center justify-center">
+                            <x-app-logo-icon class="size-16 object-contain" />
                         </span>
 
                         <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>
