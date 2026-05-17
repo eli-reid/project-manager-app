@@ -15,19 +15,19 @@
     ],
     "icons": [
         {
-            "src": "/icon-192.png?v=20260517",
+            "src": "/icon-192.png?v=20260517-2",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "/icon-512.png?v=20260517",
+            "src": "/icon-512.png?v=20260517-2",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "/apple-touch-icon.png?v=20260517",
+            "src": "/apple-touch-icon.png?v=20260517-2",
             "sizes": "180x180",
             "type": "image/png",
             "purpose": "any"
@@ -40,7 +40,7 @@
             "url": "/mobile/dashboard",
             "icons": [
                 {
-                    "src": "/apple-touch-icon.png?v=20260517",
+                    "src": "/apple-touch-icon.png?v=20260517-2",
                     "sizes": "180x180"
                 }
             ]
@@ -51,7 +51,7 @@
             "url": "/timecards/mobile",
             "icons": [
                 {
-                    "src": "/apple-touch-icon.png?v=20260517",
+                    "src": "/apple-touch-icon.png?v=20260517-2",
                     "sizes": "180x180"
                 }
             ]
@@ -62,7 +62,7 @@
             "url": "/projects",
             "icons": [
                 {
-                    "src": "/apple-touch-icon.png?v=20260517",
+                    "src": "/apple-touch-icon.png?v=20260517-2",
                     "sizes": "180x180"
                 }
             ]

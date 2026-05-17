@@ -15,11 +15,11 @@
 </title>
 
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/favicon.ico?v=20260517" sizes="any">
-<link rel="icon" href="/favicon.svg?v=20260517" type="image/svg+xml">
-<link rel="icon" href="/ms-icon 1.png?v=20260517" type="image/png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260517">
-<meta name="msapplication-TileImage" content="/icon-192.png?v=20260517" />
+<link rel="icon" href="/favicon.ico?v=20260517-2" sizes="any">
+<link rel="icon" href="/favicon.svg?v=20260517-2" type="image/svg+xml">
+<link rel="icon" href="/ms-icon 1.png?v=20260517-2" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260517-2">
+<meta name="msapplication-TileImage" content="/icon-192.png?v=20260517-2" />
 
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
