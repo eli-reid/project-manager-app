@@ -1,24 +1,26 @@
 <?php
 
+use App\Domains\ChangeOrders\Livewire\Admin\ChangeOrders\Form as ChangeOrderForm;
+use App\Domains\ChangeOrders\Livewire\Admin\ChangeOrders\Index as ChangeOrderIndex;
+use App\Domains\ChangeOrders\Livewire\Admin\ChangeOrders\Show as ChangeOrderShow;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('change-orders')
     ->name('change-orders.')
+    ->middleware('can:viewAny,'.ChangeOrder::class)
     ->group(function (): void {
-        Route::view('/', 'change-orders::placeholder', ['surface' => 'Admin Change Orders'])
-            ->middleware('can:viewAny,'.ChangeOrder::class)
-            ->name('index');
+        Route::livewire('/', ChangeOrderIndex::class)->name('index');
 
-        Route::view('/create', 'change-orders::placeholder', ['surface' => 'Create Change Order'])
+        Route::livewire('/create', ChangeOrderForm::class)
             ->middleware('can:create,'.ChangeOrder::class)
             ->name('create');
 
-        Route::view('/{changeOrder}', 'change-orders::placeholder', ['surface' => 'Change Order Details'])
+        Route::livewire('/{changeOrder}', ChangeOrderShow::class)
             ->middleware('can:view,changeOrder')
             ->name('show');
 
-        Route::view('/{changeOrder}/edit', 'change-orders::placeholder', ['surface' => 'Edit Change Order'])
+        Route::livewire('/{changeOrder}/edit', ChangeOrderForm::class)
             ->middleware('can:update,changeOrder')
             ->name('edit');
     });
