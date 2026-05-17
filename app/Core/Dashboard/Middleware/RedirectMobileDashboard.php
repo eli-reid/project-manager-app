@@ -29,7 +29,7 @@ class RedirectMobileDashboard
     {
         $user = $request->user();
 
-        if (! $user instanceof User || $user->isAdmin()) {
+        if (! $user instanceof User) {
             return null;
         }
 

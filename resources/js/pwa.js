@@ -79,13 +79,22 @@ class PwaManager {
             return;
         }
 
-        if (/iPad|iPhone|iPod/.test(window.navigator.userAgent)) {
+        if (this.isIosDevice()) {
             this.toast('Install this app', 'Use Share, then Add to Home Screen.');
 
             return;
         }
 
         this.toast('Install unavailable', 'Your browser does not currently expose the install prompt.');
+    }
+
+    isIosDevice() {
+        const userAgent = window.navigator.userAgent || '';
+        const platform = window.navigator.platform || '';
+
+        return /iPad|iPhone|iPod/.test(userAgent)
+            || /iPad|iPhone|iPod/.test(platform)
+            || (platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
     }
 
     showReloadPrompt() {

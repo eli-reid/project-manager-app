@@ -24,7 +24,7 @@ it('redirects normal users on mobile to the mobile surface', function (string $r
     $response->assertRedirect(route($expectedRouteName));
 })->with('mobile desktop routes');
 
-it('keeps admins on the desktop dashboard even on mobile', function (): void {
+it('redirects admins on mobile to the mobile dashboard', function (): void {
     $admin = User::factory()->create([
         'is_admin' => true,
     ]);
@@ -35,5 +35,5 @@ it('keeps admins on the desktop dashboard even on mobile', function (): void {
         ])
         ->get(route('dashboard'));
 
-    $response->assertOk();
+    $response->assertRedirect(route('mobile.dashboard'));
 });
