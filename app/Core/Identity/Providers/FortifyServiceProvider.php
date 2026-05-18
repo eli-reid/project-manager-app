@@ -5,6 +5,7 @@ namespace App\Core\Identity\Providers;
 use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Actions\Fortify\CreateNewUser;
 use App\Core\Identity\Actions\Fortify\ResetUserPassword;
+use App\Core\Identity\Http\Responses\MobileAwareLoginResponse;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -22,7 +24,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LoginResponseContract::class, MobileAwareLoginResponse::class);
     }
 
     /**

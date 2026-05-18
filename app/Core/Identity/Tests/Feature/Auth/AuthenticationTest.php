@@ -127,3 +127,20 @@ test('users can logout', function () {
         'target_id' => (string) $user->id,
     ]);
 });
+
+test('mobile users are redirected to the mobile dashboard after login', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1')
+        ->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('mobile.dashboard', absolute: false));
+
+    $this->assertAuthenticated();
+});
