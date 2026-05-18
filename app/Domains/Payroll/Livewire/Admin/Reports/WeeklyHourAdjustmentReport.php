@@ -7,12 +7,10 @@ use App\Domains\Payroll\Models\WeeklyEmployeeHoursAdjustment;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Layout('layouts.app')]
 #[Title('Weekly Hour Adjustment Report')]
 class WeeklyHourAdjustmentReport extends Component
 {
@@ -154,6 +152,17 @@ class WeeklyHourAdjustmentReport extends Component
 
     public function render()
     {
-        return view('payroll::livewire.admin.reports.weekly-hour-adjustments.index');
+        return view('payroll::livewire.admin.reports.weekly-hour-adjustments.index')
+            ->layout($this->layoutName());
+    }
+
+    private function layoutName(): string
+    {
+        $referer = request()->headers->get('referer');
+        $refererPath = is_string($referer) ? (string) parse_url($referer, PHP_URL_PATH) : '';
+
+        return str_starts_with($refererPath, '/admin/payroll')
+            ? 'payroll::layouts.payroll-admin'
+            : 'layouts.app';
     }
 }

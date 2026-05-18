@@ -6,22 +6,19 @@ use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Services\WeekSettingsService;
 use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
+use App\Domains\Payroll\Mail\WeeklyEmployeeHoursReportMailable;
 use App\Domains\Payroll\Models\WeeklyEmployeeHoursAdjustment;
+use App\Domains\Payroll\Services\WeeklyEmployeeHoursPdfService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-
-use App\Domains\Payroll\Mail\WeeklyEmployeeHoursReportMailable;
-use App\Domains\Payroll\Services\WeeklyEmployeeHoursPdfService;
-use Illuminate\Support\Facades\Mail;
 
 class WeeklyEmployeeHours extends Component
 {
@@ -40,16 +37,17 @@ class WeeklyEmployeeHours extends Component
      */
     public array $editReasons = [];
 
-
     public ?string $editingUserId = null;
 
     // Email modal state and form fields
     public bool $showEmailModal = false;
+
     public array $emailForm = [
         'recipient' => '',
         'subject' => '',
         'body' => '',
     ];
+
     public function openEmailModal(): void
     {
         $this->resetErrorBag('emailForm');
@@ -336,6 +334,17 @@ class WeeklyEmployeeHours extends Component
 
     public function render()
     {
-        return view('payroll::livewire.admin.reports.weekly-employee-hours.index');
+        return view('payroll::livewire.admin.reports.weekly-employee-hours.index')
+            ->layout($this->layoutName());
+    }
+
+    private function layoutName(): string
+    {
+        $referer = request()->headers->get('referer');
+        $refererPath = is_string($referer) ? (string) parse_url($referer, PHP_URL_PATH) : '';
+
+        return str_starts_with($refererPath, '/admin/payroll')
+            ? 'payroll::layouts.payroll-admin'
+            : 'layouts.app';
     }
 }

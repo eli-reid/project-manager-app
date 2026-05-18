@@ -1,6 +1,6 @@
 {
-    "name": "Project Manager App",
-    "short_name": "PM App",
+    "name": "Midsate Company Portal",
+    "short_name": "Midsate Portal",
     "description": "Mobile workspace for dashboard, timecards, projects, dailies, stock orders, and documents.",
     "start_url": "/mobile/dashboard",
     "display": "standalone",
