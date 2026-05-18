@@ -81,11 +81,11 @@
             @if ($timecards->onFirstPage())
                 <span class="rounded-full border border-zinc-800 px-4 py-2 text-xs font-semibold text-zinc-600">{{ __('Previous') }}</span>
             @else
-                <button wire:click="previousPage" class="rounded-full border border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-300 active:bg-zinc-800" data-mobile-haptic>{{ __('Previous') }}</button>
+                <button type="button" wire:click="previousPage" wire:loading.attr="disabled" wire:target="previousPage" class="rounded-full border border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-300 active:bg-zinc-800 disabled:opacity-60" data-mobile-haptic>{{ __('Previous') }}</button>
             @endif
 
             @if ($timecards->hasMorePages())
-                <button wire:click="nextPage" class="rounded-full border border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-300 active:bg-zinc-800" data-mobile-haptic>{{ __('Next') }}</button>
+                <button type="button" wire:click="nextPage" wire:loading.attr="disabled" wire:target="nextPage" class="rounded-full border border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-300 active:bg-zinc-800 disabled:opacity-60" data-mobile-haptic>{{ __('Next') }}</button>
             @else
                 <span class="rounded-full border border-zinc-800 px-4 py-2 text-xs font-semibold text-zinc-600">{{ __('Next') }}</span>
             @endif

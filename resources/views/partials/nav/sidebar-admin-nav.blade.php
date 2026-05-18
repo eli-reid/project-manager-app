@@ -76,17 +76,6 @@
     </flux:sidebar.item>
 @endif
 
-@if ($showTimeManagement)
-    <flux:sidebar.item
-        icon="clock"
-        :href="$canViewAdminTimecards ? route('admin.timecards.index') : route('admin.dailies.index')"
-        :current="request()->routeIs('admin.timecards.*') || request()->routeIs('admin.dailies.*')"
-        wire:navigate
-        data-test="admin-time-management-sidebar-main-link"
-    >
-        {{ __('Time Management') }}
-    </flux:sidebar.item>
-@endif
 
 @if ($canViewAdminDocuments)
     <flux:sidebar.item icon="folder" :href="route('admin.documents.index')" :current="request()->routeIs('admin.documents.*')" wire:navigate>

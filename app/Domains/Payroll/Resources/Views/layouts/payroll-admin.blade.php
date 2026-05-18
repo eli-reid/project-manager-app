@@ -32,6 +32,17 @@
 
 
 
+                @can('viewAll', \App\Domains\Timecards\Models\Timecard::class)
+                    <flux:navbar.item
+                        :href="route('admin.timecards.index')"
+                        :current="request()->routeIs('admin.timecards.*')"
+                        wire:navigate
+                        data-test="admin-time-management-navbar-main-link"
+                    >
+                        {{ __('Time Management') }}
+                    </flux:navbar.item>
+                @endcan
+
                 @can('payroll-runs.preview')
                     <flux:navbar.item
                         :href="route('admin.payroll.reports.weekly-employee-hours')"
