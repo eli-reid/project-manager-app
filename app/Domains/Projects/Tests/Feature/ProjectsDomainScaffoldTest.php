@@ -170,7 +170,7 @@ it('renders a mobile-friendly project card list on the mobile projects index', f
         ->assertSee('PWA Field Project')
         ->assertSee('456 Harbor Ave')
         ->assertSee('Documents')
-        ->assertSee('Open Project')
+        ->assertDontSee('Open Project')
         ->assertDontSee('<table', false);
 });
 
