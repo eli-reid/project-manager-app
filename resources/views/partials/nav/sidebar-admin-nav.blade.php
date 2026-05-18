@@ -60,6 +60,18 @@
     </flux:sidebar.item>
 @endif
 
+@if ($canViewAdminAddresses)
+    <flux:sidebar.item
+        icon="map-pin"
+        :href="route('admin.addresses.index')"
+        :current="request()->routeIs('admin.addresses.*')"
+        wire:navigate
+        data-test="admin-addresses-sidebar-main-link"
+    >
+        {{ __('Addresses') }}
+    </flux:sidebar.item>
+@endif
+
 @if ($showStockAndInvoices)
     <flux:sidebar.item
         icon="archive-box"

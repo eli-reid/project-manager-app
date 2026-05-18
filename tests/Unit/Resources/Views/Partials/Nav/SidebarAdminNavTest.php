@@ -10,12 +10,12 @@ it('centers the administration header in the admin sidebar partial', function ()
     expect($view)->toContain(':current="request()->routeIs(\'admin.clients.*\') || request()->routeIs(\'admin.addresses.*\')"');
     expect($view)->toContain('data-test="admin-client-management-sidebar-main-link"');
     expect($view)->toContain("{{ __('Client Management') }}");
+    expect($view)->toContain(':href="route(\'admin.addresses.index\')"');
+    expect($view)->toContain('data-test="admin-addresses-sidebar-main-link"');
+    expect($view)->toContain("{{ __('Addresses') }}");
     expect($view)->toContain(':current="request()->routeIs(\'admin.stock-orders.*\') || request()->routeIs(\'admin.stock-order-templates.*\') || request()->routeIs(\'admin.invoices.*\')"');
     expect($view)->toContain('data-test="admin-stock-invoices-sidebar-main-link"');
     expect($view)->toContain("{{ __('Stock & Invoices') }}");
-    expect($view)->toContain(':current="request()->routeIs(\'admin.timecards.*\') || request()->routeIs(\'admin.dailies.*\')"');
-    expect($view)->toContain('data-test="admin-time-management-sidebar-main-link"');
-    expect($view)->toContain("{{ __('Time Management') }}");
     expect($view)->not->toContain('admin-dailies-sidebar-main-link');
     expect($view)->not->toContain('admin-invoices-sidebar-main-link');
     expect($view)->not->toContain('request()->routeIs(\'admin.users.*\') || request()->routeIs(\'admin.roles.*\') || request()->routeIs(\'admin.settings.*\')');
@@ -25,13 +25,13 @@ it('includes a payroll link in the admin sidebar partial', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-admin-nav.blade.php');
 
     expect($view)->toContain('$canManagePayroll = ($user?->can(\'payroll-rates.view\') ?? false)');
-    expect($view)->toContain(':href="$user?->can(\'payroll-rates.view\')');
+    expect($view)->toContain(':href="$user?->can(\'payroll-timecards.view\')');
     expect($view)->toContain(':current="request()->routeIs(\'admin.payroll.*\')"');
     expect($view)->toContain('data-test="admin-payroll-sidebar-main-link"');
     expect($view)->toContain('{{ __(\'Payroll\') }}');
     expect($view)->toContain('$canViewReports = ($user?->can(\'reports.financial.view\') ?? false)');
-    expect($view)->toContain(':href="$user?->can(\'reports.financial.view\') ? route(\'reports.financial.index\') : route(\'reports.operational.index\')"');
-    expect($view)->toContain(':current="request()->routeIs(\'reports.*\')"');
+    expect($view)->toContain(':href="route(\'admin.reports.index\')"');
+    expect($view)->toContain(':current="request()->routeIs(\'admin.reports.*\') || request()->routeIs(\'reports.*\')"');
     expect($view)->toContain('data-test="admin-reports-sidebar-main-link"');
     expect($view)->toContain('{{ __(\'Reports\') }}');
 });
