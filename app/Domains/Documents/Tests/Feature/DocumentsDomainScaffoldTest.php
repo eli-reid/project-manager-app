@@ -60,6 +60,96 @@ it('allows users with documents view permission to access user-facing documents 
         ]);
 });
 
+it('filters mobile documents to the selected project when project_id is provided', function (): void {
+    $user = userWithDocumentDomainPermissions(['documents.view', 'projects.view']);
+
+    $visibleProject = Project::factory()->create([
+        'name' => 'Project A',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $otherProject = Project::factory()->create([
+        'name' => 'Project B',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    Document::factory()->create([
+        'title' => 'Visible Project Document',
+        'original_name' => 'visible-project.pdf',
+        'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'owner_id' => $visibleProject->id,
+        'visibility' => Document::VISIBILITY_PROJECT,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    Document::factory()->create([
+        'title' => 'Other Project Document',
+        'original_name' => 'other-project.pdf',
+        'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'owner_id' => $otherProject->id,
+        'visibility' => Document::VISIBILITY_PROJECT,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    actingAs($user);
+
+    get(route('documents.mobile.global', ['project_id' => $visibleProject->id]))
+        ->assertSuccessful()
+        ->assertSee('Project Documents')
+        ->assertSee('Project A')
+        ->assertSee('visible-project.pdf')
+        ->assertDontSee('other-project.pdf');
+});
+
+it('filters desktop global documents to the selected project when project_id is provided', function (): void {
+    $user = userWithDocumentDomainPermissions(['documents.view', 'projects.view']);
+
+    $visibleProject = Project::factory()->create([
+        'name' => 'Desktop Project A',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $otherProject = Project::factory()->create([
+        'name' => 'Desktop Project B',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    Document::factory()->create([
+        'title' => 'Desktop Visible Project Document',
+        'original_name' => 'desktop-visible-project.pdf',
+        'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'owner_id' => $visibleProject->id,
+        'visibility' => Document::VISIBILITY_PROJECT,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    Document::factory()->create([
+        'title' => 'Desktop Other Project Document',
+        'original_name' => 'desktop-other-project.pdf',
+        'owner_scope' => Document::OWNER_SCOPE_PROJECT,
+        'owner_id' => $otherProject->id,
+        'visibility' => Document::VISIBILITY_PROJECT,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    actingAs($user);
+
+    get(route('documents.global', ['project_id' => $visibleProject->id]))
+        ->assertSuccessful()
+        ->assertSee('Project Documents')
+        ->assertSee('Desktop Project A')
+        ->assertSee('desktop-visible-project.pdf')
+        ->assertDontSee('desktop-other-project.pdf');
+});
+
 it('allows admins to access the documents admin queue with disk insights', function (): void {
     $admin = User::factory()->create([
         'is_admin' => true,

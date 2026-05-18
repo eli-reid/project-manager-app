@@ -3,10 +3,17 @@
         <div class="flex items-start justify-between gap-3">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">{{ __('Shared Documents') }}</p>
-                <h2 class="mt-1 text-lg font-semibold text-zinc-50">{{ __('Global Documents') }}</h2>
-                <p class="mt-1 text-sm text-zinc-400">
-                    {{ __('Browse all documents shared globally.') }}
-                </p>
+                @if ($project)
+                    <h2 class="mt-1 text-lg font-semibold text-zinc-50">{{ __('Project Documents') }}</h2>
+                    <p class="mt-1 text-sm text-zinc-400">
+                        {{ __('Showing documents for :project.', ['project' => $project->name]) }}
+                    </p>
+                @else
+                    <h2 class="mt-1 text-lg font-semibold text-zinc-50">{{ __('Global Documents') }}</h2>
+                    <p class="mt-1 text-sm text-zinc-400">
+                        {{ __('Browse all documents shared globally.') }}
+                    </p>
+                @endif
             </div>
 
             <span class="rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-semibold text-zinc-300">
@@ -63,7 +70,7 @@
         @endforelse
     </div>
 
-    @if ($documents->count() > 0)
+    @if ($documents->count() > 0 && ! $project)
         <div class="mt-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-center">
             <a
                 href="{{ route('documents.index') }}"
