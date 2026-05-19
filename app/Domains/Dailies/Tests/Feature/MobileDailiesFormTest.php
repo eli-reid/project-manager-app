@@ -1,0 +1,74 @@
+<?php
+
+use App\Core\Identity\Models\User;
+use App\Domains\Dailies\Livewire\User\Dailies\Form as UserForm;
+use App\Domains\Dailies\Livewire\User\Dailies\Index as UserIndex;
+use App\Domains\Dailies\Models\DailyReport;
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
+
+it('renders the mobile dailies index', function (): void {
+    $user = userWithDailiesPermissions(['dailies.view']);
+
+    DailyReport::factory()->create([
+        'user_id' => $user->id,
+        'submitted_by_id' => $user->id,
+        'status' => DailyReport::STATUS_DRAFT,
+    ]);
+
+    actingAs($user);
+
+    get(route('dailies.mobile.index'))
+        ->assertOk()
+        ->assertSeeLivewire(UserIndex::class)
+        ->assertSee('Daily Reports')
+        ->assertSee('New Daily');
+});
+
+it('renders the mobile dailies create form', function (): void {
+    $user = userWithDailiesPermissions(['dailies.create', 'dailies.submit']);
+
+    actingAs($user);
+
+    get(route('dailies.mobile.create'))
+        ->assertOk()
+        ->assertSeeLivewire(UserForm::class)
+        ->assertSee('Unsaved')
+        ->assertSee('Work Performed')
+        ->assertSee('Save & Submit');
+});
+
+it('renders the mobile dailies edit form', function (): void {
+    $user = userWithDailiesPermissions(['dailies.view', 'dailies.edit']);
+
+    $report = DailyReport::factory()->create([
+        'user_id' => $user->id,
+        'submitted_by_id' => $user->id,
+        'status' => DailyReport::STATUS_DRAFT,
+    ]);
+
+    actingAs($user);
+
+    get(route('dailies.mobile.edit', $report))
+        ->assertOk()
+        ->assertSeeLivewire(UserForm::class)
+        ->assertSee('Work Performed');
+});
+
+it('redirects guests from mobile dailies routes', function (): void {
+    get(route('dailies.mobile.index'))
+        ->assertRedirect(route('login'));
+
+    get(route('dailies.mobile.create'))
+        ->assertRedirect(route('login'));
+});
+
+it('forbids unauthorized users from mobile dailies create route', function (): void {
+    $user = User::factory()->create(['is_admin' => false]);
+
+    actingAs($user);
+
+    get(route('dailies.mobile.create'))
+        ->assertForbidden();
+});

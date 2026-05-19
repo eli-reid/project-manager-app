@@ -67,6 +67,21 @@ class Form extends Component
 
     public ?string $weather_source_location = null;
 
+    private function isMobileRoute(): bool
+    {
+        return request()->routeIs('dailies.mobile.*');
+    }
+
+    private function routeNameForShow(): string
+    {
+        return $this->isMobileRoute() ? 'dailies.mobile.show' : 'dailies.show';
+    }
+
+    private function routeNameForIndex(): string
+    {
+        return $this->isMobileRoute() ? 'dailies.mobile.index' : 'dailies.index';
+    }
+
     public function mount(?DailyReport $dailyReport = null): void
     {
         if ($dailyReport !== null && $dailyReport->exists) {
@@ -241,7 +256,7 @@ class Form extends Component
             }
 
             session()->flash('success', 'Daily report updated successfully.');
-            $this->redirectRoute('dailies.show', ['dailyReport' => $dailyReport], navigate: true);
+            $this->redirectRoute($this->routeNameForShow(), ['dailyReport' => $dailyReport], navigate: true);
 
             return;
         }
@@ -251,7 +266,7 @@ class Form extends Component
 
         session()->flash('success', 'Daily report draft created successfully.');
 
-        $this->redirectRoute('dailies.show', ['dailyReport' => $dailyReport], navigate: true);
+        $this->redirectRoute($this->routeNameForShow(), ['dailyReport' => $dailyReport], navigate: true);
     }
 
     public function saveAndSubmit(): void
@@ -302,7 +317,7 @@ class Form extends Component
         }
 
         session()->flash('success', 'Daily report submitted successfully.');
-        $this->redirectRoute('dailies.show', ['dailyReport' => $dailyReport], navigate: true);
+        $this->redirectRoute($this->routeNameForShow(), ['dailyReport' => $dailyReport], navigate: true);
     }
 
     public function delete(): void
@@ -324,7 +339,7 @@ class Form extends Component
         }
 
         session()->flash('success', 'Daily report deleted successfully.');
-        $this->redirectRoute('dailies.index', navigate: true);
+        $this->redirectRoute($this->routeNameForIndex(), navigate: true);
     }
 
     private function setValidationErrors(ValidationException $exception): void
@@ -340,7 +355,11 @@ class Form extends Component
     {
         $user = Auth::user();
 
-        return view('dailies::livewire.user.dailies.form', [
+        $view = $this->isMobileRoute()
+            ? 'dailies::livewire.mobile.dailies.form'
+            : 'dailies::livewire.user.dailies.form';
+
+        return view($view, [
             'projects' => Project::query()
                 ->where('is_active', true)
                 ->orderBy('name')
@@ -357,7 +376,7 @@ class Form extends Component
                 ? $user?->can('submit', $this->dailyReport) === true
                 : $user?->hasPermission('dailies.submit') === true,
             'canDelete' => $this->dailyReport !== null && $user?->can('delete', $this->dailyReport) === true,
-        ]);
+        ])->layout($this->isMobileRoute() ? 'layouts.mobile' : 'layouts.app');
     }
 
     /**

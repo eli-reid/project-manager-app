@@ -43,6 +43,11 @@ class Index extends Component
         $this->authorize('viewAny', DailyReport::class);
     }
 
+    private function isMobileRoute(): bool
+    {
+        return request()->routeIs('dailies.mobile.*');
+    }
+
     public function render()
     {
         $user = Auth::user();
@@ -65,7 +70,11 @@ class Index extends Component
             $query->whereDate('report_date', '<=', $this->to_date);
         }
 
-        return view('dailies::livewire.user.dailies.index', [
+        $view = $this->isMobileRoute()
+            ? 'dailies::livewire.mobile.dailies.index'
+            : 'dailies::livewire.user.dailies.index';
+
+        return view($view, [
             'reports' => $query->paginate(15),
             'statuses' => [
                 DailyReport::STATUS_DRAFT,
@@ -73,6 +82,6 @@ class Index extends Component
                 DailyReport::STATUS_APPROVED,
                 DailyReport::STATUS_REJECTED,
             ],
-        ]);
+        ])->layout($this->isMobileRoute() ? 'layouts.mobile' : 'layouts.app');
     }
 }
