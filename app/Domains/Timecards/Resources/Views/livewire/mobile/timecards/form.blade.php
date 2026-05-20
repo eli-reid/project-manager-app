@@ -13,16 +13,12 @@
         </span>
 
         <button
-            type="button"
-            wire:click="save"
+            type="submit"
+            form="mobile-timecard-form"
             data-mobile-haptic
             class="inline-flex min-h-10 items-center justify-center rounded-xl bg-zinc-100 px-3 text-xs font-semibold text-zinc-900 active:bg-zinc-300"
-            wire:loading.class="opacity-60"
-            wire:loading.attr="disabled"
-            wire:target="save"
         >
-            <span wire:loading.remove wire:target="save">{{ $isEdit ? __('Save') : __('Create') }}</span>
-            <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
+            <span>{{ $isEdit ? __('Save') : __('Create') }}</span>
         </button>
     </div>
 </x-slot:headerAction>
