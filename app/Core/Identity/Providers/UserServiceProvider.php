@@ -29,5 +29,8 @@ class UserServiceProvider extends ServiceProvider
     {
         Route::middleware(['web'])
             ->group(__DIR__.'/../Routes/settings.php');
+
+        Route::middleware(['web'])
+            ->group(__DIR__.'/../Routes/mobile.php');
     }
 }

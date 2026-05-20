@@ -52,6 +52,7 @@ it('renders the mobile dashboard shell for authenticated users', function (): vo
         ->assertSee('data-pwa-install-action', false)
         ->assertSee('action="'.route('logout').'"', false)
         ->assertSee('Log out')
+        ->assertSee('Profile Settings')
         ->assertSee('Offline mode')
         ->assertSee('Install App')
         ->assertSee('Dashboard');

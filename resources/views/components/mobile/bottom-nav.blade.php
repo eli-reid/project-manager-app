@@ -76,6 +76,11 @@
                 </a>
             @endif
 
+            <a href="{{ route('settings.mobile.profile') }}" class="flex min-h-11 items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 text-sm font-medium text-zinc-100" wire:navigate data-mobile-haptic>
+                <svg class="h-4 w-4 shrink-0 text-zinc-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-6 14a6 6 0 1 1 12 0H4Z" /></svg>
+                {{ __('Profile Settings') }}
+            </a>
+
             <button
                 type="button"
                 x-show="!isStandalone"

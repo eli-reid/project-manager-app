@@ -11,6 +11,12 @@ test('profile page is displayed', function () {
     $this->get('/settings/profile')->assertOk();
 });
 
+test('mobile profile page is displayed', function () {
+    $this->actingAs($user = User::factory()->create());
+
+    $this->get('/mobile/settings/profile')->assertOk();
+});
+
 test('profile information can be updated', function () {
     $user = User::factory()->create();
 
