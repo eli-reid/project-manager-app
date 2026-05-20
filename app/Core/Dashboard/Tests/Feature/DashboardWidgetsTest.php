@@ -147,6 +147,15 @@ it('renders dashboard widgets with consistent span classes', function (): void {
         ->assertSee('lg:col-span-6', false);
 });
 
+it('routes the dailies widget to the mobile dailies index on the mobile dashboard', function (): void {
+    $user = dashboardWidgetUserWithPermissions(['dailies.view']);
+
+    $this->actingAs($user)
+        ->get(route('mobile.dashboard'))
+        ->assertOk()
+        ->assertSee(route('dailies.mobile.index'), false);
+});
+
 it('expands single-widget sections to full width', function (): void {
     // A user with only timecards.view sees one widget (personal section) → full-width, no half-span multi-widget columns
     $user = dashboardWidgetUserWithPermissions(['timecards.view']);

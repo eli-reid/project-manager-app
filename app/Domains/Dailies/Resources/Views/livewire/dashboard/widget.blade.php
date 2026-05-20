@@ -1,7 +1,7 @@
 <x-dashboard.widget-card :heading="__('Daily Reports')" :subheading="$canViewAll ? __('Team reporting activity.') : __('Your reporting activity.')">
     <x-slot:action>
         <a
-            href="{{ route('dailies.index') }}"
+            href="{{ $indexHref }}"
             class="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             wire:navigate
         >
@@ -35,7 +35,7 @@
 
     @forelse ($reports as $report)
         <a
-            href="{{ route('dailies.show', ['dailyReport' => $report]) }}"
+            href="{{ route($reportRoute, ['dailyReport' => $report]) }}"
             class="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
             wire:navigate
         >

@@ -6,6 +6,7 @@ use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Models\DailyReport;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Livewire\Component;
 
 class Widget extends Component
@@ -39,12 +40,19 @@ class Widget extends Component
             ->limit(5)
             ->get();
 
+        $usesMobileRoutes = request()->routeIs('mobile.dashboard') && Route::has('dailies.mobile.index');
+
+        $indexHref = $usesMobileRoutes ? route('dailies.mobile.index') : route('dailies.index');
+        $reportRoute = $usesMobileRoutes && Route::has('dailies.mobile.show') ? 'dailies.mobile.show' : 'dailies.show';
+
         return view('dailies::livewire.dashboard.widget', [
             'reports' => $reports,
             'draftCount' => $draftCount,
             'submittedCount' => $submittedCount,
             'approvedCount' => $approvedCount,
             'canViewAll' => $canViewAll,
+            'indexHref' => $indexHref,
+            'reportRoute' => $reportRoute,
         ]);
     }
 }
