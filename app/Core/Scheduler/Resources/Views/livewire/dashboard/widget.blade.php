@@ -1,6 +1,6 @@
 <section class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-    <div class="mb-4 flex items-start justify-between gap-4">
-        <div>
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div class="min-w-0">
             <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 {{ __('Scheduler Health') }}
                 <span class="ml-1.5 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
@@ -11,7 +11,7 @@
         </div>
         <a
             href="{{ route('admin.scheduler.tasks.index') }}"
-            class="shrink-0 text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+            class="self-start text-xs font-medium text-indigo-600 hover:text-indigo-500 sm:shrink-0 dark:text-indigo-400 dark:hover:text-indigo-300"
             wire:navigate
         >
             {{ __('Manage') }}

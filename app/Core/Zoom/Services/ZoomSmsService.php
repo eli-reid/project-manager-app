@@ -4,6 +4,7 @@ namespace App\Core\Zoom\Services;
 
 use App\Core\Notification\Contracts\SmsServiceContract;
 use App\Core\Zoom\Data\ZoomConfig;
+use App\Core\Zoom\Enums\SmsConsentStatus;
 use App\Core\Zoom\Exceptions\ZoomSmsException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
@@ -57,13 +58,13 @@ class ZoomSmsService implements SmsServiceContract
             $status = $this->consentService->syncFromZoom($to);
         }
 
-        if ($status?->isOptedOut()) {
+        if ($status === SmsConsentStatus::OptedOut) {
             Log::info('Zoom SMS blocked: recipient has opted out.', ['to' => $to]);
 
             return [];
         }
 
-        if ($status === null || $status->isPending()) {
+        if ($status === null || $status === SmsConsentStatus::Pending) {
             // No record at all, or only pending — send consent request and hold.
             $this->consentService->requestConsent($to, $this);
 

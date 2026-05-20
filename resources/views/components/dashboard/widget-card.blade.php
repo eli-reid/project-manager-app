@@ -4,7 +4,7 @@
 ])
 
 <section {{ $attributes->class('rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900') }}>
-    <div class="mb-4 flex items-start justify-between gap-4">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div class="min-w-0">
             @isset($title)
                 {{ $title }}
@@ -20,7 +20,7 @@
         </div>
 
         @isset($action)
-            <div class="shrink-0">
+            <div class="max-w-full self-start sm:shrink-0">
                 {{ $action }}
             </div>
         @endisset

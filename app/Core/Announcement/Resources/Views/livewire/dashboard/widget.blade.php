@@ -10,9 +10,9 @@
     <div class="space-y-3">
         @forelse ($announcements as $announcement)
             <article wire:key="dashboard-announcement-{{ $announcement->id }}" class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
-                <div class="mb-1 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $announcement->title }}</h3>
+                <div class="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="min-w-0 flex flex-wrap items-center gap-2">
+                        <h3 class="min-w-0 break-words text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $announcement->title }}</h3>
                         <span class="rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide {{ $announcement->type->badgeClass() }}">{{ $announcement->type->label() }}</span>
                     </div>
                     @if ($announcement->is_dismissable)
