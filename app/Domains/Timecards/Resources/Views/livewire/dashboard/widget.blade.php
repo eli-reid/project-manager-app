@@ -1,7 +1,14 @@
+@php
+    $isMobileDashboard = request()->routeIs('mobile.dashboard');
+    $indexRoute = $isMobileDashboard ? 'timecards.mobile.index' : 'timecards.index';
+    $createRoute = $isMobileDashboard ? 'timecards.mobile.create' : 'timecards.create';
+    $showRoute = $isMobileDashboard ? 'timecards.mobile.show' : 'timecards.show';
+@endphp
+
 <x-dashboard.widget-card :heading="__('My Timecards')" :subheading="__('Recent timecard activity.')">
     <x-slot:action>
         <a
-            href="{{ route('timecards.index') }}"
+            href="{{ route($indexRoute) }}"
             class="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             wire:navigate
         >
@@ -15,7 +22,7 @@
                 {{ __('No timecard for the week of :date.', ['date' => $currentWeekStart->format('M j, Y')]) }}
             </p>
             <a
-                href="{{ route('timecards.create', ['week_starting' => $currentWeekStart->toDateString()]) }}"
+                href="{{ route($createRoute, ['week_starting' => $currentWeekStart->toDateString()]) }}"
                 class="ml-3 shrink-0 rounded-md bg-amber-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-500 dark:bg-amber-700 dark:hover:bg-amber-600"
                 wire:navigate
             >
@@ -26,7 +33,7 @@
 
     @forelse ($timecards as $timecard)
         <a
-            href="{{ route('timecards.show', $timecard) }}"
+            href="{{ route($showRoute, $timecard) }}"
             class="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
             wire:navigate
         >

@@ -16,6 +16,7 @@ use App\Domains\Projects\Livewire\Dashboard\Widget as ProjectWidget;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\Dashboard\Widget as TimecardWidget;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Services\TimecardWeekService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -154,6 +155,20 @@ it('routes the dailies widget to the mobile dailies index on the mobile dashboar
         ->get(route('mobile.dashboard'))
         ->assertOk()
         ->assertSee(route('dailies.mobile.index'), false);
+});
+
+it('routes the timecards widget create action to the mobile timecard create route on the mobile dashboard', function (): void {
+    Settings::set('app.week_start_day', 'sunday');
+    $user = dashboardWidgetUserWithPermissions(['timecards.view', 'timecards.create']);
+
+    $weekStart = app(TimecardWeekService::class)
+        ->currentWeekStart()
+        ->toDateString();
+
+    $this->actingAs($user)
+        ->get(route('mobile.dashboard'))
+        ->assertOk()
+        ->assertSee(route('timecards.mobile.create', ['week_starting' => $weekStart]), false);
 });
 
 it('expands single-widget sections to full width', function (): void {

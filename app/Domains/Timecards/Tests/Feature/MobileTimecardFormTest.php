@@ -97,6 +97,16 @@ it('uses the mobile layout on the create form', function (): void {
         ->assertSee('Create Timecard');
 });
 
+it('renders the cancel link to the mobile timecard index on the create form', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+
+    actingAs($user);
+
+    get(route('timecards.mobile.create'))
+        ->assertOk()
+        ->assertSee(route('timecards.mobile.index'), false);
+});
+
 it('renders a livewire save action on the mobile header button', function (): void {
     $user = mobileTimecardUser(['timecards.create']);
 
