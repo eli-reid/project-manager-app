@@ -2,14 +2,13 @@
 
 namespace App\Core\Notification\Channels;
 
-use App\Core\Zoom\Exceptions\ZoomSmsException;
-use App\Core\Zoom\Services\ZoomSmsService;
+use App\Core\Notification\Contracts\SmsServiceContract;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 
 class SmsChannel
 {
-    public function __construct(private readonly ZoomSmsService $smsService) {}
+    public function __construct(private readonly SmsServiceContract $smsService) {}
 
     public function send(object $notifiable, Notification $notification): void
     {
@@ -33,7 +32,7 @@ class SmsChannel
 
         try {
             $this->smsService->send((string) $payload['to'], (string) $payload['message']);
-        } catch (ZoomSmsException $exception) {
+        } catch (\Throwable $exception) {
             Log::error('SMS notification failed to send via Zoom.', [
                 'notification' => get_class($notification),
                 'to' => (string) $payload['to'],

@@ -12,6 +12,12 @@ class ZoomConfig
 
     public readonly ?string $fromNumber;
 
+    /** Zoom user ID that owns the from_number — required for opt-status checks. */
+    public readonly ?string $zoomUserId;
+
+    /** SMS Campaign ID — required for PATCH opt-status updates. */
+    public readonly ?string $smsCampaignId;
+
     public readonly string $tokenUrl;
 
     public readonly string $apiBaseUrl;
@@ -33,6 +39,8 @@ class ZoomConfig
         $this->clientId = $cfg['client_id'] ?? null;
         $this->clientSecret = $cfg['client_secret'] ?? null;
         $this->fromNumber = $cfg['from_number'] ?? null;
+        $this->zoomUserId = $cfg['zoom_user_id'] ?? null;
+        $this->smsCampaignId = $cfg['sms_campaign_id'] ?? null;
         $this->tokenUrl = $cfg['token_url'] ?? 'https://zoom.us/oauth/token';
         $this->apiBaseUrl = $cfg['api_base_url'] ?? 'https://api.zoom.us/v2';
         $this->tokenCacheTtl = (int) ($cfg['token_cache_ttl'] ?? 3590);
@@ -51,5 +59,15 @@ class ZoomConfig
             && $this->clientSecret !== ''
             && $this->fromNumber !== null
             && $this->fromNumber !== '';
+    }
+
+    public function canCheckConsentViaApi(): bool
+    {
+        return $this->zoomUserId !== null && $this->zoomUserId !== '';
+    }
+
+    public function canUpdateConsentViaApi(): bool
+    {
+        return $this->smsCampaignId !== null && $this->smsCampaignId !== '';
     }
 }

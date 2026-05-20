@@ -2,6 +2,7 @@
 
 namespace App\Core\Zoom\Services;
 
+use App\Core\Notification\Contracts\SmsServiceContract;
 use App\Core\Zoom\Data\ZoomConfig;
 use App\Core\Zoom\Exceptions\ZoomSmsException;
 use Illuminate\Http\Client\ConnectionException;
@@ -20,11 +21,12 @@ use Illuminate\Support\Facades\Log;
  *   - 429 Too Many Requests → throw ZoomSmsException::rateLimitExceeded().
  *   - Other non-2xx → throw ZoomSmsException::sendFailed().
  */
-class ZoomSmsService
+class ZoomSmsService implements SmsServiceContract
 {
     public function __construct(
         private readonly ZoomConfig $config,
         private readonly ZoomTokenService $tokenService,
+        private readonly ZoomSmsConsentService $consentService,
     ) {}
 
     public function isConfigured(): bool
@@ -42,6 +44,47 @@ class ZoomSmsService
      * @throws ZoomSmsException
      */
     public function send(string $to, string $message): array
+    {
+        if (! $this->isConfigured()) {
+            throw ZoomSmsException::notConfigured();
+        }
+
+        // --- Consent gate -------------------------------------------------------
+        $status = $this->consentService->getStatus($to);
+
+        if ($status === null) {
+            // Number not in local DB — check Zoom's API for an existing record.
+            $status = $this->consentService->syncFromZoom($to);
+        }
+
+        if ($status?->isOptedOut()) {
+            Log::info('Zoom SMS blocked: recipient has opted out.', ['to' => $to]);
+
+            return [];
+        }
+
+        if ($status === null || $status->isPending()) {
+            // No record at all, or only pending — send consent request and hold.
+            $this->consentService->requestConsent($to, $this);
+
+            return [];
+        }
+        // -----------------------------------------------------------------------
+
+        return $this->doSend($to, $message, tokenRefreshed: false);
+    }
+
+    /**
+     * Send an SMS bypassing the consent gate.
+     *
+     * Use only for system-initiated messages where consent cannot be pre-checked
+     * (e.g. the initial consent-request message sent by ZoomSmsConsentService).
+     *
+     * @return array{message_id: string, session_id: string}
+     *
+     * @throws ZoomSmsException
+     */
+    public function sendRaw(string $to, string $message): array
     {
         if (! $this->isConfigured()) {
             throw ZoomSmsException::notConfigured();

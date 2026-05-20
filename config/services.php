@@ -72,6 +72,8 @@ return [
         'client_id' => env('ZOOM_CLIENT_ID'),
         'client_secret' => env('ZOOM_CLIENT_SECRET'),
         'from_number' => env('ZOOM_SMS_FROM_NUMBER'),
+        'zoom_user_id' => env('ZOOM_USER_ID'),
+        'sms_campaign_id' => env('ZOOM_SMS_CAMPAIGN_ID'),
         'token_url' => env('ZOOM_TOKEN_URL', 'https://zoom.us/oauth/token'),
         'api_base_url' => env('ZOOM_API_BASE_URL', 'https://api.zoom.us/v2'),
         'token_cache_ttl' => (int) env('ZOOM_TOKEN_CACHE_TTL', 3590),
