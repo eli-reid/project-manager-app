@@ -67,4 +67,17 @@ return [
         'timeout' => (int) env('WEATHERAPI_TIMEOUT', 10),
     ],
 
+    'zoom' => [
+        'account_id' => env('ZOOM_ACCOUNT_ID'),
+        'client_id' => env('ZOOM_CLIENT_ID'),
+        'client_secret' => env('ZOOM_CLIENT_SECRET'),
+        'from_number' => env('ZOOM_SMS_FROM_NUMBER'),
+        'token_url' => env('ZOOM_TOKEN_URL', 'https://zoom.us/oauth/token'),
+        'api_base_url' => env('ZOOM_API_BASE_URL', 'https://api.zoom.us/v2'),
+        'token_cache_ttl' => (int) env('ZOOM_TOKEN_CACHE_TTL', 3590),
+        'timeout' => (int) env('ZOOM_TIMEOUT', 15),
+        'retry_times' => (int) env('ZOOM_RETRY_TIMES', 3),
+        'retry_sleep_ms' => (int) env('ZOOM_RETRY_SLEEP_MS', 1000),
+    ],
+
 ];

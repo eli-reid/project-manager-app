@@ -4,11 +4,9 @@ namespace App\Domains\Dailies\Livewire\User\Dailies;
 
 use App\Domains\Dailies\Models\DailyReport;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.app')]
 #[Title('Daily Report Details')]
 class Show extends Component
 {
@@ -23,10 +21,15 @@ class Show extends Component
         $this->dailyReport = $dailyReport->load(['project', 'user', 'submittedBy']);
     }
 
+    private function isMobileRoute(): bool
+    {
+        return request()->routeIs('dailies.mobile.*');
+    }
+
     public function render()
     {
         return view('dailies::livewire.user.dailies.show', [
             'dailyReport' => $this->dailyReport,
-        ]);
+        ])->layout($this->isMobileRoute() ? 'layouts.mobile' : 'layouts.app');
     }
 }

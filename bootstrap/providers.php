@@ -15,6 +15,7 @@ return [
     App\Core\Scheduler\Providers\SchedulerServiceProvider::class,
     App\Core\Settings\Providers\SettingServiceProvider::class,
     App\Core\WeatherApi\Providers\WeatherApiServiceProvider::class,
+    App\Core\Zoom\Providers\ZoomServiceProvider::class,
     App\Domains\Providers\DomainServiceProvider::class,
     App\Providers\AppServiceProvider::class,
     App\Providers\TelescopeServiceProvider::class,
