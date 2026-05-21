@@ -1,6 +1,9 @@
 <?php
 
 use App\Core\Audit\Models\AuditLog;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
@@ -9,6 +12,7 @@ use App\Core\Notification\Services\NotificationPreferenceService;
 use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
+use Illuminate\Validation\ValidationException;
 
 it('resolves default channels when no user preference exists', function (): void {
     Settings::set('notifications.enabled', 'true');
@@ -91,7 +95,7 @@ it('marks admin-disabled channels as unsupported in the preference matrix', func
     Settings::set('notifications.default_channels', '["mail", "database", "sms"]');
     Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database"]');
 
-    $user = User::factory()->create(['is_admin' => false]);
+    $user = notificationServiceUserWithPermissions(['timecards.view']);
     $definition = collect(app(NotificationPreferenceService::class)->preferenceMatrixFor($user))
         ->firstWhere('key', TimecardNotificationDefinitions::APPROVED);
 
@@ -127,7 +131,7 @@ it('writes an audit log when user preferences are synced', function (): void {
     Settings::set('notifications.default_channels', '["mail", "database"]');
     Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["mail", "database"]');
 
-    $user = User::factory()->create(['is_admin' => false]);
+    $user = notificationServiceUserWithPermissions(['timecards.view']);
     $this->actingAs($user);
 
     app(NotificationPreferenceService::class)->syncPreferences($user, [
@@ -149,3 +153,55 @@ it('writes an audit log when user preferences are synced', function (): void {
             ],
         ]);
 });
+
+it('throws validation when no channel is selected for timecard reminder notifications', function (): void {
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["mail", "database", "sms"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::REMINDER), '["mail", "database", "sms"]');
+
+    $user = notificationServiceUserWithPermissions(['timecards.view']);
+
+    expect(fn () => app(NotificationPreferenceService::class)->syncPreferences($user, [
+        TimecardNotificationDefinitions::REMINDER => [
+            'mail' => false,
+            'database' => false,
+            'sms' => false,
+        ],
+    ]))->toThrow(ValidationException::class);
+});
+
+/**
+ * @param  array<int, string>  $permissions
+ */
+function notificationServiceUserWithPermissions(array $permissions): User
+{
+    app(DomainPermissionSynchronizer::class)->sync();
+
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $role = Role::query()->create([
+        'name' => 'Notification Service Test Role '.str()->uuid(),
+        'description' => 'Role created by notification service tests.',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 20,
+    ]);
+
+    $permissionIds = collect($permissions)
+        ->map(function (string $permission): ?string {
+            [$resource, $action] = explode('.', $permission, 2);
+
+            return Permission::query()
+                ->where('resource', $resource)
+                ->where('action', $action)
+                ->value('id');
+        })
+        ->filter()
+        ->values()
+        ->all();
+
+    $role->permissions()->sync($permissionIds);
+    $user->roles()->sync([$role->id]);
+
+    return $user->fresh();
+}

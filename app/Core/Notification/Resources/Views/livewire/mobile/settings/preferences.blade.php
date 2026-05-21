@@ -6,6 +6,10 @@
         <flux:text class="text-zinc-400">{{ __('Control how each notification type is delivered to you') }}</flux:text>
     </div>
 
+    @if ($errors->any())
+        <flux:callout variant="danger" icon="x-circle" heading="{{ $errors->first() }}" />
+    @endif
+
     <form wire:submit="save" class="space-y-4">
         <div class="space-y-4">
             @foreach ($definitions as $definition)

@@ -4,13 +4,17 @@ namespace App\Core\Notification\Services;
 
 use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Models\User;
+use App\Core\Identity\Services\UserAuthorizationSnapshotService;
 use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class NotificationPreferenceService
 {
@@ -33,6 +37,7 @@ class NotificationPreferenceService
      */
     public function preferenceMatrixFor(User $user): array
     {
+        $definitions = $this->visibleDefinitionsForUser($user);
         $channelOrder = $this->availableChannels();
         $storedPreferences = UserNotificationPreference::query()
             ->where('user_id', $user->id)
@@ -41,7 +46,7 @@ class NotificationPreferenceService
 
         $defaultChannels = $this->defaultEnabledChannels();
 
-        return collect(app(NotificationRegistry::class)->definitions())
+        return $definitions
             ->map(function (array $definition) use ($channelOrder, $storedPreferences, $defaultChannels): array {
                 $notificationKey = $definition['key'];
                 $preferenceByChannel = $storedPreferences->get($notificationKey)?->pluck('enabled', 'channel') ?? collect();
@@ -78,7 +83,7 @@ class NotificationPreferenceService
      */
     public function syncPreferences(User $user, array $preferences): void
     {
-        $definitions = collect(app(NotificationRegistry::class)->definitions())
+        $definitions = $this->visibleDefinitionsForUser($user)
             ->keyBy('key');
         $registeredKeys = $definitions->keys()->all();
         $rows = [];
@@ -98,6 +103,14 @@ class NotificationPreferenceService
                 ->map(fn (string $channel): string => $this->normalizeChannel($channel))
                 ->all();
             $allowedNotificationChannels = $this->adminAllowedChannels($notificationKey, $supportedChannels);
+
+            if ($this->requiresAtLeastOneChannel($notificationKey) && ! $this->hasAtLeastOneEnabledChannel($channels, $allowedNotificationChannels)) {
+                throw ValidationException::withMessages([
+                    'preferences' => __('Select at least one delivery method for :notification.', [
+                        'notification' => $definitions->get($notificationKey, [])['label'] ?? $notificationKey,
+                    ]),
+                ]);
+            }
 
             foreach ($allowedNotificationChannels as $channel) {
                 $rows[] = [
@@ -293,5 +306,60 @@ class NotificationPreferenceService
             ->filter(fn (string $channel): bool => $configuredChannels->contains($channel))
             ->values()
             ->all();
+    }
+
+    /**
+     * @return Collection<int, array{key:string,label:string,description:string,supported_channels:array<int, string>}>
+     */
+    private function visibleDefinitionsForUser(User $user)
+    {
+        $definitions = collect(app(NotificationRegistry::class)->definitions());
+
+        if ($user->isAdmin()) {
+            return $definitions;
+        }
+
+        $permissionKeys = app(UserAuthorizationSnapshotService::class)->resolve($user)['permission_keys'];
+
+        return $definitions
+            ->filter(function (array $definition) use ($permissionKeys): bool {
+                $resource = Str::before((string) ($definition['key'] ?? ''), '.');
+
+                if ($resource === '') {
+                    return false;
+                }
+
+                foreach ($permissionKeys as $permissionKey) {
+                    if (str_starts_with((string) $permissionKey, $resource.'.')) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })
+            ->values();
+    }
+
+    private function requiresAtLeastOneChannel(string $notificationKey): bool
+    {
+        return in_array($notificationKey, [
+            TimecardNotificationDefinitions::REMINDER,
+            TimecardNotificationDefinitions::MISSING_REMINDER,
+        ], true);
+    }
+
+    /**
+     * @param  array<string, bool>  $channels
+     * @param  array<int, string>  $allowedChannels
+     */
+    private function hasAtLeastOneEnabledChannel(array $channels, array $allowedChannels): bool
+    {
+        foreach ($allowedChannels as $channel) {
+            if ((bool) ($channels[$channel] ?? false)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

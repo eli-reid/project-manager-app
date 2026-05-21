@@ -4,6 +4,10 @@
     <flux:heading class="sr-only">{{ __('Notification settings') }}</flux:heading>
 
     <x-settings.layout :heading="__('Notifications')" :subheading="__('Control how each notification type is delivered to you')">
+        @if ($errors->any())
+            <flux:callout variant="danger" icon="x-circle" heading="{{ $errors->first() }}" class="my-4" />
+        @endif
+
         <form wire:submit="save" class="my-6 w-full space-y-6">
             <div class="space-y-4">
                 @foreach ($definitions as $definition)
