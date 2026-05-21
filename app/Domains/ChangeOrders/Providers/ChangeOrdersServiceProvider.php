@@ -6,12 +6,15 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\ChangeOrders\Permissions\ChangeOrderPermissions;
 use App\Domains\ChangeOrders\Policies\ChangeOrderPolicy;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class ChangeOrdersServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -19,6 +22,8 @@ class ChangeOrdersServiceProvider extends ServiceProvider
 
     public function boot(PermissionRegistryContract $permissionRegistry): void
     {
+        $this->registerMobileRoutePrefixMapping('change-orders.', 'change-orders.mobile.');
+
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();

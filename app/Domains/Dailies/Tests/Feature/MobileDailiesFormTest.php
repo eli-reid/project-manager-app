@@ -59,6 +59,23 @@ it('renders the mobile dailies edit form', function (): void {
         ->assertSee('Work Performed');
 });
 
+it('renders the mobile dailies show page', function (): void {
+    $user = userWithDailiesPermissions(['dailies.view']);
+
+    $report = DailyReport::factory()->create([
+        'user_id' => $user->id,
+        'submitted_by_id' => $user->id,
+        'status' => DailyReport::STATUS_DRAFT,
+    ]);
+
+    actingAs($user);
+
+    get(route('dailies.mobile.show', $report))
+        ->assertOk()
+        ->assertSee('Daily Report')
+        ->assertSee('Back');
+});
+
 it('redirects guests from mobile dailies routes', function (): void {
     get(route('dailies.mobile.index'))
         ->assertRedirect(route('login'));

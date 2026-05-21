@@ -17,6 +17,7 @@ use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
 use App\Domains\Timecards\Reports\TimecardReportDefinitions;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,8 @@ use Livewire\Livewire;
 
 class TimecardsServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -32,6 +35,8 @@ class TimecardsServiceProvider extends ServiceProvider
 
     public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
+        $this->registerMobileRoutePrefixMapping('timecards.', 'timecards.mobile.');
+
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);

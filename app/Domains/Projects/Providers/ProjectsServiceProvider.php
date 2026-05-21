@@ -12,6 +12,7 @@ use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
 use App\Domains\Projects\Policies\ProjectPolicy;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -19,6 +20,8 @@ use Livewire\Livewire;
 
 class ProjectsServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -26,6 +29,8 @@ class ProjectsServiceProvider extends ServiceProvider
 
     public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
+        $this->registerMobileRoutePrefixMapping('projects.', 'projects.mobile.');
+
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);

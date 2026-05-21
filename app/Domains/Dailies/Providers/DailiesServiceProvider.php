@@ -9,6 +9,7 @@ use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +17,8 @@ use Livewire\Livewire;
 
 class DailiesServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -23,6 +26,8 @@ class DailiesServiceProvider extends ServiceProvider
 
     public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
+        $this->registerMobileRoutePrefixMapping('dailies.', 'dailies.mobile.');
+
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
         $this->registerDashboardWidgets($widgetRegistry);

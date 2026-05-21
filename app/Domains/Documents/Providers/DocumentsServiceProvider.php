@@ -10,6 +10,7 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -17,6 +18,8 @@ use Livewire\Livewire;
 
 class DocumentsServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -24,6 +27,9 @@ class DocumentsServiceProvider extends ServiceProvider
 
     public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
+        $this->registerMobileExactRouteMapping('documents.index', 'documents.mobile.global');
+        $this->registerMobileExactRouteMapping('documents.global', 'documents.mobile.global');
+
         $this->registerSettings($settingsRegistry);
         $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);

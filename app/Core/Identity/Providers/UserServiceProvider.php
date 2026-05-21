@@ -2,14 +2,19 @@
 
 namespace App\Core\Identity\Providers;
 
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
 class UserServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function boot(): void
     {
+        $this->registerMobileExactRouteMapping('profile.edit', 'settings.mobile.profile');
+
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();

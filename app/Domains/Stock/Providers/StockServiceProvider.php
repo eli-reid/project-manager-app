@@ -10,6 +10,7 @@ use App\Domains\Stock\Permissions\StockOrderPermissions;
 use App\Domains\Stock\Permissions\StockOrderTemplatePermissions;
 use App\Domains\Stock\Policies\StockOrderPolicy;
 use App\Domains\Stock\Policies\StockOrderTemplatePolicy;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -17,6 +18,8 @@ use Livewire\Livewire;
 
 class StockServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -24,6 +27,8 @@ class StockServiceProvider extends ServiceProvider
 
     public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry): void
     {
+        $this->registerMobileRoutePrefixMapping('stock-orders.', 'stock-orders.mobile.');
+
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
         $this->registerAuthorization();

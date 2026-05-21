@@ -6,6 +6,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Permissions\SubmittalPermissions;
 use App\Domains\Submittals\Policies\SubmittalPolicy;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -13,6 +14,8 @@ use Livewire\Livewire;
 
 class SubmittalsServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -20,6 +23,8 @@ class SubmittalsServiceProvider extends ServiceProvider
 
     public function boot(PermissionRegistryContract $permissionRegistry): void
     {
+        $this->registerMobileRoutePrefixMapping('submittals.', 'submittals.mobile.');
+
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();

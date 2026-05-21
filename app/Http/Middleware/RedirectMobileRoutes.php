@@ -145,7 +145,9 @@ class RedirectMobileRoutes
 
     private function isLivewireRequest(Request $request): bool
     {
-        if ($request->hasHeader('X-Livewire') || $request->hasHeader('X-Livewire-Navigate')) {
+        // Keep component/message requests out of redirect logic, but allow
+        // Livewire SPA page navigations (X-Livewire-Navigate) to be redirected.
+        if ($request->hasHeader('X-Livewire')) {
             return true;
         }
 

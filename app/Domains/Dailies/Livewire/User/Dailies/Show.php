@@ -28,7 +28,11 @@ class Show extends Component
 
     public function render()
     {
-        return view('dailies::livewire.user.dailies.show', [
+        $view = $this->isMobileRoute()
+            ? 'dailies::livewire.mobile.dailies.show'
+            : 'dailies::livewire.user.dailies.show';
+
+        return view($view, [
             'dailyReport' => $this->dailyReport,
         ])->layout($this->isMobileRoute() ? 'layouts.mobile' : 'layouts.app');
     }

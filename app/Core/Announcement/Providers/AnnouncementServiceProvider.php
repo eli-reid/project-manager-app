@@ -8,6 +8,7 @@ use App\Core\Announcement\Policies\AnnouncementPolicy;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -15,6 +16,8 @@ use Livewire\Livewire;
 
 class AnnouncementServiceProvider extends ServiceProvider
 {
+    use RegistersMobileRedirectMappings;
+
     public function register(): void
     {
         //
@@ -22,6 +25,8 @@ class AnnouncementServiceProvider extends ServiceProvider
 
     public function boot(DashboardWidgetRegistry $widgetRegistry): void
     {
+        $this->registerMobileRoutePrefixMapping('announcements.', 'mobile.announcements.');
+
         $this->registerAuthorization();
         $this->registerPermissions();
         $this->registerInfrastructure();
@@ -67,7 +72,7 @@ class AnnouncementServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'announcement');
-        
+
     }
 
     private function registerRoutes(): void
