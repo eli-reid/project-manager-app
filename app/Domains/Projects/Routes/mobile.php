@@ -5,7 +5,7 @@ use App\Domains\Projects\Livewire\User\Projects\Show;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('projects/mobile')
+Route::prefix('mobile/projects')
     ->name('projects.mobile.')
     ->group(function (): void {
         Route::livewire('/', Index::class)

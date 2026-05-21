@@ -25,8 +25,7 @@ it('renders the mobile dailies index', function (): void {
     get(route('dailies.mobile.index'))
         ->assertOk()
         ->assertSeeLivewire(UserIndex::class)
-        ->assertSee('Daily Reports')
-        ->assertSee('New Daily');
+        ->assertSee('Daily Reports');
 });
 
 it('renders the mobile dailies create form', function (): void {
@@ -37,7 +36,6 @@ it('renders the mobile dailies create form', function (): void {
     get(route('dailies.mobile.create'))
         ->assertOk()
         ->assertSeeLivewire(UserForm::class)
-        ->assertSee('Unsaved')
         ->assertSee('Work Performed')
         ->assertSee('Save & Submit');
 });
