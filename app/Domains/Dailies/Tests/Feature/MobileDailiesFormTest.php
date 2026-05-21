@@ -25,7 +25,8 @@ it('renders the mobile dailies index', function (): void {
     get(route('dailies.mobile.index'))
         ->assertOk()
         ->assertSeeLivewire(UserIndex::class)
-        ->assertSee('Daily Reports');
+        ->assertSee('Daily Reports')
+        ->assertSee('data-pwa-mobile-nav', false);
 });
 
 it('renders the mobile dailies create form', function (): void {
@@ -37,7 +38,8 @@ it('renders the mobile dailies create form', function (): void {
         ->assertOk()
         ->assertSeeLivewire(UserForm::class)
         ->assertSee('Work Performed')
-        ->assertSee('Save & Submit');
+        ->assertSee('Save & Submit')
+        ->assertSee('data-pwa-mobile-nav', false);
 });
 
 it('renders the mobile dailies edit form', function (): void {
@@ -71,7 +73,8 @@ it('renders the mobile dailies show page', function (): void {
     get(route('dailies.mobile.show', $report))
         ->assertOk()
         ->assertSee('Daily Report')
-        ->assertSee('Back');
+        ->assertSee('Back')
+        ->assertSee('data-pwa-mobile-nav', false);
 });
 
 it('redirects guests from mobile dailies routes', function (): void {
