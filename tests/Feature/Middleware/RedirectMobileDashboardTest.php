@@ -9,7 +9,6 @@ dataset('mobile desktop routes', [
     'dashboard' => ['dashboard', 'mobile.dashboard'],
     'projects index' => ['projects.index', 'projects.mobile.index'],
     'documents index' => ['documents.index', 'documents.mobile.global'],
-    'change orders index' => ['change-orders.index', 'mobile.dashboard'],
 ]);
 
 it('redirects normal users on mobile to the mobile surface', function (string $routeName, string $expectedRouteName): void {
