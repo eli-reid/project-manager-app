@@ -10,7 +10,8 @@ class ProjectPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('projects.view');
+        return $user->hasPermission('projects.view')
+            || $user->hasPermission('projects.view-all');
     }
 
     public function view(User $user, Project $project): bool

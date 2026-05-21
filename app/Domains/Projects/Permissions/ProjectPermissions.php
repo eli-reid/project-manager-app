@@ -10,6 +10,12 @@ class ProjectPermissions
         'description' => 'View projects',
     ];
 
+    public const VIEW_ALL = [
+        'resource' => 'projects',
+        'action' => 'view-all',
+        'description' => 'View all projects on project index',
+    ];
+
     public const CREATE = [
         'resource' => 'projects',
         'action' => 'create',
@@ -38,6 +44,7 @@ class ProjectPermissions
     {
         return [
             self::VIEW,
+            self::VIEW_ALL,
             self::CREATE,
             self::EDIT,
             self::DELETE,

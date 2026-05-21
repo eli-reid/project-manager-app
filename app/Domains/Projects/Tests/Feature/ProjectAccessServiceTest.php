@@ -140,6 +140,30 @@ it('shows assigned projects by default and supports broader permitted visibility
         ->assertSee($permittedProject->name);
 });
 
+it('shows all active open projects on user index when user has projects.view-all permission', function (): void {
+    $user = userWithAccessPermissions(['projects.view-all']);
+
+    $assignedProject = Project::factory()->create([
+        'name' => 'View All Assigned Project',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $unassignedProject = Project::factory()->create([
+        'name' => 'View All Unassigned Project',
+        'project_manager_id' => null,
+        'status' => 'in_progress',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertSuccessful()
+        ->assertSee($assignedProject->name)
+        ->assertSee($unassignedProject->name);
+});
+
 it('hides scoped projects from broader permitted visibility when user has no scoped assignment', function (): void {
     $actor = userWithAccessPermissions(['projects.view', 'project-access.grant']);
     $currentUser = userWithAccessPermissions(['projects.view']);

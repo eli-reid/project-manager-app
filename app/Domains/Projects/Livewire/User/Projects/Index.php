@@ -101,6 +101,10 @@ class Index extends Component
             return;
         }
 
+        if ($user->hasPermission('projects.view-all')) {
+            return;
+        }
+
         if ($this->visibilityScope === 'permitted') {
             $this->applyPermittedScope($query, $user);
 

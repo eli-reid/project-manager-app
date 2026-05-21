@@ -112,7 +112,17 @@ class DomainPermissionSynchronizer
                 $permissionIds = $this->permissionIdsFromKeys($permissionKeys);
             }
 
-            $role->permissions()->sync($permissionIds);
+            if ($name === 'Admin') {
+                // Keep Admin fully aligned with all registered permissions.
+                $role->permissions()->sync($permissionIds);
+
+                continue;
+            }
+
+            // Preserve role customizations and only add missing built-in defaults.
+            if ($permissionIds !== []) {
+                $role->permissions()->syncWithoutDetaching($permissionIds);
+            }
         }
     }
 
