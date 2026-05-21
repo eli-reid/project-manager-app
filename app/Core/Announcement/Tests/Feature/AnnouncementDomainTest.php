@@ -45,6 +45,26 @@ it('forbids users without announcement permissions from admin index', function (
         ->assertForbidden();
 });
 
+it('shows the dashboard announcement widget for authenticated users without announcement permissions', function (): void {
+    $user = User::factory()->create(['is_admin' => false]);
+
+    Announcement::factory()->create([
+        'created_by' => $user->id,
+        'title' => 'General Update',
+        'content' => 'Visible on dashboard for all authenticated users.',
+        'is_active' => true,
+        'start_date' => now()->subHour(),
+        'end_date' => now()->addHour(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('Company Announcements')
+        ->assertSee('General Update')
+        ->assertDontSee(route('admin.announcements.create', absolute: false));
+});
+
 it('returns announcements from the api for users with announcement view permission', function (): void {
     $user = announcementUserWithPermissions(['announcements.view']);
 

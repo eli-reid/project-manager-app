@@ -4,6 +4,12 @@ namespace App\Core\Identity\Permissions;
 
 class FoundationPermissions
 {
+    public const NAVIGATION_VIEW_ADMIN = [
+        'resource' => 'navigation',
+        'action' => 'view-admin',
+        'description' => 'View administration navigation section',
+    ];
+
     public const PROJECT_ACCESS_VIEW = [
         'resource' => 'project-access',
         'action' => 'view',
@@ -91,6 +97,7 @@ class FoundationPermissions
     public static function all(): array
     {
         return [
+            self::NAVIGATION_VIEW_ADMIN,
             self::PROJECT_ACCESS_VIEW,
             self::PROJECT_ACCESS_GRANT,
             self::PROJECT_ACCESS_REVOKE,

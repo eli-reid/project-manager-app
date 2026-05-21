@@ -44,7 +44,6 @@ class AnnouncementServiceProvider extends ServiceProvider
                 section: 'primary',
                 sort: 10,
                 span: 'half',
-                ability: 'announcement.view',
                 title: 'Company Announcements',
                 description: 'Latest updates for the team.',
             ),

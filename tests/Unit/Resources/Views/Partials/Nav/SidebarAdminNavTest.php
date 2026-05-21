@@ -3,8 +3,11 @@
 it('centers the administration header in the admin sidebar partial', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-admin-nav.blade.php');
 
+    expect($view)->toContain('$canViewAdminNav = $user?->hasPermission(\'navigation.view-admin\') ?? false;');
+    expect($view)->toContain('@if ($canViewAdminNav)');
+    expect($view)->not->toContain('$hasVisibleAdminNavItems =');
     expect($view)->toContain('<flux:sidebar.header class="in-data-flux-sidebar-collapsed-desktop:hidden">');
-    expect($view)->toContain('<flux:separator  data-flux-separator="admin-header" text="{{ __(\'Administration\') }}" class="text-lg" />');
+    expect($view)->toContain('<flux:separator data-flux-separator="admin-header" text="{{ __(\'Administration\') }}" class="text-lg" />');
     expect($view)->not->toContain('<flux:sidebar.group');
     expect($view)->toContain('<flux:sidebar.item icon="cog" :href="route(\'admin.settings.index\')" :current="request()->routeIs(\'admin.settings.*\')" wire:navigate data-test="admin-settings-link">');
     expect($view)->toContain(':current="request()->routeIs(\'admin.clients.*\') || request()->routeIs(\'admin.addresses.*\')"');

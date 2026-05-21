@@ -7,6 +7,7 @@ it('registers sprint zero foundation permission matrix entries', function (): vo
     app(DomainPermissionSynchronizer::class)->sync();
 
     $expectedPermissions = [
+        'navigation.view-admin',
         'project-access.view',
         'project-access.grant',
         'project-access.revoke',
