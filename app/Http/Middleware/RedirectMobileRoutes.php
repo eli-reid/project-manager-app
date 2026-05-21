@@ -6,7 +6,6 @@ use App\Core\Identity\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class RedirectMobileRoutes
@@ -51,51 +50,87 @@ class RedirectMobileRoutes
             return null;
         }
 
-        $mobileRoute = $this->resolveMobileRouteName($routeName);
+        $mobileRoute = $this->resolveMobileRouteNameFromRegistry($routeName);
 
         if (is_string($mobileRoute) && $mobileRoute !== '') {
             return $mobileRoute;
         }
 
-        if ($this->isDesktopUserSurface($routeName)) {
-            return 'mobile.dashboard';
+        if ($this->isRegisteredDesktopSurface($routeName)) {
+            return $this->fallbackRouteName();
         }
 
         return null;
     }
 
-    private function resolveMobileRouteName(string $routeName): ?string
+    private function resolveMobileRouteNameFromRegistry(string $routeName): ?string
     {
-        $candidates = [
-            'mobile.'.$routeName,
-            Str::replaceFirst('.', '.mobile.', $routeName),
-        ];
+        $exactMappings = $this->exactRouteMappings();
+        $prefixMappings = $this->prefixRouteMappings();
 
-        if (Str::endsWith($routeName, '.index')) {
-            $candidates[] = Str::replaceLast('.index', '.mobile.global', $routeName);
+        if (isset($exactMappings[$routeName])) {
+            return Route::has($exactMappings[$routeName]) ? $exactMappings[$routeName] : null;
         }
 
-        foreach ($candidates as $candidate) {
+        foreach ($prefixMappings as $desktopPrefix => $mobilePrefix) {
+            if (! str_starts_with($routeName, $desktopPrefix)) {
+                continue;
+            }
+
+            $candidate = $mobilePrefix.substr($routeName, strlen($desktopPrefix));
+
             if (Route::has($candidate)) {
                 return $candidate;
             }
+
+            return null;
         }
 
         return null;
     }
 
-    private function isDesktopUserSurface(string $routeName): bool
+    private function isRegisteredDesktopSurface(string $routeName): bool
     {
-        return str_starts_with($routeName, 'dashboard')
-            || str_starts_with($routeName, 'projects.')
-            || str_starts_with($routeName, 'timecards.')
-            || str_starts_with($routeName, 'dailies.')
-            || str_starts_with($routeName, 'submittals.')
-            || str_starts_with($routeName, 'stock-orders.')
-            || str_starts_with($routeName, 'change-orders.')
-            || str_starts_with($routeName, 'tasks.')
-            || str_starts_with($routeName, 'documents.')
-            || str_starts_with($routeName, 'reports.');
+        if (array_key_exists($routeName, $this->exactRouteMappings())) {
+            return true;
+        }
+
+        foreach (array_keys($this->prefixRouteMappings()) as $desktopPrefix) {
+            if (str_starts_with($routeName, $desktopPrefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function exactRouteMappings(): array
+    {
+        $mappings = config('mobile_redirect.exact', []);
+
+        return is_array($mappings) ? $mappings : [];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function prefixRouteMappings(): array
+    {
+        $mappings = config('mobile_redirect.prefix', []);
+
+        return is_array($mappings) ? $mappings : [];
+    }
+
+    private function fallbackRouteName(): string
+    {
+        $fallbackRoute = config('mobile_redirect.fallback', 'mobile.dashboard');
+
+        return is_string($fallbackRoute) && $fallbackRoute !== ''
+            ? $fallbackRoute
+            : 'mobile.dashboard';
     }
 
     private function isMobileRoute(string $routeName): bool

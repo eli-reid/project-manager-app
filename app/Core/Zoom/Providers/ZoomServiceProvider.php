@@ -19,4 +19,14 @@ class ZoomServiceProvider extends ServiceProvider
         $this->app->singleton(ZoomSmsService::class);
         $this->app->bind(SmsServiceContract::class, ZoomSmsService::class);
     }
+    public function boot(): void
+    {
+        self::registerInfrastructure();
+    }
+
+    private function registerInfrastructure(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+        
+    }
 }

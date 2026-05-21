@@ -67,6 +67,7 @@ class AnnouncementServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'announcement');
+        
     }
 
     private function registerRoutes(): void
