@@ -1,8 +1,8 @@
 <?php
 
-use App\Core\Dashboard\Middleware\RedirectMobileDashboard;
 use App\Core\Identity\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\RedirectMobileRoutes;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
@@ -31,13 +31,13 @@ return Application::configure(basePath: dirname(__DIR__))
             ValidateCsrfToken::class,
             SubstituteBindings::class,
             EnsurePasswordChanged::class,
-            RedirectMobileDashboard::class,
+            RedirectMobileRoutes::class,
             AddSecurityHeaders::class,
         ]);
 
         $middleware->web(append: [
             EnsurePasswordChanged::class,
-            RedirectMobileDashboard::class,
+            RedirectMobileRoutes::class,
             AddSecurityHeaders::class,
         ]);
     })

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\Dashboard\Middleware;
+namespace App\Http\Middleware;
 
 use App\Core\Identity\Models\User;
 use Closure;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
-class RedirectMobileDashboard
+class RedirectMobileRoutes
 {
     /**
      * @param  Closure(Request): Response  $next
