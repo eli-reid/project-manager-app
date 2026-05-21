@@ -55,7 +55,7 @@ class MobileGlobalIndex extends Component
             });
         }
 
-        return view('documents::livewire.user.documents.mobile-global-index', [
+        return view('documents::livewire.mobile.documents.global-index', [
             'documents' => $documentsQuery->get(),
             'project' => $this->project,
         ]);

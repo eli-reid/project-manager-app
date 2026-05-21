@@ -204,6 +204,14 @@ class TwoFactor extends Component
 
     public function render()
     {
-        return view('core-user::livewire.settings.two-factor');
+        $view = request()->routeIs('settings.mobile.*')
+            ? view('core-user::livewire.mobile.settings.two-factor')
+            : view('core-user::livewire.settings.two-factor');
+
+        if (request()->routeIs('settings.mobile.*')) {
+            return $view->layout('layouts.mobile', ['title' => __('Two-factor settings')]);
+        }
+
+        return $view;
     }
 }

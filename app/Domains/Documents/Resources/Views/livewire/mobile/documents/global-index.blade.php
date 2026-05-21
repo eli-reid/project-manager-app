@@ -27,6 +27,17 @@
                 <flux:input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('Document name...') }}" />
             </flux:field>
         </div>
+
+        <div class="mt-4">
+            <a
+                href="{{ route('documents.mobile.upload') }}"
+                class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-sky-800/70 bg-sky-950/40 px-4 text-sm font-semibold text-sky-200 active:bg-sky-900/60"
+                wire:navigate
+                data-mobile-haptic
+            >
+                {{ __('Upload from device') }}
+            </a>
+        </div>
     </div>
 
     <div class="flex flex-col gap-2">

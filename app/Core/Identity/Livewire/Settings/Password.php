@@ -55,6 +55,14 @@ class Password extends Component
 
     public function render()
     {
-        return view('core-user::livewire.settings.password');
+        $view = request()->routeIs('settings.mobile.*')
+            ? view('core-user::livewire.mobile.settings.password')
+            : view('core-user::livewire.settings.password');
+
+        if (request()->routeIs('settings.mobile.*')) {
+            return $view->layout('layouts.mobile', ['title' => __('Password settings')]);
+        }
+
+        return $view;
     }
 }

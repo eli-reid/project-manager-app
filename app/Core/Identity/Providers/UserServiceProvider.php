@@ -14,6 +14,10 @@ class UserServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerMobileExactRouteMapping('profile.edit', 'settings.mobile.profile');
+        $this->registerMobileExactRouteMapping('user-password.edit', 'settings.mobile.password');
+        $this->registerMobileExactRouteMapping('two-factor.show', 'settings.mobile.two-factor');
+        $this->registerMobileExactRouteMapping('notifications.edit', 'settings.mobile.notifications');
+        $this->registerMobileExactRouteMapping('appearance.edit', 'settings.mobile.appearance');
 
         $this->registerInfrastructure();
         $this->registerUIComponents();

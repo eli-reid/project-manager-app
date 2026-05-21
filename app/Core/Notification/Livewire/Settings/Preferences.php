@@ -70,6 +70,14 @@ class Preferences extends Component
 
     public function render()
     {
-        return view('core-notification::livewire.settings.preferences');
+        $view = request()->routeIs('settings.mobile.*')
+            ? view('core-notification::livewire.mobile.settings.preferences')
+            : view('core-notification::livewire.settings.preferences');
+
+        if (request()->routeIs('settings.mobile.*')) {
+            return $view->layout('layouts.mobile', ['title' => __('Notification settings')]);
+        }
+
+        return $view;
     }
 }

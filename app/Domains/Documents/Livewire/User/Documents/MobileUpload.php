@@ -2,12 +2,15 @@
 
 namespace App\Domains\Documents\Livewire\User\Documents;
 
-use App\Domains\Documents\Models\Document;
+use App\Domains\Documents\Services\DocumentService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\File;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
-use Livewire\WithFileUploads;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
+#[Layout('layouts.mobile')]
+#[Title('Upload Document')]
 class MobileUpload extends Component
 {
     use WithFileUploads;
@@ -20,28 +23,21 @@ class MobileUpload extends Component
 
     protected function rules(): array
     {
+        $rules = app(DocumentService::class)->validationRules();
+
         return [
-            'file' => ['required', File::types(['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'txt'])->max(10240)],
+            'file' => ['required', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
             'description' => ['nullable', 'string', 'max:255'],
         ];
     }
 
-    public function upload()
+    public function upload(DocumentService $documentService): void
     {
         $this->validate();
 
         $user = Auth::user();
-        $path = $this->file->store('documents/user/'.$user->id, 'public');
-
-        Document::create([
-            'owner_scope' => Document::OWNER_SCOPE_USER,
-            'owner_id' => $user->id,
-            'original_name' => $this->file->getClientOriginalName(),
-            'storage_disk' => 'public',
-            'storage_path' => $path,
-            'description' => $this->description,
-            'uploaded_by_id' => $user->id,
-            'visibility' => Document::VISIBILITY_PRIVATE,
+        $documentService->uploadUserDocument($user, $this->file, [
+            'description' => $this->description !== '' ? $this->description : null,
         ]);
 
         $this->reset(['file', 'description']);
@@ -51,6 +47,6 @@ class MobileUpload extends Component
 
     public function render()
     {
-        return view('documents::livewire.user.documents.mobile-upload');
+        return view('documents::livewire.mobile.documents.upload');
     }
 }

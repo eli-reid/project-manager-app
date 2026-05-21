@@ -8,6 +8,7 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Livewire\Admin\Documents\Index as AdminDocumentsIndex;
 use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
 use App\Domains\Documents\Livewire\User\Documents\Index as UserDocumentsIndex;
+use App\Domains\Documents\Livewire\User\Documents\MobileUpload;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Http\UploadedFile;
@@ -21,6 +22,7 @@ it('redirects guests from documents scaffold routes', function (): void {
     get(route('admin.documents.index'))->assertRedirect(route('login'));
     get(route('documents.index'))->assertRedirect(route('login'));
     get(route('documents.mobile.global'))->assertRedirect(route('login'));
+    get(route('documents.mobile.upload'))->assertRedirect(route('login'));
     get(route('api.documents.index'))->assertRedirect(route('login'));
 });
 
@@ -35,7 +37,32 @@ it('forbids authenticated users without documents permissions', function (): voi
     get(route('admin.documents.index'))->assertForbidden();
     get(route('documents.index'))->assertForbidden();
     get(route('documents.mobile.global'))->assertForbidden();
+    get(route('documents.mobile.upload'))->assertForbidden();
     get(route('api.documents.index'))->assertForbidden();
+});
+
+it('forbids users without documents create permission from mobile upload route', function (): void {
+    $user = userWithDocumentDomainPermissions(['documents.view']);
+
+    actingAs($user);
+
+    get(route('documents.mobile.upload'))->assertForbidden();
+});
+
+it('renders mobile upload form for users with create permission', function (): void {
+    $user = userWithDocumentDomainPermissions(['documents.view', 'documents.create']);
+
+    actingAs($user);
+
+    get(route('documents.mobile.upload'))
+        ->assertSuccessful()
+        ->assertSee('Upload Document')
+        ->assertSee('Back to documents');
+
+    Livewire::test(MobileUpload::class)
+        ->assertSee('Upload Document')
+        ->assertSee('Back to documents')
+        ->assertSee('Upload');
 });
 
 it('allows users with documents view permission to access user-facing documents routes', function (): void {

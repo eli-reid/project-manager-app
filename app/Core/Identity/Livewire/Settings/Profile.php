@@ -87,6 +87,14 @@ class Profile extends Component
 
     public function render()
     {
-        return view('core-user::livewire.settings.profile');
+        $view = request()->routeIs('settings.mobile.*')
+            ? view('core-user::livewire.mobile.settings.profile')
+            : view('core-user::livewire.settings.profile');
+
+        if (request()->routeIs('settings.mobile.*')) {
+            return $view->layout('layouts.mobile', ['title' => __('Profile settings')]);
+        }
+
+        return $view;
     }
 }
