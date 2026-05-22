@@ -22,13 +22,43 @@
 
             <div>
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Available Task</label>
-                <select wire:model="available_task_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                <select wire:model.live="available_task_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                     @foreach ($availableTasks as $availableTask)
                         <option value="{{ $availableTask->id }}">{{ $availableTask->name }} ({{ str($availableTask->feature_type)->replace('_', ' ')->headline() }})</option>
                     @endforeach
                 </select>
                 @error('available_task_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
+
+            @if ($selected_feature_type === 'timecard_reminders')
+                <div class="md:col-span-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950/50">
+                    <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Timecard Reminder Options</h2>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">These settings are stored in this task's configuration and used when reminders are run by the scheduler.</p>
+
+                    <div class="mt-4 grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Days After Week End</label>
+                            <input type="number" min="0" max="30" wire:model="timecard_days_after_week_end" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
+                            @error('timecard_days_after_week_end') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Statuses</label>
+                            <input type="text" wire:model="timecard_statuses" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" placeholder="draft,rejected" />
+                            <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Allowed: draft, rejected, submitted, approved</p>
+                            @error('timecard_statuses') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="inline-flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
+                                <input type="checkbox" wire:model="timecard_ignore_daily_reminder_limit" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900" />
+                                <span>Ignore daily reminder limit (allow same-day resend)</span>
+                            </label>
+                            @error('timecard_ignore_daily_reminder_limit') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <div>
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Schedule Type</label>

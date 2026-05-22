@@ -78,7 +78,7 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
 
         return [
             'to' => $phone,
-            'message' => 'Reminder: You have not submitted a timecard for '.$this->weekStarting->toFormattedDateString().' week. Please submit now.',
+            'message' => 'Reminder: You have not submitted a timecard for '.$this->weekStarting->toFormattedDateString().' week. Please submit your timecard.',
         ];
     }
 

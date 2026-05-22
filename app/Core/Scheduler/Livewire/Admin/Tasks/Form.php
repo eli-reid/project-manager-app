@@ -5,6 +5,7 @@ namespace App\Core\Scheduler\Livewire\Admin\Tasks;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Scheduler\Services\ScheduledTaskService;
+use App\Domains\Timecards\Models\Timecard;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -56,6 +57,14 @@ class Form extends Component
 
     public bool $is_enabled = true;
 
+    public int $timecard_days_after_week_end = 0;
+
+    public string $timecard_statuses = 'draft,rejected';
+
+    public bool $timecard_ignore_daily_reminder_limit = false;
+
+    public string $selected_feature_type = '';
+
     public function mount(?ScheduledTask $scheduledTask = null): void
     {
         if ($scheduledTask !== null && $scheduledTask->exists) {
@@ -79,6 +88,8 @@ class Form extends Component
             $this->max_occurrences = $scheduledTask->max_occurrences;
             $this->is_active = (bool) $scheduledTask->is_active;
             $this->is_enabled = (bool) $scheduledTask->is_enabled;
+            $this->syncSelectedFeatureType();
+            $this->hydrateTaskConfigFields(is_array($scheduledTask->task_config) ? $scheduledTask->task_config : []);
 
             return;
         }
@@ -91,6 +102,14 @@ class Form extends Component
             ->where('is_active', true)
             ->orderBy('name')
             ->value('id');
+
+        $this->syncSelectedFeatureType();
+
+        $defaultTaskConfig = AvailableTask::query()
+            ->whereKey($this->available_task_id)
+            ->value('task_config');
+
+        $this->hydrateTaskConfigFields(is_array($defaultTaskConfig) ? $defaultTaskConfig : []);
     }
 
     private function resetCreateDefaults(): void
@@ -132,7 +151,22 @@ class Form extends Component
             'max_occurrences' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
             'is_enabled' => ['boolean'],
+            'timecard_days_after_week_end' => ['integer', 'min:0', 'max:30', Rule::requiredIf($this->selected_feature_type === 'timecard_reminders')],
+            'timecard_statuses' => ['string', Rule::requiredIf($this->selected_feature_type === 'timecard_reminders')],
+            'timecard_ignore_daily_reminder_limit' => ['boolean'],
         ];
+    }
+
+    public function updatedAvailableTaskId(string $availableTaskId): void
+    {
+        $this->syncSelectedFeatureType();
+
+        if ($this->isEdit) {
+            return;
+        }
+
+        $defaultTaskConfig = AvailableTask::query()->whereKey($availableTaskId)->value('task_config');
+        $this->hydrateTaskConfigFields(is_array($defaultTaskConfig) ? $defaultTaskConfig : []);
     }
 
     public function save(): void
@@ -166,14 +200,14 @@ class Form extends Component
 
             $this->authorize('update', $task);
 
-            $payload['task_config'] = is_array($task->task_config) ? $task->task_config : [];
+            $payload['task_config'] = $this->buildTaskConfig(is_array($task->task_config) ? $task->task_config : []);
             $payload['updated_by'] = auth()->id();
             $task->update($payload);
         } else {
             $this->authorize('create', ScheduledTask::class);
 
             $availableTask = AvailableTask::query()->find($validated['available_task_id']);
-            $payload['task_config'] = is_array($availableTask?->task_config) ? $availableTask->task_config : [];
+            $payload['task_config'] = $this->buildTaskConfig(is_array($availableTask?->task_config) ? $availableTask->task_config : []);
 
             $payload['created_by'] = auth()->id();
             $payload['updated_by'] = auth()->id();
@@ -205,5 +239,70 @@ class Form extends Component
                 'UTC',
             ],
         ])->title($this->isEdit ? 'Edit Scheduler Task' : 'Create Scheduler Task');
+    }
+
+    private function syncSelectedFeatureType(): void
+    {
+        $this->selected_feature_type = (string) (AvailableTask::query()->whereKey($this->available_task_id)->value('feature_type') ?? '');
+    }
+
+    /**
+     * @param  array<string, mixed>  $taskConfig
+     */
+    private function hydrateTaskConfigFields(array $taskConfig): void
+    {
+        $this->timecard_days_after_week_end = max(0, (int) ($taskConfig['days_after_week_end'] ?? 0));
+        $this->timecard_statuses = implode(',', $this->normalizeTimecardStatuses($taskConfig['statuses'] ?? [
+            Timecard::STATUS_DRAFT,
+            Timecard::STATUS_REJECTED,
+        ]));
+        $this->timecard_ignore_daily_reminder_limit = (bool) ($taskConfig['ignore_daily_reminder_limit'] ?? false);
+    }
+
+    /**
+     * @param  array<string, mixed>  $taskConfig
+     * @return array<string, mixed>
+     */
+    private function buildTaskConfig(array $taskConfig): array
+    {
+        if ($this->selected_feature_type !== 'timecard_reminders') {
+            return $taskConfig;
+        }
+
+        $taskConfig['days_after_week_end'] = max(0, $this->timecard_days_after_week_end);
+        $taskConfig['statuses'] = $this->normalizeTimecardStatuses($this->timecard_statuses);
+        $taskConfig['ignore_daily_reminder_limit'] = $this->timecard_ignore_daily_reminder_limit;
+
+        return $taskConfig;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function normalizeTimecardStatuses(mixed $statuses): array
+    {
+        $allowedStatuses = [
+            Timecard::STATUS_DRAFT,
+            Timecard::STATUS_REJECTED,
+            Timecard::STATUS_SUBMITTED,
+            Timecard::STATUS_APPROVED,
+        ];
+
+        $rawStatuses = is_array($statuses)
+            ? $statuses
+            : explode(',', (string) $statuses);
+
+        $normalized = collect($rawStatuses)
+            ->map(fn (mixed $status): string => strtolower(trim((string) $status)))
+            ->filter(fn (string $status): bool => in_array($status, $allowedStatuses, true))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($normalized === []) {
+            return [Timecard::STATUS_DRAFT, Timecard::STATUS_REJECTED];
+        }
+
+        return $normalized;
     }
 }

@@ -116,6 +116,9 @@ it('creates a scheduler task through livewire form', function (): void {
     Livewire::test(Form::class)
         ->set('name', 'Daily Reminder Task')
         ->set('available_task_id', (string) $availableTask->id)
+        ->set('timecard_days_after_week_end', 1)
+        ->set('timecard_statuses', 'draft,rejected')
+        ->set('timecard_ignore_daily_reminder_limit', true)
         ->set('schedule_type', 'daily')
         ->set('time', '08:30')
         ->set('timezone', 'America/New_York')
@@ -129,7 +132,10 @@ it('creates a scheduler task through livewire form', function (): void {
     $task = ScheduledTask::query()->where('name', 'Daily Reminder Task')->first();
 
     expect($task)->not->toBeNull()
-        ->and($task?->next_run_at)->not->toBeNull();
+        ->and($task?->next_run_at)->not->toBeNull()
+        ->and($task?->task_config['days_after_week_end'] ?? null)->toBe(1)
+        ->and($task?->task_config['statuses'] ?? null)->toBe(['draft', 'rejected'])
+        ->and($task?->task_config['ignore_daily_reminder_limit'] ?? null)->toBeTrue();
 });
 
 it('defaults new scheduler task to active and enabled', function (): void {

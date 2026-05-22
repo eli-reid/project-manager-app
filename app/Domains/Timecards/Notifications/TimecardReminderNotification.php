@@ -75,7 +75,7 @@ class TimecardReminderNotification extends Notification implements ShouldQueue
 
         return [
             'to' => $phone,
-            'message' => 'Reminder: your timecard is pending and needs to be submitted.',
+            'message' => 'Reminder: Please submit your timecard.',
         ];
     }
 

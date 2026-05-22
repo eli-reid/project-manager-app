@@ -82,7 +82,7 @@ class TimecardReminderDigestNotification extends Notification implements ShouldQ
 
         return [
             'to' => $phone,
-            'message' => "Reminder: you have {$count} pending timecard(s) for week ending {$this->weekEnding}.",
+            'message' => "Reminder: you have {$count} pending timecard(s) for week ending {$this->weekEnding}. Please submit your timecard.",
         ];
     }
 
