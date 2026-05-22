@@ -10,6 +10,7 @@ use App\Domains\Timecards\Notifications\TimecardReminderDigestNotification;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class TimecardReminderService
 {
@@ -39,6 +40,14 @@ class TimecardReminderService
         // Send reminders for required users with missing submitted/approved timecards.
         $sent += $this->sendMissingTimecardReminders($targetWeekEnding, $batchSize);
 
+        Log::info('Timecard reminder evaluation completed.', [
+            'target_week_ending' => $targetWeekEnding,
+            'days_after_week_end' => $daysAfterWeekEnd,
+            'batch_size' => $batchSize,
+            'statuses' => $statuses,
+            'sent_count' => $sent,
+        ]);
+
         return $sent;
     }
 
@@ -58,20 +67,29 @@ class TimecardReminderService
             ->groupBy(fn (Timecard $timecard): string => (string) $timecard->user_id);
 
         $sent = 0;
+        $skippedInactiveOrMissingUser = 0;
+        $skippedNotRequired = 0;
+        $skippedAlreadySentToday = 0;
 
         foreach ($timecardsByUser->chunk($batchSize) as $recipientBatch) {
             foreach ($recipientBatch as $userTimecards) {
                 $user = $userTimecards->first()?->user;
 
                 if (! $user || ! $user->is_active) {
+                    $skippedInactiveOrMissingUser++;
+
                     continue;
                 }
 
                 if (! $this->isUserTimecardRequired($user)) {
+                    $skippedNotRequired++;
+
                     continue;
                 }
 
                 if ($this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
+                    $skippedAlreadySentToday++;
+
                     continue;
                 }
 
@@ -80,6 +98,17 @@ class TimecardReminderService
                 $sent++;
             }
         }
+
+        Log::info('Timecard reminder existing-timecards evaluation summary.', [
+            'target_week_ending' => $targetWeekEnding,
+            'statuses' => $statuses,
+            'existing_timecards_found' => $timecards->count(),
+            'distinct_existing_users' => $timecardsByUser->count(),
+            'existing_eligible_to_send' => $sent,
+            'existing_skipped_inactive_or_missing_user' => $skippedInactiveOrMissingUser,
+            'existing_skipped_not_required' => $skippedNotRequired,
+            'existing_skipped_already_sent_today' => $skippedAlreadySentToday,
+        ]);
 
         return $sent;
     }
@@ -97,6 +126,10 @@ class TimecardReminderService
             ->filter(fn (TimecardRequiredUser $entry): bool => $this->isEntryActiveForToday($entry));
 
         $sent = 0;
+        $skippedInactiveOrMissingUser = 0;
+        $skippedSubmittedOrApprovedExists = 0;
+        $skippedAnyTimecardExistsForWeek = 0;
+        $skippedAlreadySentToday = 0;
         $weekStart = $this->timecardWeekService
             ->normalizeWeekStart($targetWeekEnding)
             ->toDateString();
@@ -106,6 +139,8 @@ class TimecardReminderService
                 $user = $entry->user;
 
                 if (! $user || ! $user->is_active) {
+                    $skippedInactiveOrMissingUser++;
+
                     continue;
                 }
 
@@ -116,6 +151,8 @@ class TimecardReminderService
                     ->exists();
 
                 if ($hasSubmittedOrApproved) {
+                    $skippedSubmittedOrApprovedExists++;
+
                     continue;
                 }
 
@@ -126,10 +163,14 @@ class TimecardReminderService
                     ->exists();
 
                 if ($hasAnyTimecardForWeek) {
+                    $skippedAnyTimecardExistsForWeek++;
+
                     continue;
                 }
 
                 if ($this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
+                    $skippedAlreadySentToday++;
+
                     continue;
                 }
 
@@ -138,6 +179,17 @@ class TimecardReminderService
                 $sent++;
             }
         }
+
+        Log::info('Timecard reminder missing-timecard evaluation summary.', [
+            'target_week_ending' => $targetWeekEnding,
+            'target_week_starting' => $weekStart,
+            'required_entries_active' => $requiredEntries->count(),
+            'missing_eligible_to_send' => $sent,
+            'missing_skipped_inactive_or_missing_user' => $skippedInactiveOrMissingUser,
+            'missing_skipped_submitted_or_approved_exists' => $skippedSubmittedOrApprovedExists,
+            'missing_skipped_any_timecard_exists_for_week' => $skippedAnyTimecardExistsForWeek,
+            'missing_skipped_already_sent_today' => $skippedAlreadySentToday,
+        ]);
 
         return $sent;
     }
