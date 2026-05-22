@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Core\Identity\Models\User;
 use App\Core\Zoom\Enums\SmsConsentStatus;
+use App\Core\Zoom\Models\ZoomSmsConsent;
 use App\Core\Zoom\Services\ZoomSmsConsentService;
 use Illuminate\Console\Command;
 
@@ -41,10 +43,21 @@ class ZoomSmsConsentSyncCommand extends Command
 
             $this->info('Starting campaign-wide Zoom consent sync...');
 
-            $result = $consentService->syncCampaignConsentStatuses(
-                pageSize: $pageSize,
-                maxPages: $maxPages,
-            );
+            try {
+                $result = $consentService->syncCampaignConsentStatuses(
+                    pageSize: $pageSize,
+                    maxPages: $maxPages,
+                );
+            } catch (\Throwable $exception) {
+                if (! $this->isCampaignValidationFailure($exception->getMessage())) {
+                    throw $exception;
+                }
+
+                $this->warn('Campaign-wide endpoint is not available for this account/tenant.');
+                $this->warn('Falling back to per-number consent sync using known local phone numbers...');
+
+                $result = $this->syncKnownLocalNumbers($consentService);
+            }
 
             $this->info('Campaign-wide Zoom consent sync complete.');
             $this->line('Processed: '.(int) ($result['processed'] ?? 0));
@@ -69,5 +82,71 @@ class ZoomSmsConsentSyncCommand extends Command
             SmsConsentStatus::Pending => 'pending',
             default => 'unknown',
         };
+    }
+
+    private function isCampaignValidationFailure(string $message): bool
+    {
+        return str_contains($message, 'Validation Failed')
+            && str_contains($message, 'consumer_phone_number')
+            && str_contains($message, 'zoom_phone_user_numbers');
+    }
+
+    /**
+     * @return array{processed:int,opted_in:int,opted_out:int,unknown:int,next_page_token:string}
+     */
+    private function syncKnownLocalNumbers(ZoomSmsConsentService $consentService): array
+    {
+        $phones = User::query()
+            ->whereNotNull('phone')
+            ->pluck('phone')
+            ->map(fn (mixed $phone): string => trim((string) $phone))
+            ->filter(fn (string $phone): bool => $phone !== '')
+            ->merge(
+                ZoomSmsConsent::query()
+                    ->pluck('phone_number')
+                    ->map(fn (mixed $phone): string => trim((string) $phone))
+                    ->filter(fn (string $phone): bool => $phone !== '')
+            )
+            ->unique()
+            ->values();
+
+        $processed = 0;
+        $optedIn = 0;
+        $optedOut = 0;
+        $unknown = 0;
+
+        foreach ($phones as $localPhone) {
+            try {
+                $status = $consentService->syncFromZoom($localPhone);
+            } catch (\Throwable $exception) {
+                $unknown++;
+
+                continue;
+            }
+
+            if ($status === SmsConsentStatus::OptedIn) {
+                $optedIn++;
+                $processed++;
+
+                continue;
+            }
+
+            if ($status === SmsConsentStatus::OptedOut) {
+                $optedOut++;
+                $processed++;
+
+                continue;
+            }
+
+            $unknown++;
+        }
+
+        return [
+            'processed' => $processed,
+            'opted_in' => $optedIn,
+            'opted_out' => $optedOut,
+            'unknown' => $unknown,
+            'next_page_token' => '',
+        ];
     }
 }
