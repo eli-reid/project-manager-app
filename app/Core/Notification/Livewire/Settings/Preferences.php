@@ -104,7 +104,7 @@ class Preferences extends Component
             }
         }
 
-        return ! $this->getErrorBag()->has('preferences');
+        return $this->getErrorBag()->isEmpty();
     }
 
     public function render()
