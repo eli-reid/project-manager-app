@@ -1,6 +1,8 @@
 <?php
 
+use App\Core\Zoom\Enums\SmsConsentStatus;
 use App\Core\Zoom\Exceptions\ZoomSmsException;
+use App\Core\Zoom\Models\ZoomSmsConsent;
 use App\Core\Zoom\Services\ZoomSmsConsentService;
 use App\Core\Zoom\Services\ZoomTokenService;
 use Illuminate\Support\Facades\Http;
@@ -91,4 +93,24 @@ it('throws a rate limit exception when campaign list endpoint returns 429', func
 
     expect(fn () => $service->listCampaignPhoneNumberOptStatuses())
         ->toThrow(ZoomSmsException::class, 'rate limit exceeded');
+});
+
+it('normalizes 10-digit numbers to +1 E.164 for local consent lookups', function (): void {
+    ZoomSmsConsent::query()->create([
+        'phone_number' => '+12125550001',
+        'status' => SmsConsentStatus::OptedIn,
+    ]);
+
+    /** @var ZoomSmsConsentService $service */
+    $service = app(ZoomSmsConsentService::class);
+
+    expect($service->getStatus('(212) 555-0001'))->toBe(SmsConsentStatus::OptedIn);
+});
+
+it('rejects malformed phone numbers for consent lookups', function (): void {
+    /** @var ZoomSmsConsentService $service */
+    $service = app(ZoomSmsConsentService::class);
+
+    expect(fn () => $service->getStatus('555-12'))
+        ->toThrow(ZoomSmsException::class, 'Invalid phone number format for Zoom SMS');
 });

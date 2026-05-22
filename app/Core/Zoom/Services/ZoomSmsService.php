@@ -50,29 +50,31 @@ class ZoomSmsService implements SmsServiceContract
             throw ZoomSmsException::notConfigured();
         }
 
+        $normalizedTo = $this->normalizeUsPhoneNumber($to);
+
         // --- Consent gate -------------------------------------------------------
-        $status = $this->consentService->getStatus($to);
+        $status = $this->consentService->getStatus($normalizedTo);
 
         if ($status === null) {
             // Number not in local DB — check Zoom's API for an existing record.
-            $status = $this->consentService->syncFromZoom($to);
+            $status = $this->consentService->syncFromZoom($normalizedTo);
         }
 
         if ($status === SmsConsentStatus::OptedOut) {
-            Log::info('Zoom SMS blocked: recipient has opted out.', ['to' => $to]);
+            Log::info('Zoom SMS blocked: recipient has opted out.', ['to' => $normalizedTo]);
 
             return [];
         }
 
         if ($status === null || $status === SmsConsentStatus::Pending) {
             // No record at all, or only pending — send consent request and hold.
-            $this->consentService->requestConsent($to, $this);
+            $this->consentService->requestConsent($normalizedTo, $this);
 
             return [];
         }
         // -----------------------------------------------------------------------
 
-        return $this->doSend($to, $message, tokenRefreshed: false);
+        return $this->doSend($normalizedTo, $message, tokenRefreshed: false);
     }
 
     /**
@@ -91,7 +93,9 @@ class ZoomSmsService implements SmsServiceContract
             throw ZoomSmsException::notConfigured();
         }
 
-        return $this->doSend($to, $message, tokenRefreshed: false);
+        $normalizedTo = $this->normalizeUsPhoneNumber($to);
+
+        return $this->doSend($normalizedTo, $message, tokenRefreshed: false);
     }
 
     /**
@@ -101,6 +105,8 @@ class ZoomSmsService implements SmsServiceContract
      */
     private function doSend(string $to, string $message, bool $tokenRefreshed): array
     {
+        $normalizedFrom = $this->normalizeUsPhoneNumber((string) $this->config->fromNumber);
+
         $token = $tokenRefreshed
             ? $this->tokenService->forceRefresh()
             : $this->tokenService->accessToken();
@@ -111,7 +117,7 @@ class ZoomSmsService implements SmsServiceContract
                 ->acceptJson()
                 ->post("{$this->config->apiBaseUrl}/phone/sms/messages", [
                     'sender' => [
-                        'phone_number' => $this->config->fromNumber,
+                        'phone_number' => $normalizedFrom,
                     ],
                     'to_members' => [
                         ['phone_number' => $to],
@@ -162,5 +168,31 @@ class ZoomSmsService implements SmsServiceContract
             'message_id' => $data['message_id'] ?? '',
             'session_id' => $data['session_id'] ?? '',
         ];
+    }
+
+    /**
+     * Normalize a US phone number to E.164 (+1XXXXXXXXXX) for Zoom APIs.
+     *
+     * Accepted formats:
+     * - +1XXXXXXXXXX
+     * - 1XXXXXXXXXX
+     * - XXXXXXXXXX
+     * - Any of the above with separators/spaces.
+     *
+     * @throws ZoomSmsException
+     */
+    private function normalizeUsPhoneNumber(string $phoneNumber): string
+    {
+        $digits = preg_replace('/\D+/', '', $phoneNumber) ?? '';
+
+        if (strlen($digits) === 10) {
+            return '+1'.$digits;
+        }
+
+        if (strlen($digits) === 11 && str_starts_with($digits, '1')) {
+            return '+'.$digits;
+        }
+
+        throw ZoomSmsException::invalidPhoneNumber($phoneNumber);
     }
 }

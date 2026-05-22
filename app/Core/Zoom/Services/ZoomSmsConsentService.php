@@ -36,7 +36,9 @@ class ZoomSmsConsentService
      */
     public function getStatus(string $phoneNumber): ?SmsConsentStatus
     {
-        return ZoomSmsConsent::where('phone_number', $phoneNumber)->first()?->status;
+        $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($phoneNumber);
+
+        return ZoomSmsConsent::where('phone_number', $normalizedPhoneNumber)->first()?->status;
     }
 
     /**
@@ -65,17 +67,19 @@ class ZoomSmsConsentService
      */
     public function requestConsent(string $phoneNumber, ZoomSmsService $smsService): void
     {
-        $smsService->sendRaw($phoneNumber, $this->consentMessage());
+        $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($phoneNumber);
+
+        $smsService->sendRaw($normalizedPhoneNumber, $this->consentMessage());
 
         ZoomSmsConsent::updateOrCreate(
-            ['phone_number' => $phoneNumber],
+            ['phone_number' => $normalizedPhoneNumber],
             [
                 'status' => SmsConsentStatus::Pending,
                 'consent_requested_at' => now(),
             ]
         );
 
-        Log::info('Zoom SMS consent request sent.', ['phone_number' => $phoneNumber]);
+        Log::info('Zoom SMS consent request sent.', ['phone_number' => $normalizedPhoneNumber]);
     }
 
     /**
@@ -84,8 +88,10 @@ class ZoomSmsConsentService
      */
     public function markOptedIn(string $phoneNumber): void
     {
+        $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($phoneNumber);
+
         ZoomSmsConsent::updateOrCreate(
-            ['phone_number' => $phoneNumber],
+            ['phone_number' => $normalizedPhoneNumber],
             [
                 'status' => SmsConsentStatus::OptedIn,
                 'consented_at' => now(),
@@ -93,9 +99,9 @@ class ZoomSmsConsentService
             ]
         );
 
-        $this->patchZoomOptStatus($phoneNumber, 'opt_in');
+        $this->patchZoomOptStatus($normalizedPhoneNumber, 'opt_in');
 
-        Log::info('Zoom SMS consent opted-in.', ['phone_number' => $phoneNumber]);
+        Log::info('Zoom SMS consent opted-in.', ['phone_number' => $normalizedPhoneNumber]);
     }
 
     /**
@@ -104,8 +110,10 @@ class ZoomSmsConsentService
      */
     public function markOptedOut(string $phoneNumber): void
     {
+        $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($phoneNumber);
+
         ZoomSmsConsent::updateOrCreate(
-            ['phone_number' => $phoneNumber],
+            ['phone_number' => $normalizedPhoneNumber],
             [
                 'status' => SmsConsentStatus::OptedOut,
                 'declined_at' => now(),
@@ -113,9 +121,9 @@ class ZoomSmsConsentService
             ]
         );
 
-        $this->patchZoomOptStatus($phoneNumber, 'opt_out');
+        $this->patchZoomOptStatus($normalizedPhoneNumber, 'opt_out');
 
-        Log::info('Zoom SMS consent opted-out.', ['phone_number' => $phoneNumber]);
+        Log::info('Zoom SMS consent opted-out.', ['phone_number' => $normalizedPhoneNumber]);
     }
 
     /**
@@ -134,11 +142,13 @@ class ZoomSmsConsentService
             return null;
         }
 
+        $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($phoneNumber);
+
         try {
             $token = $this->tokenService->accessToken();
             $userId = $this->config->zoomUserId;
-            $fromNumber = ltrim((string) $this->config->fromNumber, '+');
-            $toNumber = ltrim($phoneNumber, '+');
+            $fromNumber = $this->toZoomApiNumber((string) $this->config->fromNumber);
+            $toNumber = $this->toZoomApiNumber($normalizedPhoneNumber);
 
             $response = Http::timeout($this->config->timeout)
                 ->withToken($token)
@@ -150,7 +160,7 @@ class ZoomSmsConsentService
 
             if (! $response->successful()) {
                 Log::warning('Zoom opt-status check failed.', [
-                    'phone_number' => $phoneNumber,
+                    'phone_number' => $normalizedPhoneNumber,
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
@@ -184,12 +194,12 @@ class ZoomSmsConsentService
 
             if ($status === SmsConsentStatus::OptedIn) {
                 ZoomSmsConsent::updateOrCreate(
-                    ['phone_number' => $phoneNumber],
+                    ['phone_number' => $normalizedPhoneNumber],
                     ['status' => SmsConsentStatus::OptedIn, 'consented_at' => now(), 'declined_at' => null]
                 );
             } elseif ($status === SmsConsentStatus::OptedOut) {
                 ZoomSmsConsent::updateOrCreate(
-                    ['phone_number' => $phoneNumber],
+                    ['phone_number' => $normalizedPhoneNumber],
                     ['status' => SmsConsentStatus::OptedOut, 'declined_at' => now(), 'consented_at' => null]
                 );
             }
@@ -197,7 +207,7 @@ class ZoomSmsConsentService
             return $status;
         } catch (\Throwable $exception) {
             Log::warning('Zoom opt-status sync threw an exception.', [
-                'phone_number' => $phoneNumber,
+                'phone_number' => $normalizedPhoneNumber,
                 'error' => $exception->getMessage(),
             ]);
 
@@ -282,11 +292,13 @@ class ZoomSmsConsentService
             return;
         }
 
+        $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($phoneNumber);
+
         try {
             $token = $this->tokenService->accessToken();
             $campaignId = $this->config->smsCampaignId;
-            $fromNumber = ltrim((string) $this->config->fromNumber, '+');
-            $toNumber = ltrim($phoneNumber, '+');
+            $fromNumber = $this->toZoomApiNumber((string) $this->config->fromNumber);
+            $toNumber = $this->toZoomApiNumber($normalizedPhoneNumber);
 
             $response = Http::timeout($this->config->timeout)
                 ->withToken($token)
@@ -299,17 +311,47 @@ class ZoomSmsConsentService
 
             if (! $response->successful() && $response->status() !== 204) {
                 Log::warning('Zoom PATCH opt-status failed.', [
-                    'phone_number' => $phoneNumber,
+                    'phone_number' => $normalizedPhoneNumber,
                     'opt_status' => $optStatus,
                     'status' => $response->status(),
                 ]);
             }
         } catch (\Throwable $exception) {
             Log::warning('Zoom PATCH opt-status threw an exception.', [
-                'phone_number' => $phoneNumber,
+                'phone_number' => $normalizedPhoneNumber,
                 'error' => $exception->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Normalize a US phone number to E.164 (+1XXXXXXXXXX) for Zoom APIs.
+     *
+     * @throws ZoomSmsException
+     */
+    private function normalizeUsPhoneNumber(string $phoneNumber): string
+    {
+        $digits = preg_replace('/\D+/', '', $phoneNumber) ?? '';
+
+        if (strlen($digits) === 10) {
+            return '+1'.$digits;
+        }
+
+        if (strlen($digits) === 11 && str_starts_with($digits, '1')) {
+            return '+'.$digits;
+        }
+
+        throw ZoomSmsException::invalidPhoneNumber($phoneNumber);
+    }
+
+    /**
+     * Return Zoom API phone value format for campaign/opt-status endpoints.
+     *
+     * @throws ZoomSmsException
+     */
+    private function toZoomApiNumber(string $phoneNumber): string
+    {
+        return ltrim($this->normalizeUsPhoneNumber($phoneNumber), '+');
     }
 
     private function consentMessage(): string

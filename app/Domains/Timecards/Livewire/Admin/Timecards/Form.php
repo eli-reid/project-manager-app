@@ -16,7 +16,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('timecards::layouts.time-management-admin')]
+#[Layout('payroll::layouts.payroll-admin')]
 #[Title('Timecard Form')]
 class Form extends Component
 {

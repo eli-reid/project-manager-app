@@ -40,4 +40,11 @@ class ZoomSmsException extends RuntimeException
     {
         return new self("Zoom SMS {$operation} failed (HTTP {$status}): {$body}");
     }
+
+    public static function invalidPhoneNumber(string $phoneNumber): self
+    {
+        return new self(
+            "Invalid phone number format for Zoom SMS: {$phoneNumber}. Expected US E.164 (+1XXXXXXXXXX), 10 digits, or 11 digits starting with 1."
+        );
+    }
 }
