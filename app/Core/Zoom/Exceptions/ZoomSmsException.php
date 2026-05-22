@@ -28,4 +28,16 @@ class ZoomSmsException extends RuntimeException
     {
         return new self("Zoom SMS send failed (HTTP {$status}): {$body}");
     }
+
+    public static function campaignIdRequired(): self
+    {
+        return new self(
+            'Zoom SMS campaign ID is required. Set ZOOM_SMS_CAMPAIGN_ID (or zoom.sms_campaign_id setting).'
+        );
+    }
+
+    public static function apiRequestFailed(string $operation, int $status, string $body): self
+    {
+        return new self("Zoom SMS {$operation} failed (HTTP {$status}): {$body}");
+    }
 }

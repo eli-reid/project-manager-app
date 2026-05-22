@@ -4,6 +4,7 @@ namespace App\Core\Zoom\Services;
 
 use App\Core\Zoom\Data\ZoomConfig;
 use App\Core\Zoom\Enums\SmsConsentStatus;
+use App\Core\Zoom\Exceptions\ZoomSmsException;
 use App\Core\Zoom\Models\ZoomSmsConsent;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -202,6 +203,70 @@ class ZoomSmsConsentService
 
             return null;
         }
+    }
+
+    /**
+     * Lists phone number opt statuses for the configured SMS campaign.
+     *
+     * Endpoint: GET /phone/sms_campaigns/{smsCampaignId}/phone_numbers/opt_status
+     * Rate Limit Label: LIGHT
+     *
+     * @param  int|null  $pageSize  Optional page size for paginated results.
+     * @param  string|null  $nextPageToken  Optional token returned by a previous call.
+     * @return array{
+     *   phone_number_campaign_opt_statuses: array<int, array<string, mixed>>,
+     *   next_page_token: string
+     * }
+     *
+     * @throws ZoomSmsException
+     */
+    public function listCampaignPhoneNumberOptStatuses(?int $pageSize = null, ?string $nextPageToken = null): array
+    {
+        if (! $this->config->canUpdateConsentViaApi()) {
+            throw ZoomSmsException::campaignIdRequired();
+        }
+
+        $campaignId = (string) $this->config->smsCampaignId;
+        $token = $this->tokenService->accessToken();
+
+        $query = [];
+
+        if ($pageSize !== null) {
+            $query['page_size'] = max(1, $pageSize);
+        }
+
+        if (is_string($nextPageToken) && $nextPageToken !== '') {
+            $query['next_page_token'] = $nextPageToken;
+        }
+
+        $response = Http::timeout($this->config->timeout)
+            ->withToken($token)
+            ->acceptJson()
+            ->get("{$this->config->apiBaseUrl}/phone/sms_campaigns/{$campaignId}/phone_numbers/opt_status", $query);
+
+        if ($response->status() === 429) {
+            throw ZoomSmsException::rateLimitExceeded();
+        }
+
+        if (! $response->successful()) {
+            Log::warning('Zoom GET campaign phone number opt statuses failed.', [
+                'campaign_id' => $campaignId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw ZoomSmsException::apiRequestFailed('campaign opt-status list', $response->status(), $response->body());
+        }
+
+        /** @var array{phone_number_campaign_opt_statuses?: array<int, array<string, mixed>>, next_page_token?: string} $data */
+        $data = $response->json();
+
+        $entries = $data['phone_number_campaign_opt_statuses'] ?? [];
+
+        return [
+            'phone_number_campaign_opt_statuses' => is_array($entries) ? $entries : [],
+            'next_page_token' => (string) ($data['next_page_token'] ?? ''),
+        ];
     }
 
     /**

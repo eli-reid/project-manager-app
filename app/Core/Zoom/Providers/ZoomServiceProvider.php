@@ -3,6 +3,7 @@
 namespace App\Core\Zoom\Providers;
 
 use App\Core\Notification\Contracts\SmsServiceContract;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Zoom\Data\ZoomConfig;
 use App\Core\Zoom\Services\ZoomSmsConsentService;
 use App\Core\Zoom\Services\ZoomSmsService;
@@ -19,14 +20,20 @@ class ZoomServiceProvider extends ServiceProvider
         $this->app->singleton(ZoomSmsService::class);
         $this->app->bind(SmsServiceContract::class, ZoomSmsService::class);
     }
-    public function boot(): void
+
+    public function boot(SettingsRegistryContract $settingsRegistry): void
     {
+        $this->registerSettings($settingsRegistry);
         self::registerInfrastructure();
+    }
+
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
+    {
+        $settingsRegistry->registerConfigFile('zoom', __DIR__.'/../config/settings.php');
     }
 
     private function registerInfrastructure(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
-        
     }
 }

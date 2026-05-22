@@ -2,6 +2,8 @@
 
 namespace App\Core\Zoom\Data;
 
+use App\Core\Settings\Facades\Settings;
+
 class ZoomConfig
 {
     public readonly ?string $accountId;
@@ -32,21 +34,57 @@ class ZoomConfig
 
     public function __construct()
     {
-        /** @var array{account_id?:string,client_id?:string,client_secret?:string,from_number?:string,token_url:string,api_base_url:string,token_cache_ttl:int,timeout:int,retry_times:int,retry_sleep_ms:int} $cfg */
-        $cfg = config('services.zoom', []);
+        $this->accountId = $this->nullableStringSetting('zoom.account_id', 'services.zoom.account_id');
+        $this->clientId = $this->nullableStringSetting('zoom.client_id', 'services.zoom.client_id');
+        $this->clientSecret = $this->nullableStringSetting('zoom.client_secret', 'services.zoom.client_secret');
+        $this->fromNumber = $this->nullableStringSetting('zoom.from_number', 'services.zoom.from_number');
+        $this->zoomUserId = $this->nullableStringSetting('zoom.zoom_user_id', 'services.zoom.zoom_user_id');
+        $this->smsCampaignId = $this->nullableStringSetting('zoom.sms_campaign_id', 'services.zoom.sms_campaign_id');
+        $this->tokenUrl = $this->stringSetting('zoom.token_url', 'services.zoom.token_url', 'https://zoom.us/oauth/token');
+        $this->apiBaseUrl = $this->stringSetting('zoom.api_base_url', 'services.zoom.api_base_url', 'https://api.zoom.us/v2');
+        $this->tokenCacheTtl = $this->intSetting('zoom.token_cache_ttl', 'services.zoom.token_cache_ttl', 3590);
+        $this->timeout = $this->intSetting('zoom.timeout', 'services.zoom.timeout', 15);
+        $this->retryTimes = $this->intSetting('zoom.retry_times', 'services.zoom.retry_times', 3);
+        $this->retrySleepMs = $this->intSetting('zoom.retry_sleep_ms', 'services.zoom.retry_sleep_ms', 1000);
+    }
 
-        $this->accountId = $cfg['account_id'] ?? null;
-        $this->clientId = $cfg['client_id'] ?? null;
-        $this->clientSecret = $cfg['client_secret'] ?? null;
-        $this->fromNumber = $cfg['from_number'] ?? null;
-        $this->zoomUserId = $cfg['zoom_user_id'] ?? null;
-        $this->smsCampaignId = $cfg['sms_campaign_id'] ?? null;
-        $this->tokenUrl = $cfg['token_url'] ?? 'https://zoom.us/oauth/token';
-        $this->apiBaseUrl = $cfg['api_base_url'] ?? 'https://api.zoom.us/v2';
-        $this->tokenCacheTtl = (int) ($cfg['token_cache_ttl'] ?? 3590);
-        $this->timeout = (int) ($cfg['timeout'] ?? 15);
-        $this->retryTimes = (int) ($cfg['retry_times'] ?? 3);
-        $this->retrySleepMs = (int) ($cfg['retry_sleep_ms'] ?? 1000);
+    private function nullableStringSetting(string $settingKey, string $configKey): ?string
+    {
+        $settingValue = Settings::get($settingKey, null)->raw();
+
+        if (is_string($settingValue) && trim($settingValue) !== '') {
+            return $settingValue;
+        }
+
+        $configValue = config($configKey);
+
+        if (is_string($configValue) && trim($configValue) !== '') {
+            return $configValue;
+        }
+
+        return null;
+    }
+
+    private function stringSetting(string $settingKey, string $configKey, string $default): string
+    {
+        $settingValue = Settings::get($settingKey, null)->raw();
+
+        if (is_string($settingValue) && trim($settingValue) !== '') {
+            return $settingValue;
+        }
+
+        return (string) config($configKey, $default);
+    }
+
+    private function intSetting(string $settingKey, string $configKey, int $default): int
+    {
+        $settingValue = Settings::get($settingKey, null)->raw();
+
+        if (is_numeric($settingValue)) {
+            return (int) $settingValue;
+        }
+
+        return (int) config($configKey, $default);
     }
 
     public function isConfigured(): bool
