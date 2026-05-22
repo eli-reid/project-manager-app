@@ -280,6 +280,96 @@ class ZoomSmsConsentService
     }
 
     /**
+     * Synchronize local consent rows from Zoom campaign opt-status pages.
+     *
+     * @param  int  $pageSize  Zoom API page size.
+     * @param  int  $maxPages  Safety cap to avoid unbounded loops.
+     * @return array{processed:int,opted_in:int,opted_out:int,unknown:int,next_page_token:string}
+     *
+     * @throws ZoomSmsException
+     */
+    public function syncCampaignConsentStatuses(int $pageSize = 100, int $maxPages = 10): array
+    {
+        $pageSize = max(1, $pageSize);
+        $maxPages = max(1, $maxPages);
+
+        $processed = 0;
+        $optedIn = 0;
+        $optedOut = 0;
+        $unknown = 0;
+        $nextPageToken = null;
+
+        for ($page = 1; $page <= $maxPages; $page++) {
+            $result = $this->listCampaignPhoneNumberOptStatuses($pageSize, $nextPageToken);
+
+            /** @var array<int, array<string, mixed>> $entries */
+            $entries = $result['phone_number_campaign_opt_statuses'] ?? [];
+
+            foreach ($entries as $entry) {
+                $consumerPhoneNumber = trim((string) ($entry['consumer_phone_number'] ?? ''));
+
+                if ($consumerPhoneNumber === '') {
+                    $unknown++;
+
+                    continue;
+                }
+
+                try {
+                    $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($consumerPhoneNumber);
+                } catch (ZoomSmsException $exception) {
+                    Log::warning('Skipping invalid phone number from Zoom campaign sync.', [
+                        'consumer_phone_number' => $consumerPhoneNumber,
+                        'error' => $exception->getMessage(),
+                    ]);
+                    $unknown++;
+
+                    continue;
+                }
+
+                $optStatus = (string) ($entry['opt_status'] ?? '');
+
+                if ($optStatus === 'opt_in') {
+                    ZoomSmsConsent::updateOrCreate(
+                        ['phone_number' => $normalizedPhoneNumber],
+                        ['status' => SmsConsentStatus::OptedIn, 'consented_at' => now(), 'declined_at' => null]
+                    );
+                    $optedIn++;
+                    $processed++;
+
+                    continue;
+                }
+
+                if ($optStatus === 'opt_out') {
+                    ZoomSmsConsent::updateOrCreate(
+                        ['phone_number' => $normalizedPhoneNumber],
+                        ['status' => SmsConsentStatus::OptedOut, 'declined_at' => now(), 'consented_at' => null]
+                    );
+                    $optedOut++;
+                    $processed++;
+
+                    continue;
+                }
+
+                $unknown++;
+            }
+
+            $nextPageToken = (string) ($result['next_page_token'] ?? '');
+
+            if ($nextPageToken === '') {
+                break;
+            }
+        }
+
+        return [
+            'processed' => $processed,
+            'opted_in' => $optedIn,
+            'opted_out' => $optedOut,
+            'unknown' => $unknown,
+            'next_page_token' => (string) ($nextPageToken ?? ''),
+        ];
+    }
+
+    /**
      * Pushes an opt status change back to Zoom's campaign record.
      * Silently skipped when no campaign ID is configured.
      *

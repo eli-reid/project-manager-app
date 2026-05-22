@@ -114,3 +114,61 @@ it('rejects malformed phone numbers for consent lookups', function (): void {
     expect(fn () => $service->getStatus('555-12'))
         ->toThrow(ZoomSmsException::class, 'Invalid phone number format for Zoom SMS');
 });
+
+it('syncs campaign consent statuses into local table across pages', function (): void {
+    config([
+        'services.zoom.api_base_url' => 'https://api.zoom.test/v2',
+        'services.zoom.sms_campaign_id' => 'campaign-123',
+        'services.zoom.timeout' => 15,
+    ]);
+
+    app()->forgetInstance(ZoomTokenService::class);
+
+    $tokenService = Mockery::mock(ZoomTokenService::class);
+    $tokenService->shouldReceive('accessToken')->twice()->andReturn('token-123');
+    app()->instance(ZoomTokenService::class, $tokenService);
+
+    Http::fake([
+        '*phone/sms_campaigns/campaign-123/phone_numbers/opt_status?page_size=2' => Http::response([
+            'phone_number_campaign_opt_statuses' => [
+                [
+                    'consumer_phone_number' => '2125551111',
+                    'opt_status' => 'opt_in',
+                ],
+                [
+                    'consumer_phone_number' => '2125552222',
+                    'opt_status' => 'opt_out',
+                ],
+            ],
+            'next_page_token' => 'next-1',
+        ], 200),
+        '*phone/sms_campaigns/campaign-123/phone_numbers/opt_status?page_size=2&next_page_token=next-1' => Http::response([
+            'phone_number_campaign_opt_statuses' => [
+                [
+                    'consumer_phone_number' => '55512',
+                    'opt_status' => 'opt_in',
+                ],
+            ],
+            'next_page_token' => '',
+        ], 200),
+    ]);
+
+    app()->forgetInstance(ZoomSmsConsentService::class);
+
+    /** @var ZoomSmsConsentService $service */
+    $service = app(ZoomSmsConsentService::class);
+
+    $result = $service->syncCampaignConsentStatuses(pageSize: 2, maxPages: 5);
+
+    expect($result['processed'])->toBe(2)
+        ->and($result['opted_in'])->toBe(1)
+        ->and($result['opted_out'])->toBe(1)
+        ->and($result['unknown'])->toBe(1)
+        ->and($result['next_page_token'])->toBe('');
+
+    expect(ZoomSmsConsent::query()->where('phone_number', '+12125551111')->first()?->status)
+        ->toBe(SmsConsentStatus::OptedIn);
+
+    expect(ZoomSmsConsent::query()->where('phone_number', '+12125552222')->first()?->status)
+        ->toBe(SmsConsentStatus::OptedOut);
+});

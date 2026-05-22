@@ -151,8 +151,13 @@
             window.addEventListener('unhandledrejection', (event) => {
                 const reason = event.reason;
                 const message = typeof reason === 'string' ? reason : reason?.message;
+                const isAdminQueuePage = window.location.pathname === '/admin/queue'
+                    || window.location.pathname.startsWith('/admin/queue/');
 
-                if (typeof message !== 'string' || !message.includes('Component not found:')) {
+                if (
+                    (typeof message !== 'string' || !message.includes('Component not found:'))
+                    && !(reason == null && isAdminQueuePage)
+                ) {
                     return;
                 }
 
