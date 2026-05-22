@@ -11,6 +11,8 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
+
 
 #[Layout('layouts.admin')]
 #[Title('Scheduler Task Form')]
@@ -201,7 +203,7 @@ class Form extends Component
             $this->authorize('update', $task);
 
             $payload['task_config'] = $this->buildTaskConfig(is_array($task->task_config) ? $task->task_config : []);
-            $payload['updated_by'] = auth()->id();
+            $payload['updated_by'] = Auth::id();
             $task->update($payload);
         } else {
             $this->authorize('create', ScheduledTask::class);
@@ -209,8 +211,8 @@ class Form extends Component
             $availableTask = AvailableTask::query()->find($validated['available_task_id']);
             $payload['task_config'] = $this->buildTaskConfig(is_array($availableTask?->task_config) ? $availableTask->task_config : []);
 
-            $payload['created_by'] = auth()->id();
-            $payload['updated_by'] = auth()->id();
+            $payload['created_by'] = Auth::id();
+            $payload['updated_by'] = Auth::id();
             $task = ScheduledTask::query()->create($payload);
             $this->scheduledTask = $task;
         }

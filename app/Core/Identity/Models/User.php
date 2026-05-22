@@ -26,7 +26,6 @@ use Throwable;
 
 /**
  * @property string $id
- *
  * @mixin IdeHelperUser
  */
 class User extends Authenticatable

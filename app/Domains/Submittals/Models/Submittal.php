@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @mixin IdeHelperSubmittal
+ */
 class Submittal extends Model
 {
     use HasFactory, HasUlids, SoftDeletes;
