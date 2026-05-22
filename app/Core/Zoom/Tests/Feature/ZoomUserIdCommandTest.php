@@ -1,17 +1,16 @@
 <?php
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\Zoom\Data\ZoomConfig;
 use App\Core\Zoom\Services\ZoomTokenService;
 use Illuminate\Support\Facades\Http;
 
 it('prints zoom user id from users me endpoint', function (): void {
-    config([
-        'services.zoom.account_id' => 'account-123',
-        'services.zoom.client_id' => 'client-123',
-        'services.zoom.client_secret' => 'secret-123',
-        'services.zoom.api_base_url' => 'https://api.zoom.test/v2',
-        'services.zoom.timeout' => 15,
-    ]);
+    Settings::set('zoom.account_id', 'account-123');
+    Settings::set('zoom.client_id', 'client-123');
+    Settings::set('zoom.client_secret', 'secret-123');
+    Settings::set('zoom.api_base_url', 'https://api.zoom.test/v2');
+    Settings::set('zoom.timeout', '15');
 
     app()->forgetInstance(ZoomConfig::class);
     app()->forgetInstance(ZoomTokenService::class);
@@ -37,13 +36,11 @@ it('prints zoom user id from users me endpoint', function (): void {
 });
 
 it('prints api error details when users me request fails', function (): void {
-    config([
-        'services.zoom.account_id' => 'account-123',
-        'services.zoom.client_id' => 'client-123',
-        'services.zoom.client_secret' => 'secret-123',
-        'services.zoom.api_base_url' => 'https://api.zoom.test/v2',
-        'services.zoom.timeout' => 15,
-    ]);
+    Settings::set('zoom.account_id', 'account-123');
+    Settings::set('zoom.client_id', 'client-123');
+    Settings::set('zoom.client_secret', 'secret-123');
+    Settings::set('zoom.api_base_url', 'https://api.zoom.test/v2');
+    Settings::set('zoom.timeout', '15');
 
     app()->forgetInstance(ZoomConfig::class);
     app()->forgetInstance(ZoomTokenService::class);
