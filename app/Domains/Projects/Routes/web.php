@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('projects')
     ->name('projects.')
     ->group(function (): void {
+        Route::get('/mobile', function () {
+            return redirect()->route('projects.mobile.index');
+        })->name('legacy-mobile-index');
+
+        Route::get('/mobile/{project}/{path?}', function (string $project) {
+            return redirect()->route('projects.mobile.show', ['project' => $project]);
+        })->where('path', '.*')->name('legacy-mobile-show');
+
         Route::livewire('/', Index::class)
             ->middleware('can:viewAny,'.Project::class)
             ->name('index');
