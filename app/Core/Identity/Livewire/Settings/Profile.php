@@ -19,6 +19,8 @@ class Profile extends Component
 
     public string $last_name = '';
 
+    public string $phone = '';
+
     public string $username = '';
 
     public string $email = '';
@@ -30,6 +32,7 @@ class Profile extends Component
     {
         $this->first_name = Auth::user()->first_name;
         $this->last_name = Auth::user()->last_name;
+        $this->phone = (string) (Auth::user()->phone ?? '');
         $this->username = Auth::user()->username;
         $this->email = Auth::user()->email;
     }
@@ -42,6 +45,7 @@ class Profile extends Component
         $user = Auth::user();
 
         $validated = $this->validate($this->profileRules($user->id));
+        $validated['phone'] = filled($validated['phone'] ?? null) ? $validated['phone'] : null;
 
         $user->fill($validated);
 

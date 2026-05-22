@@ -14,6 +14,7 @@ it('has tables and columns required by user and role models', function () {
             'id',
             'first_name',
             'last_name',
+            'phone',
             'username',
             'email',
             'password',

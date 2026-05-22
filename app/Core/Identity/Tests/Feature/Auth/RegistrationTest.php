@@ -16,6 +16,7 @@ test('new users can register', function () {
     $response = $this->post(route('register.store'), [
         'first_name' => 'John',
         'last_name' => 'Doe',
+        'phone' => '+12125551234',
         'username' => 'johndoe',
         'email' => 'test@example.com',
         'password' => 'password',
@@ -28,6 +29,7 @@ test('new users can register', function () {
     $this->assertAuthenticated();
 
     $user = User::query()->where('email', 'test@example.com')->firstOrFail();
+    expect($user->phone)->toEqual('+12125551234');
 
     Notification::assertNotSentTo($user, UserInvitationNotification::class);
 });

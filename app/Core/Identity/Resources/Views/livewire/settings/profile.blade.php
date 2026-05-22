@@ -9,6 +9,8 @@
 
             <flux:input wire:model="last_name" :label="__('Last Name')" type="text" required autocomplete="family-name" />
 
+            <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />
+
             <flux:input wire:model="username" :label="__('Username')" type="text" required autocomplete="username" />
 
             <div>

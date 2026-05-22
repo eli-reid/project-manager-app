@@ -85,7 +85,17 @@ class SettingsGroupList extends Component
      */
     public function getGroupDisplayName(string $group): string
     {
-        return ucfirst(str_replace('_', ' ', $group));
+        $segments = collect(explode('.', $group))
+            ->map(function (string $segment): string {
+                return ucfirst(str_replace('_', ' ', $segment));
+            })
+            ->filter();
+
+        if ($segments->isEmpty()) {
+            return 'General';
+        }
+
+        return $segments->join(' / ');
     }
 
     public function render(): View

@@ -33,6 +33,12 @@
                 @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Phone</label>
+                <input type="tel" wire:model.live="phone" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                @error('phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             @if ($isEdit)
                 <div>
                     <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Password (optional)</label>

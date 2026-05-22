@@ -74,6 +74,7 @@ it('allows creating users and roles through livewire forms', function () {
     Livewire::test(Form::class)
         ->set('first_name', 'Casey')
         ->set('last_name', 'Jones')
+        ->set('phone', '+17135551234')
         ->set('username', 'casey.jones')
         ->set('email', 'casey@example.com')
         ->set('selectedRoleIds', [$activeRoleId])
@@ -84,6 +85,7 @@ it('allows creating users and roles through livewire forms', function () {
 
     $createdUser = User::query()->where('email', 'casey@example.com')->firstOrFail();
     expect($createdUser->password_change_required)->toBeTrue()
+        ->and($createdUser->phone)->toEqual('+17135551234')
         ->and($createdUser->roles()->whereKey($activeRoleId)->exists())->toBeTrue();
 
     Notification::assertSentTo($createdUser, function (UserInvitationNotification $notification, array $channels): bool {

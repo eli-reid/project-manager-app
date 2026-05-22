@@ -42,6 +42,8 @@ class Form extends Component
 
     public string $last_name = '';
 
+    public string $phone = '';
+
     public string $username = '';
 
     public string $email = '';
@@ -114,6 +116,7 @@ class Form extends Component
             $this->isEdit = true;
             $this->first_name = $user->first_name;
             $this->last_name = $user->last_name;
+            $this->phone = (string) ($user->phone ?? '');
             $this->username = $user->username;
             $this->email = $user->email;
             $this->is_active = (bool) $user->is_active;
@@ -140,6 +143,7 @@ class Form extends Component
         $rules = [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($this->user?->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user?->id)],
             'is_active' => ['boolean'],
@@ -163,6 +167,7 @@ class Form extends Component
         $payload = [
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
+            'phone' => filled($validated['phone'] ?? null) ? $validated['phone'] : null,
             'username' => $validated['username'],
             'email' => $validated['email'],
             'is_active' => (bool) $validated['is_active'],

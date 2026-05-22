@@ -18,7 +18,7 @@
 
         <div class="flex items-end justify-between">
             <div>
-                <flux:heading size="lg">{{ ucfirst(str_replace('_', ' ', $group)) }} {{ __('Settings') }}</flux:heading>
+                <flux:heading size="lg">{{ ucwords(str_replace(['_', '.'], ' ', $group)) }} {{ __('Settings') }}</flux:heading>
                 <flux:text class="mt-1">{{ __('Manage :count settings in this group', ['count' => count($settingsMetadata)]) }}</flux:text>
             </div>
         </div>

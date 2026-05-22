@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Settings\Facades\Settings;
+use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Zoom\Data\ZoomConfig;
 
@@ -66,4 +67,13 @@ it('resolves zoom runtime config from saved settings', function (): void {
     Settings::set('zoom.timeout', '');
     Settings::set('zoom.retry_times', '');
     Settings::set('zoom.retry_sleep_ms', '');
+});
+
+it('stores zoom settings in a dedicated services zoom group', function (): void {
+    app(DomainSettingsSynchronizer::class)->sync();
+
+    $zoomSetting = SettingsSqlite::query()->where('key', 'zoom.account_id')->first();
+
+    expect($zoomSetting)->not->toBeNull()
+        ->and($zoomSetting?->group)->toBe('services.zoom');
 });

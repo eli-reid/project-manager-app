@@ -54,6 +54,16 @@
                 autocomplete="username"
                 :placeholder="__('Username')"
             />  
+
+            <!-- Phone -->
+            <flux:input
+                name="phone"
+                :label="__('Phone')"
+                :value="old('phone')"
+                type="tel"
+                autocomplete="tel"
+                :placeholder="__('Phone (optional)')"
+            />
             
 
             <!-- Password -->

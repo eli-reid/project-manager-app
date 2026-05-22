@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 class CreateInvitedUser
 {
     /**
-     * @param  array{first_name: string, last_name: string, username: string, email: string, is_active: bool}  $attributes
+     * @param  array{first_name: string, last_name: string, phone: string|null, username: string, email: string, is_active: bool}  $attributes
      * @param  array<int, string>  $roleIds
      */
     public function handle(array $attributes, array $roleIds): User
@@ -21,6 +21,7 @@ class CreateInvitedUser
             $user = new User([
                 'first_name' => $attributes['first_name'],
                 'last_name' => $attributes['last_name'],
+                'phone' => $attributes['phone'] ?? null,
                 'username' => $attributes['username'],
                 'email' => $attributes['email'],
                 'password' => $temporaryPassword,
