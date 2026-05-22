@@ -24,6 +24,7 @@ class TimecardReminderService
         $daysAfterWeekEnd = (int) ($taskConfig['days_after_week_end'] ?? 0);
         $batchSize = (int) ($taskConfig['batch_size'] ?? 10);
         $batchSize = max(1, min($batchSize, 100));
+        $ignoreDailyReminderLimit = (bool) ($taskConfig['ignore_daily_reminder_limit'] ?? false);
         $statuses = $this->normalizeStatuses($taskConfig['statuses'] ?? [
             Timecard::STATUS_DRAFT,
             Timecard::STATUS_REJECTED,
@@ -35,16 +36,17 @@ class TimecardReminderService
             ->toDateString();
 
         // Send digest reminders for existing draft/rejected timecards.
-        $sent = $this->sendExistingTimecardReminders($targetWeekEnding, $statuses, $batchSize);
+        $sent = $this->sendExistingTimecardReminders($targetWeekEnding, $statuses, $batchSize, $ignoreDailyReminderLimit);
 
         // Send reminders for required users with missing submitted/approved timecards.
-        $sent += $this->sendMissingTimecardReminders($targetWeekEnding, $batchSize);
+        $sent += $this->sendMissingTimecardReminders($targetWeekEnding, $batchSize, $ignoreDailyReminderLimit);
 
         Log::info('Timecard reminder evaluation completed.', [
             'target_week_ending' => $targetWeekEnding,
             'days_after_week_end' => $daysAfterWeekEnd,
             'batch_size' => $batchSize,
             'statuses' => $statuses,
+            'ignore_daily_reminder_limit' => $ignoreDailyReminderLimit,
             'sent_count' => $sent,
         ]);
 
@@ -54,7 +56,7 @@ class TimecardReminderService
     /**
      * Send digest reminders for existing timecards with draft/rejected status.
      */
-    private function sendExistingTimecardReminders(string $targetWeekEnding, array $statuses, int $batchSize): int
+    private function sendExistingTimecardReminders(string $targetWeekEnding, array $statuses, int $batchSize, bool $ignoreDailyReminderLimit): int
     {
         $timecards = Timecard::query()
             ->with('user')
@@ -87,7 +89,7 @@ class TimecardReminderService
                     continue;
                 }
 
-                if ($this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
+                if (! $ignoreDailyReminderLimit && $this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
                     $skippedAlreadySentToday++;
 
                     continue;
@@ -105,6 +107,7 @@ class TimecardReminderService
             'existing_timecards_found' => $timecards->count(),
             'distinct_existing_users' => $timecardsByUser->count(),
             'existing_eligible_to_send' => $sent,
+            'ignore_daily_reminder_limit' => $ignoreDailyReminderLimit,
             'existing_skipped_inactive_or_missing_user' => $skippedInactiveOrMissingUser,
             'existing_skipped_not_required' => $skippedNotRequired,
             'existing_skipped_already_sent_today' => $skippedAlreadySentToday,
@@ -116,7 +119,7 @@ class TimecardReminderService
     /**
      * Send reminders for required users with missing submitted/approved timecards.
      */
-    private function sendMissingTimecardReminders(string $targetWeekEnding, int $batchSize): int
+    private function sendMissingTimecardReminders(string $targetWeekEnding, int $batchSize, bool $ignoreDailyReminderLimit): int
     {
         /** @var Collection<int, TimecardRequiredUser> $requiredEntries */
         $requiredEntries = TimecardRequiredUser::query()
@@ -168,7 +171,7 @@ class TimecardReminderService
                     continue;
                 }
 
-                if ($this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
+                if (! $ignoreDailyReminderLimit && $this->alreadySentReminderToday((string) $user->id, $targetWeekEnding)) {
                     $skippedAlreadySentToday++;
 
                     continue;
@@ -185,6 +188,7 @@ class TimecardReminderService
             'target_week_starting' => $weekStart,
             'required_entries_active' => $requiredEntries->count(),
             'missing_eligible_to_send' => $sent,
+            'ignore_daily_reminder_limit' => $ignoreDailyReminderLimit,
             'missing_skipped_inactive_or_missing_user' => $skippedInactiveOrMissingUser,
             'missing_skipped_submitted_or_approved_exists' => $skippedSubmittedOrApprovedExists,
             'missing_skipped_any_timecard_exists_for_week' => $skippedAnyTimecardExistsForWeek,

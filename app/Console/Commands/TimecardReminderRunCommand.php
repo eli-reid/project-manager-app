@@ -14,7 +14,8 @@ class TimecardReminderRunCommand extends Command
     protected $signature = 'timecards:reminders:run
         {--days-after-week-end=0 : Days after week ending to target}
         {--batch-size=10 : Reminder batch size (1-100)}
-        {--statuses=draft,rejected : Comma-separated statuses for existing timecards}';
+        {--statuses=draft,rejected : Comma-separated statuses for existing timecards}
+        {--ignore-daily-reminder-limit : Bypass same-day reminder dedupe cache and force resend}';
 
     /**
      * @var string
@@ -26,13 +27,19 @@ class TimecardReminderRunCommand extends Command
         $daysAfterWeekEnd = max(0, (int) $this->option('days-after-week-end'));
         $batchSize = max(1, min(100, (int) $this->option('batch-size')));
         $statuses = $this->parseStatuses((string) $this->option('statuses'));
+        $ignoreDailyReminderLimit = (bool) $this->option('ignore-daily-reminder-limit');
 
         $this->info('Running timecard reminders now...');
+
+        if ($ignoreDailyReminderLimit) {
+            $this->warn('Daily reminder dedupe cache is being bypassed for this run.');
+        }
 
         $taskConfig = [
             'days_after_week_end' => $daysAfterWeekEnd,
             'batch_size' => $batchSize,
             'statuses' => $statuses,
+            'ignore_daily_reminder_limit' => $ignoreDailyReminderLimit,
         ];
 
         try {
