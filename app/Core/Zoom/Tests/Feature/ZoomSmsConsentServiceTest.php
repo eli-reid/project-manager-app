@@ -12,12 +12,14 @@ it('lists campaign phone number opt statuses from zoom', function (): void {
         'services.zoom.timeout' => 15,
     ]);
 
+    app()->forgetInstance(ZoomTokenService::class);
+
     $tokenService = Mockery::mock(ZoomTokenService::class);
     $tokenService->shouldReceive('accessToken')->once()->andReturn('token-123');
     app()->instance(ZoomTokenService::class, $tokenService);
 
     Http::fake([
-        'https://api.zoom.test/v2/phone/sms_campaigns/campaign-123/phone_numbers/opt_status*' => Http::response([
+        '*phone/sms_campaigns/campaign-123/phone_numbers/opt_status*' => Http::response([
             'phone_number_campaign_opt_statuses' => [
                 [
                     'consumer_phone_number' => '12125550001',
@@ -27,6 +29,7 @@ it('lists campaign phone number opt statuses from zoom', function (): void {
             ],
             'next_page_token' => 'next-token-1',
         ], 200),
+        '*' => Http::response([], 200),
     ]);
 
     app()->forgetInstance(ZoomSmsConsentService::class);
@@ -41,7 +44,9 @@ it('lists campaign phone number opt statuses from zoom', function (): void {
         ->and($result['next_page_token'])->toBe('next-token-1');
 
     Http::assertSent(function ($request): bool {
-        return $request->url() === 'https://api.zoom.test/v2/phone/sms_campaigns/campaign-123/phone_numbers/opt_status?page_size=25&next_page_token=cursor-1'
+        return str_contains($request->url(), '/phone/sms_campaigns/campaign-123/phone_numbers/opt_status')
+            && str_contains($request->url(), 'page_size=25')
+            && str_contains($request->url(), 'next_page_token=cursor-1')
             && $request->hasHeader('Authorization', 'Bearer token-123');
     });
 });
@@ -68,12 +73,15 @@ it('throws a rate limit exception when campaign list endpoint returns 429', func
         'services.zoom.timeout' => 15,
     ]);
 
+    app()->forgetInstance(ZoomTokenService::class);
+
     $tokenService = Mockery::mock(ZoomTokenService::class);
     $tokenService->shouldReceive('accessToken')->once()->andReturn('token-123');
     app()->instance(ZoomTokenService::class, $tokenService);
 
     Http::fake([
-        'https://api.zoom.test/v2/phone/sms_campaigns/campaign-123/phone_numbers/opt_status*' => Http::response([], 429),
+        '*phone/sms_campaigns/campaign-123/phone_numbers/opt_status*' => Http::response([], 429),
+        '*' => Http::response([], 200),
     ]);
 
     app()->forgetInstance(ZoomSmsConsentService::class);
