@@ -146,6 +146,29 @@
                     });
                 });
             });
+
+            // Recover from stale SPA navigation state by forcing a full reload.
+            window.addEventListener('unhandledrejection', (event) => {
+                const reason = event.reason;
+                const message = typeof reason === 'string' ? reason : reason?.message;
+
+                if (typeof message !== 'string' || !message.includes('Component not found:')) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                if (sessionStorage.getItem('livewire-component-recovery') === '1') {
+                    return;
+                }
+
+                sessionStorage.setItem('livewire-component-recovery', '1');
+                window.location.reload();
+            });
+
+            window.addEventListener('pageshow', () => {
+                sessionStorage.removeItem('livewire-component-recovery');
+            });
         </script>
     </body>
 </html>
