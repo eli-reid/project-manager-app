@@ -7,16 +7,36 @@ use App\Core\Zoom\Services\ZoomSmsConsentService;
 
 it('syncs a single phone number when phone option is provided', function (): void {
     $service = Mockery::mock(ZoomSmsConsentService::class);
-    $service->shouldReceive('syncFromZoom')
+    $service->shouldReceive('syncFromZoomWithResponse')
         ->once()
         ->with('2125551212')
-        ->andReturn(SmsConsentStatus::OptedIn);
+        ->andReturn([
+            'status' => SmsConsentStatus::OptedIn,
+            'response_status' => 200,
+            'response_json' => [
+                'phone_number_campaign_opt_statuses' => [
+                    [
+                        'consumer_phone_number' => '12125551212',
+                        'zoom_phone_user_number' => '15556667777',
+                        'opt_status' => 'opt_in',
+                    ],
+                ],
+            ],
+            'response_body' => '{"phone_number_campaign_opt_statuses":[{"consumer_phone_number":"12125551212"}]}',
+            'request_phone_number' => '+12125551212',
+            'request_consumer_phone_number' => '12125551212',
+            'request_zoom_phone_user_number' => '15556667777',
+            'error' => null,
+        ]);
 
     app()->instance(ZoomSmsConsentService::class, $service);
 
     $this->artisan('zoom:sms-consent-sync --phone=2125551212')
         ->expectsOutputToContain('Single-number Zoom consent sync complete.')
         ->expectsOutputToContain('Status: opt_in')
+        ->expectsOutputToContain('Response status: 200')
+        ->expectsOutputToContain('Full API response:')
+        ->expectsOutputToContain('phone_number_campaign_opt_statuses')
         ->assertSuccessful();
 });
 

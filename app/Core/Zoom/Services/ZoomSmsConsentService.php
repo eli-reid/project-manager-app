@@ -138,11 +138,45 @@ class ZoomSmsConsentService
      */
     public function syncFromZoom(string $phoneNumber): ?SmsConsentStatus
     {
+        $result = $this->syncFromZoomWithResponse($phoneNumber);
+
+        return $result['status'];
+    }
+
+    /**
+     * Checks the Zoom API for an existing opt-status record for a single number,
+     * writes the result locally, and returns a detailed response payload.
+     *
+     * @param  string  $phoneNumber  Recipient number in E.164 format (+1XXXXXXXXXX)
+     * @return array{
+     *   status: SmsConsentStatus|null,
+     *   response_status: int|null,
+     *   response_json: array<string, mixed>|null,
+     *   response_body: string|null,
+     *   request_phone_number: string,
+     *   request_consumer_phone_number: string|null,
+     *   request_zoom_phone_user_number: string|null,
+     *   error: string|null
+     * }
+     */
+    public function syncFromZoomWithResponse(string $phoneNumber): array
+    {
         if (! $this->config->canCheckConsentViaApi()) {
-            return null;
+            return [
+                'status' => null,
+                'response_status' => null,
+                'response_json' => null,
+                'response_body' => null,
+                'request_phone_number' => $phoneNumber,
+                'request_consumer_phone_number' => null,
+                'request_zoom_phone_user_number' => null,
+                'error' => 'Zoom consent lookup is not configured. Missing zoom_user_id and/or from_number.',
+            ];
         }
 
         $normalizedPhoneNumber = $this->normalizeUsPhoneNumber($phoneNumber);
+        $fromNumber = null;
+        $toNumber = null;
 
         try {
             $token = $this->tokenService->accessToken();
@@ -165,7 +199,19 @@ class ZoomSmsConsentService
                     'body' => $response->body(),
                 ]);
 
-                return null;
+                /** @var array<string, mixed>|null $errorJson */
+                $errorJson = $response->json();
+
+                return [
+                    'status' => null,
+                    'response_status' => $response->status(),
+                    'response_json' => is_array($errorJson) ? $errorJson : null,
+                    'response_body' => $response->body(),
+                    'request_phone_number' => $normalizedPhoneNumber,
+                    'request_consumer_phone_number' => $toNumber,
+                    'request_zoom_phone_user_number' => $fromNumber,
+                    'error' => null,
+                ];
             }
 
             /**
@@ -183,7 +229,16 @@ class ZoomSmsConsentService
             $entries = $data['phone_number_campaign_opt_statuses'] ?? [];
 
             if (empty($entries)) {
-                return null;
+                return [
+                    'status' => null,
+                    'response_status' => $response->status(),
+                    'response_json' => is_array($data) ? $data : null,
+                    'response_body' => $response->body(),
+                    'request_phone_number' => $normalizedPhoneNumber,
+                    'request_consumer_phone_number' => $toNumber,
+                    'request_zoom_phone_user_number' => $fromNumber,
+                    'error' => null,
+                ];
             }
 
             $status = match ($entries[0]['opt_status'] ?? '') {
@@ -204,14 +259,32 @@ class ZoomSmsConsentService
                 );
             }
 
-            return $status;
+            return [
+                'status' => $status,
+                'response_status' => $response->status(),
+                'response_json' => is_array($data) ? $data : null,
+                'response_body' => $response->body(),
+                'request_phone_number' => $normalizedPhoneNumber,
+                'request_consumer_phone_number' => $toNumber,
+                'request_zoom_phone_user_number' => $fromNumber,
+                'error' => null,
+            ];
         } catch (\Throwable $exception) {
             Log::warning('Zoom opt-status sync threw an exception.', [
                 'phone_number' => $normalizedPhoneNumber,
                 'error' => $exception->getMessage(),
             ]);
 
-            return null;
+            return [
+                'status' => null,
+                'response_status' => null,
+                'response_json' => null,
+                'response_body' => null,
+                'request_phone_number' => $normalizedPhoneNumber,
+                'request_consumer_phone_number' => $toNumber,
+                'request_zoom_phone_user_number' => $fromNumber,
+                'error' => $exception->getMessage(),
+            ];
         }
     }
 

@@ -29,11 +29,32 @@ class ZoomSmsConsentSyncCommand extends Command
 
         try {
             if ($phone !== '') {
-                $status = $consentService->syncFromZoom($phone);
+                $result = $consentService->syncFromZoomWithResponse($phone);
+                $status = $result['status'] ?? null;
 
                 $this->info('Single-number Zoom consent sync complete.');
                 $this->line('Phone: '.$phone);
                 $this->line('Status: '.$this->statusLabel($status));
+                $this->line('Request consumer_phone_number: '.((string) ($result['request_consumer_phone_number'] ?? '') ?: '(none)'));
+                $this->line('Request zoom_phone_user_number: '.((string) ($result['request_zoom_phone_user_number'] ?? '') ?: '(none)'));
+                $this->line('Response status: '.((string) ($result['response_status'] ?? '') ?: '(none)'));
+
+                $responseJson = $result['response_json'] ?? null;
+                $responseBody = (string) ($result['response_body'] ?? '');
+
+                $this->line('Full API response:');
+                if (is_array($responseJson)) {
+                    $this->line((string) json_encode($responseJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                } elseif ($responseBody !== '') {
+                    $this->line($responseBody);
+                } else {
+                    $this->line('(empty)');
+                }
+
+                $error = (string) ($result['error'] ?? '');
+                if ($error !== '') {
+                    $this->warn('Sync warning: '.$error);
+                }
 
                 return self::SUCCESS;
             }
