@@ -1,7 +1,13 @@
 <?php
 
-it('includes payroll links in the mobile app menu', function (): void {
+it('mounts the shared app sidebar livewire component in the layout', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../resources/views/layouts/app/sidebar.blade.php');
+
+    expect($view)->toContain('<livewire:users::layout.app-sidebar />');
+});
+
+it('includes payroll links in the mobile app sidebar component menu', function (): void {
+    $view = file_get_contents(__DIR__.'/../../../../../app/Core/Auth/User/Resources/Views/livewire/layout/app-sidebar.blade.php');
 
     expect($view)->toContain('@can(\'payroll-stubs.view-own\')');
     expect($view)->toContain('data-test="payroll-link-mobile"');
