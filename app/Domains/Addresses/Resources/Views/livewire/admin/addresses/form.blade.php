@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+<div class="w-full space-y-6">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $isEdit ? 'Edit Address' : 'Create Address' }}</h1>

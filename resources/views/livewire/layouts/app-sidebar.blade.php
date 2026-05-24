@@ -68,6 +68,6 @@
 
         <flux:spacer />
 
-        @include('auth-user::partials.mobile-user-menu')
+        <livewire:auth.user.mobile-user-menu />
     </flux:header>
 </div>

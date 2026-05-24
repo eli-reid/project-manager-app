@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-7xl space-y-4 px-4 py-6 sm:px-6 lg:px-8">
+<div class="w-full space-y-4">
     <div class="flex items-center justify-between gap-3">
         <flux:heading size="xl">Submittal Approval Queue</flux:heading>
         <a href="{{ route('submittals.index') }}" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">User View</a>

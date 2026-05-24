@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-5xl space-y-4 px-4 py-6 sm:px-6 lg:px-8">
+<div class="w-full space-y-4">
     <div class="flex items-start justify-between gap-3">
         <div>
             <flux:heading size="xl">Review: {{ $submittal->type }}</flux:heading>

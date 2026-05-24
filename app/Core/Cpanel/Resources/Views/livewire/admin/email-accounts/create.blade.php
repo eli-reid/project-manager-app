@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+<div class="w-full space-y-6">
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
             <flux:heading size="xl" level="1">Create Mailbox</flux:heading>
