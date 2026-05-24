@@ -68,7 +68,7 @@
                 </flux:tooltip>
             </flux:navbar>
 
-            <x-desktop-user-menu />
+            @include('auth-user::partials.desktop-user-menu')
         </flux:header>
 
         <!-- Mobile Menu -->

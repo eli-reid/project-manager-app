@@ -7,8 +7,17 @@ it('mounts the shared app sidebar livewire component in the layout', function ()
     expect($view)->toContain('lg:ms-64');
 });
 
-it('includes payroll links in the mobile app sidebar component menu', function (): void {
+it('keeps cross-domain sidebar navigation in shared app resources', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../app/Core/Auth/User/Resources/Views/livewire/layout/app-sidebar.blade.php');
+
+    expect($view)->toContain("@include('partials.nav.sidebar-user-nav')");
+    expect($view)->toContain("@include('partials.nav.sidebar-admin-nav')");
+    expect($view)->toContain("@include('auth-user::partials.desktop-user-menu')");
+    expect($view)->toContain("@include('auth-user::partials.mobile-user-menu')");
+});
+
+it('includes payroll links in the mobile user-domain account menu', function (): void {
+    $view = file_get_contents(__DIR__.'/../../../../../app/Core/Auth/User/Resources/Views/partials/mobile-user-menu.blade.php');
 
     expect($view)->toContain('@can(\'payroll-stubs.view-own\')');
     expect($view)->toContain('data-test="payroll-link-mobile"');
