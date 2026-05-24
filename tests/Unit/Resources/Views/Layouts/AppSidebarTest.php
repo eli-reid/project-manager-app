@@ -12,7 +12,7 @@ it('keeps cross-domain sidebar navigation in shared app resources', function ():
 
     expect($view)->toContain("@include('partials.nav.sidebar-user-nav')");
     expect($view)->toContain("@include('partials.nav.sidebar-admin-nav')");
-    expect($view)->toContain("@include('auth-user::partials.desktop-user-menu')");
+    expect($view)->toContain('<livewire:auth.user.desktop-user-menu />');
     expect($view)->toContain("@include('auth-user::partials.mobile-user-menu')");
 });
 

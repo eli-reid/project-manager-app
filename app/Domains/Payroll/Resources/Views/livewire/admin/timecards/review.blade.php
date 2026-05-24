@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+<section class="w-full space-y-6">
     <div>
         <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Payroll Timecard Review</h1>
         <p class="text-sm text-zinc-500 dark:text-zinc-400">Validate payroll-critical timecard entries and compare them against daily report totals.</p>
@@ -117,4 +117,4 @@
             </table>
         </div>
     </div>
-</div>
+</section>

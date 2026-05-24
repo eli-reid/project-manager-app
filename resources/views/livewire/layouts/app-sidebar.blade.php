@@ -52,7 +52,7 @@
 
         @auth
             <div class="hidden lg:block">
-                @include('auth-user::partials.desktop-user-menu')
+                <livewire:auth.user.desktop-user-menu />
             </div>
         @else
             <div class="hidden px-4 pb-4 lg:block">

@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+<section class="w-full space-y-6">
     <div class="flex items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Timecard Required Users</h1>
@@ -120,4 +120,4 @@
             {{ $message }}
         </div>
     @enderror
-</div>
+</section>

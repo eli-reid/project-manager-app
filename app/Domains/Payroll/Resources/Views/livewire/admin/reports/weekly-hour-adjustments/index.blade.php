@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+<section class="w-full space-y-6">
     <div class="flex items-start justify-between gap-4">
         <div>
             <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Weekly Hour Adjustment Report</h1>
@@ -124,7 +124,7 @@
     <div class="text-center text-xs text-zinc-500 dark:text-zinc-400 print:hidden">
         <p>Generated on {{ now()->format('M j, Y \a\t g:i A') }}</p>
     </div>
-</div>
+</section>
 
 <style>
     @media print {

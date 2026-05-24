@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+<section class="w-full space-y-6">
     <div class="flex items-center justify-between gap-4">
         <div>
             <flux:heading size="xl" level="1">{{ $isEdit ? __('Edit Timecard') : __('Create Timecard') }}</flux:heading>
@@ -136,4 +136,4 @@
             <button type="submit" wire:loading.attr="disabled" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">{{ $isEdit ? __('Update Timecard') : __('Create Timecard') }}</button>
         </div>
     </form>
-</div>
+</section>
