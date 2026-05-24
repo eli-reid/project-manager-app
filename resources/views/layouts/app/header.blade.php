@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <livewire:users::layout.app-header />
+        <livewire:layout.app-header />
 
         {{ $slot }}
 

@@ -36,9 +36,10 @@
                         type="button"
                         icon="envelope"
                         data-test="user-webmail-menu-link-mobile"
-                        data-webmail-launcher
-                        data-webmail-session-endpoint="{{ route('webmail.session') }}"
                         data-webmail-fallback-url="{{ route('webmail.redirect') }}"
+                        wire:click="launchMailbox"
+                        wire:loading.attr="disabled"
+                        wire:target="launchMailbox"
                     >
                         {{ __('Webmail') }}
                     </flux:menu.item>
