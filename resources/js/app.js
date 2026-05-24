@@ -22,3 +22,45 @@ document.addEventListener('livewire:navigate', (event) => {
         // Malformed URL — let Livewire handle it normally.
     }
 });
+
+// When a Livewire request fails with 419 (session expired), force a hard reload
+// so Laravel can render a fresh page with a valid CSRF token.
+document.addEventListener('livewire:init', () => {
+    Livewire.hook('request', ({ fail }) => {
+        fail(({ status, preventDefault }) => {
+            if (status === 419) {
+                preventDefault();
+                window.location.reload();
+            }
+        });
+    });
+});
+
+// Recover from stale SPA state by forcing one full reload if Livewire cannot
+// resolve a component during navigation.
+window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    const message = typeof reason === 'string' ? reason : reason?.message;
+    const isAdminQueuePage = window.location.pathname === '/admin/queue'
+        || window.location.pathname.startsWith('/admin/queue/');
+
+    if (
+        (typeof message !== 'string' || !message.includes('Component not found:'))
+        && !(reason == null && isAdminQueuePage)
+    ) {
+        return;
+    }
+
+    event.preventDefault();
+
+    if (sessionStorage.getItem('livewire-component-recovery') === '1') {
+        return;
+    }
+
+    sessionStorage.setItem('livewire-component-recovery', '1');
+    window.location.reload();
+});
+
+window.addEventListener('pageshow', () => {
+    sessionStorage.removeItem('livewire-component-recovery');
+});
