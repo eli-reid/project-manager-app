@@ -14,7 +14,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.admin')]
+#[Layout('layouts.app')]
 #[Title('Project Form')]
 class Form extends Component
 {

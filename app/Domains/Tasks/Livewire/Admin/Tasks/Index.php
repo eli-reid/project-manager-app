@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.admin')]
+#[Layout('layouts.app')]
 #[Title('Tasks')]
 class Index extends Component
 {

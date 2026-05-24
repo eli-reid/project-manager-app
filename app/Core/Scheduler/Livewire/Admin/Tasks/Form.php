@@ -14,7 +14,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 
 
-#[Layout('layouts.admin')]
+#[Layout('layouts.app')]
 #[Title('Scheduler Task Form')]
 class Form extends Component
 {

@@ -25,7 +25,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Layout('layouts.admin')]
+#[Layout('layouts.app')]
 #[Title('Project Details')]
 class Show extends Component
 {
