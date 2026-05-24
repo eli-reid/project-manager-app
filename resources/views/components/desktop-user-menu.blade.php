@@ -32,7 +32,15 @@
         <flux:menu.separator />
         <flux:menu.radio.group>
             @if ($showWebmailLink)
-                <flux:menu.item :href="route('webmail.redirect')" icon="envelope" data-test="user-webmail-menu-link">
+                <flux:menu.item
+                    as="button"
+                    type="button"
+                    icon="envelope"
+                    data-test="user-webmail-menu-link"
+                    data-webmail-launcher
+                    data-webmail-session-endpoint="{{ route('webmail.session') }}"
+                    data-webmail-fallback-url="{{ route('webmail.redirect') }}"
+                >
                     {{ __('Webmail') }}
                 </flux:menu.item>
             @endif

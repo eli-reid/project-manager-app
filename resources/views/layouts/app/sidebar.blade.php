@@ -75,7 +75,15 @@
 
                         <flux:menu.radio.group>
                             @if ($showWebmailLink)
-                                <flux:menu.item :href="route('webmail.redirect')" icon="envelope" data-test="user-webmail-menu-link-mobile">
+                                <flux:menu.item
+                                    as="button"
+                                    type="button"
+                                    icon="envelope"
+                                    data-test="user-webmail-menu-link-mobile"
+                                    data-webmail-launcher
+                                    data-webmail-session-endpoint="{{ route('webmail.session') }}"
+                                    data-webmail-fallback-url="{{ route('webmail.redirect') }}"
+                                >
                                     {{ __('Webmail') }}
                                 </flux:menu.item>
                             @endif
@@ -173,6 +181,82 @@
 
             window.addEventListener('pageshow', () => {
                 sessionStorage.removeItem('livewire-component-recovery');
+            });
+
+            document.addEventListener('click', async (event) => {
+                const trigger = event.target.closest('[data-webmail-launcher]');
+                if (!trigger) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                if (trigger.dataset.launching === '1') {
+                    return;
+                }
+
+                const endpoint = trigger.dataset.webmailSessionEndpoint;
+                const fallbackUrl = trigger.dataset.webmailFallbackUrl;
+
+                if (!endpoint) {
+                    if (fallbackUrl) {
+                        window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+                    }
+
+                    return;
+                }
+
+                trigger.dataset.launching = '1';
+
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    const payload = await response.json();
+
+                    if (!response.ok || !payload?.success) {
+                        throw new Error(payload?.message || 'Unable to launch webmail.');
+                    }
+
+                    if (payload.mode === 'post_handshake' && payload.login_url && payload.session) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = payload.login_url;
+                        form.target = '_blank';
+
+                        const sessionInput = document.createElement('input');
+                        sessionInput.type = 'hidden';
+                        sessionInput.name = 'session';
+                        sessionInput.value = payload.session;
+
+                        form.appendChild(sessionInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                        form.remove();
+
+                        return;
+                    }
+
+                    if (payload.url) {
+                        window.open(payload.url, '_blank', 'noopener,noreferrer');
+
+                        return;
+                    }
+
+                    throw new Error('Unable to launch webmail.');
+                } catch (_error) {
+                    if (fallbackUrl) {
+                        window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+                    }
+                } finally {
+                    delete trigger.dataset.launching;
+                }
             });
         </script>
     </body>

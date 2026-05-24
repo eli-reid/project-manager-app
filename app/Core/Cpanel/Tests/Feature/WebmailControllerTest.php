@@ -75,6 +75,74 @@ it('returns auto-login view with no-cache headers when login_url and session are
         ->and($cacheControl)->toContain('max-age=0');
 });
 
+it('returns post-handshake session payload for user launcher endpoint', function () {
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.port', 2083);
+    Settings::set('cpanel.webmail_port', 2096);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => Http::response([
+            'status' => 1,
+            'data' => [
+                'token' => '/cpsess123',
+                'session' => 'john:token:CREATE_WEBMAIL_SESSION_FOR_MAIL_USER,hash',
+                'hostname' => 'webmail.example.test',
+            ],
+        ]),
+    ]);
+
+    $user = User::factory()->create([
+        'username' => 'john',
+        'company_email' => 'john@example.test',
+    ]);
+
+    actingAs($user)
+        ->getJson(route('webmail.session'))
+        ->assertOk()
+        ->assertJson([
+            'success' => true,
+            'mode' => 'post_handshake',
+        ])
+        ->assertJsonPath('login_url', 'https://webmail.example.test:2096/cpsess123/login')
+        ->assertJsonPath('session', 'john:token:CREATE_WEBMAIL_SESSION_FOR_MAIL_USER,hash');
+});
+
+it('returns direct url payload for user launcher endpoint when cpanel returns url', function () {
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.port', 2083);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => Http::response([
+            'status' => 1,
+            'data' => [
+                'url' => 'https://webmail.example.test/session-token',
+            ],
+        ]),
+    ]);
+
+    $user = User::factory()->create([
+        'username' => 'john',
+        'company_email' => 'john@example.test',
+    ]);
+
+    actingAs($user)
+        ->getJson(route('webmail.session'))
+        ->assertOk()
+        ->assertJson([
+            'success' => true,
+            'mode' => 'direct_url',
+            'url' => 'https://webmail.example.test/session-token',
+        ]);
+});
+
 it('returns to dashboard with an error when user has no company email', function () {
     Settings::set('cpanel.url', null);
     Settings::set('cpanel.username', null);
