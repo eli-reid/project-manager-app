@@ -11,7 +11,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('timecards::livewire.layouts.time-management-admin')]
+#[Layout('payroll::livewire.layouts.payroll-admin')]
 #[Title('Dailies')]
 class Index extends Component
 {

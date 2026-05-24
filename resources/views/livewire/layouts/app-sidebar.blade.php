@@ -43,9 +43,9 @@
                 {{ __('Dashboard') }}
             </flux:sidebar.item>
 
-            @include('partials.nav.sidebar-user-nav')
+            <livewire:nav.sidebar-user-nav />
 
-            @include('partials.nav.sidebar-admin-nav')
+            <livewire:nav.sidebar-admin-nav />
         </flux:sidebar.nav>
 
         <flux:spacer />

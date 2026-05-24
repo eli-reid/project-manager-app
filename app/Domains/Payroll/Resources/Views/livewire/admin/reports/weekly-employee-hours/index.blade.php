@@ -21,7 +21,7 @@
             </button>
         </div>
         {{-- Email Modal --}}
-        <x-ui.email-report-modal wire:model="showEmailModal" :title="'Send Report as Email'" />
+        <livewire:ui.email-report-modal wire:model="showEmailModal" :title="'Send Report as Email'" />
     </div>
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end">

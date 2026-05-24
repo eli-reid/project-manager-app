@@ -10,8 +10,8 @@ it('mounts the shared app sidebar livewire component in the layout', function ()
 it('keeps cross-domain sidebar navigation in shared app resources', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/app-sidebar.blade.php');
 
-    expect($view)->toContain("@include('partials.nav.sidebar-user-nav')");
-    expect($view)->toContain("@include('partials.nav.sidebar-admin-nav')");
+    expect($view)->toContain('<livewire:nav.sidebar-user-nav />');
+    expect($view)->toContain('<livewire:nav.sidebar-admin-nav />');
     expect($view)->toContain('<livewire:auth.user.desktop-user-menu />');
     expect($view)->toContain('<livewire:auth.user.mobile-user-menu />');
 });

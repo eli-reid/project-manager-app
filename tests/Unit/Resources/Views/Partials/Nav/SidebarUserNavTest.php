@@ -1,7 +1,7 @@
 <?php
 
 it('includes a dailies link in the user sidebar partial', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-user-nav.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/sidebar-user-nav.blade.php');
 
     expect($view)->toContain('$canViewDailies = $user?->can(\'viewAny\', \\App\\Domains\\Dailies\\Models\\DailyReport::class) ?? false;');
     expect($view)->not->toContain('$showWorkGroup');
@@ -14,7 +14,7 @@ it('includes a dailies link in the user sidebar partial', function (): void {
 });
 
 it('does not include a payroll history link in the user sidebar partial', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-user-nav.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/sidebar-user-nav.blade.php');
 
     expect($view)->not->toContain("@can('payroll-stubs.view-own')");
     expect($view)->not->toContain(':href="route(\'payroll.history\')"');
@@ -23,7 +23,7 @@ it('does not include a payroll history link in the user sidebar partial', functi
 });
 
 it('does not include a payroll forecasting link in the user sidebar partial', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/partials/nav/sidebar-user-nav.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/sidebar-user-nav.blade.php');
 
     expect($view)->not->toContain("@can('reports.payroll.view')");
     expect($view)->not->toContain(':href="route(\'reports.payroll.forecasting.index\')"');
