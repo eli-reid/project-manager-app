@@ -1,7 +1,7 @@
 <?php
 
-use App\Core\Announcement\Http\Controllers\AnnouncementFeedController;
+use App\Core\Announcement\Livewire\User\Announcements\Index;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/mobile/announcements', [AnnouncementFeedController::class, 'index'])
+Route::livewire('/mobile/announcements', Index::class)
     ->name('mobile.announcements.index');

@@ -1,6 +1,7 @@
 <?php
 
-use App\Core\Settings\Http\Controllers\SettingsController;
+use App\Core\Settings\Livewire\Admin\Settings\Import;
+use App\Core\Settings\Livewire\Admin\Settings\Index;
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Support\Facades\Route;
 
@@ -13,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web', 'auth', 'can:viewAny,'.SettingsSqlite::class])->prefix('admin')->name('admin.')->group(function () {
     // Settings management routes
     Route::prefix('settings')->name('settings.')->group(function () {
-        Route::get('/', [SettingsController::class, 'index'])->name('index');
-        Route::get('/import', [SettingsController::class, 'import'])
+        Route::livewire('/', Index::class)->name('index');
+        Route::livewire('/import', Import::class)
             ->middleware('can:import,'.SettingsSqlite::class)
             ->name('import');
     });
