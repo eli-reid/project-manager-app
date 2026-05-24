@@ -1,4 +1,4 @@
-<x-layouts::app.sidebar :title="$title ?? null">
+<x-layouts::app :title="$title ?? null">
     <x-slot:domainNavbar>
         <div class="mx-auto w-full max-w-7xl">
             <flux:navbar class="flex flex-wrap items-center gap-2">
@@ -25,7 +25,5 @@
         </div>
     </x-slot:domainNavbar>
 
-    <flux:main>
-        {{ $slot }}
-    </flux:main>
-</x-layouts::app.sidebar>
+    {{ $slot }}
+</x-layouts::app>
