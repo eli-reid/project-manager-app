@@ -1,7 +1,7 @@
 <?php
 
 it('mounts the shared app sidebar livewire component in the layout', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../resources/views/layouts/app/sidebar.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/app.blade.php');
 
     expect($view)->toContain('<livewire:layout.app-sidebar />');
     expect($view)->toContain('lg:ms-64');
