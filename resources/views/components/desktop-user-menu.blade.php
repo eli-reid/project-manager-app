@@ -32,7 +32,7 @@
         <flux:menu.separator />
         <flux:menu.radio.group>
             @if ($showWebmailLink)
-                <flux:menu.item :href="route('webmail.redirect')" icon="envelope" target="_blank" rel="noopener noreferrer" data-test="user-webmail-menu-link">
+                <flux:menu.item :href="route('webmail.redirect')" icon="envelope" data-test="user-webmail-menu-link">
                     {{ __('Webmail') }}
                 </flux:menu.item>
             @endif
