@@ -92,6 +92,45 @@ it('returns to dashboard with an error when user has no company email', function
         ->assertSessionHas('error', 'No company email is configured for your account.');
 });
 
+it('falls back to resolved username mailbox when stored company email session creation fails', function () {
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'token-123');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.port', 2083);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => function ($request) {
+            $query = [];
+            parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
+
+            if (($query['login'] ?? '') === 'legacy') {
+                return Http::response([
+                    'status' => 0,
+                    'errors' => ['Unknown mail account'],
+                ], 200);
+            }
+
+            return Http::response([
+                'status' => 1,
+                'data' => [
+                    'url' => 'https://webmail.example.test/session-token',
+                ],
+            ]);
+        },
+    ]);
+
+    $user = User::factory()->create([
+        'username' => 'john',
+        'company_email' => 'legacy@example.test',
+    ]);
+
+    actingAs($user)
+        ->get(route('webmail.redirect'))
+        ->assertRedirect('https://webmail.example.test/session-token');
+});
+
 it('shows the user webmail link on the dashboard', function () {
     Settings::set('cpanel.url', 'https://cpanel.example.test');
     Settings::set('cpanel.username', 'root');
