@@ -52,6 +52,10 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
+- New route-facing UI views must be Livewire-first.
+- Place new app-level route-facing views in `resources/views/livewire/**`.
+- Place new domain/core route-facing views in `app/{Core|Domains}/.../Resources/Views/livewire/**`.
+- Treat non-Livewire Blade views as exceptions only (auth, emails, pdf/print, low-level components/partials, or approved compatibility wrappers).
 
 ## Frontend Bundling
 

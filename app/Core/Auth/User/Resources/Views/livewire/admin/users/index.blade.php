@@ -59,7 +59,7 @@
                                 <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold {{ $user->is_active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' }}">{{ $user->is_active ? 'Active' : 'Inactive' }}</span>
                             </td>
                             <td class="px-4 py-3 align-top">
-                                <x-ui.row-actions-dropdown label="User actions" width="w-48" :menu-height="220">
+                                <livewire:ui.row-actions-dropdown label="User actions" width="w-48" :menu-height="220">
                                     <a
                                         href="{{ route('admin.users.edit', $user) }}"
                                         class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
@@ -98,7 +98,7 @@
                                     >
                                         Delete
                                     </button>
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

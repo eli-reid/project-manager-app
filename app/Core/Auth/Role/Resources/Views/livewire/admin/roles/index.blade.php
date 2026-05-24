@@ -49,7 +49,7 @@
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $role->users_count }}</td>
                             <td class="px-4 py-3 align-top">
-                                <x-ui.row-actions-dropdown label="Role actions" width="w-44" :menu-height="220">
+                                <livewire:ui.row-actions-dropdown label="Role actions" width="w-44" :menu-height="220">
                                     <a
                                         href="{{ route('admin.roles.edit', $role) }}"
                                         class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
@@ -89,7 +89,7 @@
                                     >
                                         Delete
                                     </button>
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

@@ -5,10 +5,12 @@ namespace App\Livewire\Layouts;
 use Illuminate\View\View;
 use Livewire\Component;
 
-class TimeManagementAdmin extends Component
+class Head extends Component
 {
+    public ?string $title = null;
+
     public function render(): View
     {
-        return view('timecards::livewire.layouts.time-management-admin');
+        return view('livewire.layouts.head');
     }
 }
