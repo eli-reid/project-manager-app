@@ -162,7 +162,7 @@ class WeeklyHourAdjustmentReport extends Component
         $refererPath = is_string($referer) ? (string) parse_url($referer, PHP_URL_PATH) : '';
 
         return str_starts_with($refererPath, '/admin/payroll')
-            ? 'payroll::layouts.payroll-admin'
+            ? 'payroll::livewire.layouts.payroll-admin'
             : 'layouts.app';
     }
 }

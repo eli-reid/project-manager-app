@@ -19,7 +19,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Layout('payroll::layouts.payroll-admin')]
+#[Layout('payroll::livewire.layouts.payroll-admin')]
 #[Title('Payroll Timecard Review')]
 class Review extends Component
 {

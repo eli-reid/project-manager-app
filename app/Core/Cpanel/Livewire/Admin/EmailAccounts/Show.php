@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('core-user::layouts.access-admin')]
+#[Layout('core-user::livewire.layouts.access-admin')]
 #[Title('Mailbox Details')]
 class Show extends Component
 {

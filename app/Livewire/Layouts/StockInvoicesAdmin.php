@@ -9,6 +9,6 @@ class StockInvoicesAdmin extends Component
 {
     public function render(): View
     {
-        return view('stock::layouts.stock-invoices-admin');
+        return view('stock::livewire.layouts.stock-invoices-admin');
     }
 }

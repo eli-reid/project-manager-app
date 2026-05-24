@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('stock::layouts.stock-invoices-admin')]
+#[Layout('stock::livewire.layouts.stock-invoices-admin')]
 #[Title('Review Stock Order')]
 class Show extends Component
 {

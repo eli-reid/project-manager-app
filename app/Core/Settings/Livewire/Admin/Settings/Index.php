@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('core::layouts.settings-admin')]
+#[Layout('core::livewire.layouts.settings-admin')]
 #[Title('Settings Management')]
 class Index extends Component
 {

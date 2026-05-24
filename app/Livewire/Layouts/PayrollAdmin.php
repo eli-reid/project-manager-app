@@ -9,6 +9,6 @@ class PayrollAdmin extends Component
 {
     public function render(): View
     {
-        return view('payroll::layouts.payroll-admin');
+        return view('payroll::livewire.layouts.payroll-admin');
     }
 }

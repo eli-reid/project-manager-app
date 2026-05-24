@@ -25,10 +25,10 @@ it('maps each domain layout class to the correct layout view', function (): void
     $stockInvoicesSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/StockInvoicesAdmin.php');
     $payrollSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/PayrollAdmin.php');
 
-    expect($accessAdminSource)->toContain("return view('core-user::layouts.access-admin');");
-    expect($settingsAdminSource)->toContain("return view('core::layouts.settings-admin');");
-    expect($clientManagementSource)->toContain("return view('clients::layouts.client-management-admin');");
-    expect($timeManagementSource)->toContain("return view('timecards::layouts.time-management-admin');");
-    expect($stockInvoicesSource)->toContain("return view('stock::layouts.stock-invoices-admin');");
-    expect($payrollSource)->toContain("return view('payroll::layouts.payroll-admin');");
+    expect($accessAdminSource)->toContain("return view('core-user::livewire.layouts.access-admin');");
+    expect($settingsAdminSource)->toContain("return view('core::livewire.layouts.settings-admin');");
+    expect($clientManagementSource)->toContain("return view('clients::livewire.layouts.client-management-admin');");
+    expect($timeManagementSource)->toContain("return view('timecards::livewire.layouts.time-management-admin');");
+    expect($stockInvoicesSource)->toContain("return view('stock::livewire.layouts.stock-invoices-admin');");
+    expect($payrollSource)->toContain("return view('payroll::livewire.layouts.payroll-admin');");
 });

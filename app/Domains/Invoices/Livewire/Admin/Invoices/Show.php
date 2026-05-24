@@ -4,13 +4,13 @@ namespace App\Domains\Invoices\Livewire\Admin\Invoices;
 
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Models\Invoice;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('stock::layouts.stock-invoices-admin')]
+#[Layout('stock::livewire.layouts.stock-invoices-admin')]
 #[Title('Invoice Details')]
 class Show extends Component
 {

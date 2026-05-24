@@ -9,6 +9,6 @@ class TimeManagementAdmin extends Component
 {
     public function render(): View
     {
-        return view('timecards::layouts.time-management-admin');
+        return view('timecards::livewire.layouts.time-management-admin');
     }
 }

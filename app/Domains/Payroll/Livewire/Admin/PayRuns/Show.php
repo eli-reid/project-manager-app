@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('payroll::layouts.payroll-admin')]
+#[Layout('payroll::livewire.layouts.payroll-admin')]
 #[Title('Payroll Pay Run Details')]
 class Show extends Component
 {

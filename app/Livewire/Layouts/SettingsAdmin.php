@@ -9,6 +9,6 @@ class SettingsAdmin extends Component
 {
     public function render(): View
     {
-        return view('core::layouts.settings-admin');
+        return view('core::livewire.layouts.settings-admin');
     }
 }

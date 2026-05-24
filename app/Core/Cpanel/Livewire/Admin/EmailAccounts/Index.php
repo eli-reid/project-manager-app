@@ -14,7 +14,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('core-user::layouts.access-admin')]
+#[Layout('core-user::livewire.layouts.access-admin')]
 #[Title('Email Accounts')]
 class Index extends Component
 {

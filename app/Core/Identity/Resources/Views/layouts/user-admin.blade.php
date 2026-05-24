@@ -1,1 +1,1 @@
-@include('core-user::layouts.access-admin')
+@include('core-user::livewire.layouts.access-admin')

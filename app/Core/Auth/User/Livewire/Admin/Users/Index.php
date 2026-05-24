@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('core-user::layouts.access-admin')]
+#[Layout('core-user::livewire.layouts.access-admin')]
 #[Title('Users')]
 class Index extends Component
 {

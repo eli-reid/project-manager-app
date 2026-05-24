@@ -6,12 +6,13 @@ use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
-#[Layout('stock::layouts.stock-invoices-admin')]
+
+#[Layout('stock::livewire.layouts.stock-invoices-admin')]
 #[Title('Invoice Form')]
 class Form extends Component
 {

@@ -1,4 +1,4 @@
-@component('core::layouts.settings-admin', ['title' => __('Settings Management')])
+@component('core::livewire.layouts.settings-admin', ['title' => __('Settings Management')])
     <div class="flex w-full flex-1 flex-col gap-4">
         <div class="flex items-center justify-between gap-3">
             <div>

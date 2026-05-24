@@ -13,7 +13,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('core-user::layouts.access-admin')]
+#[Layout('core-user::livewire.layouts.access-admin')]
 #[Title('Create Email Account')]
 class Create extends Component
 {

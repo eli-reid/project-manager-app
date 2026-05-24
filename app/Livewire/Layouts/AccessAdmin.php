@@ -9,6 +9,6 @@ class AccessAdmin extends Component
 {
     public function render(): View
     {
-        return view('core-user::layouts.access-admin');
+        return view('core-user::livewire.layouts.access-admin');
     }
 }

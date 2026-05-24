@@ -9,6 +9,6 @@ class ClientManagementAdmin extends Component
 {
     public function render(): View
     {
-        return view('clients::layouts.client-management-admin');
+        return view('clients::livewire.layouts.client-management-admin');
     }
 }

@@ -11,7 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('timecards::layouts.time-management-admin')]
+#[Layout('timecards::livewire.layouts.time-management-admin')]
 #[Title('Daily Report Details')]
 class Show extends Component
 {

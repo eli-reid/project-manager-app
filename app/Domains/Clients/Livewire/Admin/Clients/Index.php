@@ -9,7 +9,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('clients::layouts.client-management-admin')]
+#[Layout('clients::livewire.layouts.client-management-admin')]
 #[Title('Clients')]
 class Index extends Component
 {
