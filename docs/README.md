@@ -18,6 +18,10 @@ Use this index to find current, canonical documentation quickly.
 - `docs/development/STOCK_ORDERS_IMPLEMENTATION_CHECKLIST.md`
 - `docs/development/DOCUMENTS_IMPLEMENTATION_CHECKLIST.md`
 
+## Release Operations
+- `docs/development/PRODUCTION_PROMOTION_AND_DEPLOY_CHECKLIST.md`
+- `docs/development/MANUAL_SSH_DEPLOY_CHECKLIST.md`
+
 ## Active Security Work
 - `docs/completed-features/PERMISSIONS_FUZZING_TEST_PLAN.md`
 - `docs/completed-features/PERMISSIONS_AND_SECURITY_FUZZING_REPORT.md`

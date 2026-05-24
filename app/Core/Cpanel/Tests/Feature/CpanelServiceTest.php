@@ -184,6 +184,60 @@ it('returns login_url and session for browser post handshake when cpanel does no
     expect($result['session'])->toBe('admin@example.test:token:CREATE_WEBMAIL_SESSION_FOR_MAIL_USER,hash');
 });
 
+it('normalizes response hostname with scheme and port when building webmail session login url', function () {
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'secret-token');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.webmail_port', 2096);
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => Http::response([
+            'status' => 1,
+            'data' => [
+                'token' => '/cpsess12345',
+                'session' => 'admin@example.test:token:CREATE_WEBMAIL_SESSION_FOR_MAIL_USER,hash',
+                'hostname' => 'https://webmail.example.test:2096/',
+            ],
+        ]),
+    ]);
+
+    $result = $service->createWebmailSession('admin@example.test');
+
+    expect($result['success'])->toBeTrue();
+    expect($result['login_url'])->toBe('https://webmail.example.test:2096/cpsess12345/login');
+});
+
+it('uses configured webmail port when cpanel response hostname has no port', function () {
+    Settings::set('cpanel.url', 'https://cpanel.example.test');
+    Settings::set('cpanel.username', 'root');
+    Settings::set('cpanel.api_token', 'secret-token');
+    Settings::set('cpanel.domain', 'example.test');
+    Settings::set('cpanel.webmail_port', 2096);
+
+    $service = new CpanelService(new CpanelConfig(app(SettingsSqliteService::class)));
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://cpanel.example.test:2083/execute/Session/create_webmail_session_for_mail_user*' => Http::response([
+            'status' => 1,
+            'data' => [
+                'token' => '/cpsess12345',
+                'session' => 'admin@example.test:token:CREATE_WEBMAIL_SESSION_FOR_MAIL_USER,hash',
+                'hostname' => 'webmail.example.test',
+            ],
+        ]),
+    ]);
+
+    $result = $service->createWebmailSession('admin@example.test');
+
+    expect($result['success'])->toBeTrue();
+    expect($result['login_url'])->toBe('https://webmail.example.test:2096/cpsess12345/login');
+});
+
 it('rejects invalid mailbox local part for write operations', function () {
     Settings::set('cpanel.url', 'https://cpanel.example.test');
     Settings::set('cpanel.username', 'root');

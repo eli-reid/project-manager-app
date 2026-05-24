@@ -655,6 +655,12 @@ class CpanelService
             $url = (string) ($result['data']['url'] ?? '');
 
             if ($url !== '') {
+                Log::debug('cPanel webmail session resolved via direct URL.', [
+                    'mode' => 'direct_url',
+                    'target_host' => parse_url($url, PHP_URL_HOST),
+                    'target_port' => parse_url($url, PHP_URL_PORT),
+                ]);
+
                 return [
                     'success' => true,
                     'message' => 'Webmail session created successfully.',
@@ -667,17 +673,16 @@ class CpanelService
 
             if ($token !== '' && $session !== '') {
                 $responseHostname = trim((string) ($result['data']['hostname'] ?? ''));
-
-                if ($responseHostname !== '') {
-                    $baseUrl = 'https://'.$responseHostname.':'.$this->config->webmailPort;
-                } else {
-                    $baseUrl = $this->config->webmailBaseUrl();
-                    if (parse_url($baseUrl, PHP_URL_PORT) === null) {
-                        $baseUrl .= ':'.$this->config->webmailPort;
-                    }
-                }
+                $baseUrl = $this->resolveWebmailSessionBaseUrl($responseHostname);
 
                 $loginUrl = rtrim($baseUrl, '/').'/'.ltrim($token, '/').'/login';
+
+                Log::debug('cPanel webmail session resolved via POST handshake.', [
+                    'mode' => 'post_handshake',
+                    'response_hostname_present' => $responseHostname !== '',
+                    'resolved_host' => parse_url($loginUrl, PHP_URL_HOST),
+                    'resolved_port' => parse_url($loginUrl, PHP_URL_PORT),
+                ]);
 
                 return [
                     'success' => true,
@@ -687,14 +692,50 @@ class CpanelService
                 ];
             }
 
+            $fallbackUrl = $this->webmailRedirectUrl($email);
+
+            Log::debug('cPanel webmail session fell back to redirect URL.', [
+                'mode' => 'fallback_redirect',
+                'target_host' => parse_url($fallbackUrl, PHP_URL_HOST),
+                'target_port' => parse_url($fallbackUrl, PHP_URL_PORT),
+            ]);
+
             return [
                 'success' => true,
                 'message' => 'Webmail session created successfully.',
-                'url' => $this->webmailRedirectUrl($email),
+                'url' => $fallbackUrl,
             ];
         } catch (CpanelRequestException $exception) {
             return $this->requestErrorResponse($exception, 'Failed to create webmail session.');
         }
+    }
+
+    private function resolveWebmailSessionBaseUrl(string $responseHostname): string
+    {
+        if ($responseHostname !== '') {
+            $hostnameCandidate = preg_replace('#^//#', '', $responseHostname) ?: $responseHostname;
+
+            // Some cPanel responses return only hostname, while others may include scheme/port.
+            $parsed = parse_url(str_contains($hostnameCandidate, '://') ? $hostnameCandidate : 'https://'.$hostnameCandidate);
+
+            $host = (string) ($parsed['host'] ?? '');
+            $scheme = (string) ($parsed['scheme'] ?? 'https');
+            $port = $parsed['port'] ?? null;
+
+            if ($host !== '') {
+                $normalizedPort = is_int($port) ? $port : $this->config->webmailPort;
+
+                return $scheme.'://'.$host.':'.$normalizedPort;
+            }
+        }
+
+        $baseUrl = rtrim($this->config->webmailBaseUrl(), '/');
+
+        if (parse_url($baseUrl, PHP_URL_PORT) === null) {
+            $baseUrl .= ':'.$this->config->webmailPort;
+        }
+
+        return $baseUrl;
     }
 
     /**
