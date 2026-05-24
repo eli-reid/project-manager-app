@@ -1,6 +1,6 @@
 <x-layouts::app :title="$title ?? null">
     <x-slot:domainNavbar>
-        <div class="mx-auto w-full max-w-7xl">
+        <div class="w-full">
             <flux:navbar class="flex flex-wrap items-center gap-2">
                 @can('viewAll', \App\Domains\Timecards\Models\Timecard::class)
                     <flux:navbar.item
