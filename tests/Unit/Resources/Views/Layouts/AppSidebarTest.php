@@ -4,7 +4,7 @@ it('mounts the shared app sidebar livewire component in the layout', function ()
     $view = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/app.blade.php');
 
     expect($view)->toContain('<livewire:layouts.app-sidebar />');
-    expect($view)->toContain('lg:ms-64');
+    expect($view)->toContain('<flux:main');
 });
 
 it('keeps cross-domain sidebar navigation in shared app resources', function (): void {
