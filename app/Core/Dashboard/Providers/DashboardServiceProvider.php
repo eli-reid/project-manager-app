@@ -3,83 +3,35 @@
 namespace App\Core\Dashboard\Providers;
 
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\View\View as ViewInstance;
-use Throwable;
+use Livewire\Livewire;
 
 class DashboardServiceProvider extends ServiceProvider
 {
-    /**
-     * @var list<string>
-     */
-    private const SECTION_ORDER = ['primary', 'personal', 'operations', 'alerts', 'admin'];
-
     public function register(): void
     {
         $this->app->singleton(DashboardWidgetRegistry::class);
     }
 
-    public function boot(DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(): void
     {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'dashboard');
         $this->registerRoutes();
-
-        View::composer(['dashboard::index', 'dashboard::mobile.index'], function (ViewInstance $view) use ($widgetRegistry): void {
-            try {
-                $allWidgets = collect($widgetRegistry->all())
-                    ->filter(function (array $widget): bool {
-                        if (($widget['ability'] ?? '') === '') {
-                            return true;
-                        }
-
-                        try {
-                            $model = $widget['ability_model'] ?? '';
-
-                            return $model !== ''
-                                ? Gate::allows($widget['ability'], $model)
-                                : Gate::allows($widget['ability']);
-                        } catch (Throwable $exception) {
-                            Log::warning('Dashboard widget authorization check failed.', [
-                                'widget_key' => $widget['key'] ?? null,
-                                'ability' => $widget['ability'] ?? null,
-                                'ability_model' => $widget['ability_model'] ?? null,
-                                'exception' => $exception,
-                            ]);
-
-                            return false;
-                        }
-                    });
-
-                $sections = collect(self::SECTION_ORDER)
-                    ->mapWithKeys(fn (string $section): array => [
-                        $section => $allWidgets
-                            ->filter(fn (array $w): bool => $w['section'] === $section)
-                            ->sortBy([['sort', 'asc'], ['title', 'asc']])
-                            ->values()
-                            ->all(),
-                    ])
-                    ->filter(fn (array $widgets): bool => count($widgets) > 0)
-                    ->all();
-
-                $view->with('sections', $sections);
-            } catch (Throwable $exception) {
-                Log::error('Dashboard sections could not be composed.', [
-                    'view' => $view->name(),
-                    'exception' => $exception,
-                ]);
-
-                $view->with('sections', []);
-            }
-        });
+        $this->registerUIComponents();
     }
 
     private function registerRoutes(): void
     {
         Route::middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/web.php');
+
+        Route::middleware(['web', 'auth', 'verified'])
+            ->group(__DIR__.'/../Routes/mobile.php');
+    }
+
+    private function registerUIComponents(): void
+    {
+        Livewire::addNamespace('dashboard', classNamespace: 'App\Core\Dashboard\Livewire');
     }
 }

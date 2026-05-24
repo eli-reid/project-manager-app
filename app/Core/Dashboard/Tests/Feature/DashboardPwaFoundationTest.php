@@ -78,7 +78,7 @@ it('keeps authenticated desktop browsers on dashboard', function (): void {
         ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36')
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertViewIs('dashboard::index');
+        ->assertSee('Dashboard');
 });
 
 it('renders project documents widget on mobile dashboard when global project documents exist', function (): void {

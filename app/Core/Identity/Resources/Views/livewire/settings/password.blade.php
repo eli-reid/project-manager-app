@@ -1,5 +1,5 @@
 <section class="w-full">
-    @include('partials.settings-heading')
+    <livewire:settings::settings-heading />
 
     <flux:heading class="sr-only">{{ __('Password Settings') }}</flux:heading>
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Domains\Documents\Livewire\PublicShares\Show as SharedDocumentShow;
 use App\Domains\Documents\Models\DocumentShare;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -8,17 +9,7 @@ use Illuminate\Support\Facades\Storage;
 Route::prefix('share')
     ->name('share.')
     ->group(function (): void {
-        Route::get('{token}', function (string $token) {
-            $share = DocumentShare::where('share_token', $token)->firstOrFail();
-
-            if (! $share->isValid()) {
-                abort(403, $share->getExpirationReason());
-            }
-
-            return view('documents::shared', [
-                'share' => $share->load('document', 'createdBy'),
-            ]);
-        })->name('view');
+        Route::livewire('{token}', SharedDocumentShow::class)->name('view');
 
         Route::post('{token}/verify-password', function (string $token, Request $request) {
             $share = DocumentShare::where('share_token', $token)->firstOrFail();

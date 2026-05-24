@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\Livewire\Settings\Mobile\SettingsTabs;
 use App\Core\Identity\Models\User;
 use Laravel\Fortify\Features;
 
@@ -8,7 +9,8 @@ it('renders all mobile settings tabs for verified users', function (): void {
 
     $this->actingAs($user)
         ->get(route('settings.mobile.profile'))
-        ->assertOk();
+        ->assertOk()
+        ->assertSeeLivewire(SettingsTabs::class);
 
     $this->actingAs($user)
         ->get(route('settings.mobile.password'))

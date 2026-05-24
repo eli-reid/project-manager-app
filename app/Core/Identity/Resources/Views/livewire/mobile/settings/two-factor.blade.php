@@ -1,5 +1,5 @@
 <section class="space-y-4 px-4 py-4">
-    @include('core-user::livewire.mobile.settings.tabs')
+    <livewire:settings::mobile.settings-tabs />
 
     <div class="space-y-1">
         <flux:heading size="lg">{{ __('Two-factor authentication') }}</flux:heading>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Identity\Models\User;
+use App\Domains\Documents\Livewire\PublicShares\Show as SharedDocumentShow;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Models\DocumentShare;
 use App\Domains\Documents\Services\DocumentShareService;
@@ -178,7 +179,7 @@ describe('share routes', function (): void {
         $response = $this->get(route('share.view', $share->share_token));
 
         $response->assertOk();
-        $response->assertViewHas('share');
+        $response->assertSeeLivewire(SharedDocumentShow::class);
     });
 
     it('rejects expired shares', function (): void {

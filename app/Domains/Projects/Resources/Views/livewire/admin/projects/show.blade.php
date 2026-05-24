@@ -128,11 +128,12 @@
     @endif
 
     @if ($activeTab === 'dailies' && in_array('dailies', $tabs, true))
-        @include('dailies::components.project-tab', [
-            'project' => $project,
-            'dailies' => $projectDailies,
-            'dailyCount' => $dailyCount,
-        ])
+        <livewire:dailies::admin.projects.project-tab
+            :project="$project"
+            :dailies="$projectDailies"
+            :daily-count="$dailyCount"
+            :key="'project-dailies-tab-'.$project->id"
+        />
     @endif
 
     @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))
@@ -140,27 +141,30 @@
     @endif
 
     @if ($activeTab === 'invoices' && in_array('invoices', $tabs, true))
-        @include('invoices::components.project-tab', [
-            'project' => $project,
-            'invoices' => $projectInvoices,
-            'invoiceCount' => $invoiceCount,
-        ])
+        <livewire:invoices::admin.projects.project-tab
+            :project="$project"
+            :invoices="$projectInvoices"
+            :invoice-count="$invoiceCount"
+            :key="'project-invoices-tab-'.$project->id"
+        />
     @endif
 
     @if ($activeTab === 'stock' && in_array('stock', $tabs, true))
-        @include('stock::components.project-tab', [
-            'project' => $project,
-            'stockOrders' => $projectStockOrders,
-            'stockOrderCount' => $stockOrderCount,
-        ])
+        <livewire:stock::admin.projects.project-tab
+            :project="$project"
+            :stock-orders="$projectStockOrders"
+            :stock-order-count="$stockOrderCount"
+            :key="'project-stock-tab-'.$project->id"
+        />
     @endif
 
     @if ($activeTab === 'submittals' && in_array('submittals', $tabs, true))
-        @include('submittals::components.project-tab', [
-            'project' => $project,
-            'submittals' => $projectSubmittals,
-            'submittalCount' => $submittalCount,
-        ])
+        <livewire:submittals::admin.projects.project-tab
+            :project="$project"
+            :submittals="$projectSubmittals"
+            :submittal-count="$submittalCount"
+            :key="'project-submittals-tab-'.$project->id"
+        />
     @endif
 
     @if ($activeTab === 'documents' && in_array('documents', $tabs, true))
