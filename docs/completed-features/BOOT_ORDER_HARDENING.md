@@ -94,6 +94,9 @@ domain has already finished booting. Concrete requirements:
   Core provider (which boots before domains).
 - Cross-domain event listeners and observers should be registered via `app->booted()` or deferred
   to a dedicated Integration service provider if the coupling is unavoidable.
+- For permission registration in service providers, prefer explicit `boot()` dependency injection of
+  `PermissionRegistryContract` and pass it into `registerPermissions(...)`; avoid resolving it via
+  `$this->app->make(...)` inside provider methods.
 
 **Correct pattern for cross-domain deferred work:**
 
@@ -106,6 +109,28 @@ public function boot(): void
     });
 }
 ```
+
+---
+
+## Registry DI Migration Status
+
+Domain registry usage has been standardized to explicit `boot()` DI for registry dependencies.
+
+- Completed domains: `Addresses`, `ChangeOrders`, `Clients`, `Dailies`, `Documents`, `Invoices`, `Payroll`, `Projects`, `Reports`, `Stock`, `Submittals`, `Tasks`, `Timecards`.
+- Final domain fix in this pass: `PayrollServiceProvider` now uses injected `TaskTypeRegistry` directly and no longer falls back to container resolution for scheduler task registration.
+- Verification rule: domain providers should not resolve registry services with `$this->app->make(...)` or `app()->make(...)`.
+
+### Phase 2 (Core Providers)
+
+- Completed core providers: `DashboardServiceProvider`, `SchedulerServiceProvider`, `SettingServiceProvider`.
+- Core provider behavior now follows explicit DI for registry services in `boot(...)` and helper methods.
+- Verification rule: core providers should not resolve registry services with `$this->app->make(...)` or `app()->make(...)`.
+
+### Phase 3 (Non-Registry Provider Lookups)
+
+- Completed providers: `SchedulerServiceProvider`, `SettingServiceProvider`.
+- Removed remaining non-registry container lookups from provider methods by injecting `TaskDefinitionSyncService`, `SettingsDatabaseProvisioner`, and `DomainSettingsSynchronizer` via `boot(...)` and closure captures.
+- Verification rule: providers should avoid direct container resolution (`$this->app->make(...)`, `app()->make(...)`, `resolve(...)`) when explicit DI can be used safely.
 
 ---
 
@@ -140,57 +165,3 @@ These tests should be added to protect these guarantees going forward:
 2. Platform: Notification Registry Duplicate Key Protection
 3. Platform: Permission Registry Duplicate Key Protection
 4. Platform: Domain Boot Order Independence Guidelines and Tests
-
-
-
-
-
-Laravel 12 Convention Violations Found
-Critical Bugs
-Issue	Location
-VoltServiceProvider exists but not registered — Volt pages won't mount	app/Providers/VoltServiceProvider.php
-Duplicate Payroll models — PayRun.php and PayrollRun.php coexist	app/Domains/Payroll/Models/
-Livewire 3
-All components explicitly registered via Livewire::component() with dotted aliases — Livewire 3 supports auto-discovery, this is unnecessary boilerplate that can drift from actual class paths
-API Routes
-Domain API routes use ['web', 'auth', 'verified'] middleware — web implies session/CSRF which breaks stateless API convention
-No top-level routes/api.php; Laravel 12 registers API routes via ->withRouting(api: ...)
-Service Providers
-boot() uses 5-argument method injection in ProjectsServiceProvider and TimecardsServiceProvider — Laravel idiom is app()->make() inside boot or constructor injection
-Core providers hand-maintained in bootstrap/providers.php — risks drift as Core grows
-AppServiceProvider
-Missing Model::shouldBeStrict() / Model::preventLazyLoading() — standard Laravel 11+ pattern for catching N+1 in development
-Settings System
-Per-domain config/settings.php files use a custom registry that bypasses config:cache
-settings.data SQLite file lives in project root instead of storage/ or database/
-Legacy Layout Files
-These three layouts use old domain names and likely need renaming:
-
-resources/views/layouts/client-management-admin.blade.php
-resources/views/layouts/stock-invoices-admin.blade.php
-resources/views/layouts/time-management-admin.blade.php
-The intentional DDD deviations (per-domain routes, migrations, views, custom registries) are documented architectural decisions — not violations. The items above are the ones worth addressing. Want me to start fixing any of these?
-
-d:\project-manager-app\app\Domains\Payroll\Models\PayRun.php
-do PayRun.php and PayrollRun.php track the same data?
-Read PayRun.php
-Read PayrollRun.php
-They track similar but not identical data — PayrollRun is the more evolved version. Here's what differs:
-
-Aspect	PayRun	PayrollRun
-Period reference	pay_period_start, pay_period_end, pay_date (inline dates)	payroll_period_id FK → PayrollPeriod model
-Run type	none	run_type (regular / off-cycle / correction)
-Status	PayRunStatus enum (with isLocked() guard)	plain string constants
-Deductions	none	total_deductions
-Employee count	employee_count	none
-Notes	none	notes
-Creator	created_by	none
-Approver tracking	approved_by	approved_by + approved_at
-Finalized tracking	finalized_at	finalized_at + finalized_by
-Lock guard	yes (in booted())	none
-Factory	PayRunFactory	PayrollRunFactory
-PayRun is the older design (inline dates, no run type, simpler). PayrollRun is the newer Sprint 2 design (FK to PayrollPeriod, run type taxonomy, deductions tracking, full audit timestamps). They both relate to PayrollStatement via hasMany.
-
-PayrollRun should be canonical — it's the more complete model. PayRun looks like it was never fully replaced. Want me to check if PayRun is still referenced anywhere before deciding to remove it?
-
-yes see if you see any references

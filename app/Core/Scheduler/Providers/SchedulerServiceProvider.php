@@ -49,19 +49,19 @@ class SchedulerServiceProvider extends ServiceProvider
         });
     }
 
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, TaskDefinitionSyncService $taskDefinitionSyncService): void
     {
         $this->registerAuthorization();
-        $this->registerPermissions();
-        $this->registerSettings();
+        $this->registerPermissions($permissionRegistry);
+        $this->registerSettings($settingsRegistry);
         $this->registerInfrastructure();
         $this->registerUIComponents();
-        $this->registerDashboardWidgets();
+        $this->registerDashboardWidgets($widgetRegistry);
         $this->registerRoutes();
         $this->registerCommands();
 
-        $this->app->booted(function (): void {
-            $this->app->make(TaskDefinitionSyncService::class)->syncSafely();
+        $this->app->booted(function () use ($taskDefinitionSyncService): void {
+            $taskDefinitionSyncService->syncSafely();
         });
     }
 
@@ -70,23 +70,14 @@ class SchedulerServiceProvider extends ServiceProvider
         Gate::policy(ScheduledTask::class, ScheduledTaskPolicy::class);
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-
-        $registry->registerPermissions(SchedulerPermissions::all());
+        $permissionRegistry->registerPermissions(SchedulerPermissions::all());
     }
 
-    private function registerSettings(): void
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
-        if (! $this->app->bound(SettingsRegistryContract::class)) {
-            return;
-        }
-
-        /** @var SettingsRegistryContract $registry */
-        $registry = $this->app->make(SettingsRegistryContract::class);
-        $registry->registerConfigFile('scheduler', __DIR__.'/../config/settings.php');
+        $settingsRegistry->registerConfigFile('scheduler', __DIR__.'/../config/settings.php');
     }
 
     private function registerUIComponents(): void
@@ -94,15 +85,8 @@ class SchedulerServiceProvider extends ServiceProvider
         Livewire::addNamespace('scheduler', classNamespace: 'App\Core\Scheduler\Livewire');
     }
 
-    private function registerDashboardWidgets(): void
+    private function registerDashboardWidgets(DashboardWidgetRegistry $widgetRegistry): void
     {
-        if (! $this->app->bound(DashboardWidgetRegistry::class)) {
-            return;
-        }
-
-        /** @var DashboardWidgetRegistry $widgetRegistry */
-        $widgetRegistry = $this->app->make(DashboardWidgetRegistry::class);
-
         $widgetRegistry->registerDefinitions([
             new WidgetDefinition(
                 key: 'scheduler.task-health',

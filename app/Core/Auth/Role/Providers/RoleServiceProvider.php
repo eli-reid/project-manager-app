@@ -13,11 +13,11 @@ use Livewire\Livewire;
 
 class RoleServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerInfrastructure();
         $this->registerAuthorization();
-        $this->registerPermissions();
+        $this->registerPermissions($permissionRegistry);
         $this->registerUIComponents();
         $this->registerRoutes();
     }
@@ -32,15 +32,9 @@ class RoleServiceProvider extends ServiceProvider
         Gate::policy(Role::class, RolePolicy::class);
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        if (! $this->app->bound(PermissionRegistryContract::class)) {
-            return;
-        }
-
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-        $registry->registerPermissions(RolePermissions::all());
+        $permissionRegistry->registerPermissions(RolePermissions::all());
     }
 
     private function registerUIComponents(): void

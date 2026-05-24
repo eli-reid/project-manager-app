@@ -16,10 +16,10 @@ class AuditServiceProvider extends ServiceProvider
         $this->app->alias(AuditLogger::class, AuditLoggerContract::class);
     }
 
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerInfrastructure();
-        $this->registerPermissions();
+        $this->registerPermissions($permissionRegistry);
     }
 
     private function registerInfrastructure(): void
@@ -27,15 +27,8 @@ class AuditServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        if (! $this->app->bound(PermissionRegistryContract::class)) {
-            return;
-        }
-
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-
-        $registry->registerPermissions(AuditPermissions::all());
+        $permissionRegistry->registerPermissions(AuditPermissions::all());
     }
 }

@@ -23,17 +23,14 @@ class DashboardServiceProvider extends ServiceProvider
         $this->app->singleton(DashboardWidgetRegistry::class);
     }
 
-    public function boot(): void
+    public function boot(DashboardWidgetRegistry $widgetRegistry): void
     {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'dashboard');
         $this->registerRoutes();
 
-        View::composer(['dashboard::index', 'dashboard::mobile.index'], function (ViewInstance $view): void {
+        View::composer(['dashboard::index', 'dashboard::mobile.index'], function (ViewInstance $view) use ($widgetRegistry): void {
             try {
-                /** @var DashboardWidgetRegistry $registry */
-                $registry = $this->app->make(DashboardWidgetRegistry::class);
-
-                $allWidgets = collect($registry->all())
+                $allWidgets = collect($widgetRegistry->all())
                     ->filter(function (array $widget): bool {
                         if (($widget['ability'] ?? '') === '') {
                             return true;

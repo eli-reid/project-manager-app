@@ -64,34 +64,28 @@ class SettingServiceProvider extends ServiceProvider
     /**
      * Bootstrap services.
      */
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, SettingsDatabaseProvisioner $settingsDatabaseProvisioner, DomainSettingsSynchronizer $domainSettingsSynchronizer): void
     {
         $this->registerAuthorization();
         $this->registerCommands();
         $this->registerInfrastructure();
         $this->registerObservers();
-        $this->registerSettings();
-        $this->registerPermissions();
+        $this->registerSettings($settingsRegistry);
+        $this->registerPermissions($permissionRegistry);
 
         // Initialize settings database early (no database config needed)
-        $this->initializeSettingsDatabase();
+        $this->initializeSettingsDatabase($settingsDatabaseProvisioner);
 
         // Sync settings after all providers have had a chance to register their definitions.
-        $this->app->booted(function (): void {
-            $this->syncDomainSettings();
+        $this->app->booted(function () use ($domainSettingsSynchronizer): void {
+            $this->syncDomainSettings($domainSettingsSynchronizer);
         });
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        $this->app->booted(function (): void {
-            if (! $this->app->bound(PermissionRegistryContract::class)) {
-                return;
-            }
-
-            /** @var PermissionRegistryContract $registry */
-            $registry = $this->app->make(PermissionRegistryContract::class);
-            $registry->registerPermissions(SettingsPermissions::all());
+        $this->app->booted(function () use ($permissionRegistry): void {
+            $permissionRegistry->registerPermissions(SettingsPermissions::all());
         });
     }
 
@@ -131,17 +125,15 @@ class SettingServiceProvider extends ServiceProvider
         SettingsSqlite::observe(SettingsObserver::class);
     }
 
-    private function registerSettings(): void
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
-        /** @var SettingsRegistryContract $registry */
-        $registry = $this->app->make(SettingsRegistryContract::class);
-        $registry->registerConfigFile('app', config_path('settings.php'));
+        $settingsRegistry->registerConfigFile('app', config_path('settings.php'));
     }
 
     /**
      * Initialize the settings database
      */
-    private function initializeSettingsDatabase(): void
+    private function initializeSettingsDatabase(SettingsDatabaseProvisioner $settingsDatabaseProvisioner): void
     {
         try {
             $devModeConfig = config('settings-db.dev_mode', []);
@@ -158,7 +150,7 @@ class SettingServiceProvider extends ServiceProvider
                 return;
             }
 
-            $this->app->make(SettingsDatabaseProvisioner::class)->ensureDatabase();
+            $settingsDatabaseProvisioner->ensureDatabase();
         } catch (\Exception $e) {
             if ($this->app->bound('log')) {
                 Log::warning('Failed to initialize settings database: '.$e->getMessage());
@@ -169,7 +161,7 @@ class SettingServiceProvider extends ServiceProvider
     /**
      * Synchronize settings defined by domain-level config providers.
      */
-    private function syncDomainSettings(): void
+    private function syncDomainSettings(DomainSettingsSynchronizer $domainSettingsSynchronizer): void
     {
         $syncOnBoot = config('settings-db.sync.on_boot');
         if ($syncOnBoot === null) {
@@ -181,9 +173,7 @@ class SettingServiceProvider extends ServiceProvider
         }
 
         try {
-            /** @var DomainSettingsSynchronizer $synchronizer */
-            $synchronizer = $this->app->make(DomainSettingsSynchronizer::class);
-            $changes = $synchronizer->syncIfChanged();
+            $changes = $domainSettingsSynchronizer->syncIfChanged();
 
             if ($changes > 0 && $this->app->bound('log')) {
                 Log::info('Domain settings synchronized', ['changes' => $changes]);

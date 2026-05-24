@@ -14,10 +14,10 @@ use Livewire\Livewire;
 
 class AuthUserServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerInfrastructure();
-        $this->registerPermissions();
+        $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerObservers();
         $this->registerUIComponents();
@@ -29,15 +29,9 @@ class AuthUserServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'auth-user');
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        if (! $this->app->bound(PermissionRegistryContract::class)) {
-            return;
-        }
-
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-        $registry->registerPermissions(UserPermissions::all());
+        $permissionRegistry->registerPermissions(UserPermissions::all());
     }
 
     private function registerAuthorization(): void

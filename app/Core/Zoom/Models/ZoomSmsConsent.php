@@ -2,10 +2,8 @@
 
 namespace App\Core\Zoom\Models;
 
-use App\Core\Zoom\Database\Factories\ZoomSmsConsentFactory;
 use App\Core\Zoom\Enums\SmsConsentStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -13,8 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ZoomSmsConsent extends Model
 {
-    /** @use HasFactory<ZoomSmsConsentFactory> */
-    use HasFactory, HasUlids;
+    use HasUlids;
 
     protected $fillable = [
         'phone_number',

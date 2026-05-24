@@ -23,12 +23,12 @@ class AnnouncementServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(DashboardWidgetRegistry $widgetRegistry, PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('announcements.', 'mobile.announcements.');
 
         $this->registerAuthorization();
-        $this->registerPermissions();
+        $this->registerPermissions($permissionRegistry);
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerDashboardWidgets($widgetRegistry);
@@ -60,11 +60,9 @@ class AnnouncementServiceProvider extends ServiceProvider
         Gate::policy(Announcement::class, AnnouncementPolicy::class);
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-        $registry->registerPermissions(AnnouncementPermissions::all());
+        $permissionRegistry->registerPermissions(AnnouncementPermissions::all());
     }
 
     private function registerInfrastructure(): void

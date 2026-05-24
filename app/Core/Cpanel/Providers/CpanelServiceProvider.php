@@ -25,10 +25,10 @@ class CpanelServiceProvider extends ServiceProvider
         $this->app->singleton(CpanelMailboxManager::class);
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry): void
+    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerSettings($settingsRegistry);
-        $this->registerPermissions();
+        $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -71,12 +71,9 @@ class CpanelServiceProvider extends ServiceProvider
         $settingsRegistry->registerConfigFile('cpanel', __DIR__.'/../config/settings.php');
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-
-        $registry->registerPermissions(CpanelPermissions::all());
+        $permissionRegistry->registerPermissions(CpanelPermissions::all());
     }
 
     private function registerAuthorization(): void

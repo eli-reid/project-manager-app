@@ -25,7 +25,6 @@ use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider;
 use App\Domains\Timecards\Services\EloquentPayrollTimecardReadGateway;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -127,17 +126,9 @@ class PayrollServiceProvider extends ServiceProvider
         $notificationRegistry->registerDefinitions(PayrollNotificationDefinitions::definitions());
     }
 
-    private function registerSchedulerTasks(?TaskTypeRegistry $taskTypeRegistry): void
+    private function registerSchedulerTasks(TaskTypeRegistry $taskTypeRegistry): void
     {
-        if ($taskTypeRegistry === null && ! $this->app->bound(TaskTypeRegistry::class)) {
-            Log::warning('TaskTypeRegistry not bound in container. Payroll digest validation task not registered.');
-
-            return;
-        }
-
-        $registry = $taskTypeRegistry ?? $this->app->make(TaskTypeRegistry::class);
-
-        $registry->register('payroll_audit_digest_validation', PayrollDigestValidationTask::class, [
+        $taskTypeRegistry->register('payroll_audit_digest_validation', PayrollDigestValidationTask::class, [
             'name' => 'Payroll Audit Digest Validation',
             'description' => 'Validates payroll audit digest chain and emits alerts on integrity failures.',
             'task_config' => [

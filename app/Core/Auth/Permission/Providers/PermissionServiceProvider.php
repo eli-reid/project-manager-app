@@ -16,23 +16,14 @@ class PermissionServiceProvider extends ServiceProvider
         $this->app->singleton(DomainPermissionSynchronizer::class);
     }
 
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry, DomainPermissionSynchronizer $synchronizer): void
     {
-        $this->registerPermissions();
-        $this->app->booted(fn () => $this->syncRegisteredPermissions());
+        $this->registerPermissions($permissionRegistry);
+        $this->app->booted(fn () => $synchronizer->syncIfChanged());
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-        $registry->registerPermissions(FoundationPermissions::all());
-    }
-
-    private function syncRegisteredPermissions(): void
-    {
-        /** @var DomainPermissionSynchronizer $synchronizer */
-        $synchronizer = $this->app->make(DomainPermissionSynchronizer::class);
-        $synchronizer->syncIfChanged();
+        $permissionRegistry->registerPermissions(FoundationPermissions::all());
     }
 }

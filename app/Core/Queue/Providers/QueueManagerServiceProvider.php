@@ -26,10 +26,10 @@ class QueueManagerServiceProvider extends ServiceProvider
         });
     }
 
-    public function boot(): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
         $this->registerAuthorization();
-        $this->registerPermissions();
+        $this->registerPermissions($permissionRegistry);
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -42,12 +42,9 @@ class QueueManagerServiceProvider extends ServiceProvider
         Gate::define('queue.manage', fn ($user) => app(QueuePolicy::class)->manage($user));
     }
 
-    private function registerPermissions(): void
+    private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
-        /** @var PermissionRegistryContract $registry */
-        $registry = $this->app->make(PermissionRegistryContract::class);
-
-        $registry->registerPermissions(QueuePermissions::all());
+        $permissionRegistry->registerPermissions(QueuePermissions::all());
     }
 
     private function registerEventListeners(): void
