@@ -3,12 +3,12 @@
 it('mounts the shared app sidebar livewire component in the layout', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/app.blade.php');
 
-    expect($view)->toContain('<livewire:layout.app-sidebar />');
+    expect($view)->toContain('<livewire:layouts.app-sidebar />');
     expect($view)->toContain('lg:ms-64');
 });
 
 it('keeps cross-domain sidebar navigation in shared app resources', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layout/app-sidebar.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/app-sidebar.blade.php');
 
     expect($view)->toContain("@include('partials.nav.sidebar-user-nav')");
     expect($view)->toContain("@include('partials.nav.sidebar-admin-nav')");

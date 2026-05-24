@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Layout;
+namespace App\Livewire\Layouts;
 
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
@@ -80,6 +80,6 @@ class AppSidebar extends Component
 
     public function render(): View
     {
-        return view('livewire.layout.app-sidebar');
+        return view('livewire.layouts.app-sidebar');
     }
 }
