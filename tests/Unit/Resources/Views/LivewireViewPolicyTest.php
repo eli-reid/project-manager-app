@@ -138,3 +138,60 @@ it('avoids direct blade rendering in route files outside explicit exceptions', f
         'Route files should dispatch Livewire components instead of returning Blade views. Violations: '.implode(', ', $violations->all())
     );
 });
+
+it('avoids direct blade rendering in controllers outside explicit legacy exceptions', function (): void {
+    $allFiles = static function (string $path): array {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        $files = [];
+
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $files[] = $file->getPathname();
+            }
+        }
+
+        return $files;
+    };
+
+    $projectRoot = str_replace('\\', '/', dirname(__DIR__, 4));
+    $basePathPrefix = $projectRoot.'/';
+
+    $controllerFiles = collect($allFiles($projectRoot.'/app'))
+        ->filter(function (string $path): bool {
+            return str_ends_with($path, 'Controller.php');
+        })
+        ->map(function (string $path) use ($basePathPrefix): string {
+            return str_replace('\\', '/', substr($path, strlen($basePathPrefix)));
+        })
+        ->values();
+
+    $allowedControllerViewFiles = [
+        'app/Core/Announcement/Http/Controllers/AnnouncementFeedController.php',
+        'app/Core/Settings/Http/Controllers/SettingsController.php',
+    ];
+
+    $violations = $controllerFiles
+        ->filter(function (string $path) use ($allowedControllerViewFiles, $projectRoot): bool {
+            if (in_array($path, $allowedControllerViewFiles, true)) {
+                return false;
+            }
+
+            $source = file_get_contents($projectRoot.'/'.$path);
+
+            if ($source === false) {
+                return true;
+            }
+
+            return preg_match('/return\s+view\s*\(/', $source) === 1;
+        })
+        ->sort()
+        ->values();
+
+    expect($violations->all())->toBe(
+        [],
+        'Controllers should return Livewire route responses instead of Blade views. Violations: '.implode(', ', $violations->all())
+    );
+});

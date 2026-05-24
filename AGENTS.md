@@ -56,6 +56,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Place new app-level route-facing views in `resources/views/livewire/**`.
 - Place new domain/core route-facing views in `app/{Core|Domains}/.../Resources/Views/livewire/**`.
 - Treat non-Livewire Blade views as exceptions only (auth, emails, pdf/print, low-level components/partials, or approved compatibility wrappers).
+- New HTTP controllers should not `return view(...)` for route-facing pages; use Livewire component routes/pages instead unless explicitly approved as a legacy exception.
 
 ## Frontend Bundling
 
