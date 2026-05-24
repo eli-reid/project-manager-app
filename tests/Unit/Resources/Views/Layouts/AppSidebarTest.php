@@ -4,6 +4,7 @@ it('mounts the shared app sidebar livewire component in the layout', function ()
     $view = file_get_contents(__DIR__.'/../../../../../resources/views/layouts/app/sidebar.blade.php');
 
     expect($view)->toContain('<livewire:users::layout.app-sidebar />');
+    expect($view)->toContain('lg:ms-64');
 });
 
 it('includes payroll links in the mobile app sidebar component menu', function (): void {

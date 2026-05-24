@@ -7,7 +7,7 @@
         <livewire:users::layout.app-sidebar />
 
         @isset($domainNavbar)
-            <div class="sticky top-0 z-30 w-full border-b border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="sticky top-0 z-30 border-b border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900 lg:ms-64">
                 {{ $domainNavbar }}
             </div>
         @endisset
