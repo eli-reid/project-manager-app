@@ -5,9 +5,9 @@ use App\Core\Settings\Livewire\Layouts\SettingsAdmin;
 use App\Domains\Clients\Livewire\Layouts\ClientManagementAdmin;
 use App\Domains\Payroll\Livewire\Layouts\PayrollAdmin;
 use App\Domains\Stock\Livewire\Layouts\StockInvoicesAdmin;
-use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
 use App\Livewire\Layouts\DomainLayout;
 use App\Livewire\Layouts\DomainNavbar;
+use App\Support\Contracts\ProvidesDomainNavbar;
 use Livewire\Component;
 
 it('defines dedicated livewire classes for domain admin layouts', function (): void {

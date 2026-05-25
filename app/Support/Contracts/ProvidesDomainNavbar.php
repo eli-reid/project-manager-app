@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Layouts\Contracts;
+namespace App\Support\Contracts;
 
 interface ProvidesDomainNavbar
 {

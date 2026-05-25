@@ -4,7 +4,7 @@ namespace App\Core\Identity\Livewire\Layouts;
 
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
-use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
+use App\Support\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;
 use Livewire\Component;
 

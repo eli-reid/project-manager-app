@@ -2,7 +2,7 @@
 
 namespace App\Core\Settings\Livewire\Layouts;
 
-use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
+use App\Support\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;
 use Livewire\Component;
 

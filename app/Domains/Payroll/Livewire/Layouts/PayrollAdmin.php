@@ -4,7 +4,7 @@ namespace App\Domains\Payroll\Livewire\Layouts;
 
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Timecards\Models\Timecard;
-use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
+use App\Support\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;
 use Livewire\Component;
 

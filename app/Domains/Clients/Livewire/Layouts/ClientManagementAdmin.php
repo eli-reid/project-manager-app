@@ -4,9 +4,10 @@ namespace App\Domains\Clients\Livewire\Layouts;
 
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
-use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
+use App\Support\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;
 use Livewire\Component;
+
 
 class ClientManagementAdmin extends Component implements ProvidesDomainNavbar
 {

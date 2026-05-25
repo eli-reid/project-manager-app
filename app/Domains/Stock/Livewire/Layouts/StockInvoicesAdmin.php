@@ -5,7 +5,7 @@ namespace App\Domains\Stock\Livewire\Layouts;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Stock\Models\StockOrderTemplate;
-use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
+use App\Support\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;
 use Livewire\Component;
 
