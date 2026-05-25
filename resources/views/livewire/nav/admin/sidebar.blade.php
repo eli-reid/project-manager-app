@@ -1,32 +1,5 @@
 <flux:sidebar.spacer />
 
-@php
-    $user = auth()->user();
-    $canManageAnnouncements = $user?->can('viewAny', \App\Core\Announcement\Models\Announcement::class) ?? false;
-    $canManageUsers = $user?->can('admin') ?? false;
-    $canViewAdminClients = $user?->can('viewAny', \App\Domains\Clients\Models\Client::class) ?? false;
-    $canViewAdminAddresses = $user?->can('viewAny', \App\Domains\Addresses\Models\Address::class) ?? false;
-    $showClientManagement = $canViewAdminClients || $canViewAdminAddresses;
-    $canViewAdminProjects = $user?->can('viewAny', \App\Domains\Projects\Models\Project::class) ?? false;
-    $canViewAdminStockOrders = $user?->can('viewAny', \App\Domains\Stock\Models\StockOrder::class) ?? false;
-    $canViewAdminStockTemplates = $user?->can('viewAny', \App\Domains\Stock\Models\StockOrderTemplate::class) ?? false;
-    $canViewAdminInvoices = $user?->can('viewAny', \App\Domains\Invoices\Models\Invoice::class) ?? false;
-    $showStockAndInvoices = $canViewAdminStockOrders || $canViewAdminStockTemplates || $canViewAdminInvoices;
-    $canViewAdminDailies = $user?->can('viewAll', \App\Domains\Dailies\Models\DailyReport::class) ?? false;
-    $canViewAdminTimecards = $user?->can('viewAll', \App\Domains\Timecards\Models\Timecard::class) ?? false;
-    $showTimeManagement = $canViewAdminDailies || $canViewAdminTimecards;
-    $canViewAdminDocuments = $user?->can('deleteAny', \App\Domains\Documents\Models\Document::class) ?? false;
-    $canManagePayroll = ($user?->can('payroll-rates.view') ?? false)
-        || ($user?->can('payroll-timecards.view') ?? false)
-        || ($user?->can('payroll-runs.preview') ?? false);
-    $canViewReports = ($user?->can('reports.financial.view') ?? false)
-        || ($user?->can('reports.operational.view') ?? false);
-    $canManageSettings = $user?->can('admin') ?? false;
-    $canViewScheduler = $user?->can('viewAny', \App\Core\Scheduler\Models\ScheduledTask::class) ?? false;
-    $canViewQueue = $user?->can('queue.viewAny') ?? false;
-    $canViewAdminNav = $user?->hasPermission('navigation.view-admin') ?? false;
-@endphp
-
 @if ($canViewAdminNav)
     <flux:sidebar.header class="in-data-flux-sidebar-collapsed-desktop:hidden">
         <flux:separator data-flux-separator="admin-header" text="{{ __('Administration') }}" class="text-lg" />
@@ -100,11 +73,7 @@
     @if ($canManagePayroll)
         <flux:sidebar.item
             icon="banknotes"
-            :href="$user?->can('payroll-timecards.view')
-                ? route('admin.payroll.timecards.index')
-                : ($user?->can('payroll-rates.view')
-                    ? route('admin.payroll.rates.index')
-                    : route('admin.payroll.runs.index'))"
+            :href="$payrollHref"
             :current="request()->routeIs('admin.payroll.*')"
             wire:navigate
             data-test="admin-payroll-sidebar-main-link"
