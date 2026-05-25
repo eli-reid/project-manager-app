@@ -17,7 +17,7 @@ it('keeps cross-domain sidebar navigation in shared app resources', function ():
 });
 
 it('includes payroll links in the mobile user-domain account menu', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/auth/user/mobile-user-menu.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../app/Core/Identity/Resources/Views/livewire/auth/user/mobile-user-menu.blade.php');
 
     expect($view)->toContain('@can(\'payroll-stubs.view-own\')');
     expect($view)->toContain('data-test="payroll-link-mobile"');

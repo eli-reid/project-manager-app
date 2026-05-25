@@ -9,6 +9,6 @@ class SidebarUserNav extends Component
 {
     public function render(): View
     {
-        return view('livewire.nav.sidebar-user-nav');
+        return view('livewire.nav.user.sidebar');
     }
 }

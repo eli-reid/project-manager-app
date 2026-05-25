@@ -2,6 +2,8 @@
 
 namespace App\Core\Identity\Providers;
 
+use App\Core\Identity\Livewire\Auth\User\DesktopUserMenu;
+use App\Core\Identity\Livewire\Auth\User\MobileUserMenu;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +34,8 @@ class UserServiceProvider extends ServiceProvider
     private function registerUIComponents(): void
     {
         Livewire::addNamespace('settings', classNamespace: 'App\Core\Identity\Livewire\Settings');
+        Livewire::component('auth.user.desktop-user-menu', DesktopUserMenu::class);
+        Livewire::component('auth.user.mobile-user-menu', MobileUserMenu::class);
     }
 
     private function registerRoutes(): void

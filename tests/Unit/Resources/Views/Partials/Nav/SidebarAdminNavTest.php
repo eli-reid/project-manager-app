@@ -1,7 +1,7 @@
 <?php
 
 it('centers the administration header in the admin sidebar partial', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/sidebar-admin-nav.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/admin/sidebar.blade.php');
 
     expect($view)->toContain('$canViewAdminNav = $user?->hasPermission(\'navigation.view-admin\') ?? false;');
     expect($view)->toContain('@if ($canViewAdminNav)');
@@ -25,7 +25,7 @@ it('centers the administration header in the admin sidebar partial', function ()
 });
 
 it('includes a payroll link in the admin sidebar partial', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/sidebar-admin-nav.blade.php');
+    $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/admin/sidebar.blade.php');
 
     expect($view)->toContain('$canManagePayroll = ($user?->can(\'payroll-rates.view\') ?? false)');
     expect($view)->toContain(':href="$user?->can(\'payroll-timecards.view\')');

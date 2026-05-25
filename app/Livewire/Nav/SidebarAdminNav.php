@@ -9,6 +9,6 @@ class SidebarAdminNav extends Component
 {
     public function render(): View
     {
-        return view('livewire.nav.sidebar-admin-nav');
+        return view('livewire.nav.admin.sidebar');
     }
 }

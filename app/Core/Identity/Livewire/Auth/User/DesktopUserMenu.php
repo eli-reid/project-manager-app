@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Auth\User;
+namespace App\Core\Identity\Livewire\Auth\User;
 
 use App\Core\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Cpanel\Services\CpanelService;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Component;
 
-class MobileUserMenu extends Component
+class DesktopUserMenu extends Component
 {
     protected CpanelService $cpanelService;
 
@@ -80,6 +80,6 @@ class MobileUserMenu extends Component
 
     public function render(): View
     {
-        return view('livewire.auth.user.mobile-user-menu');
+        return view('core-user::livewire.auth.user.desktop-user-menu');
     }
 }
