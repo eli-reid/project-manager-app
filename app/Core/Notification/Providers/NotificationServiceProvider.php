@@ -2,6 +2,7 @@
 
 namespace App\Core\Notification\Providers;
 
+use App\Core\Notification\Commands\SetupVapidKeysCommand;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\ServiceProvider;
@@ -18,6 +19,7 @@ class NotificationServiceProvider extends ServiceProvider
     {
         $this->registerSettings($settingsRegistry);
         $this->registerInfrastructure();
+        $this->registerCommands();
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
@@ -29,5 +31,16 @@ class NotificationServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-notification');
         Livewire::addNamespace('core.notification', classNamespace: 'App\Core\Notification\Livewire');
+    }
+
+    private function registerCommands(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->commands([
+            SetupVapidKeysCommand::class,
+        ]);
     }
 }

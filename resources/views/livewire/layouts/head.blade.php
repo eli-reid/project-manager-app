@@ -1,6 +1,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="csrf-token" content="{{ csrf_token() }}" />
+<meta name="vapid-public-key" content="{{ (string) config('webpush.vapid.public_key') }}" />
+<meta name="push-subscribe-url" content="{{ route('push-subscriptions.store') }}" />
+<meta name="push-unsubscribe-url" content="{{ route('push-subscriptions.destroy') }}" />
+@auth
+    <meta name="push-authenticated" content="1" />
+@endauth
 <meta name="application-name" content="{{ config('app.name', 'Laravel') }}" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />

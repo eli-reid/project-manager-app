@@ -22,10 +22,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 use Throwable;
 
 /**
  * @property string $id
+ *
  * @mixin IdeHelperUser
  */
 class User extends Authenticatable
@@ -33,7 +35,7 @@ class User extends Authenticatable
     public ?string $mailboxProvisioningPassword = null;
 
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasUlids, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, HasPushSubscriptions, HasUlids, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * @var array{version:string, permission_keys:array<int, string>, has_admin_role:bool}|null

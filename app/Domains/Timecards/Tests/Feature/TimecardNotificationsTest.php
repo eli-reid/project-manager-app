@@ -7,13 +7,18 @@ use App\Core\Identity\Models\User;
 use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Notifications\MissingTimecardReminder;
 use App\Domains\Timecards\Notifications\TimecardApprovedNotification;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use App\Domains\Timecards\Notifications\TimecardRejectedNotification;
+use App\Domains\Timecards\Notifications\TimecardReminderDigestNotification;
 use App\Domains\Timecards\Notifications\TimecardSubmittedNotification;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
+use Carbon\CarbonImmutable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 it('sends submitted notifications to users with timecards approve permission', function (): void {
     Notification::fake();
@@ -123,6 +128,58 @@ it('stores database notifications with uuid notification ids for ulid users', fu
     expect($notification)->not->toBeNull()
         ->and(strlen((string) $notification?->id))->toBe(36)
         ->and($notification?->type)->toBe(TimecardApprovedNotification::class);
+});
+
+it('includes push as a supported channel for timecard reminder definitions', function (): void {
+    $definitions = collect(TimecardNotificationDefinitions::definitions())->keyBy('key');
+
+    expect($definitions[TimecardNotificationDefinitions::REMINDER]['supported_channels'])
+        ->toContain('push')
+        ->and($definitions[TimecardNotificationDefinitions::MISSING_REMINDER]['supported_channels'])
+        ->toContain('push');
+});
+
+it('resolves push for reminder digest notifications when enabled', function (): void {
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["push"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::REMINDER), '["push"]');
+
+    $user = User::factory()->create(['is_admin' => false]);
+    $notification = new TimecardReminderDigestNotification(collect(), now()->toDateString());
+    $channels = $notification->via($user);
+
+    expect($channels)->toBe([WebPushChannel::class]);
+});
+
+it('builds push payloads for reminder notifications', function (): void {
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $digestNotification = new TimecardReminderDigestNotification(collect(), '2026-05-24');
+    $digestMessage = $digestNotification->toWebPush($user, $digestNotification);
+
+    $missingNotification = new MissingTimecardReminder(CarbonImmutable::parse('2026-05-18'));
+    $missingMessage = $missingNotification->toWebPush($user, $missingNotification);
+
+    expect($digestMessage)->toBeInstanceOf(WebPushMessage::class)
+        ->and($missingMessage)->toBeInstanceOf(WebPushMessage::class);
+
+    $digestPayload = $digestMessage->toArray();
+    $missingPayload = $missingMessage->toArray();
+
+    expect($digestPayload)
+        ->toMatchArray([
+            'title' => 'Timecard reminder',
+            'tag' => 'timecard-reminder-2026-05-24',
+        ])
+        ->and($digestPayload['data']['url'])->toBe(route('timecards.index'))
+        ->and($digestPayload['body'])->toContain('week ending 2026-05-24')
+        ->and($missingPayload)
+        ->toMatchArray([
+            'title' => 'Missing timecard',
+            'tag' => 'timecard-missing-2026-05-24',
+        ])
+        ->and($missingPayload['data']['url'])->toBe(route('timecards.create'))
+        ->and($missingPayload['body'])->toContain('week ending 2026-05-24');
 });
 
 function userWithNotificationPermission(string $permissionKey): User

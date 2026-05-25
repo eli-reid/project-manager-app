@@ -5,7 +5,6 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
-use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
@@ -13,6 +12,7 @@ use App\Core\Notification\Settings\NotificationSettings;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 use Illuminate\Validation\ValidationException;
+use NotificationChannels\WebPush\WebPushChannel;
 
 it('resolves default channels when no user preference exists', function (): void {
     Settings::set('notifications.enabled', 'true');
@@ -108,7 +108,7 @@ it('marks admin-disabled channels as unsupported in the preference matrix', func
         ->and($channels['sms']['supported'])->toBeFalse();
 });
 
-it('resolves push channel to the custom push channel class', function (): void {
+it('resolves push channel to the package web push channel class', function (): void {
     Settings::set('notifications.enabled', 'true');
     Settings::set('notifications.default_channels', '["push", "database"]');
     Settings::set(NotificationSettings::allowedChannelsSettingKey(TimecardNotificationDefinitions::APPROVED), '["database", "push"]');
@@ -122,7 +122,7 @@ it('resolves push channel to the custom push channel class', function (): void {
 
     expect($channels)
         ->toContain('database')
-        ->toContain(PushChannel::class)
+        ->toContain(WebPushChannel::class)
         ->not->toContain('push');
 });
 

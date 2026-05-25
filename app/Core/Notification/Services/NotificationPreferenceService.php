@@ -5,7 +5,6 @@ namespace App\Core\Notification\Services;
 use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Models\User;
 use App\Core\Identity\Services\UserAuthorizationSnapshotService;
-use App\Core\Notification\Channels\PushChannel;
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Settings\NotificationSettings;
@@ -15,6 +14,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use NotificationChannels\WebPush\WebPushChannel;
 
 class NotificationPreferenceService
 {
@@ -219,7 +219,7 @@ class NotificationPreferenceService
             return 'sms';
         }
 
-        if ($channel === PushChannel::class) {
+        if ($channel === WebPushChannel::class) {
             return 'push';
         }
 
@@ -233,7 +233,7 @@ class NotificationPreferenceService
         }
 
         if ($channel === 'push') {
-            return PushChannel::class;
+            return WebPushChannel::class;
         }
 
         return $channel;

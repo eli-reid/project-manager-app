@@ -42,13 +42,13 @@ class TimecardNotificationDefinitions
                 'key' => self::REMINDER,
                 'label' => 'Timecard Reminder',
                 'description' => 'Sent when a pending timecard needs attention.',
-                'supported_channels' => ['mail', 'database', 'sms'],
+                'supported_channels' => ['mail', 'database', 'sms', 'push'],
             ],
             [
                 'key' => self::MISSING_REMINDER,
                 'label' => 'Missing Timecard Reminder',
                 'description' => 'Sent when a required timecard has not been submitted.',
-                'supported_channels' => ['mail', 'database', 'sms'],
+                'supported_channels' => ['mail', 'database', 'sms', 'push'],
             ],
         ];
     }

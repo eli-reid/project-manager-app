@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Collection;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class TimecardReminderDigestNotification extends Notification implements ShouldQueue
 {
@@ -36,7 +38,7 @@ class TimecardReminderDigestNotification extends Notification implements ShouldQ
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class],
+            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
         );
     }
 
@@ -84,6 +86,24 @@ class TimecardReminderDigestNotification extends Notification implements ShouldQ
             'to' => $phone,
             'message' => "Reminder: you have {$count} pending timecard(s) for week ending {$this->weekEnding}. Please submit your timecard.",
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        $count = $this->timecards->count();
+
+        return (new WebPushMessage)
+            ->title('Timecard reminder')
+            ->body("You have {$count} pending timecard(s) for week ending {$this->weekEnding}.")
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('timecard-reminder-'.$this->weekEnding)
+            ->data([
+                'url' => route('timecards.index'),
+                'key' => $this->notificationKey(),
+                'week_ending' => $this->weekEnding,
+                'timecard_count' => $count,
+            ]);
     }
 
     private function notificationKey(): string

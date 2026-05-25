@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class MissingTimecardReminder extends Notification implements ShouldQueue
 {
@@ -33,7 +35,7 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class],
+            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
         );
     }
 
@@ -80,6 +82,24 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
             'to' => $phone,
             'message' => 'Reminder: You have not submitted a timecard for '.$this->weekStarting->toFormattedDateString().' week. Please submit your timecard.',
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        $weekEnding = $this->weekStarting->copy()->addDays(6);
+
+        return (new WebPushMessage)
+            ->title('Missing timecard')
+            ->body('You have not submitted a timecard for week ending '.$weekEnding->toDateString().'.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('timecard-missing-'.$weekEnding->toDateString())
+            ->data([
+                'url' => route('timecards.create'),
+                'key' => $this->notificationKey(),
+                'week_starting' => $this->weekStarting->toDateString(),
+                'week_ending' => $weekEnding->toDateString(),
+            ]);
     }
 
     private function notificationKey(): string
