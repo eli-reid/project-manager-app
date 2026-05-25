@@ -3,7 +3,8 @@
 it('includes a dailies link in the user sidebar partial', function (): void {
     $view = file_get_contents(__DIR__.'/../../../../../../resources/views/livewire/nav/user/sidebar.blade.php');
 
-    expect($view)->toContain('$canViewDailies = $user?->can(\'viewAny\', \\App\\Domains\\Dailies\\Models\\DailyReport::class) ?? false;');
+    expect($view)->toContain('@if ($canViewDailies)');
+    expect($view)->not->toContain('$canViewDailies = $user?->can(\'viewAny\', \\App\\Domains\\Dailies\\Models\\DailyReport::class) ?? false;');
     expect($view)->not->toContain('$showWorkGroup');
     expect($view)->not->toContain('$showOperationsGroup');
     expect($view)->toContain('<flux:sidebar.item');

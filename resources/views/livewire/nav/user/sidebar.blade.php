@@ -1,12 +1,3 @@
-@php
-    $user = auth()->user();
-    $canViewProjects = $user?->can('viewAny', \App\Domains\Projects\Models\Project::class) ?? false;
-    $canViewTimecards = $user?->can('viewAny', \App\Domains\Timecards\Models\Timecard::class) ?? false;
-    $canViewDailies = $user?->can('viewAny', \App\Domains\Dailies\Models\DailyReport::class) ?? false;
-    $canViewStock = $user?->can('viewAny', \App\Domains\Stock\Models\StockOrder::class) ?? false;
-    $canViewDocuments = $user?->can('viewAny', \App\Domains\Documents\Models\Document::class) ?? false;
-@endphp
-
         @if ($canViewProjects)
             <flux:sidebar.item
                 icon="briefcase"
