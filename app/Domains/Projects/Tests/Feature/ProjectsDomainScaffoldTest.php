@@ -436,6 +436,7 @@ it('flags leave projects on the admin project list as timecard leave items', fun
 
     Livewire::actingAs($user)
         ->test(AdminProjectsIndex::class)
+        ->assertSeeInOrder(['Vacation Time Entry Bucket', 'Standard Admin Project'])
         ->assertSee('Standard Admin Project')
         ->assertSee('Vacation Time Entry Bucket')
         ->assertSee('Timecard Leave')

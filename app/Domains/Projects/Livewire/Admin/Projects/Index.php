@@ -25,6 +25,7 @@ class Index extends Component
     {
         return view('projects::livewire.admin.projects.index', [
             'projects' => Project::query()
+                ->orderByRaw('CASE WHEN leave_category IS NOT NULL THEN 0 ELSE 1 END')
                 ->latest()
                 ->paginate(10),
         ]);
