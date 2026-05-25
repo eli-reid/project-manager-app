@@ -40,6 +40,16 @@ it('renders pwa metadata on the dashboard shell', function (): void {
         ->assertSee('viewport-fit=cover', false);
 });
 
+it('avoids caching navigation html in the service worker to prevent stale csrf tokens', function (): void {
+    $serviceWorker = file_get_contents(public_path('sw.js'));
+
+    expect($serviceWorker)
+        ->toBeString()
+        ->toContain("event.request.mode === 'navigate'")
+        ->toContain('caches.match(OFFLINE_URL)')
+        ->not->toContain('cache.put(event.request');
+});
+
 it('renders the mobile dashboard shell for authenticated users', function (): void {
     $user = User::factory()->create([
         'email_verified_at' => now(),

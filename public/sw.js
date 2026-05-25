@@ -1,4 +1,4 @@
-const CACHE_NAME = 'project-manager-app-v1';
+const CACHE_NAME = 'project-manager-app-v2';
 const OFFLINE_URL = '/offline.html';
 
 const APP_SHELL = [
@@ -41,18 +41,7 @@ self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request)
-                .then((response) => {
-                    const responseClone = response.clone();
-
-                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-
-                    return response;
-                })
-                .catch(async () => {
-                    const cached = await caches.match(event.request);
-
-                    return cached || caches.match(OFFLINE_URL);
-                })
+                .catch(() => caches.match(OFFLINE_URL))
         );
 
         return;
