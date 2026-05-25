@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class ProjectAccessGrantedNotification extends Notification implements ShouldQueue
 {
@@ -32,7 +34,7 @@ class ProjectAccessGrantedNotification extends Notification implements ShouldQue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class],
+            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
         );
     }
 
@@ -74,6 +76,22 @@ class ProjectAccessGrantedNotification extends Notification implements ShouldQue
             'to' => $phone,
             'message' => 'You have been granted access to project: '.$this->project->name.'.',
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('Project access granted')
+            ->body('You now have access to '.$this->project->name.'.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('project-access-granted-'.(string) $this->project->id)
+            ->data([
+                'url' => route('projects.show', $this->project),
+                'key' => $this->notificationKey(),
+                'project_id' => (string) $this->project->id,
+                'project_name' => $this->project->name,
+            ]);
     }
 
     private function notificationKey(): string

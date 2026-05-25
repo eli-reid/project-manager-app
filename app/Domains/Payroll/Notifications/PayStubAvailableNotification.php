@@ -9,6 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class PayStubAvailableNotification extends Notification implements ShouldQueue
 {
@@ -32,7 +34,7 @@ class PayStubAvailableNotification extends Notification implements ShouldQueue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', 'push'],
+            ['mail', 'database', WebPushChannel::class],
         );
     }
 
@@ -58,6 +60,22 @@ class PayStubAvailableNotification extends Notification implements ShouldQueue
             'net_pay' => $this->netPay,
             'gross_pay' => $this->grossPay,
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('Pay stub available')
+            ->body('Your pay stub for '.$this->payPeriodEnd.' is ready.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('payroll-pay-stub-'.$this->payPeriodEnd)
+            ->data([
+                'key' => $this->notificationKey(),
+                'pay_period_end' => $this->payPeriodEnd,
+                'net_pay' => $this->netPay,
+                'gross_pay' => $this->grossPay,
+            ]);
     }
 
     private function notificationKey(): string

@@ -47,7 +47,7 @@ class PayrollNotificationDefinitions
                 'key' => self::PREVIEW_CREATED,
                 'label' => 'Pay Run Preview Created',
                 'description' => 'Sent when a pay run preview is created and ready for review.',
-                'supported_channels' => ['mail', 'database'],
+                'supported_channels' => ['mail', 'database', 'push'],
             ],
             [
                 'key' => self::EXCEPTIONS_FOUND,
@@ -59,19 +59,19 @@ class PayrollNotificationDefinitions
                 'key' => self::APPROVED,
                 'label' => 'Pay Run Approved',
                 'description' => 'Sent when a pay run is approved by a controller.',
-                'supported_channels' => ['mail', 'database'],
+                'supported_channels' => ['mail', 'database', 'push'],
             ],
             [
                 'key' => self::FINALIZED,
                 'label' => 'Pay Run Finalized',
                 'description' => 'Sent when a pay run is finalized and scheduled for disbursement.',
-                'supported_channels' => ['mail', 'database'],
+                'supported_channels' => ['mail', 'database', 'push'],
             ],
             [
                 'key' => self::VOIDED,
                 'label' => 'Pay Run Voided',
                 'description' => 'Sent when a finalized pay run is voided.',
-                'supported_channels' => ['mail', 'database', 'sms'],
+                'supported_channels' => ['mail', 'database', 'sms', 'push'],
             ],
             [
                 'key' => self::DIRECT_DEPOSIT_SCHEDULED,
@@ -84,13 +84,13 @@ class PayrollNotificationDefinitions
                 'key' => self::RATE_CHANGE_EFFECTIVE,
                 'label' => 'Pay Rate Change Effective',
                 'description' => 'Sent when an employee\'s pay rate is changed and becomes effective.',
-                'supported_channels' => ['mail', 'database'],
+                'supported_channels' => ['mail', 'database', 'push'],
             ],
             [
                 'key' => self::DEDUCTION_MODIFIED,
                 'label' => 'Deduction Modified',
                 'description' => 'Sent when an employee deduction is added or modified.',
-                'supported_channels' => ['mail', 'database'],
+                'supported_channels' => ['mail', 'database', 'push'],
             ],
             [
                 'key' => self::PAY_STUB_AVAILABLE,
@@ -103,13 +103,13 @@ class PayrollNotificationDefinitions
                 'key' => self::HASH_CHAIN_INTEGRITY_FAILURE,
                 'label' => 'Audit Chain Integrity Failure',
                 'description' => 'Sent when payroll audit digest chain validation detects integrity issues.',
-                'supported_channels' => ['mail', 'sms'],
+                'supported_channels' => ['mail', 'sms', 'push'],
             ],
             [
                 'key' => self::TAX_TABLE_UPDATE_AVAILABLE,
                 'label' => 'Tax Table Update Available',
                 'description' => 'Sent when new IRS/state tax withholding tables are available.',
-                'supported_channels' => ['mail', 'database'],
+                'supported_channels' => ['mail', 'database', 'push'],
             ],
             // Compliance Notifications
             [
@@ -122,7 +122,7 @@ class PayrollNotificationDefinitions
                 'key' => self::CERTIFIED_PAYROLL_GENERATED,
                 'label' => 'Certified Payroll Generated',
                 'description' => 'Sent when certified payroll reports have been generated.',
-                'supported_channels' => ['mail', 'database'],
+                'supported_channels' => ['mail', 'database', 'push'],
             ],
             [
                 'key' => self::QUARTERLY_TAX_FILING_DUE,

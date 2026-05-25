@@ -9,6 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class PayRunFinalizedNotification extends Notification implements ShouldQueue
 {
@@ -34,7 +36,7 @@ class PayRunFinalizedNotification extends Notification implements ShouldQueue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database'],
+            ['mail', 'database', WebPushChannel::class],
         );
     }
 
@@ -64,6 +66,24 @@ class PayRunFinalizedNotification extends Notification implements ShouldQueue
             'pay_date' => $this->payDate,
             'employee_count' => $this->employeeCount,
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('Pay run finalized')
+            ->body('Pay run '.$this->payRunId.' was finalized for '.$this->employeeCount.' employee(s).')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('payroll-pay-run-finalized-'.$this->payRunId)
+            ->data([
+                'key' => $this->notificationKey(),
+                'pay_run_id' => $this->payRunId,
+                'pay_period_start' => $this->payPeriodStart,
+                'pay_period_end' => $this->payPeriodEnd,
+                'pay_date' => $this->payDate,
+                'employee_count' => $this->employeeCount,
+            ]);
     }
 
     private function notificationKey(): string

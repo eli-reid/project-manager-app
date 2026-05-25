@@ -24,19 +24,19 @@ class TimecardNotificationDefinitions
                 'key' => self::APPROVED,
                 'label' => 'Timecard Approved',
                 'description' => 'Sent when a submitted timecard is approved.',
-                'supported_channels' => ['mail', 'database', 'sms'],
+                'supported_channels' => ['mail', 'database', 'sms', 'push'],
             ],
             [
                 'key' => self::SUBMITTED,
                 'label' => 'Timecard Submitted',
                 'description' => 'Sent when a timecard is submitted for review.',
-                'supported_channels' => ['mail', 'database', 'sms'],
+                'supported_channels' => ['mail', 'database', 'sms', 'push'],
             ],
             [
                 'key' => self::REJECTED,
                 'label' => 'Timecard Rejected',
                 'description' => 'Sent when a submitted timecard is rejected.',
-                'supported_channels' => ['mail', 'database', 'sms'],
+                'supported_channels' => ['mail', 'database', 'sms', 'push'],
             ],
             [
                 'key' => self::REMINDER,

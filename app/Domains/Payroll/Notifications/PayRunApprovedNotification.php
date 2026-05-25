@@ -9,6 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class PayRunApprovedNotification extends Notification implements ShouldQueue
 {
@@ -33,7 +35,7 @@ class PayRunApprovedNotification extends Notification implements ShouldQueue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database'],
+            ['mail', 'database', WebPushChannel::class],
         );
     }
 
@@ -61,6 +63,23 @@ class PayRunApprovedNotification extends Notification implements ShouldQueue
             'pay_period_start' => $this->payPeriodStart,
             'pay_period_end' => $this->payPeriodEnd,
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('Pay run approved')
+            ->body('Pay run '.$this->payRunId.' for period ending '.$this->payPeriodEnd.' has been approved.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('payroll-pay-run-approved-'.$this->payRunId)
+            ->data([
+                'key' => $this->notificationKey(),
+                'pay_run_id' => $this->payRunId,
+                'pay_period_start' => $this->payPeriodStart,
+                'pay_period_end' => $this->payPeriodEnd,
+                'approved_by' => $this->approvedBy,
+            ]);
     }
 
     private function notificationKey(): string

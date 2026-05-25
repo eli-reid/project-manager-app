@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class ProjectAccessRevokedNotification extends Notification implements ShouldQueue
 {
@@ -32,7 +34,7 @@ class ProjectAccessRevokedNotification extends Notification implements ShouldQue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class],
+            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
         );
     }
 
@@ -72,6 +74,22 @@ class ProjectAccessRevokedNotification extends Notification implements ShouldQue
             'to' => $phone,
             'message' => 'Your access to project '.$this->project->name.' has been revoked.',
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('Project access revoked')
+            ->body('Your access to '.$this->project->name.' was removed.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('project-access-revoked-'.(string) $this->project->id)
+            ->data([
+                'url' => route('projects.index'),
+                'key' => $this->notificationKey(),
+                'project_id' => (string) $this->project->id,
+                'project_name' => $this->project->name,
+            ]);
     }
 
     private function notificationKey(): string

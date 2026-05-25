@@ -13,6 +13,8 @@ use App\Domains\Projects\Notifications\ProjectAccessGrantedNotification;
 use App\Domains\Projects\Notifications\ProjectAccessRevokedNotification;
 use App\Domains\Projects\Services\ProjectAccessService;
 use Illuminate\Support\Facades\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 it('grants project access and records an audit log', function (): void {
     $actor = userWithAccessPermissions(['projects.view', 'project-access.grant']);
@@ -273,6 +275,22 @@ it('dispatches a revoked notification to the assignee when access is revoked', f
     Notification::assertSentTo($assignee, ProjectAccessRevokedNotification::class, function (ProjectAccessRevokedNotification $notification) use ($project): bool {
         return $notification->project->id === $project->id;
     });
+});
+
+it('resolves push channels and builds push payloads for project access notifications', function (): void {
+    Settings::set('notifications.enabled', 'true');
+    Settings::set('notifications.default_channels', '["push"]');
+
+    $assignee = User::factory()->create(['is_admin' => false]);
+    $project = Project::factory()->create();
+
+    $granted = new ProjectAccessGrantedNotification($project);
+    $revoked = new ProjectAccessRevokedNotification($project);
+
+    expect($granted->via($assignee))->toBe([WebPushChannel::class])
+        ->and($revoked->via($assignee))->toBe([WebPushChannel::class])
+        ->and($granted->toWebPush($assignee, $granted))->toBeInstanceOf(WebPushMessage::class)
+        ->and($revoked->toWebPush($assignee, $revoked))->toBeInstanceOf(WebPushMessage::class);
 });
 
 /**

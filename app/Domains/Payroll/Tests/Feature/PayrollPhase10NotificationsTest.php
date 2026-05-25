@@ -11,11 +11,14 @@ use App\Domains\Payroll\Notifications\PayrollNotificationDefinitions;
 use App\Domains\Payroll\Notifications\PayRunApprovedNotification;
 use App\Domains\Payroll\Notifications\PayRunFinalizedNotification;
 use App\Domains\Payroll\Notifications\PayRunVoidedNotification;
+use App\Domains\Payroll\Notifications\PayStubAvailableNotification;
 use App\Domains\Payroll\Services\PayRunService;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use Illuminate\Support\Facades\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 it('registers payroll notification definitions in the notification registry', function (): void {
     $keys = NotificationEventCatalog::keys();
@@ -220,8 +223,8 @@ it('sends voided notification when finalized pay run is voided', function (): vo
 
 it('uses admin-configured allowed channels for approved notification', function (): void {
     Settings::set('notifications.enabled', 'true');
-    Settings::set('notifications.default_channels', '["mail", "database", "sms"]');
-    Settings::set(NotificationSettings::allowedChannelsSettingKey(PayrollNotificationDefinitions::APPROVED), '["database"]');
+    Settings::set('notifications.default_channels', '["database", "push"]');
+    Settings::set(NotificationSettings::allowedChannelsSettingKey(PayrollNotificationDefinitions::APPROVED), '["database", "push"]');
 
     $creator = User::factory()->create(['is_admin' => false]);
     $approver = User::factory()->create(['is_admin' => false]);
@@ -279,7 +282,45 @@ it('uses admin-configured allowed channels for approved notification', function 
 
     $channels = $notification->via($approver);
 
-    expect($channels)->toBe(['database']);
+    expect($channels)
+        ->toContain('database')
+        ->toContain(WebPushChannel::class);
+});
+
+it('builds push payloads for payroll notifications', function (): void {
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $approved = new PayRunApprovedNotification(
+        payRunId: 'PR-100',
+        approvedBy: 'jane.manager',
+        payPeriodStart: '2026-05-01',
+        payPeriodEnd: '2026-05-15',
+    );
+
+    $finalized = new PayRunFinalizedNotification(
+        payRunId: 'PR-100',
+        payPeriodStart: '2026-05-01',
+        payPeriodEnd: '2026-05-15',
+        payDate: '2026-05-20',
+        employeeCount: 12,
+    );
+
+    $voided = new PayRunVoidedNotification(
+        payRunId: 'PR-100',
+        payPeriodStart: '2026-05-01',
+        payPeriodEnd: '2026-05-15',
+    );
+
+    $payStub = new PayStubAvailableNotification(
+        payPeriodEnd: '2026-05-15',
+        netPay: '1500.00',
+        grossPay: '2200.00',
+    );
+
+    expect($approved->toWebPush($user, $approved))->toBeInstanceOf(WebPushMessage::class)
+        ->and($finalized->toWebPush($user, $finalized))->toBeInstanceOf(WebPushMessage::class)
+        ->and($voided->toWebPush($user, $voided))->toBeInstanceOf(WebPushMessage::class)
+        ->and($payStub->toWebPush($user, $payStub))->toBeInstanceOf(WebPushMessage::class);
 });
 
 it('registers all payroll notification definitions with correct properties', function (): void {

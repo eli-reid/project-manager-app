@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class TimecardSubmittedNotification extends Notification implements ShouldQueue
 {
@@ -32,7 +34,7 @@ class TimecardSubmittedNotification extends Notification implements ShouldQueue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class],
+            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
         );
     }
 
@@ -78,6 +80,24 @@ class TimecardSubmittedNotification extends Notification implements ShouldQueue
             'to' => $phone,
             'message' => 'A timecard was submitted and is ready for review.',
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        $employeeName = trim(($this->timecard->user?->first_name ?? '').' '.($this->timecard->user?->last_name ?? ''));
+
+        return (new WebPushMessage)
+            ->title('Timecard submitted')
+            ->body(($employeeName !== '' ? $employeeName : 'A team member').' submitted a timecard for review.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('timecard-submitted-'.(string) $this->timecard->id)
+            ->data([
+                'url' => route('admin.timecards.show', $this->timecard),
+                'key' => $this->notificationKey(),
+                'timecard_id' => (string) $this->timecard->id,
+                'employee_name' => $employeeName,
+            ]);
     }
 
     private function notificationKey(): string

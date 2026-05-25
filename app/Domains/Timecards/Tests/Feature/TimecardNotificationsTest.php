@@ -130,13 +130,40 @@ it('stores database notifications with uuid notification ids for ulid users', fu
         ->and($notification?->type)->toBe(TimecardApprovedNotification::class);
 });
 
-it('includes push as a supported channel for timecard reminder definitions', function (): void {
+it('includes push as a supported channel for all timecard notification definitions', function (): void {
     $definitions = collect(TimecardNotificationDefinitions::definitions())->keyBy('key');
 
-    expect($definitions[TimecardNotificationDefinitions::REMINDER]['supported_channels'])
+    expect($definitions[TimecardNotificationDefinitions::APPROVED]['supported_channels'])
+        ->toContain('push')
+        ->and($definitions[TimecardNotificationDefinitions::SUBMITTED]['supported_channels'])
+        ->toContain('push')
+        ->and($definitions[TimecardNotificationDefinitions::REJECTED]['supported_channels'])
+        ->toContain('push')
+        ->and($definitions[TimecardNotificationDefinitions::REMINDER]['supported_channels'])
         ->toContain('push')
         ->and($definitions[TimecardNotificationDefinitions::MISSING_REMINDER]['supported_channels'])
         ->toContain('push');
+});
+
+it('builds push payloads for timecard lifecycle notifications', function (): void {
+    $user = User::factory()->create(['is_admin' => false]);
+    $timecard = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_SUBMITTED,
+        'week_ending' => '2026-05-24',
+        'rejection_reason' => 'Missing notes',
+    ]);
+
+    $approvedPayload = (new TimecardApprovedNotification($timecard))->toWebPush($user, new TimecardApprovedNotification($timecard))->toArray();
+    $submittedPayload = (new TimecardSubmittedNotification($timecard))->toWebPush($user, new TimecardSubmittedNotification($timecard))->toArray();
+    $rejectedPayload = (new TimecardRejectedNotification($timecard))->toWebPush($user, new TimecardRejectedNotification($timecard))->toArray();
+
+    expect($approvedPayload['title'])->toBe('Timecard approved')
+        ->and($approvedPayload['data']['timecard_id'])->toBe((string) $timecard->id)
+        ->and($submittedPayload['title'])->toBe('Timecard submitted')
+        ->and($submittedPayload['data']['timecard_id'])->toBe((string) $timecard->id)
+        ->and($rejectedPayload['title'])->toBe('Timecard rejected')
+        ->and($rejectedPayload['data']['rejection_reason'])->toBe('Missing notes');
 });
 
 it('resolves push for reminder digest notifications when enabled', function (): void {

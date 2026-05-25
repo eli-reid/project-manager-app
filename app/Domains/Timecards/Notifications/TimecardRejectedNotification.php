@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class TimecardRejectedNotification extends Notification implements ShouldQueue
 {
@@ -32,7 +34,7 @@ class TimecardRejectedNotification extends Notification implements ShouldQueue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class],
+            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
         );
     }
 
@@ -77,6 +79,25 @@ class TimecardRejectedNotification extends Notification implements ShouldQueue
             'to' => $phone,
             'message' => 'Your timecard was rejected and needs updates.',
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        $weekEnding = optional($this->timecard->week_ending)?->toDateString() ?? 'this week';
+
+        return (new WebPushMessage)
+            ->title('Timecard rejected')
+            ->body('Your timecard for week ending '.$weekEnding.' needs updates.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('timecard-rejected-'.(string) $this->timecard->id)
+            ->data([
+                'url' => route('timecards.show', $this->timecard),
+                'key' => $this->notificationKey(),
+                'timecard_id' => (string) $this->timecard->id,
+                'week_ending' => $weekEnding,
+                'rejection_reason' => $this->timecard->rejection_reason,
+            ]);
     }
 
     private function notificationKey(): string

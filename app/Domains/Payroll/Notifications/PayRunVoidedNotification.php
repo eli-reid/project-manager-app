@@ -9,6 +9,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class PayRunVoidedNotification extends Notification implements ShouldQueue
 {
@@ -32,7 +34,7 @@ class PayRunVoidedNotification extends Notification implements ShouldQueue
         return app(NotificationPreferenceService::class)->resolveChannels(
             $notifiable,
             $this->notificationKey(),
-            ['mail', 'database', 'sms'],
+            ['mail', 'database', 'sms', WebPushChannel::class],
         );
     }
 
@@ -75,6 +77,22 @@ class PayRunVoidedNotification extends Notification implements ShouldQueue
             'to' => $phone,
             'message' => 'CRITICAL: Pay run for '.$this->payPeriodEnd.' has been voided. Check admin console immediately.',
         ];
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('Pay run voided')
+            ->body('Critical: pay run '.$this->payRunId.' for period ending '.$this->payPeriodEnd.' was voided.')
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->tag('payroll-pay-run-voided-'.$this->payRunId)
+            ->data([
+                'key' => $this->notificationKey(),
+                'pay_run_id' => $this->payRunId,
+                'pay_period_start' => $this->payPeriodStart,
+                'pay_period_end' => $this->payPeriodEnd,
+            ]);
     }
 
     private function notificationKey(): string
