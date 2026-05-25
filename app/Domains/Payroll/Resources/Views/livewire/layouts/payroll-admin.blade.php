@@ -1,4 +1,4 @@
-@php($navbarItems = \App\Livewire\Layouts\PayrollAdmin::navbarItems())
+@php($navbarItems = \App\Domains\Payroll\Livewire\Layouts\PayrollAdmin::navbarItems())
 
 <livewire:layouts.domain-layout :title="$title ?? null" :navbar-items="$navbarItems">
     {{ $slot }}

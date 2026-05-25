@@ -1,7 +1,7 @@
 <?php
 
 it('includes email management in the access admin domain navbar', function (): void {
-    $view = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/AccessAdmin.php');
+    $view = file_get_contents(__DIR__.'/../../../../../app/Core/Identity/Livewire/Layouts/AccessAdmin.php');
 
     expect($view)->toContain("'label' => (string) __('Email Management')");
     expect($view)->toContain("'href' => route('admin.cpanel.manage.dashboard')");

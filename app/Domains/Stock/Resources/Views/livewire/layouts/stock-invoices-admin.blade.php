@@ -1,4 +1,4 @@
-@php($navbarItems = \App\Livewire\Layouts\StockInvoicesAdmin::navbarItems())
+@php($navbarItems = \App\Domains\Stock\Livewire\Layouts\StockInvoicesAdmin::navbarItems())
 
 <livewire:layouts.domain-layout :title="$title ?? null" :navbar-items="$navbarItems">
     {{ $slot }}

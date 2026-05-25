@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Layouts;
+namespace App\Core\Settings\Livewire\Layouts;
 
 use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;

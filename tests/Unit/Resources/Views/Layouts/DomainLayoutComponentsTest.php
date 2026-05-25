@@ -1,13 +1,13 @@
 <?php
 
-use App\Livewire\Layouts\AccessAdmin;
-use App\Livewire\Layouts\ClientManagementAdmin;
+use App\Core\Identity\Livewire\Layouts\AccessAdmin;
+use App\Core\Settings\Livewire\Layouts\SettingsAdmin;
+use App\Domains\Clients\Livewire\Layouts\ClientManagementAdmin;
+use App\Domains\Payroll\Livewire\Layouts\PayrollAdmin;
+use App\Domains\Stock\Livewire\Layouts\StockInvoicesAdmin;
 use App\Livewire\Layouts\Contracts\ProvidesDomainNavbar;
 use App\Livewire\Layouts\DomainLayout;
 use App\Livewire\Layouts\DomainNavbar;
-use App\Livewire\Layouts\PayrollAdmin;
-use App\Livewire\Layouts\SettingsAdmin;
-use App\Livewire\Layouts\StockInvoicesAdmin;
 use Livewire\Component;
 
 it('defines dedicated livewire classes for domain admin layouts', function (): void {
@@ -27,11 +27,11 @@ it('defines dedicated livewire classes for domain admin layouts', function (): v
 });
 
 it('maps each domain layout class to the correct layout view', function (): void {
-    $accessAdminSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/AccessAdmin.php');
-    $settingsAdminSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/SettingsAdmin.php');
-    $clientManagementSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/ClientManagementAdmin.php');
-    $stockInvoicesSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/StockInvoicesAdmin.php');
-    $payrollSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/PayrollAdmin.php');
+    $accessAdminSource = file_get_contents(__DIR__.'/../../../../../app/Core/Identity/Livewire/Layouts/AccessAdmin.php');
+    $settingsAdminSource = file_get_contents(__DIR__.'/../../../../../app/Core/Settings/Livewire/Layouts/SettingsAdmin.php');
+    $clientManagementSource = file_get_contents(__DIR__.'/../../../../../app/Domains/Clients/Livewire/Layouts/ClientManagementAdmin.php');
+    $stockInvoicesSource = file_get_contents(__DIR__.'/../../../../../app/Domains/Stock/Livewire/Layouts/StockInvoicesAdmin.php');
+    $payrollSource = file_get_contents(__DIR__.'/../../../../../app/Domains/Payroll/Livewire/Layouts/PayrollAdmin.php');
     $domainLayoutSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/DomainLayout.php');
     $domainNavbarSource = file_get_contents(__DIR__.'/../../../../../app/Livewire/Layouts/DomainNavbar.php');
 

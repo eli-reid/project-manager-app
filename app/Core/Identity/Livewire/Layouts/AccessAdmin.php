@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Layouts;
+namespace App\Core\Identity\Livewire\Layouts;
 
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;

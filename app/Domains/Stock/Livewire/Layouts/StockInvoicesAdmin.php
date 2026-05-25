@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Layouts;
+namespace App\Domains\Stock\Livewire\Layouts;
 
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Stock\Models\StockOrder;

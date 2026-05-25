@@ -1,4 +1,4 @@
-@php($navbarItems = \App\Livewire\Layouts\AccessAdmin::navbarItems())
+@php($navbarItems = \App\Core\Identity\Livewire\Layouts\AccessAdmin::navbarItems())
 
 <livewire:layouts.domain-layout :title="$title ?? null" :navbar-items="$navbarItems">
     {{ $slot }}

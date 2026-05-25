@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Layouts;
+namespace App\Domains\Clients\Livewire\Layouts;
 
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Layouts;
+namespace App\Domains\Payroll\Livewire\Layouts;
 
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Timecards\Models\Timecard;
