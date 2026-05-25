@@ -82,13 +82,6 @@ class Profile extends Component
         return Auth::user() instanceof MustVerifyEmail && ! Auth::user()->hasVerifiedEmail();
     }
 
-    #[Computed]
-    public function showDeleteUser(): bool
-    {
-        return ! Auth::user() instanceof MustVerifyEmail
-            || (Auth::user() instanceof MustVerifyEmail && Auth::user()->hasVerifiedEmail());
-    }
-
     public function render()
     {
         $view = request()->routeIs('settings.mobile.*')

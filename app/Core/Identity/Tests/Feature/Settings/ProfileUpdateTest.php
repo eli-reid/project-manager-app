@@ -17,6 +17,21 @@ test('mobile profile page is displayed', function () {
     $this->get('/mobile/settings/profile')->assertOk();
 });
 
+test('profile settings pages do not show delete account action', function () {
+    $desktopSettingsView = file_get_contents(app_path('Core/Identity/Resources/Views/livewire/settings/profile.blade.php'));
+    $mobileSettingsView = file_get_contents(app_path('Core/Identity/Resources/Views/livewire/mobile/settings/profile.blade.php'));
+
+    expect($desktopSettingsView)
+        ->toBeString()
+        ->not->toContain('livewire:settings::delete-user-form')
+        ->not->toContain('Delete account');
+
+    expect($mobileSettingsView)
+        ->toBeString()
+        ->not->toContain('livewire:settings::delete-user-form')
+        ->not->toContain('Delete account');
+});
+
 test('profile information can be updated', function () {
     $user = User::factory()->create();
 
