@@ -101,7 +101,7 @@
         <flux:sidebar.item
             icon="banknotes"
             :href="$user?->can('payroll-timecards.view')
-                ? route('admin.payroll.timecards.review')
+                ? route('admin.payroll.timecards.index')
                 : ($user?->can('payroll-rates.view')
                     ? route('admin.payroll.rates.index')
                     : route('admin.payroll.runs.index'))"
