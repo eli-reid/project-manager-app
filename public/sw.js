@@ -75,7 +75,7 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-    if (! event.data) {
+    if (!event.data) {
         return;
     }
 
