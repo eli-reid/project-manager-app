@@ -60,7 +60,7 @@
                             </td>
                             <td class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">{{ $template->createdBy?->first_name }} {{ $template->createdBy?->last_name }}</td>
                             <td class="px-4 py-3 text-right">
-                                <x-ui.row-actions-dropdown label="Template actions" width="w-36" :menu-height="130">
+                                <livewire:ui.row-actions-dropdown label="Template actions" width="w-36" :menu-height="130">
                                     @can('update', $template)
                                         <a href="{{ route('admin.stock-order-templates.edit', $template) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
                                         <button type="button" wire:click="toggleActive('{{ $template->id }}')" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800" @click="closeMenu()">
@@ -76,7 +76,7 @@
                                             @click="closeMenu()"
                                         >Delete</button>
                                     @endcan
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

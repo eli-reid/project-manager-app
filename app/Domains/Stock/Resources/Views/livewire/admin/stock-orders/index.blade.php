@@ -127,9 +127,9 @@
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $order->items_count }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-500 dark:text-zinc-400">{{ $order->created_at->format('M j, Y') }}</td>
                             <td class="px-4 py-3 align-top">
-                                <x-ui.row-actions-dropdown label="Order actions" width="w-36" :menu-height="100">
+                                <livewire:ui.row-actions-dropdown label="Order actions" width="w-36" :menu-height="100">
                                     <a href="{{ route('admin.stock-orders.show', $order) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Review</a>
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

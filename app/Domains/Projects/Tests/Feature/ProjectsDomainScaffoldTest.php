@@ -11,6 +11,7 @@ use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Livewire\Admin\Projects\Form;
+use App\Domains\Projects\Livewire\Admin\Projects\Index as AdminProjectsIndex;
 use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectsIndex;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
@@ -414,6 +415,31 @@ it('renders project index actions with row navigation exclusion markers', functi
         ->assertSuccessful()
         ->assertSee('data-prevent-row-nav', false)
         ->assertSee('window.Livewire?.navigate', false);
+});
+
+it('flags leave projects on the admin project list as timecard leave items', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Standard Admin Project',
+        'project_number' => 'PRJ-ADMIN-1',
+        'leave_category' => null,
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Vacation Time Entry Bucket',
+        'project_number' => Project::BUILT_IN_VACATION_PROJECT_NUMBER,
+        'leave_category' => 'vacation',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(AdminProjectsIndex::class)
+        ->assertSee('Standard Admin Project')
+        ->assertSee('Vacation Time Entry Bucket')
+        ->assertSee('Timecard Leave')
+        ->assertSee('Vacation');
 });
 
 it('shows inline client and address widgets on project create form', function (): void {

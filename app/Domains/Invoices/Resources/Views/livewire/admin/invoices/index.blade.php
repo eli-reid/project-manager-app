@@ -82,14 +82,14 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 align-top" data-prevent-row-nav x-on:click.stop="">
-                                <x-ui.row-actions-dropdown label="Invoice actions" width="w-36" :menu-height="160" data-prevent-row-nav x-on:click.stop="">
+                                <livewire:ui.row-actions-dropdown label="Invoice actions" width="w-36" :menu-height="160">
                                     @can('view', $invoice)
                                         <a href="{{ route('admin.invoices.show', $invoice) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
                                     @endcan
                                     @can('update', $invoice)
                                         <a href="{{ route('admin.invoices.edit', $invoice) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
                                     @endcan
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

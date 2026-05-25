@@ -28,7 +28,16 @@
                             @click="if (! $event.target.closest('[data-prevent-row-nav]')) { window.Livewire?.navigate('{{ route('admin.projects.show', $project) }}') ?? window.location.assign('{{ route('admin.projects.show', $project) }}'); }"
                             class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
                         >
-                            <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</td>
+                            <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                <div>{{ $project->name }}</div>
+
+                                @if ($project->isLeaveProject())
+                                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+                                        <span class="inline-flex rounded-md bg-amber-100 px-2 py-1 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">Timecard Leave</span>
+                                        <span class="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ ucfirst($project->leave_category) }}</span>
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->project_number ?? 'N/A' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
                                 <span class="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</span>
@@ -43,7 +52,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 align-top" data-prevent-row-nav x-on:click.stop="">
-                                <x-ui.row-actions-dropdown label="Project actions" width="w-36" :menu-height="160" data-prevent-row-nav x-on:click.stop="">
+                                <livewire:ui.row-actions-dropdown label="Project actions" width="w-36" :menu-height="160">
                                     @can('view', $project)
                                         <a href="{{ route('admin.projects.show', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
                                     @endcan
@@ -53,7 +62,7 @@
                                     @can('update', $project)
                                         <a href="{{ route('admin.projects.edit', $project) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
                                     @endcan
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

@@ -97,12 +97,12 @@
                                 {{ $order->created_at->format('M j, Y') }}
                             </td>
                             <td class="px-4 py-3 align-top">
-                                <x-ui.row-actions-dropdown label="Order actions" width="w-36" :menu-height="120">
+                                <livewire:ui.row-actions-dropdown label="Order actions" width="w-36" :menu-height="120">
                                     <a href="{{ route('stock-orders.show', $order) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
                                     @can('update', $order)
                                         <a href="{{ route('stock-orders.edit', $order) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
                                     @endcan
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

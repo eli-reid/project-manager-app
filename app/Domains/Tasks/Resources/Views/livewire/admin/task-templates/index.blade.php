@@ -62,14 +62,14 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 align-top">
-                                <x-ui.row-actions-dropdown label="Template actions" width="w-36" :menu-height="130">
+                                <livewire:ui.row-actions-dropdown label="Template actions" width="w-36" :menu-height="130">
                                     @can('update', $template)
                                         <a href="{{ route('admin.task-templates.edit', $template) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
                                     @endcan
                                     @can('delete', $template)
                                         <button type="button" wire:click="deleteTemplate('{{ $template->id }}')" wire:confirm="Delete this template?" class="block w-full px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30" @click="closeMenu()">Delete</button>
                                     @endcan
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty

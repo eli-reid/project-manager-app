@@ -78,7 +78,7 @@
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ str($report->status)->headline() }}</td>
                             <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ number_format((float) $report->total_hours, 2) }}</td>
                             <td class="px-4 py-3 text-right text-sm">
-                                <x-ui.row-actions-dropdown label="Daily report actions" width="w-36" :menu-height="130">
+                                <livewire:ui.row-actions-dropdown label="Daily report actions" width="w-36" :menu-height="130">
                                     <a
                                         href="{{ route('dailies.show', $report) }}"
                                         class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
@@ -98,7 +98,7 @@
                                             {{ __('Edit') }}
                                         </a>
                                     @endcan
-                                </x-ui.row-actions-dropdown>
+                                </livewire:ui.row-actions-dropdown>
                             </td>
                         </tr>
                     @empty
