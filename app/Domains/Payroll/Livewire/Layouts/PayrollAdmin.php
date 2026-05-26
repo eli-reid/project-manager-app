@@ -20,14 +20,15 @@ class PayrollAdmin extends Component implements ProvidesDomainNavbar
                 ? [
                     'label' => (string) __('Timecards'),
                     'href' => route('admin.timecards.index'),
-                    'current' => request()->routeIs('admin.timecards.*'),
+                    'current' => request()->routeIs('admin.timecards.*')
+                        && ! request()->routeIs('admin.timecards.required-users*'),
                 ]
                 : null,
             auth()->user()?->can('viewAll', Timecard::class)
                 ? [
                     'label' => (string) __('Required Users'),
                     'href' => route('admin.timecards.required-users'),
-                    'current' => request()->routeIs('admin.timecards.required-users'),
+                    'current' => request()->routeIs('admin.timecards.required-users*'),
                 ]
                 : null,
             auth()->user()?->can('viewAll', DailyReport::class)
