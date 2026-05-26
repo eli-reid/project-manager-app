@@ -88,6 +88,16 @@ it('shows submitted entries on the payroll timecard review screen', function ():
         ->assertSee('Review Project');
 });
 
+it('shows a direct timecard review link in the payroll layout', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.payroll.rates.index'))
+        ->assertSuccessful()
+        ->assertSee('Timecard Review')
+        ->assertSee(route('admin.payroll.timecards.review'), false);
+});
+
 it('forbids non-admin users from payroll admin pre-run screens without explicit permissions', function (string $routeName): void {
     $user = User::factory()->create(['is_admin' => false]);
 
