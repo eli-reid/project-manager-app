@@ -3,6 +3,7 @@
 use App\Core\Identity\Livewire\Settings\DeleteUserForm;
 use App\Core\Identity\Livewire\Settings\Profile;
 use App\Core\Identity\Models\User;
+use App\Domains\Addresses\Models\Address;
 use Livewire\Livewire;
 
 test('profile page is displayed', function () {
@@ -73,6 +74,33 @@ test('email verification status is unchanged when email address is unchanged', f
     $response->assertHasNoErrors();
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
+});
+
+test('user can manage profile addresses', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = Livewire::test(Profile::class)
+        ->set('profile_addresses', [
+            [
+                'id' => null,
+                'address1' => '42 Profile Way',
+                'address2' => '',
+                'city' => 'Boulder',
+                'state' => 'CO',
+                'zip' => '80301',
+                'country' => 'US',
+            ],
+        ])
+        ->call('updateProfileInformation');
+
+    $response->assertHasNoErrors();
+
+    $address = Address::query()->where('address1', '42 Profile Way')->first();
+
+    expect($address)->not->toBeNull()
+        ->and($user->fresh()->addresses()->where('addresses.id', $address?->id)->exists())->toBeTrue();
 });
 
 test('user can delete their account', function () {

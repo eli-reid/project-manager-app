@@ -3,7 +3,6 @@
 namespace App\Domains\Addresses\Livewire\Admin\Addresses;
 
 use App\Domains\Addresses\Models\Address;
-use App\Domains\Clients\Models\Client;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -31,8 +30,6 @@ class Form extends Component
 
     public string $country = 'US';
 
-    public ?string $client_id = null;
-
     public function mount(?Address $address = null): void
     {
         if ($address !== null && $address->exists) {
@@ -46,7 +43,6 @@ class Form extends Component
             $this->state = $address->state;
             $this->zip = $address->zip;
             $this->country = $address->country;
-            $this->client_id = $address->client_id;
 
             return;
         }
@@ -63,7 +59,6 @@ class Form extends Component
             'state' => ['nullable', 'string', 'max:255'],
             'zip' => ['nullable', 'string', 'max:50'],
             'country' => ['required', 'string', 'max:10'],
-            'client_id' => ['nullable', 'exists:clients,id'],
         ];
     }
 
@@ -93,8 +88,6 @@ class Form extends Component
 
     public function render()
     {
-        return view('addresses::livewire.admin.addresses.form', [
-            'clients' => Client::query()->orderBy('company_name')->get(['id', 'company_name']),
-        ]);
+        return view('addresses::livewire.admin.addresses.form');
     }
 }

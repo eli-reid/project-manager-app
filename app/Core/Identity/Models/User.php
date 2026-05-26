@@ -9,6 +9,7 @@ use App\Core\Auth\User\Database\Factories\UserFactory;
 use App\Core\Identity\Services\UserAuthorizationSnapshotService;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
+use App\Domains\Addresses\Models\Address;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
@@ -122,6 +123,12 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Announcement::class, 'announcement_user_dismissals', 'user_id', 'announcement_id')
             ->withPivot('dismissed_at')
+            ->withTimestamps();
+    }
+
+    public function addresses(): BelongsToMany
+    {
+        return $this->belongsToMany(Address::class, 'user_addresses')
             ->withTimestamps();
     }
 

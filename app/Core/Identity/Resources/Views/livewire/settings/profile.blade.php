@@ -35,6 +35,56 @@
                 @endif
             </div>
 
+            <div class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">My Addresses</h3>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">Manage addresses attached to your profile.</p>
+                    </div>
+                    <flux:button type="button" wire:click="addProfileAddressRow" variant="ghost" size="sm">Add Address</flux:button>
+                </div>
+
+                @foreach ($profile_addresses as $index => $address)
+                    <div wire:key="profile-address-{{ $index }}" class="space-y-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="grid gap-3 md:grid-cols-2">
+                            <div class="md:col-span-2">
+                                <flux:input wire:model="profile_addresses.{{ $index }}.address1" :label="__('Address 1')" type="text" />
+                                @error('profile_addresses.'.$index.'.address1') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <flux:input wire:model="profile_addresses.{{ $index }}.address2" :label="__('Address 2')" type="text" />
+                                @error('profile_addresses.'.$index.'.address2') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <flux:input wire:model="profile_addresses.{{ $index }}.city" :label="__('City')" type="text" />
+                                @error('profile_addresses.'.$index.'.city') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <flux:input wire:model="profile_addresses.{{ $index }}.state" :label="__('State')" type="text" />
+                                @error('profile_addresses.'.$index.'.state') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <flux:input wire:model="profile_addresses.{{ $index }}.zip" :label="__('Zip')" type="text" />
+                                @error('profile_addresses.'.$index.'.zip') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <flux:input wire:model="profile_addresses.{{ $index }}.country" :label="__('Country')" type="text" />
+                                @error('profile_addresses.'.$index.'.country') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <flux:button type="button" wire:click="removeProfileAddressRow({{ $index }})" variant="danger" size="sm">Remove</flux:button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
                     <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
