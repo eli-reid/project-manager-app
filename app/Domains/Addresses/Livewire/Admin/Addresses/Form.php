@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('addresses::layouts.addresses-admin')]
+#[Layout('addresses::livewire.layouts.addresses-admin')]
 #[Title('Address Form')]
 class Form extends Component
 {
