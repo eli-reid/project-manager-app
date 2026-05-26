@@ -54,7 +54,7 @@
         <flux:sidebar.item
             icon="building-2"
             :href="$canViewAdminClients ? route('admin.clients.index') : route('admin.addresses.index')"
-            :current="request()->routeIs('admin.clients.*') || request()->routeIs('admin.addresses.*')"
+            :current="request()->routeIs('admin.clients.*')"
             wire:navigate
             data-test="admin-client-management-sidebar-main-link"
         >

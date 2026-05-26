@@ -98,6 +98,16 @@ it('shows a direct timecard review link in the payroll layout', function (): voi
         ->assertSee(route('admin.payroll.timecards.review'), false);
 });
 
+it('shows a direct required users link in the payroll layout', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.payroll.rates.index'))
+        ->assertSuccessful()
+        ->assertSee('Required Users')
+        ->assertSee(route('admin.timecards.required-users'), false);
+});
+
 it('forbids non-admin users from payroll admin pre-run screens without explicit permissions', function (string $routeName): void {
     $user = User::factory()->create(['is_admin' => false]);
 

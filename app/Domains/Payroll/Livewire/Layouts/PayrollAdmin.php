@@ -3,6 +3,7 @@
 namespace App\Domains\Payroll\Livewire\Layouts;
 
 use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Timecards\Models\Timecard;
 use App\Support\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -20,6 +21,13 @@ class PayrollAdmin extends Component implements ProvidesDomainNavbar
                     'label' => (string) __('Timecards'),
                     'href' => route('admin.timecards.index'),
                     'current' => request()->routeIs('admin.timecards.*'),
+                ]
+                : null,
+            auth()->user()?->can('viewAll', Timecard::class)
+                ? [
+                    'label' => (string) __('Required Users'),
+                    'href' => route('admin.timecards.required-users'),
+                    'current' => request()->routeIs('admin.timecards.required-users'),
                 ]
                 : null,
             auth()->user()?->can('viewAll', DailyReport::class)
