@@ -35,12 +35,15 @@ test('profile settings pages do not show delete account action', function () {
 
 test('profile information can be updated', function () {
     $user = User::factory()->create();
+    $originalFirstName = $user->first_name;
+    $originalLastName = $user->last_name;
 
     $this->actingAs($user);
 
     $response = Livewire::test(Profile::class)
-        ->set('first_name', 'Test')
-        ->set('last_name', 'User')
+        ->set('first_name', 'Changed')
+        ->set('last_name', 'Name')
+        ->set('profile_addresses', [])
         ->set('phone', '+13035550123')
         ->set('username', 'test-user')
         ->set('email', 'test@example.com')
@@ -50,8 +53,8 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    expect($user->first_name)->toEqual('Test');
-    expect($user->last_name)->toEqual('User');
+    expect($user->first_name)->toEqual($originalFirstName);
+    expect($user->last_name)->toEqual($originalLastName);
     expect($user->phone)->toEqual('+13035550123');
     expect($user->username)->toEqual('test-user');
     expect($user->email)->toEqual('test@example.com');
@@ -66,6 +69,7 @@ test('email verification status is unchanged when email address is unchanged', f
     $response = Livewire::test(Profile::class)
         ->set('first_name', 'Test')
         ->set('last_name', 'User')
+        ->set('profile_addresses', [])
         ->set('phone', (string) ($user->phone ?? ''))
         ->set('username', $user->username)
         ->set('email', $user->email)

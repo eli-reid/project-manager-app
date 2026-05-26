@@ -5,9 +5,9 @@
 
     <x-settings.layout :heading="__('Profile')" :subheading="__('Update your profile and email address')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="first_name" :label="__('First Name')" type="text" required autofocus autocomplete="given-name" />
+            <flux:input wire:model="first_name" :label="__('First Name')" type="text" disabled readonly autocomplete="given-name" />
 
-            <flux:input wire:model="last_name" :label="__('Last Name')" type="text" required autocomplete="family-name" />
+            <flux:input wire:model="last_name" :label="__('Last Name')" type="text" disabled readonly autocomplete="family-name" />
 
             <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />
 

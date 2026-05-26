@@ -7,9 +7,9 @@
     </div>
 
     <form wire:submit="updateProfileInformation" class="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-        <flux:input wire:model="first_name" :label="__('First Name')" type="text" required autofocus autocomplete="given-name" />
+        <flux:input wire:model="first_name" :label="__('First Name')" type="text" disabled readonly autocomplete="given-name" />
 
-        <flux:input wire:model="last_name" :label="__('Last Name')" type="text" required autocomplete="family-name" />
+        <flux:input wire:model="last_name" :label="__('Last Name')" type="text" disabled readonly autocomplete="family-name" />
 
         <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />
 

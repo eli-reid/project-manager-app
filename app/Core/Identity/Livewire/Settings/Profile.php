@@ -75,7 +75,8 @@ class Profile extends Component
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        // Profile names are display-only in settings; they are managed outside this screen.
+        $validated = $this->validate(Arr::except($this->profileRules($user->id), ['first_name', 'last_name']));
         $validated['phone'] = filled($validated['phone'] ?? null) ? $validated['phone'] : null;
         $addressesPayload = $this->normalizedProfileAddresses();
         $this->validateProfileAddresses($addressesPayload);

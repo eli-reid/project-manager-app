@@ -1,14 +1,17 @@
 <?php
 
+use App\Core\Audit\Models\AuditLog;
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Livewire\Admin\Roles\Users;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\User\Livewire\Admin\Users\Form;
+use App\Core\Auth\User\Livewire\Admin\Users\Index;
 use App\Core\Identity\Models\User;
 use App\Core\Identity\Notifications\UserInvitationNotification;
 use App\Core\Settings\Facades\Settings;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
@@ -150,4 +153,74 @@ it('forbids non-admin users from mutating roles via direct livewire requests', f
     expect(
         Gate::forUser($admin)->allows('create', Role::class)
     )->toBeTrue();
+});
+
+it('allows admins to resend an invite with a generated temporary password', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create(['is_admin' => true]);
+    $target = User::factory()->create([
+        'password' => 'existing-password',
+        'password_change_required' => false,
+    ]);
+
+    $oldPasswordHash = $target->password;
+
+    $this->actingAs($admin);
+
+    Livewire::test(Index::class)
+        ->call('resendInvite', (string) $target->id)
+        ->assertHasNoErrors();
+
+    $target->refresh();
+
+    expect($target->password_change_required)->toBeTrue()
+        ->and($target->password)->not->toEqual($oldPasswordHash)
+        ->and(Hash::check('existing-password', $target->password))->toBeFalse();
+
+    Notification::assertSentTo($target, UserInvitationNotification::class);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'admin.users.invite.resent',
+        'actor_id' => (string) $admin->id,
+        'target_id' => (string) $target->id,
+    ]);
+
+    expect(AuditLog::query()->where('action', 'admin.users.invite.resent')->latest('created_at')->first()?->after)
+        ->toMatchArray(['password_change_required' => true]);
+});
+
+it('allows admins to reset a user password and require forced change', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create(['is_admin' => true]);
+    $target = User::factory()->create([
+        'password' => 'initial-password',
+        'password_change_required' => false,
+    ]);
+
+    $oldPasswordHash = $target->password;
+
+    $this->actingAs($admin);
+
+    Livewire::test(Index::class)
+        ->call('resetPassword', (string) $target->id)
+        ->assertHasNoErrors();
+
+    $target->refresh();
+
+    expect($target->password_change_required)->toBeTrue()
+        ->and($target->password)->not->toEqual($oldPasswordHash)
+        ->and(Hash::check('initial-password', $target->password))->toBeFalse();
+
+    Notification::assertSentTo($target, UserInvitationNotification::class);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'action' => 'admin.users.password.reset',
+        'actor_id' => (string) $admin->id,
+        'target_id' => (string) $target->id,
+    ]);
+
+    expect(AuditLog::query()->where('action', 'admin.users.password.reset')->latest('created_at')->first()?->after)
+        ->toMatchArray(['password_change_required' => true]);
 });
