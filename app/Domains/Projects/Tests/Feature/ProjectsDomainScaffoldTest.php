@@ -371,6 +371,35 @@ it('allows searching user projects by address fields', function (): void {
         ->assertDontSee('Project Not Matching Address Search');
 });
 
+it('allows searching user projects by accounting code', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Accounting Search Match',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+        'accounting_code' => 'BULK-STEEL-01',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Accounting Search Miss',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+        'accounting_code' => 'BULK-CONCRETE-01',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(UserProjectsIndex::class)
+        ->set('search', 'BULK-STEEL-01')
+        ->assertSee('Accounting Search Match')
+        ->assertDontSee('Accounting Search Miss');
+});
+
 it('allows users with domain view permissions to access scaffold routes', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
@@ -454,10 +483,32 @@ it('shows inline client and address widgets on project create form', function ()
     $this->actingAs($user)
         ->get(route('admin.projects.create'))
         ->assertSuccessful()
+        ->assertSee('Accounting Code')
         ->assertSee('Leave Tracking')
         ->assertSee('Default Pay Rate Type')
         ->assertSee('Quick Add Client')
         ->assertSee('Quick Add Address');
+});
+
+it('persists accounting code when creating a project', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'projects.create',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Form::class)
+        ->set('name', 'Project With Accounting Code')
+        ->set('status', 'pending')
+        ->set('accounting_code', 'BULK-LUMBER-01')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $project = Project::query()->where('name', 'Project With Accounting Code')->first();
+
+    expect($project)->not->toBeNull()
+        ->and($project?->accounting_code)->toBe('BULK-LUMBER-01');
 });
 
 it('persists default pay rate type when creating a project', function (): void {
@@ -507,6 +558,7 @@ it('allows authorized users to edit and update a project', function (): void {
     Livewire::test(Form::class, ['project' => $project])
         ->set('name', 'Updated Project Name')
         ->set('project_number', 'PRJ-EDIT-1')
+        ->set('accounting_code', 'BULK-AGGREGATE-01')
         ->set('status', 'in_progress')
         ->set('leave_category', 'vacation')
         ->call('save')
@@ -514,6 +566,7 @@ it('allows authorized users to edit and update a project', function (): void {
 
     expect($project->fresh()->name)->toBe('Updated Project Name')
         ->and($project->fresh()->status?->value)->toBe('in_progress')
+        ->and($project->fresh()->accounting_code)->toBe('BULK-AGGREGATE-01')
         ->and($project->fresh()->leave_category)->toBe('vacation');
 });
 

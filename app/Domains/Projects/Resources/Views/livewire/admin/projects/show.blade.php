@@ -5,6 +5,9 @@
             <flux:text class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
                 Project # {{ $project->project_number ?? 'N/A' }}
             </flux:text>
+            <flux:text class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                Accounting Code: {{ $project->accounting_code ?? 'N/A' }}
+            </flux:text>
         </div>
 
         <div class="flex items-center gap-2">

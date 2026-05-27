@@ -28,6 +28,8 @@ class Form extends Component
 
     public ?string $project_number = null;
 
+    public ?string $accounting_code = null;
+
     public ?string $description = null;
 
     public string $status = 'pending';
@@ -55,6 +57,7 @@ class Form extends Component
             $this->isEdit = true;
             $this->name = $project->name;
             $this->project_number = $project->project_number;
+            $this->accounting_code = $project->accounting_code;
             $this->description = $project->description;
             $this->status = $project->status?->value ?? 'pending';
             $this->start_date = $project->start_date?->format('Y-m-d');
@@ -81,6 +84,7 @@ class Form extends Component
                 'max:255',
                 Rule::unique('projects', 'project_number')->ignore($this->project?->id),
             ],
+            'accounting_code' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'in:'.implode(',', array_keys(ProjectStatusEnum::toArray()))],
             'start_date' => ['nullable', 'date'],
@@ -97,6 +101,10 @@ class Form extends Component
     {
         if ($this->leave_category === '') {
             $this->leave_category = null;
+        }
+
+        if ($this->accounting_code === '') {
+            $this->accounting_code = null;
         }
 
         $validated = $this->validate();

@@ -27,6 +27,13 @@
                 @error('project_number') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting Code</label>
+                <input type="text" wire:model="accounting_code" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Use a shared code to group bulk material and cost reporting across related projects.</p>
+                @error('accounting_code') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             <div class="md:col-span-2">
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
                 <textarea wire:model="description" rows="4" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>
