@@ -3,6 +3,7 @@
 namespace App\Domains\Stock\Livewire\Admin\StockOrders;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Models\StockOrder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -28,6 +29,9 @@ class Index extends Component
     #[Url(as: 'project')]
     public string $filterProject = '';
 
+    #[Url(as: 'accounting')]
+    public string $filterAccountingCode = '';
+
     #[Url(as: 'user')]
     public string $filterUser = '';
 
@@ -51,6 +55,11 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatingFilterAccountingCode(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingFilterUser(): void
     {
         $this->resetPage();
@@ -59,7 +68,7 @@ class Index extends Component
     public function render()
     {
         $query = StockOrder::query()
-            ->with(['project:id,name,project_number', 'user:id,first_name,last_name'])
+            ->with(['project:id,name,project_number', 'accountingCode:id,code', 'user:id,first_name,last_name'])
             ->withCount('items')
             ->latest();
 
@@ -73,6 +82,10 @@ class Index extends Component
 
         if ($this->filterProject !== '') {
             $query->where('project_id', $this->filterProject);
+        }
+
+        if ($this->filterAccountingCode !== '') {
+            $query->where('accounting_code_id', $this->filterAccountingCode);
         }
 
         if ($this->filterUser !== '') {
@@ -102,6 +115,10 @@ class Index extends Component
                 StockOrder::URGENCY_HIGH => 'High',
             ],
             'projects' => Project::query()->orderBy('name')->get(['id', 'name']),
+            'accountingCodes' => AccountingCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'code']),
             'users' => User::query()->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
     }

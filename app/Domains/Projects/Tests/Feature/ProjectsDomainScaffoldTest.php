@@ -5,6 +5,7 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
@@ -496,18 +497,24 @@ it('persists accounting code when creating a project', function (): void {
         'projects.create',
     ]);
 
+    $accountingCode = AccountingCode::factory()->create([
+        'code' => 'BULK-LUMBER-01',
+        'name' => 'Bulk Lumber',
+    ]);
+
     $this->actingAs($user);
 
     Livewire::test(Form::class)
         ->set('name', 'Project With Accounting Code')
         ->set('status', 'pending')
-        ->set('accounting_code', 'BULK-LUMBER-01')
+        ->set('accounting_code_id', (string) $accountingCode->id)
         ->call('save')
         ->assertHasNoErrors();
 
     $project = Project::query()->where('name', 'Project With Accounting Code')->first();
 
     expect($project)->not->toBeNull()
+        ->and($project?->accounting_code_id)->toBe($accountingCode->id)
         ->and($project?->accounting_code)->toBe('BULK-LUMBER-01');
 });
 
@@ -553,12 +560,17 @@ it('allows authorized users to edit and update a project', function (): void {
         ->assertSuccessful()
         ->assertSee('Edit Project');
 
+    $accountingCode = AccountingCode::factory()->create([
+        'code' => 'BULK-AGGREGATE-01',
+        'name' => 'Bulk Aggregate',
+    ]);
+
     $this->actingAs($user);
 
     Livewire::test(Form::class, ['project' => $project])
         ->set('name', 'Updated Project Name')
         ->set('project_number', 'PRJ-EDIT-1')
-        ->set('accounting_code', 'BULK-AGGREGATE-01')
+        ->set('accounting_code_id', (string) $accountingCode->id)
         ->set('status', 'in_progress')
         ->set('leave_category', 'vacation')
         ->call('save')
@@ -566,6 +578,7 @@ it('allows authorized users to edit and update a project', function (): void {
 
     expect($project->fresh()->name)->toBe('Updated Project Name')
         ->and($project->fresh()->status?->value)->toBe('in_progress')
+        ->and($project->fresh()->accounting_code_id)->toBe($accountingCode->id)
         ->and($project->fresh()->accounting_code)->toBe('BULK-AGGREGATE-01')
         ->and($project->fresh()->leave_category)->toBe('vacation');
 });

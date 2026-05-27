@@ -2,6 +2,7 @@
 
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Payroll\Models\PayRateType;
@@ -28,7 +29,7 @@ class Form extends Component
 
     public ?string $project_number = null;
 
-    public ?string $accounting_code = null;
+    public ?string $accounting_code_id = null;
 
     public ?string $description = null;
 
@@ -57,7 +58,7 @@ class Form extends Component
             $this->isEdit = true;
             $this->name = $project->name;
             $this->project_number = $project->project_number;
-            $this->accounting_code = $project->accounting_code;
+            $this->accounting_code_id = $project->accounting_code_id;
             $this->description = $project->description;
             $this->status = $project->status?->value ?? 'pending';
             $this->start_date = $project->start_date?->format('Y-m-d');
@@ -84,7 +85,7 @@ class Form extends Component
                 'max:255',
                 Rule::unique('projects', 'project_number')->ignore($this->project?->id),
             ],
-            'accounting_code' => ['nullable', 'string', 'max:100'],
+            'accounting_code_id' => ['nullable', 'exists:accounting_codes,id'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'in:'.implode(',', array_keys(ProjectStatusEnum::toArray()))],
             'start_date' => ['nullable', 'date'],
@@ -103,11 +104,20 @@ class Form extends Component
             $this->leave_category = null;
         }
 
-        if ($this->accounting_code === '') {
-            $this->accounting_code = null;
+        if ($this->accounting_code_id === '') {
+            $this->accounting_code_id = null;
         }
 
         $validated = $this->validate();
+
+        $resolvedAccountingCode = null;
+        if (filled($validated['accounting_code_id'] ?? null)) {
+            $resolvedAccountingCode = AccountingCode::query()
+                ->whereKey($validated['accounting_code_id'])
+                ->value('code');
+        }
+
+        $validated['accounting_code'] = $resolvedAccountingCode;
 
         if ($this->isEdit) {
             $project = $this->project;
@@ -154,6 +164,10 @@ class Form extends Component
         return view('projects::livewire.admin.projects.form', [
             'statuses' => ProjectStatusEnum::toArray(),
             'clients' => Client::query()->orderBy('company_name')->get(['id', 'company_name']),
+            'accountingCodes' => AccountingCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'code', 'name']),
             'payRateTypes' => PayRateType::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')

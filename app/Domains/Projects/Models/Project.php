@@ -4,6 +4,7 @@ namespace App\Domains\Projects\Models;
 
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Clients\Models\Client;
@@ -40,6 +41,7 @@ class Project extends Model
         'name',
         'project_number',
         'accounting_code',
+        'accounting_code_id',
         'description',
         'status',
         'start_date',
@@ -73,6 +75,11 @@ class Project extends Model
     public function payRateType(): BelongsTo
     {
         return $this->belongsTo(PayRateType::class);
+    }
+
+    public function accountingCode(): BelongsTo
+    {
+        return $this->belongsTo(AccountingCode::class);
     }
 
     protected static function booted(): void

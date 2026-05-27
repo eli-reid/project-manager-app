@@ -33,6 +33,15 @@
             </select>
         </div>
         <div>
+            <select wire:model.live="accountingCodeFilter" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                <option value="">All Accounting Codes</option>
+                @foreach ($accountingCodes as $accountingCode)
+                    <option value="{{ $accountingCode->id }}">{{ $accountingCode->code }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
             <select wire:model.live="statusFilter" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                 <option value="">All Statuses</option>
                 @foreach ($statuses as $value => $label)
@@ -50,6 +59,7 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Vendor</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Invoice #</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Date</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Due</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total</th>
@@ -68,6 +78,7 @@
                             <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->vendor_name }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-500 dark:text-zinc-400">{{ $invoice->invoice_number ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->project?->name ?? '—' }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->accountingCode?->code ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->invoice_date->format('M j, Y') }}</td>
                             <td class="px-4 py-3 align-top text-sm {{ $invoice->isOverdue() ? 'font-semibold text-red-600 dark:text-red-400' : 'text-zinc-700 dark:text-zinc-300' }}">
                                 {{ $invoice->due_date?->format('M j, Y') ?? '—' }}
@@ -94,7 +105,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No invoices found.</td>
+                            <td colspan="9" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No invoices found.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -58,6 +58,13 @@
             @endforeach
         </select>
 
+        <select wire:model.live="filterAccountingCode" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+            <option value="">All Accounting Codes</option>
+            @foreach ($accountingCodes as $accountingCode)
+                <option value="{{ $accountingCode->id }}">{{ $accountingCode->code }}</option>
+            @endforeach
+        </select>
+
         <select wire:model.live="filterUser" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
             <option value="">All Requesters</option>
             @foreach ($users as $user)
@@ -65,8 +72,8 @@
             @endforeach
         </select>
 
-        @if ($filterStatus !== '' || $filterUrgency !== '' || $filterProject !== '' || $filterUser !== '')
-            <button wire:click="$set('filterStatus', ''); $set('filterUrgency', ''); $set('filterProject', ''); $set('filterUser', '')" class="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Clear filters</button>
+        @if ($filterStatus !== '' || $filterUrgency !== '' || $filterProject !== '' || $filterAccountingCode !== '' || $filterUser !== '')
+            <button wire:click="$set('filterStatus', ''); $set('filterUrgency', ''); $set('filterProject', ''); $set('filterAccountingCode', ''); $set('filterUser', '')" class="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Clear filters</button>
         @endif
     </div>
 
@@ -77,6 +84,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Requester</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">PO / Project</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Urgency</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Items</th>
@@ -98,6 +106,7 @@
                                 @endif
                                 <div class="text-xs text-zinc-400 dark:text-zinc-500">{{ $order->project?->name ?? '— No project' }}</div>
                             </td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $order->accountingCode?->code ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm">
                                 @php
                                     $statusColors = [
@@ -134,7 +143,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No stock orders found.</td>
+                            <td colspan="8" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No stock orders found.</td>
                         </tr>
                     @endforelse
                 </tbody>

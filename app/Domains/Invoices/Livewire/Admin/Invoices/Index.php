@@ -2,6 +2,7 @@
 
 namespace App\Domains\Invoices\Livewire\Admin\Invoices;
 
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
@@ -28,6 +29,9 @@ class Index extends Component
     #[Url(as: 'project')]
     public string $projectFilter = '';
 
+    #[Url(as: 'accounting')]
+    public string $accountingCodeFilter = '';
+
     public function mount(): void
     {
         $this->authorize('viewAny', Invoice::class);
@@ -48,16 +52,23 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatedAccountingCodeFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $search = $this->search;
         $statusFilter = $this->statusFilter;
         $projectFilter = $this->projectFilter;
+        $accountingCodeFilter = $this->accountingCodeFilter;
 
         return view('invoices::livewire.admin.invoices.index', [
             'invoices' => Invoice::query()
-                ->with(['project', 'creator'])
+                ->with(['project', 'accountingCode', 'creator'])
                 ->when($projectFilter !== '', fn ($q) => $q->where('project_id', $projectFilter))
+                ->when($accountingCodeFilter !== '', fn ($q) => $q->where('accounting_code_id', $accountingCodeFilter))
                 ->when($statusFilter !== '', fn ($q) => $q->where('status', $statusFilter))
                 ->when($search !== '', fn ($q) => $q->where(function ($q) use ($search): void {
                     $q->where('vendor_name', 'like', '%'.$search.'%')
@@ -70,6 +81,10 @@ class Index extends Component
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'project_number']),
+            'accountingCodes' => AccountingCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'code', 'name']),
         ]);
     }
 }
