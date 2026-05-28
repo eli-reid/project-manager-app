@@ -20,7 +20,7 @@ it('defines a dedicated livewire head layout class', function (): void {
     expect($source)->toContain("return view('livewire.layouts.head');");
 });
 
-it('uses the shared livewire head component in all primary livewire layouts', function (): void {
+it('uses the shared head partial in all primary livewire layouts', function (): void {
     $appLayout = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/app.blade.php');
     $mobileLayout = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/mobile.blade.php');
     $publicShareLayout = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/public-share.blade.php');
@@ -28,10 +28,10 @@ it('uses the shared livewire head component in all primary livewire layouts', fu
     $authSimpleLayout = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/auth/simple.blade.php');
     $authSplitLayout = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/auth/split.blade.php');
 
-    expect($appLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
-    expect($mobileLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
-    expect($publicShareLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
-    expect($authCardLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
-    expect($authSimpleLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
-    expect($authSplitLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
+    expect($appLayout)->toContain("@include('partials.head', ['title' => \$title ?? null])");
+    expect($mobileLayout)->toContain("@include('partials.head', ['title' => \$title ?? null])");
+    expect($publicShareLayout)->toContain("@include('partials.head', ['title' => \$title ?? null])");
+    expect($authCardLayout)->toContain("@include('partials.head', ['title' => \$title ?? null])");
+    expect($authSimpleLayout)->toContain("@include('partials.head', ['title' => \$title ?? null])");
+    expect($authSplitLayout)->toContain("@include('partials.head', ['title' => \$title ?? null])");
 });
