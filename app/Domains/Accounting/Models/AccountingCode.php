@@ -19,9 +19,19 @@ class AccountingCode extends Model
 {
     use HasFactory, HasUlids, SoftDeletes;
 
+    public const ACCOUNT_TYPES = [
+        'asset',
+        'liability',
+        'equity',
+        'revenue',
+        'expense',
+        'other',
+    ];
+
     protected $fillable = [
         'code',
         'name',
+        'account_type',
         'description',
         'is_active',
     ];
@@ -32,6 +42,7 @@ class AccountingCode extends Model
     protected function casts(): array
     {
         return [
+            'account_type' => 'string',
             'is_active' => 'boolean',
         ];
     }

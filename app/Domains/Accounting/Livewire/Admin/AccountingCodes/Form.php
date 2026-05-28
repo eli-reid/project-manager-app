@@ -15,6 +15,15 @@ class Form extends Component
 {
     use AuthorizesRequests;
 
+    public const ACCOUNT_TYPE_LABELS = [
+        'asset' => 'Asset',
+        'liability' => 'Liability',
+        'equity' => 'Equity',
+        'revenue' => 'Revenue',
+        'expense' => 'Expense',
+        'other' => 'Other',
+    ];
+
     public ?AccountingCode $accountingCode = null;
 
     public bool $isEdit = false;
@@ -22,6 +31,8 @@ class Form extends Component
     public string $code = '';
 
     public string $name = '';
+
+    public string $account_type = 'other';
 
     public ?string $description = null;
 
@@ -36,6 +47,7 @@ class Form extends Component
             $this->isEdit = true;
             $this->code = $accountingCode->code;
             $this->name = $accountingCode->name;
+            $this->account_type = $accountingCode->account_type;
             $this->description = $accountingCode->description;
             $this->is_active = (bool) $accountingCode->is_active;
 
@@ -55,6 +67,7 @@ class Form extends Component
                 Rule::unique('accounting_codes', 'code')->ignore($this->accountingCode?->id),
             ],
             'name' => ['required', 'string', 'max:255'],
+            'account_type' => ['required', Rule::in(array_keys(self::ACCOUNT_TYPE_LABELS))],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
         ];

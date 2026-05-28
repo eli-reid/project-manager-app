@@ -20,6 +20,7 @@ class AccountingCodeFactory extends Factory
         return [
             'code' => fake()->unique()->bothify('ACCT-####'),
             'name' => fake()->words(3, true),
+            'account_type' => fake()->randomElement(['asset', 'liability', 'equity', 'revenue', 'expense', 'other']),
             'description' => fake()->optional()->sentence(),
             'is_active' => true,
         ];

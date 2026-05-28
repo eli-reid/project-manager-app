@@ -35,6 +35,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Code</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Type</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Projects</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Invoices</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Invoiced $</th>
@@ -53,6 +54,11 @@
                                     <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $accountingCode->description }}</div>
                                 @endif
                             </td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
+                                <span class="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                                    {{ str($accountingCode->account_type)->headline() }}
+                                </span>
+                            </td>
                             <td class="px-4 py-3 align-top text-right text-sm text-zinc-700 dark:text-zinc-300">{{ $accountingCode->projects_count }}</td>
                             <td class="px-4 py-3 align-top text-right text-sm text-zinc-700 dark:text-zinc-300">{{ $accountingCode->invoices_count }}</td>
                             <td class="px-4 py-3 align-top text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">${{ number_format((float) ($accountingCode->invoices_sum_total_amount ?? 0), 2) }}</td>
@@ -70,7 +76,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No accounting codes found.</td>
+                            <td colspan="9" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No accounting codes found.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -5,6 +5,7 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Accounting\Livewire\Admin\AccountingCodes\Form;
+use App\Domains\Accounting\Livewire\Admin\AccountingCodes\Index;
 use App\Domains\Accounting\Models\AccountingCode;
 use Livewire\Livewire;
 
@@ -31,8 +32,8 @@ it('forbids authenticated users without accounting permissions', function (): vo
 it('allows users with accounting view permission to access accounting index', function (): void {
     $user = userWithAccountingDomainPermissions(['accounting-codes.view']);
 
-    \Livewire\Livewire::actingAs($user)
-        ->test(\App\Domains\Accounting\Livewire\Admin\AccountingCodes\Index::class)
+    Livewire::actingAs($user)
+        ->test(Index::class)
         ->assertSee('Accounting Codes');
 });
 
@@ -48,10 +49,14 @@ it('allows users with accounting create permission to create accounting codes', 
         ->set('code', 'ACCT-BULK-100')
         ->set('name', 'Bulk Materials Group')
         ->set('description', 'Tracks shared purchases for bulk materials')
+        ->set('account_type', 'expense')
         ->call('save')
         ->assertHasNoErrors();
 
-    expect(AccountingCode::query()->where('code', 'ACCT-BULK-100')->exists())->toBeTrue();
+    $accountingCode = AccountingCode::query()->where('code', 'ACCT-BULK-100')->first();
+
+    expect($accountingCode)->not->toBeNull();
+    expect($accountingCode?->account_type)->toBe('expense');
 });
 
 /**
