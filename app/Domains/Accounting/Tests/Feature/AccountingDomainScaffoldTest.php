@@ -59,6 +59,37 @@ it('allows users with accounting create permission to create accounting codes', 
     expect($accountingCode?->account_type)->toBe('expense');
 });
 
+it('allows users with accounting create permission to create child accounting codes', function (): void {
+    $user = userWithAccountingDomainPermissions([
+        'accounting-codes.view',
+        'accounting-codes.create',
+    ]);
+
+    actingAs($user);
+
+    $parent = AccountingCode::factory()->create([
+        'code' => 'ACCT-ASSET-ROOT',
+        'name' => 'Asset Root',
+        'account_type' => 'asset',
+        'normal_balance' => 'debit',
+    ]);
+
+    Livewire::test(Form::class)
+        ->set('code', 'ACCT-ASSET-CHILD')
+        ->set('name', 'Operating Cash')
+        ->set('account_type', 'asset')
+        ->set('parent_id', $parent->id)
+        ->set('normal_balance', 'debit')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $accountingCode = AccountingCode::query()->where('code', 'ACCT-ASSET-CHILD')->first();
+
+    expect($accountingCode)->not->toBeNull();
+    expect($accountingCode?->parent_id)->toBe($parent->id);
+    expect($accountingCode?->normal_balance)->toBe('debit');
+});
+
 /**
  * @param  array<int, string>  $permissions
  */

@@ -17,10 +17,14 @@ class AccountingCodeFactory extends Factory
      */
     public function definition(): array
     {
+        $accountType = fake()->randomElement(['asset', 'liability', 'equity', 'revenue', 'expense', 'other']);
+
         return [
             'code' => fake()->unique()->bothify('ACCT-####'),
             'name' => fake()->words(3, true),
-            'account_type' => fake()->randomElement(['asset', 'liability', 'equity', 'revenue', 'expense', 'other']),
+            'account_type' => $accountType,
+            'normal_balance' => in_array($accountType, ['asset', 'expense'], true) ? 'debit' : 'credit',
+            'parent_id' => null,
             'description' => fake()->optional()->sentence(),
             'is_active' => true,
         ];

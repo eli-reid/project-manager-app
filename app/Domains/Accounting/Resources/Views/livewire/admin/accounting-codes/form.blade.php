@@ -32,6 +32,27 @@
                 @error('account_type') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Parent Account</label>
+                <select wire:model="parent_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">No parent</option>
+                    @foreach ($availableParentAccounts as $parentAccount)
+                        <option value="{{ $parentAccount->id }}">{{ $parentAccount->code }} - {{ $parentAccount->name }}</option>
+                    @endforeach
+                </select>
+                @error('parent_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Normal Balance</label>
+                <select wire:model="normal_balance" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    @foreach (\App\Domains\Accounting\Livewire\Admin\AccountingCodes\Form::NORMAL_BALANCE_LABELS as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+                @error('normal_balance') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             <div class="md:col-span-2">
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
                 <textarea wire:model="description" rows="4" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>

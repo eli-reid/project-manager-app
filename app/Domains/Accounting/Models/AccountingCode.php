@@ -9,6 +9,7 @@ use App\Domains\Stock\Models\StockOrder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -28,10 +29,17 @@ class AccountingCode extends Model
         'other',
     ];
 
+    public const NORMAL_BALANCES = [
+        'debit',
+        'credit',
+    ];
+
     protected $fillable = [
         'code',
         'name',
         'account_type',
+        'parent_id',
+        'normal_balance',
         'description',
         'is_active',
     ];
@@ -43,8 +51,20 @@ class AccountingCode extends Model
     {
         return [
             'account_type' => 'string',
+            'parent_id' => 'string',
+            'normal_balance' => 'string',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('code');
     }
 
     public function projects(): HasMany

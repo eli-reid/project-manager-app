@@ -44,6 +44,7 @@ class Index extends Component
 
         return view('accounting::livewire.admin.accounting-codes.index', [
             'accountingCodes' => AccountingCode::query()
+                ->with(['parent:id,code,name,parent_id'])
                 ->withCount(['projects', 'invoices', 'stockOrders'])
                 ->withSum('invoices', 'total_amount')
                 ->when($this->activeFilter !== '', function ($query): void {
