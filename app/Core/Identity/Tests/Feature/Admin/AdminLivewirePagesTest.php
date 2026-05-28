@@ -59,6 +59,8 @@ it('shows permission descriptions on the role form', function () {
     $this->actingAs($admin);
 
     Livewire::test(App\Core\Auth\Role\Livewire\Admin\Roles\Form::class)
+        ->assertSee('Selection summary')
+        ->assertSee('Permissions are grouped by resource and each item includes a short explanation.')
         ->assertSee('Review QA Items')
         ->assertSee('Allows users to review QA checklist items before closeout.');
 });
