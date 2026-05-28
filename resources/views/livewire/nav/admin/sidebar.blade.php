@@ -1,3 +1,4 @@
+<div class="contents">
 <flux:sidebar.spacer />
 
 @if ($canViewAdminNav)
@@ -118,6 +119,7 @@
         </flux:sidebar.item>
     @endif
 @endif
+</div>
 
      
 
