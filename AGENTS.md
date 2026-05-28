@@ -30,6 +30,8 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 This project has domain-specific skills available. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
+- When multiple skills apply, activate them in this order: backend (`laravel-best-practices`, `fortify-development`) -> component (`livewire-development`, `volt-development`, `fluxui-development`) -> styling (`tailwindcss-development`) -> testing (`pest-testing`). Mention activation once per response.
+
 - `laravel-best-practices` — Apply this skill whenever writing, reviewing, or refactoring Laravel PHP code. This includes creating or modifying controllers, models, migrations, form requests, policies, jobs, scheduled commands, service classes, and Eloquent queries. Triggers for N+1 and query performance issues, caching strategies, authorization and security patterns, validation, error handling, queue and job configuration, route definitions, and architectural decisions. Also use for Laravel code reviews and refactoring existing Laravel code to follow best practices. Covers any task involving Laravel backend PHP code patterns.
 - `fluxui-development` — Use this skill for Flux UI development in Livewire applications only. Trigger when working with <flux:*> components, building or customizing Livewire component UIs, creating forms, modals, tables, or other interactive elements. Covers: flux: components (buttons, inputs, modals, forms, tables, date-pickers, kanban, badges, tooltips, etc.), component composition, Tailwind CSS styling, Heroicons/Lucide icon integration, validation patterns, responsive design, and theming. Do not use for non-Livewire frameworks or non-component styling.
 - `livewire-development` — Use for any task or question involving Livewire. Activate if user mentions Livewire, wire: directives, or Livewire-specific concepts like wire:model, wire:click, wire:sort, or islands, invoke this skill. Covers building new components, debugging reactivity issues, real-time form validation, drag-and-drop, loading states, migrating from Livewire 3 to 4, converting component formats (SFC/MFC/class-based), and performance optimization. Do not use for non-Livewire reactive UI (React, Vue, Alpine-only, Inertia.js) or standard Laravel forms without Livewire.
@@ -41,22 +43,30 @@ This project has domain-specific skills available. You MUST activate the relevan
 ## Conventions
 
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
+- If existing code conflicts with these guidelines, follow these guidelines for new code and ask the user before refactoring existing code.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
+- Domain boundary rule (hard): do not place domain logic, models, migrations, factories, policies, services, routes, or views in another domain's folder. Keep each bounded context self-contained and communicate across domains through explicit service APIs/contracts.
+- Domain ownership rule (hard): if a change touches multiple domains, modify only the owning domain's implementation and keep cross-domain calls thin; do not duplicate business logic across domains.
 
 ## Verification Scripts
 
-- Do not create verification scripts or tinker when tests cover that functionality and prove they work. Unit and feature tests are more important.
+- Do not create verification scripts or use tinker when tests cover that functionality and prove they work. Unit and feature tests are more important.
+- Prefer tests over tinker for verification. Use tinker only for debugging or inspection when tests do not already cover the behavior.
 
 ## Application Structure & Architecture
 
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
 - New route-facing UI views must be Livewire-first.
+- Livewire-first enforcement (hard): do not create new route-facing regular Blade views when a Livewire component can be used. Regular Blade route views are exceptions only when explicitly allowed below.
 - Place new app-level route-facing views in `resources/views/livewire/**`.
 - Place new domain/core route-facing views in `app/{Core|Domains}/.../Resources/Views/livewire/**`.
-- Treat non-Livewire Blade views as exceptions only (auth, emails, pdf/print, low-level components/partials, or approved compatibility wrappers).
+- Use `app/{Core|Domains}/.../Resources/Views/livewire/**` when the view belongs to a bounded domain module under `app/Domains` or `app/Core`; otherwise use `resources/views/livewire/**`.
+- Treat non-Livewire Blade views as exceptions only (auth, emails, pdf/print, low-level components/partials, or approved compatibility wrappers). For auth specifically, Blade auth views remain an allowed default unless the user explicitly requests a Livewire-based auth UI.
 - New HTTP controllers should not `return view(...)` for route-facing pages; use Livewire component routes/pages instead unless explicitly approved as a legacy exception.
+- Secret handling rule (hard): never expose, log, hardcode, commit, or echo secrets (API keys, tokens, passwords, private keys, connection strings, webhook secrets, signing keys). Secrets must come from environment/config only.
+- Secret sharing rule (hard): never request or paste secret values into chat output, code comments, tests, docs, or example snippets. Use placeholders like `***` or `env('SERVICE_TOKEN')`.
 
 ## Frontend Bundling
 
@@ -69,6 +79,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 ## Replies
 
 - Be concise in your explanations - focus on what's important rather than explaining obvious details.
+- Workflow checklist for each coding task: 1) run `search-docs` first, 2) confirm domain boundaries are respected and route-facing UI is Livewire-first, 3) make code changes, 4) write or update tests, 5) run affected tests, 6) run `vendor/bin/pint --dirty --format agent`, 7) verify no secrets were exposed/logged/committed/shared.
 
 === boost rules ===
 
@@ -77,10 +88,11 @@ This project has domain-specific skills available. You MUST activate the relevan
 ## Tools
 
 - Laravel Boost is an MCP server with tools designed specifically for this application. Prefer Boost tools over manual alternatives like shell commands or file reads.
+- MCP availability rule (hard): if required MCP servers are not running, start them first; if you cannot start them in the current environment, ask the user to start them before proceeding with MCP-dependent work.
 - Use `database-query` to run read-only queries against the database instead of writing raw SQL in tinker.
 - Use `database-schema` to inspect table structure before writing migrations or models.
 - Use `get-absolute-url` to resolve the correct scheme, domain, and port for project URLs. Always use this before sharing a URL with the user.
-- Use `browser-logs` to read browser logs, errors, and exceptions. Only recent logs are useful, ignore old entries.
+- Use `browser-logs` to read browser logs, errors, and exceptions. Only consider logs from the last 5 minutes or the current session; ignore older entries.
 
 ## Searching Documentation (IMPORTANT)
 
@@ -88,6 +100,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Pass a `packages` array to scope results when you know which packages are relevant.
 - Use multiple broad, topic-based queries: `['rate limiting', 'routing rate limiting', 'routing']`. Expect the most relevant results first.
 - Do not add package names to queries because package info is already shared. Use `test resource table`, not `filament 4 test resource table`.
+- If `search-docs` returns no relevant results after 2-3 query variations, proceed using the listed package versions and note that docs were not found.
 
 ### Search Syntax
 
@@ -105,7 +118,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 ## Tinker
 
-- Execute PHP in app context for debugging and testing code. Do not create models without user approval, prefer tests with factories instead. Prefer existing Artisan commands over custom tinker code.
+- Execute PHP in app context for debugging and inspection. Do not use tinker for verification when tests already cover the behavior. Do not create models without user approval, prefer tests with factories instead. Prefer existing Artisan commands over custom tinker code.
 - Always use single quotes to prevent shell expansion: `php artisan tinker --execute 'Your::code();'`
   - Double quotes for PHP strings inside: `php artisan tinker --execute 'User::where("active", true)->count();'`
 
@@ -132,7 +145,8 @@ This project has domain-specific skills available. You MUST activate the relevan
 # Test Enforcement
 
 - Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+- Run only the test file(s) containing tests for the modified class, using `--filter` when targeting a single test.
+- If tests fail, diagnose whether the code or the test is incorrect. Attempt up to 2 fixes; if still failing, stop and report the failure with the error output.
 
 === laravel/core rules ===
 
@@ -212,6 +226,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
 - Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
+- If Pint cannot auto-fix an issue, report the file and rule to the user rather than manually forcing unrelated formatting changes.
 
 === pest/core rules ===
 
