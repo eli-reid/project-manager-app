@@ -40,6 +40,10 @@ class Submittal extends Model
 
     public const STATUS_CANCELLED = 'cancelled';
 
+    public const DOCUMENT_ROLE_REFERENCE = 'reference';
+
+    public const DOCUMENT_STATUS_ACTIVE = 'active';
+
     protected $fillable = [
         'project_id',
         'type',
@@ -104,6 +108,7 @@ class Submittal extends Model
     public function documents(): BelongsToMany
     {
         return $this->belongsToMany(Document::class, 'submittal_documents', 'submittal_id', 'document_id')
+            ->withPivot(['document_role', 'document_status', 'revision', 'discipline'])
             ->withTimestamps();
     }
 

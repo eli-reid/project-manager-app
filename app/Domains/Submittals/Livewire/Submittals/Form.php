@@ -305,12 +305,7 @@ class Form extends Component
             $selectedProject = $projects->firstWhere('id', $this->projectId);
 
             $availableDocuments = app(ProjectDocumentLibraryContract::class)
-                ->listProjectAccessible($this->projectId)
-                ->map(fn (Document $document): array => [
-                    'id' => (string) $document->id,
-                    'title' => (string) $document->title,
-                    'original_name' => (string) $document->original_name,
-                ]);
+                ->listProjectAccessible($this->projectId);
 
             $canUploadDocument = $selectedProject instanceof Project
                 && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject]);
@@ -487,7 +482,12 @@ class Form extends Component
         $allowedDocumentIds = app(ProjectDocumentLibraryContract::class)
             ->allowedDocumentIdsForProject((string) $submittal->project_id, $selectedDocumentIds);
 
-        $submittal->documents()->sync($allowedDocumentIds);
+        $submittal->documents()->syncWithPivotValues($allowedDocumentIds, [
+            'document_role' => Submittal::DOCUMENT_ROLE_REFERENCE,
+            'document_status' => Submittal::DOCUMENT_STATUS_ACTIVE,
+            'revision' => null,
+            'discipline' => null,
+        ]);
     }
 
     /**

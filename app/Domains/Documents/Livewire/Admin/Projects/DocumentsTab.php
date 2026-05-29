@@ -27,6 +27,8 @@ class DocumentsTab extends Component
 
     public string $search = '';
 
+    public string $activeFolder = '';
+
     public ?string $editingDocumentId = null;
 
     public mixed $file = null;
@@ -127,6 +129,11 @@ class DocumentsTab extends Component
         }
     }
 
+    public function setFolder(string $folder): void
+    {
+        $this->activeFolder = $folder;
+    }
+
     public function cancelEdit(): void
     {
         $this->resetForm();
@@ -134,11 +141,28 @@ class DocumentsTab extends Component
 
     public function render()
     {
-        $documents = app(ProjectDocumentLibraryContract::class)
-            ->listProjectOwned((string) $this->project->id, $this->search !== '' ? $this->search : null);
+        $library = app(ProjectDocumentLibraryContract::class);
+
+        $documents = $library->listProjectOwned((string) $this->project->id, $this->search !== '' ? $this->search : null);
+
+        if ($this->activeFolder !== '') {
+            $documents = $documents->filter(
+                fn ($doc): bool => str_starts_with((string) ($doc->folder_path ?? ''), $this->activeFolder)
+            );
+        }
+
+        $folderPaths = $library->folderPathsForProject((string) $this->project->id);
+
+        $topFolders = collect($folderPaths)
+            ->map(fn (string $path): string => explode('/', $path)[0])
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
         return view('documents::livewire.admin.projects.documents-tab', [
             'documents' => $documents,
+            'topFolders' => $topFolders,
             'maxFileSizeLabel' => $this->maxFileSizeLabel(),
             'allowedExtensionsLabel' => strtoupper(implode(', ', $this->allowedExtensions)),
             'acceptAttribute' => $this->acceptAttribute(),

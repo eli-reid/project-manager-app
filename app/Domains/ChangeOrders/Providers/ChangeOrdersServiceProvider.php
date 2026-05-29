@@ -10,6 +10,7 @@ use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class ChangeOrdersServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,7 @@ class ChangeOrdersServiceProvider extends ServiceProvider
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
+        $this->registerUIComponents();
         $this->registerRoutes();
     }
 
@@ -44,6 +46,11 @@ class ChangeOrdersServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'change-orders');
+    }
+
+    private function registerUIComponents(): void
+    {
+        Livewire::addNamespace('change-orders', classNamespace: 'App\\Domains\\ChangeOrders\\Livewire');
     }
 
     private function registerRoutes(): void

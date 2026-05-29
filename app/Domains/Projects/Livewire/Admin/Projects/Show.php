@@ -4,6 +4,7 @@ namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
@@ -13,6 +14,7 @@ use App\Domains\Projects\Models\ProjectRoleAccess;
 use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Services\ProjectAccessService;
 use App\Domains\Projects\Services\ProjectFinancialsService;
+use App\Domains\RFIs\Models\RFI;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Tasks\Models\Task;
@@ -105,6 +107,16 @@ class Show extends Component
             $tabs[] = 'submittals';
         } elseif ($user?->can('create', Submittal::class)) {
             $tabs[] = 'submittals';
+        }
+
+        if ($user?->can('viewAny', ChangeOrder::class)) {
+            $tabs[] = 'change-orders';
+        }
+
+        if ($user?->hasPermission('rfis.view-any')) {
+            $tabs[] = 'rfis';
+        } elseif ($user?->hasPermission('rfis.create')) {
+            $tabs[] = 'rfis';
         }
 
         if ($user?->can('viewAny', Document::class)) {
@@ -229,6 +241,11 @@ class Show extends Component
         $projectStockOrders = collect();
         $submittalCount = 0;
         $projectSubmittals = collect();
+        $changeOrderCount = 0;
+        $projectChangeOrders = collect();
+        $rfiCount = 0;
+        $projectRfis = collect();
+        $isRfiCreateMode = false;
         $documentCount = 0;
 
         $accessAssignments = collect();
@@ -347,6 +364,37 @@ class Show extends Component
             }
         }
 
+        if (in_array('change-orders', $tabs, true)) {
+            $changeOrderCount = ChangeOrder::query()
+                ->where('project_id', $this->project->id)
+                ->count();
+
+            if ($this->activeTab === 'change-orders') {
+                $projectChangeOrders = ChangeOrder::query()
+                    ->where('project_id', $this->project->id)
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+            }
+        }
+
+        if (in_array('rfis', $tabs, true)) {
+            $isRfiCreateMode = $this->activeTab === 'rfis' && request()->query('rfiMode') === 'create';
+
+            $rfiCount = RFI::query()
+                ->where('project_id', $this->project->id)
+                ->count();
+
+            if ($this->activeTab === 'rfis' && ! $isRfiCreateMode) {
+                $projectRfis = RFI::query()
+                    ->with(['requestedBy:id,first_name,last_name'])
+                    ->where('project_id', $this->project->id)
+                    ->latest()
+                    ->limit(20)
+                    ->get();
+            }
+        }
+
         if (in_array('documents', $tabs, true)) {
             $documentCount = app(ProjectDocumentLibraryContract::class)
                 ->countProjectAccessible((string) $this->project->id);
@@ -392,6 +440,11 @@ class Show extends Component
             'projectStockOrders' => $projectStockOrders,
             'submittalCount' => $submittalCount,
             'projectSubmittals' => $projectSubmittals,
+            'changeOrderCount' => $changeOrderCount,
+            'projectChangeOrders' => $projectChangeOrders,
+            'rfiCount' => $rfiCount,
+            'projectRfis' => $projectRfis,
+            'isRfiCreateMode' => $isRfiCreateMode,
             'documentCount' => $documentCount,
             'accessAssignments' => $accessAssignments,
             'roleAccessAssignments' => $roleAccessAssignments,

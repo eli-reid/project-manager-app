@@ -54,9 +54,23 @@
                 </button>
             @endif
 
+            @if (in_array('change-orders', $tabs, true))
+                <button type="button" wire:click="setTab('change-orders')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'change-orders' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    Change Orders
+                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $changeOrderCount }}</span>
+                </button>
+            @endif
+
+            @if (in_array('rfis', $tabs, true))
+                <button type="button" wire:click="setTab('rfis')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'rfis' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                    RFIs
+                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $rfiCount }}</span>
+                </button>
+            @endif
+
             @if (in_array('documents', $tabs, true))
                 <button type="button" wire:click="setTab('documents')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'documents' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Documents
+                    Library
                     <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $documentCount }}</span>
                 </button>
             @endif
@@ -167,6 +181,25 @@
             :submittals="$projectSubmittals"
             :submittal-count="$submittalCount"
             :key="'project-submittals-tab-'.$project->id"
+        />
+    @endif
+
+    @if ($activeTab === 'change-orders' && in_array('change-orders', $tabs, true))
+        <livewire:change-orders::admin.projects.project-tab
+            :project="$project"
+            :change-orders="$projectChangeOrders"
+            :change-order-count="$changeOrderCount"
+            :key="'project-change-orders-tab-'.$project->id"
+        />
+    @endif
+
+    @if ($activeTab === 'rfis' && in_array('rfis', $tabs, true))
+        <livewire:rfis::admin.projects.project-tab
+            :project="$project"
+            :rfis="$projectRfis"
+            :rfi-count="$rfiCount"
+            :is-create-mode="$isRfiCreateMode"
+            :key="'project-rfis-tab-'.$project->id.($isRfiCreateMode ? '-create' : '')"
         />
     @endif
 
