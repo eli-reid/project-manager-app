@@ -3,8 +3,9 @@
 namespace App\Domains\Submittals\Livewire\Submittals;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
+use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
-use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Models\SubmittalApproval;
@@ -155,7 +156,7 @@ class Form extends Component
         $this->showUploadModal = true;
     }
 
-    public function uploadDocument(DocumentService $documentService): void
+    public function uploadDocument(DocumentOrchestratorContract $documentOrchestrator): void
     {
         $project = Project::query()->find($this->projectId);
 
@@ -165,7 +166,7 @@ class Form extends Component
 
         $this->authorizeWithTrace('manageProjectDocuments', [Document::class, $project], 'uploadDocument');
 
-        $rules = $documentService->validationRules();
+        $rules = $documentOrchestrator->validationRules();
 
         $this->validate([
             'uploadTitle' => ['required', 'string', 'max:255'],
@@ -176,7 +177,7 @@ class Form extends Component
         /** @var User $user */
         $user = Auth::user();
 
-        $document = $documentService->uploadProjectDocument(
+        $document = $documentOrchestrator->uploadProjectDocument(
             $project,
             $user,
             $this->uploadFile,
@@ -303,13 +304,13 @@ class Form extends Component
         if ($this->projectId !== '') {
             $selectedProject = $projects->firstWhere('id', $this->projectId);
 
-            $availableDocuments = Document::query()
-                ->where(function ($query): void {
-                    $query->ownedByProject($this->projectId)
-                        ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject($this->projectId));
-                })
-                ->orderBy('title')
-                ->get(['id', 'title', 'original_name']);
+            $availableDocuments = app(ProjectDocumentLibraryContract::class)
+                ->listProjectAccessible($this->projectId)
+                ->map(fn (Document $document): array => [
+                    'id' => (string) $document->id,
+                    'title' => (string) $document->title,
+                    'original_name' => (string) $document->original_name,
+                ]);
 
             $canUploadDocument = $selectedProject instanceof Project
                 && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject]);
@@ -342,7 +343,7 @@ class Form extends Component
 
     private function syncUploadConstraints(): void
     {
-        $rules = app(DocumentService::class)->validationRules();
+        $rules = app(DocumentOrchestratorContract::class)->validationRules();
 
         $this->uploadMaxKilobytes = max(1, (int) ($rules['max_kilobytes'] ?? 10240));
         $this->uploadAllowedExtensions = collect($rules['allowed_extensions'] ?? [])
@@ -483,15 +484,8 @@ class Form extends Component
      */
     private function syncDocuments(Submittal $submittal, array $selectedDocumentIds): void
     {
-        $allowedDocumentIds = Document::query()
-            ->where(function ($query) use ($submittal): void {
-                $query->ownedByProject((string) $submittal->project_id)
-                    ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject((string) $submittal->project_id));
-            })
-            ->whereIn('id', $selectedDocumentIds)
-            ->pluck('id')
-            ->values()
-            ->all();
+        $allowedDocumentIds = app(ProjectDocumentLibraryContract::class)
+            ->allowedDocumentIdsForProject((string) $submittal->project_id, $selectedDocumentIds);
 
         $submittal->documents()->sync($allowedDocumentIds);
     }

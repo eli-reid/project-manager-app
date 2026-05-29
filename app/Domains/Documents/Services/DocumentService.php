@@ -2,15 +2,22 @@
 
 namespace App\Domains\Documents\Services;
 
+use App\Core\Files\Contracts\FilePathNormalizerContract;
+use App\Core\Files\Contracts\FileStorageContract;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
-class DocumentService
+class DocumentService implements DocumentOrchestratorContract
 {
+    public function __construct(
+        private readonly FileStorageContract $fileStorage,
+        private readonly FilePathNormalizerContract $filePathNormalizer,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -23,7 +30,7 @@ class DocumentService
         $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-        $storedPath = $file->store($this->storageFolder('documents/user/'.$owner->id, $folderPath), $disk);
+        $storedPath = $this->fileStorage->store($file, $this->storageFolder('documents/user/'.$owner->id, $folderPath), $disk);
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
@@ -58,7 +65,7 @@ class DocumentService
         $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-        $storedPath = $file->store($this->storageFolder('documents/project/'.$project->id, $folderPath), $disk);
+        $storedPath = $this->fileStorage->store($file, $this->storageFolder('documents/project/'.$project->id, $folderPath), $disk);
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
@@ -98,7 +105,7 @@ class DocumentService
         );
 
         $oldPath = $document->storage_path;
-        $storedPath = $file->store($folder, $disk);
+        $storedPath = $this->fileStorage->store($file, $folder, $disk);
 
         $document->fill([
             'folder_path' => $folderPath,
@@ -120,7 +127,7 @@ class DocumentService
         $document->save();
 
         if ($this->replaceBehavior() === Document::REPLACE_MODE_REPLACE && filled($oldPath)) {
-            Storage::disk($disk)->delete((string) $oldPath);
+            $this->fileStorage->delete((string) $oldPath, $disk);
         }
 
         return $document->fresh();
@@ -139,7 +146,7 @@ class DocumentService
         $storedPath = $folder.'/'.($document->stored_name ?: basename((string) $document->storage_path));
 
         if (filled($document->storage_path) && $document->storage_path !== $storedPath) {
-            Storage::disk($disk)->move((string) $document->storage_path, $storedPath);
+            $this->fileStorage->move((string) $document->storage_path, $storedPath, $disk);
         }
 
         $document->fill([
@@ -156,7 +163,7 @@ class DocumentService
     public function deleteDocument(Document $document): void
     {
         if (filled($document->storage_path)) {
-            Storage::disk($document->storage_disk)->delete($document->storage_path);
+            $this->fileStorage->delete($document->storage_path, (string) $document->storage_disk);
         }
 
         $document->delete();
@@ -202,26 +209,7 @@ class DocumentService
 
     private function normalizeFolderPath(mixed $folderPath): ?string
     {
-        if (! is_string($folderPath)) {
-            return null;
-        }
-
-        $normalized = trim(str_replace('\\', '/', $folderPath));
-
-        if ($normalized === '') {
-            return null;
-        }
-
-        $segments = array_values(array_filter(array_map(
-            static fn (string $segment): string => trim($segment),
-            explode('/', $normalized),
-        ), static fn (string $segment): bool => $segment !== '' && $segment !== '.' && $segment !== '..'));
-
-        if ($segments === []) {
-            return null;
-        }
-
-        return implode('/', $segments);
+        return $this->filePathNormalizer->normalize($folderPath);
     }
 
     private function replaceBehavior(): string

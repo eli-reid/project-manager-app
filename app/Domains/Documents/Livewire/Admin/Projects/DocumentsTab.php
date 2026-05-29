@@ -3,8 +3,9 @@
 namespace App\Domains\Documents\Livewire\Admin\Projects;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
+use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
-use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -46,13 +47,13 @@ class DocumentsTab extends Component
         $this->syncUploadConstraints();
     }
 
-    public function save(DocumentService $documentService): void
+    public function save(DocumentOrchestratorContract $documentOrchestrator, ProjectDocumentLibraryContract $projectDocumentLibrary): void
     {
         $this->authorize('manageProjectDocuments', [Document::class, $this->project]);
         /** @var User $user */
         $user = Auth::user();
 
-        $rules = $documentService->validationRules();
+        $rules = $documentOrchestrator->validationRules();
         $validationRules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
@@ -67,10 +68,7 @@ class DocumentsTab extends Component
         $this->validate($validationRules);
 
         if ($this->editingDocumentId !== null) {
-            $document = Document::query()
-                ->projectOwned()
-                ->ownedByProject((string) $this->project->id)
-                ->findOrFail($this->editingDocumentId);
+            $document = $projectDocumentLibrary->findProjectOwnedOrFail((string) $this->project->id, $this->editingDocumentId);
 
             $this->authorize('update', $document);
             $folderPath = $this->folderPath !== '' ? $this->folderPath : null;
@@ -81,12 +79,12 @@ class DocumentsTab extends Component
             ]);
 
             if ($this->file !== null) {
-                $documentService->replaceFile($document, $this->file, $user, $folderPath);
+                $documentOrchestrator->replaceFile($document, $this->file, $user, $folderPath);
             } else {
-                $documentService->moveDocument($document, $folderPath);
+                $documentOrchestrator->moveDocument($document, $folderPath);
             }
         } else {
-            $documentService->uploadProjectDocument(
+            $documentOrchestrator->uploadProjectDocument(
                 $this->project,
                 $user,
                 $this->file,
@@ -103,10 +101,8 @@ class DocumentsTab extends Component
 
     public function edit(string $documentId): void
     {
-        $document = Document::query()
-            ->projectOwned()
-            ->ownedByProject((string) $this->project->id)
-            ->findOrFail($documentId);
+        $document = app(ProjectDocumentLibraryContract::class)
+            ->findProjectOwnedOrFail((string) $this->project->id, $documentId);
 
         $this->authorize('update', $document);
 
@@ -117,16 +113,14 @@ class DocumentsTab extends Component
         $this->file = null;
     }
 
-    public function delete(string $documentId, DocumentService $documentService): void
+    public function delete(string $documentId, DocumentOrchestratorContract $documentOrchestrator): void
     {
-        $document = Document::query()
-            ->projectOwned()
-            ->ownedByProject((string) $this->project->id)
-            ->findOrFail($documentId);
+        $document = app(ProjectDocumentLibraryContract::class)
+            ->findProjectOwnedOrFail((string) $this->project->id, $documentId);
 
         $this->authorize('delete', $document);
 
-        $documentService->deleteDocument($document);
+        $documentOrchestrator->deleteDocument($document);
 
         if ($this->editingDocumentId === $documentId) {
             $this->resetForm();
@@ -140,22 +134,11 @@ class DocumentsTab extends Component
 
     public function render()
     {
-        $documentsQuery = Document::query()
-            ->projectOwned()
-            ->ownedByProject((string) $this->project->id)
-            ->with('uploadedBy:id,first_name,last_name')
-            ->orderByRaw("COALESCE(folder_path, '')")
-            ->orderBy('title');
-
-        if ($this->search !== '') {
-            $documentsQuery->where(function ($query): void {
-                $query->where('title', 'like', '%'.$this->search.'%')
-                    ->orWhere('original_name', 'like', '%'.$this->search.'%');
-            });
-        }
+        $documents = app(ProjectDocumentLibraryContract::class)
+            ->listProjectOwned((string) $this->project->id, $this->search !== '' ? $this->search : null);
 
         return view('documents::livewire.admin.projects.documents-tab', [
-            'documents' => $documentsQuery->get(),
+            'documents' => $documents,
             'maxFileSizeLabel' => $this->maxFileSizeLabel(),
             'allowedExtensionsLabel' => strtoupper(implode(', ', $this->allowedExtensions)),
             'acceptAttribute' => $this->acceptAttribute(),
@@ -164,7 +147,7 @@ class DocumentsTab extends Component
 
     private function syncUploadConstraints(): void
     {
-        $rules = app(DocumentService::class)->validationRules();
+        $rules = app(DocumentOrchestratorContract::class)->validationRules();
 
         $this->maxKilobytes = max(1, (int) ($rules['max_kilobytes'] ?? 10240));
         $this->allowedExtensions = collect($rules['allowed_extensions'] ?? [])

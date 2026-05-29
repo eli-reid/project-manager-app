@@ -7,9 +7,15 @@ use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
+use App\Domains\Documents\Contracts\DocumentSharingContract;
+use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
+use App\Domains\Documents\Services\DocumentService;
+use App\Domains\Documents\Services\DocumentShareService;
+use App\Domains\Documents\Services\ProjectDocumentLibrary;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -22,7 +28,9 @@ class DocumentsServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        //
+        $this->app->singleton(DocumentOrchestratorContract::class, DocumentService::class);
+        $this->app->singleton(DocumentSharingContract::class, DocumentShareService::class);
+        $this->app->singleton(ProjectDocumentLibraryContract::class, ProjectDocumentLibrary::class);
     }
 
     public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry): void

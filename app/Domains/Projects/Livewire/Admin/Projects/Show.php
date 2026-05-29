@@ -5,6 +5,7 @@ namespace App\Domains\Projects\Livewire\Admin\Projects;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
@@ -347,12 +348,8 @@ class Show extends Component
         }
 
         if (in_array('documents', $tabs, true)) {
-            $documentCount = Document::query()
-                ->where(function ($query): void {
-                    $query->ownedByProject((string) $this->project->id)
-                        ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject((string) $this->project->id));
-                })
-                ->count();
+            $documentCount = app(ProjectDocumentLibraryContract::class)
+                ->countProjectAccessible((string) $this->project->id);
         }
 
         $timeEntryCount = 0;
