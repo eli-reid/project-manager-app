@@ -20,13 +20,15 @@ class DocumentService
         $extension = $file->getClientOriginalExtension();
         $mimeType = (string) $file->getClientMimeType();
         $fileSize = (int) $file->getSize();
+        $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-        $storedPath = $file->store('documents/user/'.$owner->id, $disk);
+        $storedPath = $file->store($this->storageFolder('documents/user/'.$owner->id, $folderPath), $disk);
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
             'description' => $attributes['description'] ?? null,
+            'folder_path' => $folderPath,
             'original_name' => $originalName,
             'stored_name' => basename((string) $storedPath),
             'extension' => $extension,
@@ -53,13 +55,15 @@ class DocumentService
         $extension = $file->getClientOriginalExtension();
         $mimeType = (string) $file->getClientMimeType();
         $fileSize = (int) $file->getSize();
+        $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-        $storedPath = $file->store('documents/project/'.$project->id, $disk);
+        $storedPath = $file->store($this->storageFolder('documents/project/'.$project->id, $folderPath), $disk);
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
             'description' => $attributes['description'] ?? null,
+            'folder_path' => $folderPath,
             'original_name' => $originalName,
             'stored_name' => basename((string) $storedPath),
             'extension' => $extension,
@@ -77,22 +81,27 @@ class DocumentService
         return $document->fresh();
     }
 
-    public function replaceFile(Document $document, UploadedFile $file, ?User $actor = null): Document
+    public function replaceFile(Document $document, UploadedFile $file, ?User $actor = null, ?string $folderPath = null): Document
     {
         $originalName = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
         $mimeType = (string) $file->getClientMimeType();
         $fileSize = (int) $file->getSize();
+        $folderPath = $this->normalizeFolderPath($folderPath ?? $document->folder_path);
 
         $disk = $this->storageDisk();
-        $folder = $document->isProjectOwned()
-            ? 'documents/project/'.($document->owner_id ?? 'unknown')
-            : 'documents/user/'.($document->owner_id ?? 'unknown');
+        $folder = $this->storageFolder(
+            $document->isProjectOwned()
+                ? 'documents/project/'.($document->owner_id ?? 'unknown')
+                : 'documents/user/'.($document->owner_id ?? 'unknown'),
+            $folderPath,
+        );
 
         $oldPath = $document->storage_path;
         $storedPath = $file->store($folder, $disk);
 
         $document->fill([
+            'folder_path' => $folderPath,
             'original_name' => $originalName,
             'stored_name' => basename((string) $storedPath),
             'extension' => $extension,
@@ -113,6 +122,33 @@ class DocumentService
         if ($this->replaceBehavior() === Document::REPLACE_MODE_REPLACE && filled($oldPath)) {
             Storage::disk($disk)->delete((string) $oldPath);
         }
+
+        return $document->fresh();
+    }
+
+    public function moveDocument(Document $document, ?string $folderPath = null): Document
+    {
+        $disk = $this->storageDisk();
+        $folderPath = $this->normalizeFolderPath($folderPath);
+        $folder = $this->storageFolder(
+            $document->isProjectOwned()
+                ? 'documents/project/'.($document->owner_id ?? 'unknown')
+                : 'documents/user/'.($document->owner_id ?? 'unknown'),
+            $folderPath,
+        );
+        $storedPath = $folder.'/'.($document->stored_name ?: basename((string) $document->storage_path));
+
+        if (filled($document->storage_path) && $document->storage_path !== $storedPath) {
+            Storage::disk($disk)->move((string) $document->storage_path, $storedPath);
+        }
+
+        $document->fill([
+            'folder_path' => $folderPath,
+            'storage_disk' => $disk,
+            'storage_path' => $storedPath,
+        ]);
+
+        $document->save();
 
         return $document->fresh();
     }
@@ -153,6 +189,39 @@ class DocumentService
     private function storageDisk(): string
     {
         return Settings::get('documents.storage_disk', 'local')->toString();
+    }
+
+    private function storageFolder(string $baseFolder, ?string $folderPath = null): string
+    {
+        if ($folderPath === null) {
+            return $baseFolder;
+        }
+
+        return $baseFolder.'/'.$folderPath;
+    }
+
+    private function normalizeFolderPath(mixed $folderPath): ?string
+    {
+        if (! is_string($folderPath)) {
+            return null;
+        }
+
+        $normalized = trim(str_replace('\\', '/', $folderPath));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        $segments = array_values(array_filter(array_map(
+            static fn (string $segment): string => trim($segment),
+            explode('/', $normalized),
+        ), static fn (string $segment): bool => $segment !== '' && $segment !== '.' && $segment !== '..'));
+
+        if ($segments === []) {
+            return null;
+        }
+
+        return implode('/', $segments);
     }
 
     private function replaceBehavior(): string

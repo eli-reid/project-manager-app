@@ -41,6 +41,7 @@ class Document extends Model
     protected $fillable = [
         'title',
         'description',
+        'folder_path',
         'original_name',
         'stored_name',
         'extension',

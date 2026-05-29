@@ -22,6 +22,8 @@ class DocumentsTab extends Component
 
     public string $description = '';
 
+    public string $folderPath = '';
+
     public string $search = '';
 
     public ?string $editingDocumentId = null;
@@ -54,6 +56,7 @@ class DocumentsTab extends Component
         $validationRules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'folderPath' => ['nullable', 'string', 'max:255'],
             'file' => ['nullable', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
         ];
 
@@ -70,6 +73,7 @@ class DocumentsTab extends Component
                 ->findOrFail($this->editingDocumentId);
 
             $this->authorize('update', $document);
+            $folderPath = $this->folderPath !== '' ? $this->folderPath : null;
 
             $document->update([
                 'title' => $this->title,
@@ -77,7 +81,9 @@ class DocumentsTab extends Component
             ]);
 
             if ($this->file !== null) {
-                $documentService->replaceFile($document, $this->file, $user);
+                $documentService->replaceFile($document, $this->file, $user, $folderPath);
+            } else {
+                $documentService->moveDocument($document, $folderPath);
             }
         } else {
             $documentService->uploadProjectDocument(
@@ -87,6 +93,7 @@ class DocumentsTab extends Component
                 [
                     'title' => $this->title,
                     'description' => $this->description !== '' ? $this->description : null,
+                    'folder_path' => $this->folderPath !== '' ? $this->folderPath : null,
                 ]
             );
         }
@@ -106,6 +113,7 @@ class DocumentsTab extends Component
         $this->editingDocumentId = $document->id;
         $this->title = $document->title;
         $this->description = (string) ($document->description ?? '');
+        $this->folderPath = (string) ($document->folder_path ?? '');
         $this->file = null;
     }
 
@@ -136,7 +144,8 @@ class DocumentsTab extends Component
             ->projectOwned()
             ->ownedByProject((string) $this->project->id)
             ->with('uploadedBy:id,first_name,last_name')
-            ->latest();
+            ->orderByRaw("COALESCE(folder_path, '')")
+            ->orderBy('title');
 
         if ($this->search !== '') {
             $documentsQuery->where(function ($query): void {
@@ -186,6 +195,7 @@ class DocumentsTab extends Component
         $this->editingDocumentId = null;
         $this->title = '';
         $this->description = '';
+        $this->folderPath = '';
         $this->file = null;
         $this->resetValidation();
         $this->dispatch('project-documents-file-input-reset');

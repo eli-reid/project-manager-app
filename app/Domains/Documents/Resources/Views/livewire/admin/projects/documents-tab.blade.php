@@ -51,6 +51,13 @@
             </div>
 
             <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Folder Path</label>
+                <input type="text" wire:model="folderPath" placeholder="Submittals/Changes/RFI" class="w-full rounded-lg border border-zinc-300 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
+                <p class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">Use slashes to create subfolders.</p>
+                @error('folderPath') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
                 <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
                     <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">File</label>
                     <span class="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
@@ -121,6 +128,7 @@
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Folder</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">File</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Uploaded By</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Date</th>
@@ -131,6 +139,7 @@
                     @forelse ($documents as $document)
                         <tr wire:key="project-document-{{ $document->id }}" class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                             <td class="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">{{ $document->title }}</td>
+                            <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ $document->folder_path ?: 'Unsorted' }}</td>
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">
                                 <x-ui.pdf-viewer :document="$document" />
                             </td>
@@ -151,7 +160,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No project documents yet.</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No project documents yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
