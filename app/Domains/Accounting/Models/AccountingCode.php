@@ -82,6 +82,11 @@ class AccountingCode extends Model
         return $this->hasMany(StockOrder::class);
     }
 
+    public function journalLines(): HasMany
+    {
+        return $this->hasMany(AccountingJournalLine::class);
+    }
+
     protected static function newFactory(): AccountingCodeFactory
     {
         return AccountingCodeFactory::new();
