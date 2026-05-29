@@ -6,7 +6,9 @@ use App\Domains\Accounting\Database\Factories\AccountingJournalEntryFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @mixin IdeHelperAccountingJournalEntry
@@ -21,6 +23,7 @@ class AccountingJournalEntry extends Model
         'description',
         'source_type',
         'source_id',
+        'reversal_of_id',
         'posted_at',
     ];
 
@@ -36,6 +39,16 @@ class AccountingJournalEntry extends Model
         return $this->hasMany(AccountingJournalLine::class)->orderBy('line_number');
     }
 
+    public function reversalOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reversal_of_id');
+    }
+
+    public function reversalEntry(): HasOne
+    {
+        return $this->hasOne(self::class, 'reversal_of_id');
+    }
+
     public function totalDebits(): float
     {
         return (float) $this->lines->sum('debit_amount');
@@ -44,6 +57,11 @@ class AccountingJournalEntry extends Model
     public function totalCredits(): float
     {
         return (float) $this->lines->sum('credit_amount');
+    }
+
+    public function isReversal(): bool
+    {
+        return $this->reversal_of_id !== null;
     }
 
     protected static function newFactory(): AccountingJournalEntryFactory

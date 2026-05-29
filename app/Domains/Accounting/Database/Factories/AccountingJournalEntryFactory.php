@@ -19,6 +19,7 @@ class AccountingJournalEntryFactory extends Factory
             'description' => fake()->sentence(4),
             'source_type' => null,
             'source_id' => null,
+            'reversal_of_id' => null,
             'posted_at' => now(),
         ];
     }

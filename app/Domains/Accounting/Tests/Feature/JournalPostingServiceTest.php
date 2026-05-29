@@ -91,3 +91,112 @@ it('rejects journal lines without a single non-zero side', function (): void {
         ],
     ]))->toThrow(DomainException::class, 'Each journal line must contain exactly one non-zero side.');
 });
+
+it('rejects duplicate postings for the same source record', function (): void {
+    $cash = AccountingCode::factory()->create([
+        'account_type' => 'asset',
+        'normal_balance' => 'debit',
+    ]);
+
+    $revenue = AccountingCode::factory()->create([
+        'account_type' => 'revenue',
+        'normal_balance' => 'credit',
+    ]);
+
+    /** @var JournalPostingService $service */
+    $service = app(JournalPostingService::class);
+
+    $service->post('Original source post', [
+        [
+            'accounting_code_id' => $cash->id,
+            'debit_amount' => 100.00,
+        ],
+        [
+            'accounting_code_id' => $revenue->id,
+            'credit_amount' => 100.00,
+        ],
+    ], sourceType: 'invoice', sourceId: 'invoice-123');
+
+    expect(fn () => $service->post('Duplicate source post', [
+        [
+            'accounting_code_id' => $cash->id,
+            'debit_amount' => 100.00,
+        ],
+        [
+            'accounting_code_id' => $revenue->id,
+            'credit_amount' => 100.00,
+        ],
+    ], sourceType: 'invoice', sourceId: 'invoice-123'))
+        ->toThrow(\DomainException::class, 'A journal entry has already been posted for this source record.');
+});
+
+it('creates a reversing journal entry with swapped debit and credit lines', function (): void {
+    $cash = AccountingCode::factory()->create([
+        'code' => '1000',
+        'account_type' => 'asset',
+        'normal_balance' => 'debit',
+    ]);
+
+    $revenue = AccountingCode::factory()->create([
+        'code' => '4000',
+        'account_type' => 'revenue',
+        'normal_balance' => 'credit',
+    ]);
+
+    /** @var JournalPostingService $service */
+    $service = app(JournalPostingService::class);
+
+    $entry = $service->post('Record revenue', [
+        [
+            'accounting_code_id' => $cash->id,
+            'debit_amount' => 75.00,
+            'description' => 'Cash in',
+        ],
+        [
+            'accounting_code_id' => $revenue->id,
+            'credit_amount' => 75.00,
+            'description' => 'Revenue out',
+        ],
+    ]);
+
+    $reversal = $service->reverse($entry);
+
+    expect($reversal->reversal_of_id)->toBe($entry->id);
+    expect($reversal->entry_number)->toBe('JE-000002');
+    expect($reversal->lines)->toHaveCount(2);
+    expect($reversal->lines[0]->debit_amount)->toBe('0.00');
+    expect($reversal->lines[0]->credit_amount)->toBe('75.00');
+    expect($reversal->lines[1]->debit_amount)->toBe('75.00');
+    expect($reversal->lines[1]->credit_amount)->toBe('0.00');
+});
+
+it('rejects reversing an entry twice', function (): void {
+    $cash = AccountingCode::factory()->create([
+        'account_type' => 'asset',
+        'normal_balance' => 'debit',
+    ]);
+
+    $revenue = AccountingCode::factory()->create([
+        'account_type' => 'revenue',
+        'normal_balance' => 'credit',
+    ]);
+
+    /** @var JournalPostingService $service */
+    $service = app(JournalPostingService::class);
+
+    $entry = $service->post('Record revenue', [
+        [
+            'accounting_code_id' => $cash->id,
+            'debit_amount' => 40.00,
+        ],
+        [
+            'accounting_code_id' => $revenue->id,
+            'credit_amount' => 40.00,
+        ],
+    ]);
+
+    $service->reverse($entry);
+
+    expect(fn () => $service->reverse($entry))
+        ->toThrow(\DomainException::class, 'This journal entry has already been reversed.');
+});

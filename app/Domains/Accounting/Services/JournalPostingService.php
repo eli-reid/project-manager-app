@@ -29,6 +29,12 @@ class JournalPostingService
             throw new DomainException('Journal entries require at least two lines.');
         }
 
+        $this->validateSourcePair($sourceType, $sourceId);
+
+        if ($sourceType !== null && $sourceId !== null && $this->entryExistsForSource($sourceType, $sourceId)) {
+            throw new DomainException('A journal entry has already been posted for this source record.');
+        }
+
         $normalizedLines = $this->normalizeLines($lines);
         $debitTotal = round(collect($normalizedLines)->sum('debit_amount'), 2);
         $creditTotal = round(collect($normalizedLines)->sum('credit_amount'), 2);
@@ -47,6 +53,7 @@ class JournalPostingService
                 'description' => trim($description),
                 'source_type' => $sourceType,
                 'source_id' => $sourceId,
+                'reversal_of_id' => null,
                 'posted_at' => $postedAt ?? now(),
             ]);
 
@@ -61,6 +68,45 @@ class JournalPostingService
             }
 
             return $entry->fresh('lines.accountingCode') ?? $entry;
+        });
+    }
+
+    public function reverse(
+        AccountingJournalEntry $journalEntry,
+        ?string $description = null,
+        ?Carbon $postedAt = null,
+    ): AccountingJournalEntry {
+        $entry = $journalEntry->fresh('lines') ?? $journalEntry->loadMissing('lines');
+
+        if ($entry->reversalEntry()->exists()) {
+            throw new DomainException('This journal entry has already been reversed.');
+        }
+
+        if ($entry->lines->isEmpty()) {
+            throw new DomainException('Journal entries without lines cannot be reversed.');
+        }
+
+        return DB::transaction(function () use ($description, $entry, $postedAt): AccountingJournalEntry {
+            $reversalEntry = AccountingJournalEntry::query()->create([
+                'entry_number' => $this->nextEntryNumber(),
+                'description' => trim($description ?? 'Reversal of '.$entry->entry_number),
+                'source_type' => null,
+                'source_id' => null,
+                'reversal_of_id' => $entry->id,
+                'posted_at' => $postedAt ?? now(),
+            ]);
+
+            foreach ($entry->lines as $index => $line) {
+                $reversalEntry->lines()->create([
+                    'accounting_code_id' => $line->accounting_code_id,
+                    'line_number' => $index + 1,
+                    'description' => $line->description,
+                    'debit_amount' => $line->credit_amount,
+                    'credit_amount' => $line->debit_amount,
+                ]);
+            }
+
+            return $reversalEntry->fresh('lines.accountingCode', 'reversalOf') ?? $reversalEntry;
         });
     }
 
@@ -104,5 +150,20 @@ class JournalPostingService
         $sequence = AccountingJournalEntry::query()->count() + 1;
 
         return 'JE-'.str_pad((string) $sequence, 6, '0', STR_PAD_LEFT);
+    }
+
+    private function entryExistsForSource(string $sourceType, string $sourceId): bool
+    {
+        return AccountingJournalEntry::query()
+            ->where('source_type', $sourceType)
+            ->where('source_id', $sourceId)
+            ->exists();
+    }
+
+    private function validateSourcePair(?string $sourceType, ?string $sourceId): void
+    {
+        if (($sourceType === null) !== ($sourceId === null)) {
+            throw new DomainException('Journal entry sources require both source_type and source_id together.');
+        }
     }
 }
