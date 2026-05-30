@@ -98,7 +98,9 @@
                             </span>
                         </div>
                         <div class="space-y-2">
-                            @php($defaultFileLabel = optional($file)->getClientOriginalName() ?? ($editingDocumentId ? 'No new file — current file will be kept.' : 'No file selected yet.'))
+                            @php
+                                $defaultFileLabel = optional($file)->getClientOriginalName() ?? ($editingDocumentId ? 'No new file — current file will be kept.' : 'No file selected yet.');
+                            @endphp
                             <label
                                 for="project-document-file"
                                 x-bind:class="isUploading ? 'pointer-events-none opacity-75' : ''"
