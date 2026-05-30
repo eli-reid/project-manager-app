@@ -16,6 +16,7 @@ use App\Domains\Stock\Models\StockOrderTemplate;
 use App\Domains\Timecards\Models\Timecard;
 use Illuminate\View\View;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
 class SidebarAdminNav extends Component
 {
@@ -29,7 +30,7 @@ class SidebarAdminNav extends Component
      */
     private function getNavPermissions(): array
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $canManageAnnouncements = $user?->can('viewAny', Announcement::class) ?? false;
         $canManageUsers = $user?->can('admin') ?? false;
