@@ -26,6 +26,6 @@ class ProjectTab extends Component
 
     public function render()
     {
-        return view('invoices::components.project-tab');
+        return view('invoices::livewire.admin.projects.project-tab');
     }
 }

@@ -26,6 +26,6 @@ class ProjectTab extends Component
 
     public function render()
     {
-        return view('dailies::components.project-tab');
+        return view('dailies::livewire.admin.projects.project-tab');
     }
 }

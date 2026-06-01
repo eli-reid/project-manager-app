@@ -45,6 +45,6 @@ class ProjectTab extends Component
 
     public function render()
     {
-        return view('submittals::components.project-tab');
+        return view('submittals::livewire.admin.projects.project-tab');
     }
 }

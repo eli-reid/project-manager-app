@@ -59,6 +59,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
 - New route-facing UI views must be Livewire-first.
+-If you inline PHP in Blade views, it must be within Livewire components or Volt single-file components. Do not return `view(...)` from HTTP controllers for route-facing pages; use Livewire component routes/pages instead unless explicitly approved as a legacy exception.
 - Livewire-first enforcement (hard): do not create new route-facing regular Blade views when a Livewire component can be used. Regular Blade route views are exceptions only when explicitly allowed below.
 - Place new app-level route-facing views in `resources/views/livewire/**`.
 - Place new domain/core route-facing views in `app/{Core|Domains}/.../Resources/Views/livewire/**`.

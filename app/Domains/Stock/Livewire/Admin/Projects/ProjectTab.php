@@ -26,6 +26,6 @@ class ProjectTab extends Component
 
     public function render()
     {
-        return view('stock::components.project-tab');
+        return view('stock::livewire.admin.projects.project-tab');
     }
 }
