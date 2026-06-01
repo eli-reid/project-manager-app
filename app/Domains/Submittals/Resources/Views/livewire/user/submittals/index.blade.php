@@ -5,13 +5,57 @@
     </div>
 
     <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status Filter</label>
-        <select wire:model.live="status" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-            <option value="">All statuses</option>
-            @foreach ($statuses as $value => $label)
-                <option value="{{ $value }}">{{ $label }}</option>
-            @endforeach
-        </select>
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</label>
+                <select wire:model.live="status" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">All statuses</option>
+                    @foreach ($statuses as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Document Role</label>
+                <select wire:model.live="documentRole" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">Any role</option>
+                    @foreach ($documentRoles as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Document Status</label>
+                <select wire:model.live="documentStatus" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">Any document status</option>
+                    @foreach ($documentStatuses as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Discipline</label>
+                <input
+                    type="text"
+                    wire:model.live.debounce.300ms="documentDiscipline"
+                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    placeholder="Electrical"
+                />
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Revision</label>
+                <input
+                    type="text"
+                    wire:model.live.debounce.300ms="documentRevision"
+                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    placeholder="Rev B"
+                />
+            </div>
+        </div>
     </div>
 
     <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">

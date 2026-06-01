@@ -60,6 +60,59 @@ it('stores default submittal document metadata on pivot sync', function (): void
     expect($pivot?->discipline)->toBeNull();
 });
 
+it('stores custom submittal document metadata from form input', function (): void {
+    $user = userWithSubmittalMetadataPermissions([
+        'submittals.create',
+        'projects.view',
+        'documents.view',
+    ]);
+
+    $reviewer = User::factory()->create();
+    $project = Project::factory()->create();
+
+    $document = Document::factory()->projectOwned()->create([
+        'owner_id' => $project->id,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Form::class, ['projectId' => (string) $project->id])
+        ->set('type', 'material_data')
+        ->set('reviewerIds', [(string) $reviewer->id])
+        ->set('items', [[
+            'description' => 'Panelboard cut sheet package',
+            'manufacturer' => null,
+            'model' => null,
+            'part_number' => null,
+            'quantity' => null,
+            'unit' => null,
+        ]])
+        ->set('documentIds', [(string) $document->id])
+        ->set('documentMetadata.'.(string) $document->id.'.document_role', Submittal::DOCUMENT_ROLE_PRIMARY)
+        ->set('documentMetadata.'.(string) $document->id.'.document_status', Submittal::DOCUMENT_STATUS_DRAFT)
+        ->set('documentMetadata.'.(string) $document->id.'.revision', 'Rev B')
+        ->set('documentMetadata.'.(string) $document->id.'.discipline', 'Electrical')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $submittal = Submittal::query()
+        ->where('submitted_by_id', (string) $user->id)
+        ->latest('created_at')
+        ->firstOrFail();
+
+    $pivot = DB::table('submittal_documents')
+        ->where('submittal_id', (string) $submittal->id)
+        ->where('document_id', (string) $document->id)
+        ->first();
+
+    expect($pivot)->not->toBeNull();
+    expect($pivot?->document_role)->toBe(Submittal::DOCUMENT_ROLE_PRIMARY);
+    expect($pivot?->document_status)->toBe(Submittal::DOCUMENT_STATUS_DRAFT);
+    expect($pivot?->revision)->toBe('Rev B');
+    expect($pivot?->discipline)->toBe('Electrical');
+});
+
 /**
  * @param  array<int, string>  $permissions
  */

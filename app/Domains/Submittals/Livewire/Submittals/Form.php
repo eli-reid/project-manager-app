@@ -76,6 +76,11 @@ class Form extends Component
      */
     public array $documentIds = [];
 
+    /**
+     * @var array<string, array{document_role:string, document_status:string, revision:?string, discipline:?string}>
+     */
+    public array $documentMetadata = [];
+
     public function mount(?Submittal $submittal = null, ?string $projectId = null, ?string $returnTo = null, ?bool $embedded = null): void
     {
         $this->submittal = $submittal;
@@ -121,6 +126,20 @@ class Form extends Component
             $this->documentIds = $submittal->documents()
                 ->pluck('documents.id')
                 ->values()
+                ->all();
+
+            $this->documentMetadata = $submittal->documents()
+                ->get()
+                ->mapWithKeys(function (Document $document): array {
+                    return [
+                        (string) $document->id => [
+                            'document_role' => (string) ($document->pivot?->document_role ?? Submittal::DOCUMENT_ROLE_REFERENCE),
+                            'document_status' => (string) ($document->pivot?->document_status ?? Submittal::DOCUMENT_STATUS_ACTIVE),
+                            'revision' => $this->normalizeNullableString($document->pivot?->revision),
+                            'discipline' => $this->normalizeNullableString($document->pivot?->discipline),
+                        ],
+                    ];
+                })
                 ->all();
 
             if ($this->items === []) {
@@ -188,6 +207,7 @@ class Form extends Component
         );
 
         $this->documentIds[] = (string) $document->id;
+        $this->updatedDocumentIds();
 
         $this->resetUploadModal();
     }
@@ -236,6 +256,8 @@ class Form extends Component
             'return_to' => $this->returnTo,
         ]);
 
+        $this->updatedDocumentIds();
+
         $validated = $this->validate([
             'projectId' => ['required', 'string', 'exists:projects,id'],
             'type' => ['required', 'string', 'max:120'],
@@ -246,6 +268,11 @@ class Form extends Component
             'reviewerIds.*' => ['string', 'exists:users,id', 'distinct'],
             'documentIds' => ['nullable', 'array'],
             'documentIds.*' => ['string', 'exists:documents,id', 'distinct'],
+            'documentMetadata' => ['nullable', 'array'],
+            'documentMetadata.*.document_role' => ['nullable', 'string', 'in:'.implode(',', Submittal::allowedDocumentRoles())],
+            'documentMetadata.*.document_status' => ['nullable', 'string', 'in:'.implode(',', Submittal::allowedDocumentStatuses())],
+            'documentMetadata.*.revision' => ['nullable', 'string', 'max:40'],
+            'documentMetadata.*.discipline' => ['nullable', 'string', 'max:60'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.description' => ['required', 'string', 'max:255'],
             'items.*.manufacturer' => ['nullable', 'string', 'max:120'],
@@ -482,12 +509,96 @@ class Form extends Component
         $allowedDocumentIds = app(ProjectDocumentLibraryContract::class)
             ->allowedDocumentIdsForProject((string) $submittal->project_id, $selectedDocumentIds);
 
-        $submittal->documents()->syncWithPivotValues($allowedDocumentIds, [
+        $pivotPayload = collect($allowedDocumentIds)
+            ->mapWithKeys(fn (string $documentId): array => [
+                $documentId => $this->documentMetadataValuesForDocument($documentId),
+            ])
+            ->all();
+
+        $submittal->documents()->sync($pivotPayload);
+    }
+
+    public function updatedDocumentIds(): void
+    {
+        $selectedDocumentIds = collect($this->documentIds)
+            ->filter(fn (mixed $id): bool => is_string($id) && $id !== '')
+            ->values()
+            ->all();
+
+        $this->documentMetadata = collect($this->documentMetadata)
+            ->only($selectedDocumentIds)
+            ->map(function (mixed $metadata): array {
+                if (! is_array($metadata)) {
+                    return $this->defaultDocumentMetadata();
+                }
+
+                return [
+                    'document_role' => $this->normalizeRole((string) ($metadata['document_role'] ?? Submittal::DOCUMENT_ROLE_REFERENCE)),
+                    'document_status' => $this->normalizeStatus((string) ($metadata['document_status'] ?? Submittal::DOCUMENT_STATUS_ACTIVE)),
+                    'revision' => $this->normalizeNullableString($metadata['revision'] ?? null),
+                    'discipline' => $this->normalizeNullableString($metadata['discipline'] ?? null),
+                ];
+            })
+            ->all();
+
+        foreach ($selectedDocumentIds as $documentId) {
+            if (! array_key_exists($documentId, $this->documentMetadata)) {
+                $this->documentMetadata[$documentId] = $this->defaultDocumentMetadata();
+            }
+        }
+    }
+
+    /**
+     * @return array{document_role:string, document_status:string, revision:?string, discipline:?string}
+     */
+    private function documentMetadataValuesForDocument(string $documentId): array
+    {
+        $metadata = $this->documentMetadata[$documentId] ?? [];
+
+        return [
+            'document_role' => $this->normalizeRole((string) ($metadata['document_role'] ?? Submittal::DOCUMENT_ROLE_REFERENCE)),
+            'document_status' => $this->normalizeStatus((string) ($metadata['document_status'] ?? Submittal::DOCUMENT_STATUS_ACTIVE)),
+            'revision' => $this->normalizeNullableString($metadata['revision'] ?? null),
+            'discipline' => $this->normalizeNullableString($metadata['discipline'] ?? null),
+        ];
+    }
+
+    /**
+     * @return array{document_role:string, document_status:string, revision:?string, discipline:?string}
+     */
+    private function defaultDocumentMetadata(): array
+    {
+        return [
             'document_role' => Submittal::DOCUMENT_ROLE_REFERENCE,
             'document_status' => Submittal::DOCUMENT_STATUS_ACTIVE,
             'revision' => null,
             'discipline' => null,
-        ]);
+        ];
+    }
+
+    private function normalizeRole(string $role): string
+    {
+        return in_array($role, Submittal::allowedDocumentRoles(), true)
+            ? $role
+            : Submittal::DOCUMENT_ROLE_REFERENCE;
+    }
+
+    private function normalizeStatus(string $status): string
+    {
+        return in_array($status, Submittal::allowedDocumentStatuses(), true)
+            ? $status
+            : Submittal::DOCUMENT_STATUS_ACTIVE;
+    }
+
+    private function normalizeNullableString(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $normalized = trim($value);
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     /**

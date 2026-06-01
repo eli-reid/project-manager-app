@@ -42,7 +42,17 @@ class Submittal extends Model
 
     public const DOCUMENT_ROLE_REFERENCE = 'reference';
 
+    public const DOCUMENT_ROLE_PRIMARY = 'primary';
+
+    public const DOCUMENT_ROLE_SUPPORTING = 'supporting';
+
+    public const DOCUMENT_ROLE_COMPLIANCE = 'compliance';
+
     public const DOCUMENT_STATUS_ACTIVE = 'active';
+
+    public const DOCUMENT_STATUS_DRAFT = 'draft';
+
+    public const DOCUMENT_STATUS_SUPERSEDED = 'superseded';
 
     protected $fillable = [
         'project_id',
@@ -110,6 +120,41 @@ class Submittal extends Model
         return $this->belongsToMany(Document::class, 'submittal_documents', 'submittal_id', 'document_id')
             ->withPivot(['document_role', 'document_status', 'revision', 'discipline'])
             ->withTimestamps();
+    }
+
+    public function activeDocuments(): BelongsToMany
+    {
+        return $this->documents()->wherePivot('document_status', self::DOCUMENT_STATUS_ACTIVE);
+    }
+
+    public function documentsByRole(string $documentRole): BelongsToMany
+    {
+        return $this->documents()->wherePivot('document_role', $documentRole);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function allowedDocumentRoles(): array
+    {
+        return [
+            self::DOCUMENT_ROLE_REFERENCE,
+            self::DOCUMENT_ROLE_PRIMARY,
+            self::DOCUMENT_ROLE_SUPPORTING,
+            self::DOCUMENT_ROLE_COMPLIANCE,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function allowedDocumentStatuses(): array
+    {
+        return [
+            self::DOCUMENT_STATUS_ACTIVE,
+            self::DOCUMENT_STATUS_DRAFT,
+            self::DOCUMENT_STATUS_SUPERSEDED,
+        ];
     }
 
     public function isEditable(): bool
