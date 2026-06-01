@@ -1,7 +1,10 @@
 @php
     $projectSubmittalsUrl = route('admin.projects.show', ['project' => $project, 'tab' => 'submittals'], false);
     $submittalCreateUrl = route('admin.projects.show', ['project' => $project, 'tab' => 'submittals', 'submittalMode' => 'create']);
+    $reviewSubmittalId = (string) request()->query('submittalId', '');
     $isCreateMode = request()->query('submittalMode') === 'create';
+    $isReviewMode = request()->query('submittalMode') === 'review' && $reviewSubmittalId !== '';
+    $reviewSubmittal = $isReviewMode ? $submittals->firstWhere('id', $reviewSubmittalId) : null;
 @endphp
 
 <div class="space-y-4">
@@ -16,6 +19,13 @@
 
     @if ($isCreateMode && auth()->user()?->can('create', \App\Domains\Submittals\Models\Submittal::class))
         <livewire:submittals::submittals.form :projectId="$project->id" :returnTo="$projectSubmittalsUrl" :embedded="true" :key="'project-submittal-create-'.$project->id" />
+    @elseif ($isReviewMode && $reviewSubmittal instanceof \App\Domains\Submittals\Models\Submittal && auth()->user()?->can('view', $reviewSubmittal))
+        <livewire:submittals::admin.submittals.show
+            :submittal="$reviewSubmittal"
+            :embedded="true"
+            :returnTo="$projectSubmittalsUrl"
+            :key="'project-submittal-review-'.$project->id.'-'.$reviewSubmittal->id"
+        />
     @else
         <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
             <div class="overflow-x-auto">
@@ -56,7 +66,7 @@
                                 <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $submittal->need_by_date?->format('M j, Y') ?? '—' }}</td>
                                 <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ $submittal->items_count ?? '—' }}</td>
                                 <td class="px-4 py-3 text-right text-sm">
-                                    <a href="{{ route('admin.submittals.show', $submittal) }}" class="font-medium text-zinc-700 hover:underline dark:text-zinc-200">Review</a>
+                                    <a href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'submittals', 'submittalMode' => 'review', 'submittalId' => $submittal->id]) }}" wire:navigate class="font-medium text-zinc-700 hover:underline dark:text-zinc-200">Review</a>
                                 </td>
                             </tr>
                         @empty

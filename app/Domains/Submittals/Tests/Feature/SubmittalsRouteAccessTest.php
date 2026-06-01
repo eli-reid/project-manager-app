@@ -117,6 +117,23 @@ it('builds the new submittal link from the project submittals tab with project c
         ->assertSee('/admin/projects/'.$project->id.'?tab=submittals&amp;submittalMode=create', escape: false);
 });
 
+it('builds review links from the project submittals tab with project context', function (): void {
+    $user = userWithSubmittalPermissions(['projects.view', 'submittals.view-any']);
+    $project = Project::factory()->create();
+    $submittal = Submittal::factory()->create([
+        'project_id' => $project->id,
+    ]);
+
+    actingAs($user);
+
+    get(route('admin.projects.show', ['project' => $project, 'tab' => 'submittals']))
+        ->assertSuccessful()
+        ->assertSee(
+            '/admin/projects/'.$project->id.'?tab=submittals&amp;submittalMode=review&amp;submittalId='.$submittal->id,
+            escape: false
+        );
+});
+
 it('allows create-mode project submittals URL for users with create permission', function (): void {
     $user = userWithSubmittalPermissions(['projects.view', 'submittals.create']);
     $project = Project::factory()->create();
