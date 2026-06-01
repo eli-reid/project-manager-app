@@ -4,6 +4,7 @@ use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 it('stores default change order document metadata on pivot sync', function (): void {
     $project = Project::factory()->create();
@@ -75,4 +76,8 @@ it('exposes allowed change order document roles and statuses', function (): void
 
     expect(ChangeOrder::allowedDocumentStatuses())
         ->toContain(ChangeOrder::DOCUMENT_STATUS_ACTIVE, ChangeOrder::DOCUMENT_STATUS_SUPERSEDED);
+});
+
+it('creates the change order documents metadata index with a short explicit name', function (): void {
+    expect(Schema::hasIndex('change_order_documents', 'cod_coid_role_status_idx'))->toBeTrue();
 });

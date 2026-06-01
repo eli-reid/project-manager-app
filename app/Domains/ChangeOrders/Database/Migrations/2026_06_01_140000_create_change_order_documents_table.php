@@ -9,6 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('change_order_documents')) {
+            if (! Schema::hasIndex('change_order_documents', 'cod_coid_role_status_idx')) {
+                Schema::table('change_order_documents', function (Blueprint $table): void {
+                    $table->index(['change_order_id', 'document_role', 'document_status'], 'cod_coid_role_status_idx');
+                });
+            }
+
             return;
         }
 
@@ -22,7 +28,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->primary(['change_order_id', 'document_id']);
-            $table->index(['change_order_id', 'document_role', 'document_status']);
+            $table->index(['change_order_id', 'document_role', 'document_status'], 'cod_coid_role_status_idx');
         });
     }
 
