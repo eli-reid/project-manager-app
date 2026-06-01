@@ -6,6 +6,7 @@ use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\ChangeOrders\Livewire\Admin\Projects\ProjectTab;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
+use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -42,6 +43,21 @@ it('displays change orders in the project tab', function (): void {
         'total_amount' => '5000.00',
     ]);
 
+    $document = Document::factory()->projectOwned()->create([
+        'owner_id' => $this->project->id,
+    ]);
+
+    $changeOrder->documents()->sync([
+        (string) $document->id => [
+            'document_role' => ChangeOrder::DOCUMENT_ROLE_REFERENCE,
+            'document_status' => ChangeOrder::DOCUMENT_STATUS_ACTIVE,
+            'revision' => null,
+            'discipline' => null,
+        ],
+    ]);
+
+    $changeOrder = $changeOrder->fresh()->loadCount('documents');
+
     Livewire::test(ProjectTab::class, [
         'project' => $this->project,
         'changeOrders' => collect([$changeOrder]),
@@ -49,6 +65,8 @@ it('displays change orders in the project tab', function (): void {
     ])
         ->assertSee('Foundation Revision')
         ->assertSee('Submitted')
+        ->assertSee('Docs')
+        ->assertSee('1')
         ->assertSee('5,000.00');
 });
 

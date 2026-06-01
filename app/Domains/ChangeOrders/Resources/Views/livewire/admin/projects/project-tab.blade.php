@@ -24,6 +24,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Docs</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Submitted</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
@@ -50,6 +51,9 @@
                                     {{ ucfirst($changeOrder->status) }}
                                 </span>
                             </td>
+                            <td class="px-4 py-3 text-right text-xs text-zinc-600 dark:text-zinc-300">
+                                {{ (int) ($changeOrder->documents_count ?? 0) }}
+                            </td>
                             <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-200">
                                 ${{ number_format((float) $changeOrder->total_amount, 2) }}
                             </td>
@@ -66,7 +70,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                            <td colspan="6" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
                                 No change orders yet.
                             </td>
                         </tr>

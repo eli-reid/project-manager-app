@@ -372,6 +372,7 @@ class Show extends Component
             if ($this->activeTab === 'change-orders') {
                 $projectChangeOrders = ChangeOrder::query()
                     ->where('project_id', $this->project->id)
+                    ->withCount('documents')
                     ->latest()
                     ->limit(20)
                     ->get();
