@@ -16,17 +16,19 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('layouts.app')]
-#[Title('Submittal Form')]
 class Form extends Component
 {
     use AuthorizesRequests;
     use WithFileUploads;
+
+    private DocumentOrchestratorContract $documentOrchestrator;
+
+    private ProjectDocumentLibraryContract $projectDocumentLibrary;
 
     public ?Submittal $submittal = null;
 
@@ -80,6 +82,12 @@ class Form extends Component
      * @var array<string, array{document_role:string, document_status:string, revision:?string, discipline:?string}>
      */
     public array $documentMetadata = [];
+
+    public function boot(DocumentOrchestratorContract $documentOrchestrator, ProjectDocumentLibraryContract $projectDocumentLibrary): void
+    {
+        $this->documentOrchestrator = $documentOrchestrator;
+        $this->projectDocumentLibrary = $projectDocumentLibrary;
+    }
 
     public function mount(?Submittal $submittal = null, ?string $projectId = null, ?string $returnTo = null, ?bool $embedded = null): void
     {
@@ -331,8 +339,7 @@ class Form extends Component
         if ($this->projectId !== '') {
             $selectedProject = $projects->firstWhere('id', $this->projectId);
 
-            $availableDocuments = app(ProjectDocumentLibraryContract::class)
-                ->listProjectAccessible($this->projectId);
+            $availableDocuments = $this->projectDocumentLibrary->listProjectAccessible($this->projectId);
 
             $canUploadDocument = $selectedProject instanceof Project
                 && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject]);
@@ -360,12 +367,12 @@ class Form extends Component
             'selectedProjectLabel' => $selectedProject instanceof Project
                 ? trim($selectedProject->name.' ('.($selectedProject->project_number ?? 'N/A').')')
                 : '',
-        ]);
+        ])->title('Submittal Form');
     }
 
     private function syncUploadConstraints(): void
     {
-        $rules = app(DocumentOrchestratorContract::class)->validationRules();
+        $rules = $this->documentOrchestrator->validationRules();
 
         $this->uploadMaxKilobytes = max(1, (int) ($rules['max_kilobytes'] ?? 10240));
         $this->uploadAllowedExtensions = collect($rules['allowed_extensions'] ?? [])
@@ -506,7 +513,7 @@ class Form extends Component
      */
     private function syncDocuments(Submittal $submittal, array $selectedDocumentIds): void
     {
-        $allowedDocumentIds = app(ProjectDocumentLibraryContract::class)
+        $allowedDocumentIds = $this->projectDocumentLibrary
             ->allowedDocumentIdsForProject((string) $submittal->project_id, $selectedDocumentIds);
 
         $pivotPayload = collect($allowedDocumentIds)

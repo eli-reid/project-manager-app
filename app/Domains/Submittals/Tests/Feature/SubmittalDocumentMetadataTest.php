@@ -53,7 +53,7 @@ it('stores default submittal document metadata on pivot sync', function (): void
         ->where('document_id', (string) $document->id)
         ->first();
 
-    expect($pivot)->not->toBeNull();
+    expect($pivot)->toBeObject();
     expect($pivot?->document_role)->toBe(Submittal::DOCUMENT_ROLE_REFERENCE);
     expect($pivot?->document_status)->toBe(Submittal::DOCUMENT_STATUS_ACTIVE);
     expect($pivot?->revision)->toBeNull();
@@ -106,7 +106,7 @@ it('stores custom submittal document metadata from form input', function (): voi
         ->where('document_id', (string) $document->id)
         ->first();
 
-    expect($pivot)->not->toBeNull();
+    expect($pivot)->toBeObject();
     expect($pivot?->document_role)->toBe(Submittal::DOCUMENT_ROLE_PRIMARY);
     expect($pivot?->document_status)->toBe(Submittal::DOCUMENT_STATUS_DRAFT);
     expect($pivot?->revision)->toBe('Rev B');

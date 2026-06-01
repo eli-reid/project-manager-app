@@ -72,6 +72,27 @@
         </div>
     </div>
 
+    @if ($rfi->documents->isNotEmpty())
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Attached Documents</h2>
+
+            <ul class="space-y-2">
+                @foreach ($rfi->documents as $document)
+                    <li class="rounded-md border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $document->title }}</span>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400">
+                                {{ ucfirst((string) ($document->pivot?->document_role ?? \App\Domains\RFIs\Models\RFI::DOCUMENT_ROLE_REFERENCE)) }}
+                                &middot;
+                                {{ ucfirst((string) ($document->pivot?->document_status ?? \App\Domains\RFIs\Models\RFI::DOCUMENT_STATUS_ACTIVE)) }}
+                            </span>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- Existing Answer --}}
     @if ($rfi->answer)
         <div class="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">

@@ -28,7 +28,7 @@ class Show extends Component
     public function mount(RFI $rfi): void
     {
         $this->authorize('view', $rfi);
-        $this->rfi = $rfi->load(['project:id,name,project_number', 'requestedBy', 'answeredBy']);
+        $this->rfi = $rfi->load(['project:id,name,project_number', 'requestedBy', 'answeredBy', 'documents']);
     }
 
     public function answer(RFILifecycleService $service): void

@@ -60,6 +60,69 @@
                     @error('dueDate') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
+                <div class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+                    <h4 class="text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">Attach Project Documents</h4>
+
+                    @if ($availableDocuments->isEmpty())
+                        <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">No project documents available to attach.</p>
+                    @else
+                        <div class="mt-3 space-y-2">
+                            @foreach ($availableDocuments as $document)
+                                @php
+                                    $documentId = (string) $document->id;
+                                @endphp
+
+                                <div class="rounded-md border border-zinc-200 p-2 dark:border-zinc-700">
+                                    <label class="flex items-start gap-2">
+                                        <input
+                                            type="checkbox"
+                                            value="{{ $documentId }}"
+                                            wire:model.live="documentIds"
+                                            class="mt-0.5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                                        >
+                                        <span class="text-sm text-zinc-800 dark:text-zinc-200">{{ $document->title }}</span>
+                                    </label>
+
+                                    @if (in_array($documentId, $documentIds, true))
+                                        <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                                            <div>
+                                                <label class="block text-[11px] font-medium text-zinc-600 dark:text-zinc-300">Role</label>
+                                                <select wire:model.live="documentMetadata.{{ $documentId }}.document_role" class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                                                    @foreach (\App\Domains\RFIs\Models\RFI::allowedDocumentRoles() as $role)
+                                                        <option value="{{ $role }}">{{ ucfirst($role) }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-medium text-zinc-600 dark:text-zinc-300">Status</label>
+                                                <select wire:model.live="documentMetadata.{{ $documentId }}.document_status" class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                                                    @foreach (\App\Domains\RFIs\Models\RFI::allowedDocumentStatuses() as $status)
+                                                        <option value="{{ $status }}">{{ ucfirst($status) }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-medium text-zinc-600 dark:text-zinc-300">Revision</label>
+                                                <input type="text" wire:model.live="documentMetadata.{{ $documentId }}.revision" maxlength="40" class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100" placeholder="Rev A">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-medium text-zinc-600 dark:text-zinc-300">Discipline</label>
+                                                <input type="text" wire:model.live="documentMetadata.{{ $documentId }}.discipline" maxlength="60" class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100" placeholder="Structural">
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+
+                        @error('documentIds.*') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('documentMetadata.*.document_role') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('documentMetadata.*.document_status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('documentMetadata.*.revision') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('documentMetadata.*.discipline') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    @endif
+                </div>
+
                 <div class="flex gap-2">
                     <button
                         wire:click="submitRfi"
