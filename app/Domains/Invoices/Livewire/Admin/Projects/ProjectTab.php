@@ -14,11 +14,14 @@ class ProjectTab extends Component
 
     public int $invoiceCount = 0;
 
+    public string $projectInvoicesUrl = '';
+
     public function mount(Project $project, Collection $invoices, int $invoiceCount): void
     {
         $this->project = $project;
         $this->invoices = $invoices;
         $this->invoiceCount = $invoiceCount;
+        $this->projectInvoicesUrl = route('admin.projects.show', ['project' => $project, 'tab' => 'invoices']);
     }
 
     public function render()

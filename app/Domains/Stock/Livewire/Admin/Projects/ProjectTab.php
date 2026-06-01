@@ -14,11 +14,14 @@ class ProjectTab extends Component
 
     public int $stockOrderCount = 0;
 
+    public string $projectStockUrl = '';
+
     public function mount(Project $project, Collection $stockOrders, int $stockOrderCount): void
     {
         $this->project = $project;
         $this->stockOrders = $stockOrders;
         $this->stockOrderCount = $stockOrderCount;
+        $this->projectStockUrl = route('admin.projects.show', ['project' => $project, 'tab' => 'stock']);
     }
 
     public function render()

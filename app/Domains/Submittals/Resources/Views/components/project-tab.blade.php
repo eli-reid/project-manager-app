@@ -1,12 +1,3 @@
-@php
-    $projectSubmittalsUrl = route('admin.projects.show', ['project' => $project, 'tab' => 'submittals'], false);
-    $submittalCreateUrl = route('admin.projects.show', ['project' => $project, 'tab' => 'submittals', 'submittalMode' => 'create']);
-    $reviewSubmittalId = (string) request()->query('submittalId', '');
-    $isCreateMode = request()->query('submittalMode') === 'create';
-    $isReviewMode = request()->query('submittalMode') === 'review' && $reviewSubmittalId !== '';
-    $reviewSubmittal = $isReviewMode ? $submittals->firstWhere('id', $reviewSubmittalId) : null;
-@endphp
-
 <div class="space-y-4">
     <div class="flex items-center justify-between gap-3">
         <p class="text-sm text-zinc-500 dark:text-zinc-400">

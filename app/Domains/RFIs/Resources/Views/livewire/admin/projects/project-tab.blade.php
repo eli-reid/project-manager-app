@@ -179,7 +179,7 @@
                             <td class="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400">{{ $rfi->due_date?->format('M j, Y') ?? '—' }}</td>
                             <td class="px-4 py-3 text-right">
                                 @can('view', $rfi)
-                                    <a href="{{ route('admin.rfis.show', $rfi) }}" class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                    <a href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'rfis', 'rfiMode' => 'review', 'rfiId' => $rfi->id]) }}" wire:navigate class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                                         View
                                     </a>
                                 @endcan

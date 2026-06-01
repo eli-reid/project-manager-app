@@ -4,7 +4,7 @@
             {{ $stockOrderCount }} stock {{ Str::plural('order', $stockOrderCount) }} linked to this project.
         </p>
         @can('viewAny', \App\Domains\Stock\Models\StockOrder::class)
-            <a href="{{ route('admin.stock-orders.index', ['project' => $project->id]) }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+            <a href="{{ $projectStockUrl }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                 View in Queue
             </a>
         @endcan
@@ -52,7 +52,7 @@
                             <td class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">{{ $order->po_number ?? '—' }}</td>
                             <td class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">{{ $order->created_at->format('M j, Y') }}</td>
                             <td class="px-4 py-3 text-right">
-                                <a href="{{ route('admin.stock-orders.show', $order) }}" wire:navigate class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">View</a>
+                                <a href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'stock', 'stockOrderId' => $order->id]) }}" wire:navigate class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">View</a>
                             </td>
                         </tr>
                     @empty

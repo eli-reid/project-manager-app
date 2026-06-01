@@ -9,7 +9,8 @@
 
         @can('create', App\Domains\ChangeOrders\Models\ChangeOrder::class)
             <a
-                href="{{ route('admin.change-orders.create', ['project_id' => $project->id]) }}"
+                href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'change-orders', 'changeOrderMode' => 'create']) }}"
+                wire:navigate
                 class="rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
             >
                 + New Change Order
@@ -62,7 +63,7 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @can('view', $changeOrder)
-                                    <a href="{{ route('admin.change-orders.show', $changeOrder) }}" class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                    <a href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'change-orders', 'changeOrderMode' => 'review', 'changeOrderId' => $changeOrder->id]) }}" wire:navigate class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                                         Review
                                     </a>
                                 @endcan

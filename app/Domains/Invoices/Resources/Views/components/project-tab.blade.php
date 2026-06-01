@@ -9,12 +9,12 @@
 
         <div class="flex items-center gap-2">
             @can('create', \App\Domains\Invoices\Models\Invoice::class)
-                <a href="{{ route('admin.invoices.create') }}" wire:navigate class="inline-flex items-center rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                <a href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'invoices', 'invoiceMode' => 'create']) }}" wire:navigate class="inline-flex items-center rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
                     New Invoice
                 </a>
             @endcan
 
-            <a href="{{ route('admin.invoices.index', ['project' => $project->id]) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+            <a href="{{ $projectInvoicesUrl }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                 View All Invoices
             </a>
         </div>
@@ -46,7 +46,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-right">
-                                <a href="{{ route('admin.invoices.show', $invoice) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                <a href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'invoices', 'invoiceId' => $invoice->id]) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                                     View
                                 </a>
                             </td>

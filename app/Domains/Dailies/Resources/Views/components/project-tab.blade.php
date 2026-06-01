@@ -8,7 +8,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('admin.dailies.index') }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+            <a href="{{ $projectDailiesUrl }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                 View All Dailies
             </a>
         </div>
@@ -34,7 +34,7 @@
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ str($dailyReport->status)->headline() }}</td>
                             <td class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ number_format((float) ($dailyReport->total_hours ?? 0), 2) }}</td>
                             <td class="px-4 py-3 text-right">
-                                <a href="{{ route('admin.dailies.show', $dailyReport) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                <a href="{{ route('admin.projects.show', ['project' => $project, 'tab' => 'dailies', 'dailyId' => $dailyReport->id]) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                                     View
                                 </a>
                             </td>
