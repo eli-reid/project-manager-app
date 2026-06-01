@@ -24,15 +24,21 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Project Details')]
 class Show extends Component
 {
     use AuthorizesRequests;
+
+    private ProjectAccessService $projectAccessService;
+
+    private ProjectDocumentLibraryContract $projectDocumentLibrary;
+
+    private ProjectTimecardMetricsService $projectTimecardMetricsService;
+
+    private ProjectFinancialsService $projectFinancialsService;
 
     public Project $project;
 
@@ -49,6 +55,18 @@ class Show extends Component
     public string $activeTab = 'overview';
 
     public int $taskWidgetVersion = 0;
+
+    public function boot(
+        ProjectAccessService $projectAccessService,
+        ProjectDocumentLibraryContract $projectDocumentLibrary,
+        ProjectTimecardMetricsService $projectTimecardMetricsService,
+        ProjectFinancialsService $projectFinancialsService,
+    ): void {
+        $this->projectAccessService = $projectAccessService;
+        $this->projectDocumentLibrary = $projectDocumentLibrary;
+        $this->projectTimecardMetricsService = $projectTimecardMetricsService;
+        $this->projectFinancialsService = $projectFinancialsService;
+    }
 
     public function mount(Project $project): void
     {
@@ -151,9 +169,7 @@ class Show extends Component
 
         $userToGrant = User::query()->findOrFail($validated['selectedAccessUserId']);
 
-        $projectAccessService = app(ProjectAccessService::class);
-
-        $projectAccessService->grant(
+        $this->projectAccessService->grant(
             $this->project,
             $userToGrant,
             $actor,
@@ -169,14 +185,12 @@ class Show extends Component
         $actor = Auth::user();
         abort_unless($actor instanceof User && $actor->hasPermission('project-access.revoke'), 403);
 
-        $projectAccessService = app(ProjectAccessService::class);
-
         $userToRevoke = User::query()->find($userId);
         if (! $userToRevoke instanceof User) {
             return;
         }
 
-        $projectAccessService->revoke($this->project, $userToRevoke, $actor);
+        $this->projectAccessService->revoke($this->project, $userToRevoke, $actor);
     }
 
     public function grantProjectRoleAccess(): void
@@ -192,7 +206,7 @@ class Show extends Component
 
         $roleToGrant = Role::query()->findOrFail($validated['selectedAccessRoleId']);
 
-        app(ProjectAccessService::class)->grantRole(
+        $this->projectAccessService->grantRole(
             $this->project,
             $roleToGrant,
             $actor,
@@ -213,7 +227,7 @@ class Show extends Component
             return;
         }
 
-        app(ProjectAccessService::class)->revokeRole($this->project, $roleToRevoke, $actor);
+        $this->projectAccessService->revokeRole($this->project, $roleToRevoke, $actor);
     }
 
     private function canViewProjectAccessTab(): bool
@@ -267,7 +281,7 @@ class Show extends Component
                 ->latest()
                 ->get();
 
-            $availableAccessPermissionOptions = app(ProjectAccessService::class)->availablePermissionOptions();
+            $availableAccessPermissionOptions = $this->projectAccessService->availablePermissionOptions();
 
             if ($user->hasPermission('project-access.grant')) {
                 $assignedUserIds = $accessAssignments
@@ -397,7 +411,7 @@ class Show extends Component
         }
 
         if (in_array('documents', $tabs, true)) {
-            $documentCount = app(ProjectDocumentLibraryContract::class)
+            $documentCount = $this->projectDocumentLibrary
                 ->countProjectAccessible((string) $this->project->id);
         }
 
@@ -409,8 +423,7 @@ class Show extends Component
         $recentTimeEntries = collect();
         $hoursByUser = collect();
         if (in_array('time', $tabs, true)) {
-            $metricsService = app(ProjectTimecardMetricsService::class);
-            $summary = $metricsService->summaryForProject((string) $this->project->id);
+            $summary = $this->projectTimecardMetricsService->summaryForProject((string) $this->project->id);
 
             $timeEntryCount = $summary['time_entry_count'];
             $totalHours = $summary['total_hours'];
@@ -419,7 +432,7 @@ class Show extends Component
             $doubleTimeHours = $summary['double_time_hours'];
 
             if ($this->activeTab === 'time') {
-                $detail = $metricsService->detailForProject((string) $this->project->id);
+                $detail = $this->projectTimecardMetricsService->detailForProject((string) $this->project->id);
                 $recentTimeEntries = $detail['recent_time_entries'];
                 $hoursByUser = $detail['hours_by_user'];
             }
@@ -427,7 +440,7 @@ class Show extends Component
 
         $financialSummary = null;
         if (in_array('financials', $tabs, true) && $this->activeTab === 'financials') {
-            $financialSummary = app(ProjectFinancialsService::class)->summary($this->project);
+            $financialSummary = $this->projectFinancialsService->summary($this->project);
         }
 
         return view('projects::livewire.admin.projects.show', [
@@ -461,6 +474,6 @@ class Show extends Component
             'hoursByUser' => $hoursByUser,
             'financialSummary' => $financialSummary,
             'projectAddress' => $this->project->loadMissing('address')->address,
-        ]);
+        ])->title('Project Details');
     }
 }
