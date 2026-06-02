@@ -9,7 +9,7 @@ import './pwa';
  * redirecting via window.location ensures a fresh CSRF token is always rendered.
  */
 document.addEventListener('livewire:navigate', (event) => {
-    const authPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/email/verify', '/confirm-password', '/two-factor-challenge'];
+    const authPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/email/verify', '/confirm-password', '/two-factor-challenge'];
 
     try {
         const url = new URL(event.detail.url, window.location.origin);
@@ -63,4 +63,19 @@ window.addEventListener('unhandledrejection', (event) => {
 
 window.addEventListener('pageshow', () => {
     sessionStorage.removeItem('livewire-component-recovery');
+});
+
+// Mobile browsers can restore auth pages from back-forward cache with a stale
+// CSRF token. Force a fresh reload when that happens.
+window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) {
+        return;
+    }
+
+    const authPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/email/verify', '/confirm-password', '/two-factor-challenge'];
+    const path = window.location.pathname;
+
+    if (authPaths.some((authPath) => path === authPath || path.startsWith(authPath + '/'))) {
+        window.location.reload();
+    }
 });

@@ -13,7 +13,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('stock::livewire.layouts.stock-invoices-admin')]
+#[Layout('layouts.app')]
 #[Title('Review RFI')]
 class Show extends Component
 {
