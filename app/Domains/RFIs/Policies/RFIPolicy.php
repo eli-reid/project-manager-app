@@ -62,6 +62,15 @@ class RFIPolicy
             return false;
         }
 
-        return $user->hasPermission('rfis.update');
+        return $user->hasPermission('rfis.cancel');
+    }
+
+    public function email(User $user, RFI $rfi): bool
+    {
+        if (! $user->hasPermission('rfis.email')) {
+            return false;
+        }
+
+        return $this->view($user, $rfi);
     }
 }

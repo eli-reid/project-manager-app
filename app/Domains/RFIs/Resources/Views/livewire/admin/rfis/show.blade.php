@@ -32,6 +32,15 @@
                 </button>
             @endcan
 
+            @can('email', $rfi)
+                <button
+                    wire:click="toggleEmailForm"
+                    class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                    {{ $showEmailForm ? 'Hide Email' : 'Email Formal RFI' }}
+                </button>
+            @endcan
+
             @can('close', $rfi)
                 <button
                     wire:click="close"
@@ -92,6 +101,85 @@
             </ul>
         </div>
     @endif
+
+    @can('email', $rfi)
+        @if ($showEmailForm)
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <h2 class="mb-4 text-sm font-semibold text-zinc-800 dark:text-zinc-100">Email Formal RFI</h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="emailRecipients" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Recipients <span class="text-red-500">*</span></label>
+                        <textarea
+                            id="emailRecipients"
+                            wire:model="emailRecipients"
+                            rows="2"
+                            class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                            placeholder="client@example.com, architect@example.com"
+                        ></textarea>
+                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Use commas, semicolons, or new lines to add multiple recipients.</p>
+                        @error('emailRecipients') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="emailSubject" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Subject <span class="text-red-500">*</span></label>
+                        <input
+                            id="emailSubject"
+                            type="text"
+                            wire:model="emailSubject"
+                            class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                        />
+                        @error('emailSubject') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="emailMessage" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Cover Message (optional)</label>
+                        <textarea
+                            id="emailMessage"
+                            wire:model="emailMessage"
+                            rows="3"
+                            class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                            placeholder="Please review and respond by the due date."
+                        ></textarea>
+                        @error('emailMessage') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button
+                            wire:click="sendEmail"
+                            wire:loading.attr="disabled"
+                            class="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                        >
+                            Send Formal RFI Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endcan
+
+    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Email Tracking</h2>
+
+        @if ($rfi->emailDeliveries->isEmpty())
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">This RFI has not been emailed yet.</p>
+        @else
+            <ul class="space-y-2">
+                @foreach ($rfi->emailDeliveries->sortByDesc('sent_at') as $delivery)
+                    <li class="rounded-md border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
+                        <p class="font-medium text-zinc-800 dark:text-zinc-100">{{ $delivery->subject }}</p>
+                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                            Sent {{ $delivery->sent_at?->format('M j, Y g:i A') ?? 'N/A' }}
+                            by {{ $delivery->sentBy?->full_name ?? 'Unknown' }}
+                        </p>
+                        <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-300">
+                            To: {{ implode(', ', $delivery->recipients ?? []) }}
+                        </p>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
 
     {{-- Existing Answer --}}
     @if ($rfi->answer)

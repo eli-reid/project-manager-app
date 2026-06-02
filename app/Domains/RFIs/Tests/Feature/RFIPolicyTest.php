@@ -90,15 +90,25 @@ it('denies close on non-answered RFI', function (): void {
 });
 
 it('denies cancel on closed RFI', function (): void {
-    $user = rfiPolicyUser(['rfis.update']);
+    $user = rfiPolicyUser(['rfis.cancel']);
     $rfi = RFI::factory()->closed()->create(['project_id' => $this->project->id]);
     expect($this->policy->cancel($user, $rfi))->toBeFalse();
 });
 
-it('allows cancel on submitted RFI with rfis.update permission', function (): void {
-    $user = rfiPolicyUser(['rfis.update']);
+it('allows cancel on submitted RFI with rfis.cancel permission', function (): void {
+    $user = rfiPolicyUser(['rfis.cancel']);
     $rfi = RFI::factory()->submitted()->create(['project_id' => $this->project->id]);
     expect($this->policy->cancel($user, $rfi))->toBeTrue();
+});
+
+it('allows email for owner with rfis.email permission', function (): void {
+    $user = rfiPolicyUser(['rfis.view', 'rfis.email']);
+    $rfi = RFI::factory()->create([
+        'project_id' => $this->project->id,
+        'requested_by_id' => $user->id,
+    ]);
+
+    expect($this->policy->email($user, $rfi))->toBeTrue();
 });
 
 /**

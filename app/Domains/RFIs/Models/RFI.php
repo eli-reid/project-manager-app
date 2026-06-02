@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -99,6 +100,11 @@ class RFI extends Model
     public function documentsByRole(string $documentRole): BelongsToMany
     {
         return $this->documents()->wherePivot('document_role', $documentRole);
+    }
+
+    public function emailDeliveries(): HasMany
+    {
+        return $this->hasMany(RFIEmailDelivery::class, 'rfi_id');
     }
 
     /**

@@ -87,6 +87,8 @@ class ProjectTab extends Component
             'due_date' => $this->dueDate,
         ]);
 
+        $service->submit($rfi);
+
         $this->syncDocuments($rfi, $this->documentIds);
 
         $this->reset(['subject', 'body', 'dueDate', 'documentIds', 'documentMetadata']);

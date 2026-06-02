@@ -40,6 +40,18 @@ class RFIPermissions
         'description' => 'Close RFIs',
     ];
 
+    public const CANCEL = [
+        'resource' => 'rfis',
+        'action' => 'cancel',
+        'description' => 'Cancel RFIs',
+    ];
+
+    public const EMAIL = [
+        'resource' => 'rfis',
+        'action' => 'email',
+        'description' => 'Email formal RFIs',
+    ];
+
     public static function all(): array
     {
         return [
@@ -49,6 +61,8 @@ class RFIPermissions
             self::UPDATE,
             self::ANSWER,
             self::CLOSE,
+            self::CANCEL,
+            self::EMAIL,
         ];
     }
 }

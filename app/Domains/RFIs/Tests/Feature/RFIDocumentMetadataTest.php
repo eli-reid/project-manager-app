@@ -47,6 +47,7 @@ it('stores default document metadata when creating an RFI from project tab', fun
         ->where('document_id', (string) $document->id)
         ->first();
 
+    expect($rfi->status)->toBe(RFI::STATUS_SUBMITTED);
     expect($pivot)->toBeObject();
     expect($pivot?->document_role)->toBe(RFI::DOCUMENT_ROLE_REFERENCE);
     expect($pivot?->document_status)->toBe(RFI::DOCUMENT_STATUS_ACTIVE);
@@ -94,6 +95,7 @@ it('stores custom document metadata when creating an RFI from project tab', func
         ->where('document_id', (string) $document->id)
         ->first();
 
+    expect($rfi->status)->toBe(RFI::STATUS_SUBMITTED);
     expect($pivot)->toBeObject();
     expect($pivot?->document_role)->toBe(RFI::DOCUMENT_ROLE_RESPONSE);
     expect($pivot?->document_status)->toBe(RFI::DOCUMENT_STATUS_SUPERSEDED);

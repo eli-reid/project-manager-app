@@ -133,6 +133,8 @@ class Show extends Component
 
         if ($user?->hasPermission('rfis.view-any')) {
             $tabs[] = 'rfis';
+        } elseif ($user?->hasPermission('rfis.view')) {
+            $tabs[] = 'rfis';
         } elseif ($user?->hasPermission('rfis.create')) {
             $tabs[] = 'rfis';
         }

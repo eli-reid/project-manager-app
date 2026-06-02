@@ -7,8 +7,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('rfis')
     ->name('rfis.')
-    ->middleware('can:viewAny,'.RFI::class)
     ->group(function (): void {
-        Route::livewire('/', RFIsIndex::class)->name('index');
-        Route::livewire('/{rfi}', RFIsShow::class)->name('show');
+        Route::livewire('/', RFIsIndex::class)
+            ->middleware('can:viewAny,'.RFI::class)
+            ->name('index');
+
+        Route::livewire('/{rfi}', RFIsShow::class)
+            ->middleware('can:view,rfi')
+            ->name('show');
     });
