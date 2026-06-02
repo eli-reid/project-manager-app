@@ -13,7 +13,10 @@ class FormalRfiMailable extends Mailable
 
     public function __construct(
         public RFI $rfi,
-        public string $formalBody,
+        /**
+         * @var array<int, string>
+         */
+        public array $recipients,
         public ?string $coverMessage = null,
         public ?string $customSubject = null,
     ) {}
@@ -24,7 +27,7 @@ class FormalRfiMailable extends Mailable
             ->view('rfis::emails.formal-rfi')
             ->with([
                 'rfi' => $this->rfi,
-                'formalBody' => $this->formalBody,
+                'recipients' => $this->recipients,
                 'coverMessage' => $this->coverMessage,
             ]);
     }
