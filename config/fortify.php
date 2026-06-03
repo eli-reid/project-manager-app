@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\Middleware\PreventAuthPageCaching;
 use Laravel\Fortify\Features;
 
 return [
@@ -101,7 +102,7 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    'middleware' => ['web', PreventAuthPageCaching::class],
 
     /*
     |--------------------------------------------------------------------------

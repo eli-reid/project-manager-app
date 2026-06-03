@@ -10,7 +10,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('stock::livewire.layouts.stock-invoices-admin')]
+#[Layout('layouts.app')]
 #[Title('RFIs')]
 class Index extends Component
 {
