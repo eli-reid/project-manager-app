@@ -5,6 +5,7 @@ namespace App\Domains\Documents\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\Identity\Models\User;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
@@ -16,6 +17,8 @@ use App\Domains\Documents\Policies\DocumentPolicy;
 use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Documents\Services\DocumentShareService;
 use App\Domains\Documents\Services\ProjectDocumentLibrary;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -33,7 +36,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->app->singleton(ProjectDocumentLibraryContract::class, ProjectDocumentLibrary::class);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileExactRouteMapping('documents.index', 'documents.mobile.global');
         $this->registerMobileExactRouteMapping('documents.global', 'documents.mobile.global');
@@ -41,6 +44,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->registerSettings($settingsRegistry);
         $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -130,6 +134,18 @@ class DocumentsServiceProvider extends ServiceProvider
             'required',
             'file',
             'max:'.$maxKilobytes,
+        ]);
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            [
+                'key' => 'documents',
+                'label' => 'Library',
+                'sort' => 90,
+                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Document::class),
+            ],
         ]);
     }
 }

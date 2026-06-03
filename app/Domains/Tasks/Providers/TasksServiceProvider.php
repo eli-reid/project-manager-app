@@ -3,8 +3,11 @@
 namespace App\Domains\Tasks\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Identity\Models\User;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
@@ -29,12 +32,13 @@ class TasksServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -114,5 +118,18 @@ class TasksServiceProvider extends ServiceProvider
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('tasks', __DIR__.'/../config/settings.php');
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            [
+                'key' => 'tasks',
+                'label' => 'Tasks',
+                'sort' => 30,
+                'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('tasks.view')
+                    || $user->hasPermission('task-categories.view'),
+            ],
+        ]);
     }
 }

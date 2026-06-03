@@ -5,20 +5,18 @@ namespace App\Domains\Projects\Livewire\Admin\Projects;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
-use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
-use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectRoleAccess;
 use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Services\ProjectAccessService;
 use App\Domains\Projects\Services\ProjectFinancialsService;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\RFIs\Models\RFI;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Tasks\Models\Task;
-use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Services\ProjectTimecardMetricsService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +37,8 @@ class Show extends Component
     private ProjectTimecardMetricsService $projectTimecardMetricsService;
 
     private ProjectFinancialsService $projectFinancialsService;
+
+    private ProjectTabRegistry $projectTabRegistry;
 
     public Project $project;
 
@@ -61,11 +61,13 @@ class Show extends Component
         ProjectDocumentLibraryContract $projectDocumentLibrary,
         ProjectTimecardMetricsService $projectTimecardMetricsService,
         ProjectFinancialsService $projectFinancialsService,
+        ProjectTabRegistry $projectTabRegistry,
     ): void {
         $this->projectAccessService = $projectAccessService;
         $this->projectDocumentLibrary = $projectDocumentLibrary;
         $this->projectTimecardMetricsService = $projectTimecardMetricsService;
         $this->projectFinancialsService = $projectFinancialsService;
+        $this->projectTabRegistry = $projectTabRegistry;
     }
 
     public function mount(Project $project): void
@@ -102,60 +104,9 @@ class Show extends Component
      */
     protected function tabs(): array
     {
-        $tabs = ['overview'];
         $user = Auth::user();
 
-        if ($user?->can('viewAll', DailyReport::class)) {
-            $tabs[] = 'dailies';
-        }
-
-        if ($user?->hasPermission('tasks.view') || $user?->hasPermission('task-categories.view')) {
-            $tabs[] = 'tasks';
-        }
-
-        if ($user?->can('viewAny', Invoice::class)) {
-            $tabs[] = 'invoices';
-        }
-
-        if ($user?->can('viewAny', StockOrder::class)) {
-            $tabs[] = 'stock';
-        }
-
-        if ($user?->can('viewAny', Submittal::class)) {
-            $tabs[] = 'submittals';
-        } elseif ($user?->can('create', Submittal::class)) {
-            $tabs[] = 'submittals';
-        }
-
-        if ($user?->can('viewAny', ChangeOrder::class)) {
-            $tabs[] = 'change-orders';
-        }
-
-        if ($user?->hasPermission('rfis.view-any')) {
-            $tabs[] = 'rfis';
-        } elseif ($user?->hasPermission('rfis.view')) {
-            $tabs[] = 'rfis';
-        } elseif ($user?->hasPermission('rfis.create')) {
-            $tabs[] = 'rfis';
-        }
-
-        if ($user?->can('viewAny', Document::class)) {
-            $tabs[] = 'documents';
-        }
-
-        if ($this->canViewProjectAccessTab()) {
-            $tabs[] = 'access';
-        }
-
-        if ($user?->can('viewAny', Timecard::class)) {
-            $tabs[] = 'time';
-        }
-
-        if ($user?->can('viewFinancials', $this->project)) {
-            $tabs[] = 'financials';
-        }
-
-        return $tabs;
+        return $this->projectTabRegistry->visibleTabs($this->project, $user instanceof User ? $user : null);
     }
 
     public function grantProjectAccess(): void
@@ -230,16 +181,6 @@ class Show extends Component
         }
 
         $this->projectAccessService->revokeRole($this->project, $roleToRevoke, $actor);
-    }
-
-    private function canViewProjectAccessTab(): bool
-    {
-        $user = Auth::user();
-
-        return $user?->hasPermission('project-access.view')
-            || $user?->hasPermission('project-access.grant')
-            || $user?->hasPermission('project-access.revoke')
-            || $user?->hasPermission('project-access.manage');
     }
 
     public function render()
@@ -358,7 +299,7 @@ class Show extends Component
         if (in_array('submittals', $tabs, true)) {
             $canViewAnySubmittals = $user->can('viewAny', Submittal::class);
             $isSubmittalCreateMode = $this->activeTab === 'submittals'
-                && request()->query('submittalMode') === 'create';
+                && $this->projectTabRegistry->isCreateMode('submittals', request());
 
             if ($canViewAnySubmittals) {
                 $submittalCount = Submittal::query()
@@ -396,7 +337,8 @@ class Show extends Component
         }
 
         if (in_array('rfis', $tabs, true)) {
-            $isRfiCreateMode = $this->activeTab === 'rfis' && request()->query('rfiMode') === 'create';
+            $isRfiCreateMode = $this->activeTab === 'rfis'
+                && $this->projectTabRegistry->isCreateMode('rfis', request());
 
             $rfiCount = RFI::query()
                 ->where('project_id', $this->project->id)

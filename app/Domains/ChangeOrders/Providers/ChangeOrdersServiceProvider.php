@@ -3,9 +3,12 @@
 namespace App\Domains\ChangeOrders\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Identity\Models\User;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\ChangeOrders\Permissions\ChangeOrderPermissions;
 use App\Domains\ChangeOrders\Policies\ChangeOrderPolicy;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -21,11 +24,12 @@ class ChangeOrdersServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('change-orders.', 'change-orders.mobile.');
 
         $this->registerPermissions($permissionRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -70,5 +74,18 @@ class ChangeOrdersServiceProvider extends ServiceProvider
             ->name('api.')
             ->middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/api.php');
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            [
+                'key' => 'change-orders',
+                'label' => 'Change Orders',
+                'sort' => 70,
+                'mode_param' => 'changeOrderMode',
+                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', ChangeOrder::class),
+            ],
+        ]);
     }
 }

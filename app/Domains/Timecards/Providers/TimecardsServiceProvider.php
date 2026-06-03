@@ -5,8 +5,11 @@ namespace App\Domains\Timecards\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\Identity\Models\User;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
@@ -33,13 +36,14 @@ class TimecardsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('timecards.', 'timecards.mobile.');
 
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerSchedulerTasks($taskTypeRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -134,6 +138,18 @@ class TimecardsServiceProvider extends ServiceProvider
                     'draft',
                     'rejected',
                 ],
+            ],
+        ]);
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            [
+                'key' => 'time',
+                'label' => 'Time',
+                'sort' => 110,
+                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Timecard::class),
             ],
         ]);
     }

@@ -3,6 +3,9 @@
 namespace App\Domains\Submittals\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Identity\Models\User;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Permissions\SubmittalPermissions;
 use App\Domains\Submittals\Policies\SubmittalPolicy;
@@ -21,11 +24,12 @@ class SubmittalsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('submittals.', 'submittals.mobile.');
 
         $this->registerPermissions($permissionRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -70,5 +74,19 @@ class SubmittalsServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(SubmittalPermissions::all());
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            [
+                'key' => 'submittals',
+                'label' => 'Submittals',
+                'sort' => 60,
+                'mode_param' => 'submittalMode',
+                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Submittal::class)
+                    || $user->can('create', Submittal::class),
+            ],
+        ]);
     }
 }
