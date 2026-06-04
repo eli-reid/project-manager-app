@@ -183,12 +183,15 @@
     @endif
 
     @if ($activeTab === 'rfis' && in_array('rfis', $tabs, true))
-        <livewire:rfis::admin.rfis.index
-            :project="$project"
-            :embedded="true"
-            :is-create-mode="$isRfiCreateMode"
-            :key="'project-rfis-tab-'.$project->id.($isRfiCreateMode ? '-create' : '')"
-        />
+        @livewire(
+            \App\Domains\RFIs\Livewire\Admin\RFIs\Index::class,
+            [
+                'project' => $project,
+                'embedded' => true,
+                'isCreateMode' => $isRfiCreateMode,
+            ],
+            key('project-rfis-tab-'.$project->id.($isRfiCreateMode ? '-create' : ''))
+        )
     @endif
 
     @if ($activeTab === 'documents' && in_array('documents', $tabs, true))
