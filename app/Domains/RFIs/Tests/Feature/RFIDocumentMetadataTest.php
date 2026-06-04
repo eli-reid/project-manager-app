@@ -6,7 +6,7 @@ use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
-use App\Domains\RFIs\Livewire\Admin\Projects\ProjectTab;
+use App\Domains\RFIs\Livewire\Admin\RFIs\Index;
 use App\Domains\RFIs\Models\RFI;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -26,8 +26,9 @@ it('stores default document metadata when creating an RFI from project tab', fun
 
     $this->actingAs($user);
 
-    Livewire::test(ProjectTab::class, [
+    Livewire::test(Index::class, [
         'project' => $project,
+        'embedded' => true,
         'isCreateMode' => true,
     ])
         ->set('subject', 'RFI for beam embed alignment')
@@ -70,8 +71,9 @@ it('stores custom document metadata when creating an RFI from project tab', func
 
     $this->actingAs($user);
 
-    Livewire::test(ProjectTab::class, [
+    Livewire::test(Index::class, [
         'project' => $project,
+        'embedded' => true,
         'isCreateMode' => true,
     ])
         ->set('subject', 'RFI for slab opening coordinates')

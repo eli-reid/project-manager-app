@@ -242,18 +242,15 @@ class Show extends Component
         }
 
         $dailyCount = 0;
-        $projectDailies = collect();
         $invoiceCount = 0;
-        $projectInvoices = collect();
         $stockOrderCount = 0;
-        $projectStockOrders = collect();
         $submittalCount = 0;
-        $projectSubmittals = collect();
         $changeOrderCount = 0;
-        $projectChangeOrders = collect();
         $rfiCount = 0;
-        $projectRfis = collect();
         $isRfiCreateMode = false;
+        $selectedDailyId = '';
+        $selectedSubmittalId = '';
+        $selectedChangeOrderId = '';
         $documentCount = 0;
 
         $accessAssignments = collect();
@@ -308,43 +305,19 @@ class Show extends Component
         if (in_array('dailies', $tabs, true)) {
             $dailyCount = $this->project->dailyReports()->count();
 
-            if ($this->activeTab === 'dailies') {
-                $projectDailies = $this->project->dailyReports()
-                    ->with(['user', 'submittedBy'])
-                    ->latest('report_date')
-                    ->limit(15)
-                    ->get();
-            }
+            $selectedDailyId = (string) request()->query('dailyId', '');
         }
 
         if (in_array('invoices', $tabs, true)) {
             $invoiceCount = Invoice::query()
                 ->where('project_id', $this->project->id)
                 ->count();
-
-            if ($this->activeTab === 'invoices') {
-                $projectInvoices = Invoice::query()
-                    ->where('project_id', $this->project->id)
-                    ->latest('invoice_date')
-                    ->limit(15)
-                    ->get();
-            }
         }
 
         if (in_array('stock', $tabs, true)) {
             $stockOrderCount = StockOrder::query()
                 ->where('project_id', $this->project->id)
                 ->count();
-
-            if ($this->activeTab === 'stock') {
-                $projectStockOrders = StockOrder::query()
-                    ->with(['user:id,first_name,last_name'])
-                    ->withCount('items')
-                    ->where('project_id', $this->project->id)
-                    ->latest()
-                    ->limit(20)
-                    ->get();
-            }
         }
 
         if (in_array('submittals', $tabs, true)) {
@@ -358,18 +331,7 @@ class Show extends Component
                     ->count();
             }
 
-            if ($canViewAnySubmittals && $this->activeTab === 'submittals' && ! $isSubmittalCreateMode) {
-                $projectSubmittals = Submittal::query()
-                    ->with([
-                        'submittedBy:id,first_name,last_name',
-                        'currentReviewer:id,first_name,last_name',
-                    ])
-                    ->withCount(['items', 'approvals'])
-                    ->where('project_id', $this->project->id)
-                    ->latest()
-                    ->limit(20)
-                    ->get();
-            }
+            $selectedSubmittalId = (string) request()->query('submittalId', '');
         }
 
         if (in_array('change-orders', $tabs, true)) {
@@ -377,14 +339,7 @@ class Show extends Component
                 ->where('project_id', $this->project->id)
                 ->count();
 
-            if ($this->activeTab === 'change-orders') {
-                $projectChangeOrders = ChangeOrder::query()
-                    ->where('project_id', $this->project->id)
-                    ->withCount('documents')
-                    ->latest()
-                    ->limit(20)
-                    ->get();
-            }
+            $selectedChangeOrderId = (string) request()->query('changeOrderId', '');
         }
 
         if (in_array('rfis', $tabs, true)) {
@@ -395,14 +350,6 @@ class Show extends Component
                 ->where('project_id', $this->project->id)
                 ->count();
 
-            if ($this->activeTab === 'rfis' && ! $isRfiCreateMode) {
-                $projectRfis = RFI::query()
-                    ->with(['requestedBy:id,first_name,last_name'])
-                    ->where('project_id', $this->project->id)
-                    ->latest()
-                    ->limit(20)
-                    ->get();
-            }
         }
 
         if (in_array('documents', $tabs, true)) {
@@ -459,18 +406,15 @@ class Show extends Component
             'hiddenTabItems' => $hiddenTabItems,
             'tabBadges' => $tabBadges,
             'dailyCount' => $dailyCount,
-            'projectDailies' => $projectDailies,
+            'selectedDailyId' => $selectedDailyId,
             'taskCount' => Task::query()->where('project_id', $this->project->id)->count(),
             'invoiceCount' => $invoiceCount,
-            'projectInvoices' => $projectInvoices,
             'stockOrderCount' => $stockOrderCount,
-            'projectStockOrders' => $projectStockOrders,
             'submittalCount' => $submittalCount,
-            'projectSubmittals' => $projectSubmittals,
+            'selectedSubmittalId' => $selectedSubmittalId,
             'changeOrderCount' => $changeOrderCount,
-            'projectChangeOrders' => $projectChangeOrders,
+            'selectedChangeOrderId' => $selectedChangeOrderId,
             'rfiCount' => $rfiCount,
-            'projectRfis' => $projectRfis,
             'isRfiCreateMode' => $isRfiCreateMode,
             'documentCount' => $documentCount,
             'accessAssignments' => $accessAssignments,

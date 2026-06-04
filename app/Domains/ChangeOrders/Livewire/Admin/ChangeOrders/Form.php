@@ -27,6 +27,10 @@ class Form extends Component
 
     public string $notes = '';
 
+    public bool $embedded = false;
+
+    public string $returnTo = '';
+
     /**
      * @var array<int, string>
      */
@@ -47,9 +51,17 @@ class Form extends Component
         $this->projectDocumentLibrary = $projectDocumentLibrary;
     }
 
-    public function mount(?ChangeOrder $changeOrder = null, ?string $project_id = null): void
+    public function mount(?ChangeOrder $changeOrder = null, ?string $project_id = null, ?bool $embedded = null, ?string $returnTo = null): void
     {
         $this->changeOrder = $changeOrder;
+
+        if ($embedded !== null) {
+            $this->embedded = $embedded;
+        }
+
+        if (is_string($returnTo)) {
+            $this->returnTo = $returnTo;
+        }
 
         if ($changeOrder instanceof ChangeOrder && $changeOrder->exists) {
             $this->authorize('update', $changeOrder);
@@ -116,6 +128,12 @@ class Form extends Component
             $this->changeOrder->fill($payload)->recalculateTotal()->save();
             $this->syncDocuments($this->changeOrder, $validated['documentIds'] ?? []);
 
+            if ($this->embedded && $this->returnTo !== '') {
+                $this->redirect($this->returnTo, navigate: true);
+
+                return;
+            }
+
             $this->redirectRoute('admin.change-orders.show', $this->changeOrder);
 
             return;
@@ -131,6 +149,12 @@ class Form extends Component
         ]);
 
         $this->syncDocuments($created, $validated['documentIds'] ?? []);
+
+        if ($this->embedded && $this->returnTo !== '') {
+            $this->redirect($this->returnTo, navigate: true);
+
+            return;
+        }
 
         $this->redirectRoute('admin.change-orders.show', $created);
     }
@@ -179,6 +203,7 @@ class Form extends Component
             'projects' => Project::query()->orderBy('name')->get(['id', 'name', 'project_number']),
             'availableDocuments' => $availableDocuments,
             'isEditing' => $this->changeOrder instanceof ChangeOrder && $this->changeOrder->exists,
+            'embedded' => $this->embedded,
         ]);
     }
 

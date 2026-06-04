@@ -15,14 +15,22 @@ class Show extends Component
 
     public ChangeOrder $changeOrder;
 
+    public bool $embedded = false;
+
+    public string $returnTo = '';
+
     public string $rejectionReason = '';
 
     /**
      * Mount the component.
      */
-    public function mount(ChangeOrder $changeOrder): void
+    public function mount(ChangeOrder $changeOrder, bool $embedded = false, ?string $returnTo = null): void
     {
         $this->authorize('view', $changeOrder);
+
+        $this->embedded = $embedded;
+        $this->returnTo = is_string($returnTo) ? $returnTo : '';
+
         $this->changeOrder = $changeOrder->load([
             'project:id,name,project_number',
             'requestedBy:id,first_name,last_name',
@@ -93,6 +101,17 @@ class Show extends Component
      */
     public function render()
     {
-        return view('change-orders::livewire.admin.change-orders.show');
+        $backUrl = $this->returnTo;
+
+        if ($backUrl === '' && $this->embedded) {
+            $backUrl = route('admin.projects.show', [
+                'project' => $this->changeOrder->project_id,
+                'tab' => 'change-orders',
+            ]);
+        }
+
+        return view('change-orders::livewire.admin.change-orders.show', [
+            'backUrl' => $backUrl,
+        ]);
     }
 }

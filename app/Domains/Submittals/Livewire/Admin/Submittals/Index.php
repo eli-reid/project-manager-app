@@ -2,6 +2,7 @@
 
 namespace App\Domains\Submittals\Livewire\Admin\Submittals;
 
+use App\Domains\Projects\Models\Project;
 use App\Domains\Submittals\Models\Submittal;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
@@ -16,6 +17,14 @@ class Index extends Component
 {
     use AuthorizesRequests;
     use WithPagination;
+
+    public ?Project $project = null;
+
+    public bool $embedded = false;
+
+    public string $mode = '';
+
+    public string $submittalId = '';
 
     #[Url(as: 'status')]
     public string $status = '';
@@ -32,9 +41,16 @@ class Index extends Component
     #[Url(as: 'docRevision')]
     public string $documentRevision = '';
 
-    public function mount(): void
+    public function mount(?Project $project = null, bool $embedded = false, string $mode = '', string $submittalId = ''): void
     {
-        $this->authorize('viewAny', Submittal::class);
+        if (! auth()->user()?->can('viewAny', Submittal::class) && ! auth()->user()?->can('create', Submittal::class)) {
+            abort(403);
+        }
+
+        $this->project = $project;
+        $this->embedded = $embedded && $project instanceof Project;
+        $this->mode = $mode;
+        $this->submittalId = $submittalId;
     }
 
     public function updatingStatus(): void
@@ -72,6 +88,10 @@ class Index extends Component
             $query->where('status', $this->status);
         }
 
+        if ($this->embedded && $this->project instanceof Project) {
+            $query->where('project_id', (string) $this->project->id);
+        }
+
         $hasMetadataFilter = $this->documentRole !== ''
             || $this->documentStatus !== ''
             || trim($this->documentDiscipline) !== ''
@@ -97,8 +117,37 @@ class Index extends Component
             });
         }
 
+        $isCreateMode = $this->embedded && $this->mode === 'create';
+        $isReviewMode = $this->embedded && $this->mode === 'review' && $this->submittalId !== '';
+
+        $projectSubmittalsUrl = $this->embedded && $this->project instanceof Project
+            ? route('admin.projects.show', ['project' => $this->project, 'tab' => 'submittals'])
+            : route('admin.submittals.index');
+
+        $reviewSubmittal = null;
+        if ($isReviewMode) {
+            $reviewSubmittal = Submittal::query()->find($this->submittalId);
+
+            if ($reviewSubmittal instanceof Submittal) {
+                $this->authorize('view', $reviewSubmittal);
+            } else {
+                $isReviewMode = false;
+            }
+        }
+
         return view('submittals::livewire.admin.submittals.index', [
             'submittals' => $query->paginate(15),
+            'embeddedProject' => $this->embedded ? $this->project : null,
+            'isCreateMode' => $isCreateMode,
+            'isReviewMode' => $isReviewMode,
+            'reviewSubmittal' => $reviewSubmittal,
+            'projectSubmittalsUrl' => $projectSubmittalsUrl,
+            'submittalCreateUrl' => $this->embedded && $this->project instanceof Project
+                ? route('admin.projects.show', ['project' => $this->project, 'tab' => 'submittals', 'submittalMode' => 'create'])
+                : route('admin.submittals.index'),
+            'submittalCount' => $this->embedded && $this->project instanceof Project
+                ? Submittal::query()->where('project_id', (string) $this->project->id)->count()
+                : null,
             'statuses' => [
                 Submittal::STATUS_DRAFT => 'Draft',
                 Submittal::STATUS_UNDER_REVIEW => 'Under Review',

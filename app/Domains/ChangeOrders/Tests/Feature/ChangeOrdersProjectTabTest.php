@@ -4,7 +4,7 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
-use App\Domains\ChangeOrders\Livewire\Admin\Projects\ProjectTab;
+use App\Domains\ChangeOrders\Livewire\Admin\ChangeOrders\Index;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
@@ -17,19 +17,18 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     app(DomainPermissionSynchronizer::class)->sync();
-    $this->admin = changeOrdersProjectTabUser(['change-orders.view-any']);
+    $this->admin = changeOrdersProjectTabUser(['change-orders.view-any', 'change-orders.view']);
     $this->project = Project::factory()->create();
 });
 
 it('renders the change orders project tab with empty state', function (): void {
     actingAs($this->admin);
 
-    Livewire::test(ProjectTab::class, [
+    Livewire::test(Index::class, [
         'project' => $this->project,
-        'changeOrders' => collect(),
-        'changeOrderCount' => 0,
+        'embedded' => true,
     ])
-        ->assertSee('No change orders yet.')
+        ->assertSee('No change orders found.')
         ->assertSee('Change Orders');
 });
 
@@ -56,17 +55,12 @@ it('displays change orders in the project tab', function (): void {
         ],
     ]);
 
-    $changeOrder = $changeOrder->fresh()->loadCount('documents');
-
-    Livewire::test(ProjectTab::class, [
+    Livewire::test(Index::class, [
         'project' => $this->project,
-        'changeOrders' => collect([$changeOrder]),
-        'changeOrderCount' => 1,
+        'embedded' => true,
     ])
         ->assertSee('Foundation Revision')
         ->assertSee('Submitted')
-        ->assertSee('Docs')
-        ->assertSee('1')
         ->assertSee('5,000.00');
 });
 

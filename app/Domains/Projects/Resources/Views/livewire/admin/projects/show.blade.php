@@ -126,12 +126,20 @@
     @endif
 
     @if ($activeTab === 'dailies' && in_array('dailies', $tabs, true))
-        <livewire:dailies::admin.projects.project-tab
-            :project="$project"
-            :dailies="$projectDailies"
-            :daily-count="$dailyCount"
-            :key="'project-dailies-tab-'.$project->id"
-        />
+        @if ($selectedDailyId !== '')
+            <livewire:dailies::admin.dailies.show
+                :daily-report="$selectedDailyId"
+                :embedded="true"
+                :return-to="route('admin.projects.show', ['project' => $project, 'tab' => 'dailies'])"
+                :key="'project-dailies-show-'.$project->id.'-'.$selectedDailyId"
+            />
+        @else
+            <livewire:dailies::admin.dailies.index
+                :project="$project"
+                :embedded="true"
+                :key="'project-dailies-tab-'.$project->id"
+            />
+        @endif
     @endif
 
     @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))
@@ -155,28 +163,29 @@
     @endif
 
     @if ($activeTab === 'submittals' && in_array('submittals', $tabs, true))
-        <livewire:submittals::admin.projects.project-tab
+        <livewire:submittals::admin.submittals.index
             :project="$project"
-            :submittals="$projectSubmittals"
-            :submittal-count="$submittalCount"
+            :embedded="true"
+            :mode="(string) request()->query('submittalMode', '')"
+            :submittal-id="$selectedSubmittalId"
             :key="'project-submittals-tab-'.$project->id"
         />
     @endif
 
     @if ($activeTab === 'change-orders' && in_array('change-orders', $tabs, true))
-        <livewire:change-orders::admin.projects.project-tab
+        <livewire:change-orders::admin.change-orders.index
             :project="$project"
-            :change-orders="$projectChangeOrders"
-            :change-order-count="$changeOrderCount"
+            :embedded="true"
+            :mode="(string) request()->query('changeOrderMode', '')"
+            :change-order-id="$selectedChangeOrderId"
             :key="'project-change-orders-tab-'.$project->id"
         />
     @endif
 
     @if ($activeTab === 'rfis' && in_array('rfis', $tabs, true))
-        <livewire:rfis::admin.projects.project-tab
+        <livewire:rfis::admin.rfis.index
             :project="$project"
-            :rfis="$projectRfis"
-            :rfi-count="$rfiCount"
+            :embedded="true"
             :is-create-mode="$isRfiCreateMode"
             :key="'project-rfis-tab-'.$project->id.($isRfiCreateMode ? '-create' : '')"
         />

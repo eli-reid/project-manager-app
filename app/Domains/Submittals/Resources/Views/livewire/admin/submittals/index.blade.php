@@ -1,8 +1,30 @@
 <div class="w-full space-y-4">
-    <div class="flex items-center justify-between gap-3">
-        <flux:heading size="xl">Submittal Approval Queue</flux:heading>
-        <a href="{{ route('submittals.index') }}" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">User View</a>
-    </div>
+    @if ($embeddedProject)
+        <div class="flex items-center justify-between gap-3">
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                {{ $submittalCount }} {{ Str::plural('submittal', $submittalCount) }} for this project.
+            </p>
+            @can('create', \App\Domains\Submittals\Models\Submittal::class)
+                <a href="{{ $submittalCreateUrl }}" wire:navigate class="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">+ New Submittal</a>
+            @endcan
+        </div>
+    @else
+        <div class="flex items-center justify-between gap-3">
+            <flux:heading size="xl">Submittal Approval Queue</flux:heading>
+            <a href="{{ route('submittals.index') }}" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">User View</a>
+        </div>
+    @endif
+
+    @if ($isCreateMode && $embeddedProject)
+        <livewire:submittals::submittals.form :projectId="$embeddedProject->id" :returnTo="$projectSubmittalsUrl" :embedded="true" :key="'project-submittal-create-'.$embeddedProject->id" />
+    @elseif ($isReviewMode && $reviewSubmittal instanceof \App\Domains\Submittals\Models\Submittal)
+        <livewire:submittals::admin.submittals.show
+            :submittal="$reviewSubmittal"
+            :embedded="true"
+            :returnTo="$projectSubmittalsUrl"
+            :key="'project-submittal-review-'.$embeddedProject->id.'-'.$reviewSubmittal->id"
+        />
+    @else
 
     <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
@@ -64,7 +86,9 @@
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Type</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project</th>
+                        @unless ($embeddedProject)
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project</th>
+                        @endunless
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Submitted By</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
@@ -74,16 +98,18 @@
                     @forelse ($submittals as $submittal)
                         <tr>
                             <td class="px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">{{ $submittal->type }}</td>
-                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $submittal->project?->name ?? '—' }}</td>
+                            @unless ($embeddedProject)
+                                <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $submittal->project?->name ?? '—' }}</td>
+                            @endunless
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ trim(($submittal->submittedBy?->first_name ?? '').' '.($submittal->submittedBy?->last_name ?? '')) ?: '—' }}</td>
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $submittal->statusLabel() }}</td>
                             <td class="px-4 py-3 text-right text-sm">
-                                <a href="{{ route('admin.submittals.show', $submittal) }}" class="font-medium text-zinc-700 hover:underline dark:text-zinc-200">Review</a>
+                                <a href="{{ $embeddedProject ? route('admin.projects.show', ['project' => $embeddedProject, 'tab' => 'submittals', 'submittalMode' => 'review', 'submittalId' => $submittal->id]) : route('admin.submittals.show', $submittal) }}" wire:navigate class="font-medium text-zinc-700 hover:underline dark:text-zinc-200">Review</a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No submittals in the queue.</td>
+                            <td colspan="{{ $embeddedProject ? 4 : 5 }}" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No submittals in the queue.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -91,5 +117,8 @@
         </div>
     </div>
 
-    <div>{{ $submittals->links() }}</div>
+        @if ($submittals->hasPages())
+            <div>{{ $submittals->links() }}</div>
+        @endif
+    @endif
 </div>

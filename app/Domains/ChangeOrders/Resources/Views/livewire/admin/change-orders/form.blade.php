@@ -1,19 +1,25 @@
 <div class="mx-auto max-w-5xl space-y-6">
     <div class="flex items-center justify-between">
         <h1 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $isEditing ? 'Edit Change Order' : 'Create Change Order' }}</h1>
-        <a href="{{ route('admin.change-orders.index') }}" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">Back</a>
+        <a href="{{ $embedded && $returnTo !== '' ? $returnTo : route('admin.change-orders.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">Back</a>
     </div>
 
     <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
                 <label class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Project <span class="text-red-500">*</span></label>
-                <select wire:model.live="projectId" class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-                    <option value="">Select project</option>
-                    @foreach ($projects as $project)
-                        <option value="{{ $project->id }}">{{ $project->name }} ({{ $project->project_number ?? 'N/A' }})</option>
-                    @endforeach
-                </select>
+                @if ($embedded)
+                    <div class="mt-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                        {{ $projects->firstWhere('id', $projectId)?->name ?? 'Selected Project' }}
+                    </div>
+                @else
+                    <select wire:model.live="projectId" class="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                        <option value="">Select project</option>
+                        @foreach ($projects as $project)
+                            <option value="{{ $project->id }}">{{ $project->name }} ({{ $project->project_number ?? 'N/A' }})</option>
+                        @endforeach
+                    </select>
+                @endif
                 @error('projectId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
