@@ -89,6 +89,54 @@ class Show extends Component
         $this->activeTab = $tab;
     }
 
+    public function sortProjectTab(string $tabKey, int $position): void
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User, 401);
+
+        $visibleTabKeys = collect($this->projectTabRegistry->visibleTabItems($this->project, $user))
+            ->pluck('key')
+            ->values()
+            ->all();
+
+        if (! in_array($tabKey, $visibleTabKeys, true)) {
+            return;
+        }
+
+        $currentIndex = array_search($tabKey, $visibleTabKeys, true);
+        if (! is_int($currentIndex)) {
+            return;
+        }
+
+        unset($visibleTabKeys[$currentIndex]);
+        $visibleTabKeys = array_values($visibleTabKeys);
+
+        $position = max(0, min($position, count($visibleTabKeys)));
+        array_splice($visibleTabKeys, $position, 0, [$tabKey]);
+
+        $this->projectTabRegistry->updateUserTabOrder($user, $this->project, $visibleTabKeys);
+    }
+
+    public function hideTab(string $tabKey): void
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User, 401);
+
+        $this->projectTabRegistry->setUserTabHidden($user, $this->project, $tabKey, true);
+
+        if ($this->activeTab === $tabKey) {
+            $this->activeTab = $this->tabs()[0] ?? 'overview';
+        }
+    }
+
+    public function showTab(string $tabKey): void
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User, 401);
+
+        $this->projectTabRegistry->setUserTabHidden($user, $this->project, $tabKey, false);
+    }
+
     #[On('project-tasks-updated')]
     public function refreshTaskMetrics(string $projectId): void
     {
@@ -189,6 +237,9 @@ class Show extends Component
         abort_unless($user !== null, 401);
 
         $tabs = $this->tabs();
+        if (! in_array($this->activeTab, $tabs, true)) {
+            $this->activeTab = $tabs[0] ?? 'overview';
+        }
 
         $dailyCount = 0;
         $projectDailies = collect();
@@ -387,8 +438,26 @@ class Show extends Component
             $financialSummary = $this->projectFinancialsService->summary($this->project);
         }
 
+        $visibleTabItems = $this->projectTabRegistry->visibleTabItems($this->project, $user);
+        $hiddenTabItems = $this->projectTabRegistry->hiddenTabItems($this->project, $user);
+
+        $tabBadges = [
+            'dailies' => $dailyCount,
+            'invoices' => $invoiceCount,
+            'stock' => $stockOrderCount,
+            'submittals' => $submittalCount,
+            'change-orders' => $changeOrderCount,
+            'rfis' => $rfiCount,
+            'documents' => $documentCount,
+            'access' => $accessAssignments->count() + $roleAccessAssignments->count(),
+            'time' => $timeEntryCount,
+        ];
+
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $tabs,
+            'visibleTabItems' => $visibleTabItems,
+            'hiddenTabItems' => $hiddenTabItems,
+            'tabBadges' => $tabBadges,
             'dailyCount' => $dailyCount,
             'projectDailies' => $projectDailies,
             'taskCount' => Task::query()->where('project_id', $this->project->id)->count(),

@@ -9,10 +9,13 @@ use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
+use App\Domains\Projects\Models\ProjectTabUserPreference;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Timecards\Models\Timecard;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class ProjectTabRegistry
 {
@@ -22,7 +25,7 @@ class ProjectTabRegistry
     private array $registeredDefinitions = [];
 
     /**
-     * @return array<string, array{label:string,mode_param?:string,is_visible:callable(User, Project): bool}>
+     * @return array<string, array{label:string,mode_param:string|null,sort:int,is_visible:callable(User, Project): bool}>
      */
     public function definitions(): array
     {
@@ -31,10 +34,12 @@ class ProjectTabRegistry
             $definitions = $this->fallbackDefinitions();
         }
 
-        $overrides = ProjectTabDefinition::query()
-            ->whereIn('key', array_keys($definitions))
-            ->get()
-            ->keyBy('key');
+        $overrides = Schema::hasTable('project_tab_definitions')
+            ? ProjectTabDefinition::query()
+                ->whereIn('key', array_keys($definitions))
+                ->get()
+                ->keyBy('key')
+            : collect();
 
         $resolvedDefinitions = [];
         foreach ($definitions as $tabKey => $definition) {
@@ -116,20 +121,146 @@ class ProjectTabRegistry
      */
     public function visibleTabs(Project $project, ?User $user): array
     {
+        return collect($this->visibleTabItems($project, $user))
+            ->pluck('key')
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{key:string,label:string,mode_param:string|null,sort:int,is_hidden:bool}>
+     */
+    public function tabItems(Project $project, ?User $user): array
+    {
         if (! $user instanceof User) {
-            return ['overview'];
-        }
+            $overview = $this->definitions()['overview'] ?? null;
 
-        $tabs = [];
-        foreach ($this->definitions() as $tabKey => $definition) {
-            $isVisible = $definition['is_visible'];
-
-            if ($isVisible($user, $project) === true) {
-                $tabs[] = $tabKey;
+            if (! is_array($overview)) {
+                return [];
             }
+
+            return [[
+                'key' => 'overview',
+                'label' => $overview['label'],
+                'mode_param' => $overview['mode_param'],
+                'sort' => $overview['sort'],
+                'is_hidden' => false,
+            ]];
         }
 
-        return $tabs;
+        $accessibleDefinitions = collect($this->definitions())
+            ->filter(function (array $definition) use ($project, $user): bool {
+                $isVisible = $definition['is_visible'];
+
+                return $isVisible($user, $project) === true;
+            });
+
+        $preferences = $this->preferencesByTab($user, $accessibleDefinitions->keys()->all());
+
+        $items = $accessibleDefinitions
+            ->map(function (array $definition, string $tabKey) use ($preferences): array {
+                /** @var ProjectTabUserPreference|null $preference */
+                $preference = $preferences->get($tabKey);
+
+                return [
+                    'key' => $tabKey,
+                    'label' => $definition['label'],
+                    'mode_param' => $definition['mode_param'],
+                    'sort' => $preference?->sort_order ?? $definition['sort'],
+                    'is_hidden' => $tabKey === 'overview' ? false : (bool) ($preference?->is_hidden ?? false),
+                ];
+            })
+            ->sortBy([
+                ['sort', 'asc'],
+                ['label', 'asc'],
+            ])
+            ->values()
+            ->all();
+
+        return $items;
+    }
+
+    /**
+     * @return array<int, array{key:string,label:string,mode_param:string|null,sort:int,is_hidden:bool}>
+     */
+    public function visibleTabItems(Project $project, ?User $user): array
+    {
+        return collect($this->tabItems($project, $user))
+            ->reject(fn (array $item): bool => $item['is_hidden'])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{key:string,label:string,mode_param:string|null,sort:int,is_hidden:bool}>
+     */
+    public function hiddenTabItems(Project $project, ?User $user): array
+    {
+        return collect($this->tabItems($project, $user))
+            ->filter(fn (array $item): bool => $item['is_hidden'])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, string>  $orderedVisibleKeys
+     */
+    public function updateUserTabOrder(User $user, Project $project, array $orderedVisibleKeys): void
+    {
+        $visibleKeys = collect($this->visibleTabItems($project, $user))
+            ->pluck('key')
+            ->all();
+
+        $hiddenKeys = collect($this->hiddenTabItems($project, $user))
+            ->pluck('key')
+            ->all();
+
+        $orderedVisibleKeys = array_values(array_filter(
+            $orderedVisibleKeys,
+            static fn (string $tabKey): bool => in_array($tabKey, $visibleKeys, true)
+        ));
+
+        $remainingVisibleKeys = array_values(array_diff($visibleKeys, $orderedVisibleKeys));
+
+        $this->persistUserPreferences(
+            $user,
+            array_merge($orderedVisibleKeys, $remainingVisibleKeys),
+            $hiddenKeys,
+        );
+    }
+
+    public function setUserTabHidden(User $user, Project $project, string $tabKey, bool $isHidden): void
+    {
+        if ($tabKey === 'overview') {
+            return;
+        }
+
+        $allTabKeys = collect($this->tabItems($project, $user))
+            ->pluck('key')
+            ->all();
+
+        if (! in_array($tabKey, $allTabKeys, true)) {
+            return;
+        }
+
+        $visibleKeys = collect($this->visibleTabItems($project, $user))
+            ->pluck('key')
+            ->reject(fn (string $visibleTabKey): bool => $visibleTabKey === $tabKey)
+            ->values()
+            ->all();
+
+        $hiddenKeys = collect($this->hiddenTabItems($project, $user))
+            ->pluck('key')
+            ->reject(fn (string $hiddenTabKey): bool => $hiddenTabKey === $tabKey)
+            ->values()
+            ->all();
+
+        if ($isHidden) {
+            $hiddenKeys[] = $tabKey;
+        } else {
+            $visibleKeys[] = $tabKey;
+        }
+
+        $this->persistUserPreferences($user, $visibleKeys, $hiddenKeys);
     }
 
     public function modeQueryParam(string $tab): ?string
@@ -256,5 +387,69 @@ class ProjectTabRegistry
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewFinancials', $project),
             ],
         ];
+    }
+
+    /**
+     * @param  array<int, string>  $tabKeys
+     * @return Collection<string, ProjectTabUserPreference>
+     */
+    private function preferencesByTab(User $user, array $tabKeys): Collection
+    {
+        if ($tabKeys === [] || ! Schema::hasTable('project_tab_user_preferences')) {
+            return collect();
+        }
+
+        return ProjectTabUserPreference::query()
+            ->where('user_id', $user->id)
+            ->whereIn('tab_key', $tabKeys)
+            ->get()
+            ->keyBy('tab_key');
+    }
+
+    /**
+     * @param  array<int, string>  $visibleKeys
+     * @param  array<int, string>  $hiddenKeys
+     */
+    private function persistUserPreferences(User $user, array $visibleKeys, array $hiddenKeys): void
+    {
+        if (! Schema::hasTable('project_tab_user_preferences')) {
+            return;
+        }
+
+        $rows = [];
+        $sortOrder = 1;
+        $timestamp = now();
+
+        foreach ($visibleKeys as $tabKey) {
+            $rows[] = [
+                'user_id' => $user->id,
+                'tab_key' => $tabKey,
+                'sort_order' => $sortOrder++,
+                'is_hidden' => false,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ];
+        }
+
+        foreach ($hiddenKeys as $tabKey) {
+            $rows[] = [
+                'user_id' => $user->id,
+                'tab_key' => $tabKey,
+                'sort_order' => $sortOrder++,
+                'is_hidden' => true,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ];
+        }
+
+        if ($rows === []) {
+            return;
+        }
+
+        ProjectTabUserPreference::query()->upsert(
+            $rows,
+            ['user_id', 'tab_key'],
+            ['sort_order', 'is_hidden', 'updated_at'],
+        );
     }
 }

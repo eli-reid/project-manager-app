@@ -18,82 +18,63 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto rounded-xl border border-zinc-200 bg-white p-2 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div class="flex min-w-max gap-2">
-            <button type="button" wire:click="setTab('overview')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'overview' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Overview</button>
-
-            @if (in_array('dailies', $tabs, true))
-                <button type="button" wire:click="setTab('dailies')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'dailies' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Dailies
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $dailyCount }}</span>
+    <div x-data="{ manageTabs: false }" class="space-y-3 rounded-xl border border-zinc-200 bg-white p-2 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="flex items-center justify-between gap-3 px-1">
+            <flux:text class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Project Tabs</flux:text>
+            @if (count($visibleTabItems) > 1 || count($hiddenTabItems) > 0)
+                <button type="button" @click="manageTabs = ! manageTabs" class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                    <span x-show="! manageTabs">Customize Tabs</span>
+                    <span x-show="manageTabs">Done</span>
                 </button>
             @endif
+        </div>
 
-            @if (in_array('tasks', $tabs, true))
-                <button type="button" wire:click="setTab('tasks')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'tasks' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">Tasks</button>
-            @endif
+        <div class="overflow-x-auto">
+            <div class="flex min-w-max gap-2">
+                @foreach ($visibleTabItems as $tabItem)
+                    <button type="button" wire:key="project-tab-button-{{ $tabItem['key'] }}" wire:click="setTab('{{ $tabItem['key'] }}')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === $tabItem['key'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                        {{ $tabItem['label'] }}
+                        @if (array_key_exists($tabItem['key'], $tabBadges))
+                            <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $tabBadges[$tabItem['key']] }}</span>
+                        @endif
+                    </button>
+                @endforeach
+            </div>
+        </div>
 
-            @if (in_array('invoices', $tabs, true))
-                <button type="button" wire:click="setTab('invoices')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'invoices' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Invoices
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $invoiceCount }}</span>
-                </button>
-            @endif
+        <div x-cloak x-show="manageTabs" class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-950/40">
+            <div class="space-y-3">
+                <div>
+                    <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">Visible Tabs</flux:text>
+                    <flux:text class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Drag to reorder. Hidden tabs stay available below for quick restore.</flux:text>
+                </div>
 
-            @if (in_array('stock', $tabs, true))
-                <button type="button" wire:click="setTab('stock')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'stock' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Stock
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $stockOrderCount }}</span>
-                </button>
-            @endif
+                <div wire:sort="sortProjectTab" class="flex flex-wrap gap-2">
+                    @foreach ($visibleTabItems as $tabItem)
+                        <div wire:key="project-tab-sort-item-{{ $tabItem['key'] }}" wire:sort:item="{{ $tabItem['key'] }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                            <button type="button" wire:sort:handle class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Move</button>
+                            <span>{{ $tabItem['label'] }}</span>
+                            @if ($tabItem['key'] !== 'overview')
+                                <button type="button" wire:click="hideTab('{{ $tabItem['key'] }}')" class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Hide</button>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
 
-            @if (in_array('submittals', $tabs, true))
-                <button type="button" wire:click="setTab('submittals')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'submittals' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Submittals
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $submittalCount }}</span>
-                </button>
-            @endif
-
-            @if (in_array('change-orders', $tabs, true))
-                <button type="button" wire:click="setTab('change-orders')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'change-orders' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Change Orders
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $changeOrderCount }}</span>
-                </button>
-            @endif
-
-            @if (in_array('rfis', $tabs, true))
-                <button type="button" wire:click="setTab('rfis')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'rfis' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    RFIs
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $rfiCount }}</span>
-                </button>
-            @endif
-
-            @if (in_array('documents', $tabs, true))
-                <button type="button" wire:click="setTab('documents')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'documents' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Library
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $documentCount }}</span>
-                </button>
-            @endif
-
-            @if (in_array('access', $tabs, true))
-                <button type="button" wire:click="setTab('access')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'access' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Access
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $accessAssignments->count() + $roleAccessAssignments->count() }}</span>
-                </button>
-            @endif
-
-            @if (in_array('time', $tabs, true))
-                <button type="button" wire:click="setTab('time')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'time' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Time
-                    <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $timeEntryCount }}</span>
-                </button>
-            @endif
-
-            @if (in_array('financials', $tabs, true))
-                <button type="button" wire:click="setTab('financials')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === 'financials' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                    Financials
-                </button>
-            @endif
+                @if ($hiddenTabItems !== [])
+                    <div class="space-y-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+                        <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">Hidden Tabs</flux:text>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($hiddenTabItems as $tabItem)
+                                <div wire:key="project-hidden-tab-item-{{ $tabItem['key'] }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                                    <span>{{ $tabItem['label'] }}</span>
+                                    <button type="button" wire:click="showTab('{{ $tabItem['key'] }}')" class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Show</button>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 

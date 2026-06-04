@@ -13,6 +13,7 @@ use App\Domains\Addresses\Models\Address;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
+use App\Domains\Projects\Models\ProjectTabUserPreference;
 use App\Domains\Timecards\Models\TimecardRequiredUser;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -135,6 +136,11 @@ class User extends Authenticatable
     public function notificationPreferences(): HasMany
     {
         return $this->hasMany(UserNotificationPreference::class);
+    }
+
+    public function projectTabPreferences(): HasMany
+    {
+        return $this->hasMany(ProjectTabUserPreference::class);
     }
 
     public function payrollProfile(): HasOne

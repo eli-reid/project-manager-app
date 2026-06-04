@@ -6,6 +6,7 @@ use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
+use App\Domains\Projects\Models\ProjectTabUserPreference;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 
 it('defines project tab mode query params for routed create modes', function (): void {
@@ -94,6 +95,49 @@ it('applies project tab table overrides to provider-registered tab definitions',
         ->not->toContain('rfis')
         ->and($registry->modeQueryParam('submittals'))->toBe('submittalAction')
         ->and($registry->isCreateMode('submittals', request()->duplicate(query: ['submittalAction' => 'create'])))->toBeTrue();
+});
+
+it('applies user tab ordering and hidden state on top of registered tabs', function (): void {
+    $project = Project::factory()->create();
+    $registry = app(ProjectTabRegistry::class);
+
+    $user = userWithProjectTabPermissions([
+        'projects.view',
+        'tasks.view',
+        'invoices.view',
+        'timecards.view',
+    ]);
+
+    ProjectTabUserPreference::query()->create([
+        'user_id' => $user->id,
+        'tab_key' => 'overview',
+        'sort_order' => 1,
+        'is_hidden' => false,
+    ]);
+
+    ProjectTabUserPreference::query()->create([
+        'user_id' => $user->id,
+        'tab_key' => 'time',
+        'sort_order' => 2,
+        'is_hidden' => false,
+    ]);
+
+    ProjectTabUserPreference::query()->create([
+        'user_id' => $user->id,
+        'tab_key' => 'tasks',
+        'sort_order' => 3,
+        'is_hidden' => false,
+    ]);
+
+    ProjectTabUserPreference::query()->create([
+        'user_id' => $user->id,
+        'tab_key' => 'invoices',
+        'sort_order' => 4,
+        'is_hidden' => true,
+    ]);
+
+    expect($registry->visibleTabs($project, $user))->toBe(['overview', 'time', 'tasks'])
+        ->and(collect($registry->hiddenTabItems($project, $user))->pluck('key')->all())->toBe(['invoices']);
 });
 
 /**
