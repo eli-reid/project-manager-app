@@ -126,6 +126,7 @@
     @endif
 
     @if ($activeTab === 'dailies' && in_array('dailies', $tabs, true))
+        @php($selectedDailyId = $tabContext['dailies']['detailId'] ?? '')
         @if ($selectedDailyId !== '')
             <livewire:dailies::admin.dailies.show
                 :daily-report="$selectedDailyId"
@@ -163,34 +164,37 @@
     @endif
 
     @if ($activeTab === 'submittals' && in_array('submittals', $tabs, true))
+        @php($submittalsContext = $tabContext['submittals'] ?? ['mode' => '', 'detailId' => ''])
         <livewire:submittals::admin.submittals.index
             :project="$project"
             :embedded="true"
-            :mode="(string) request()->query($tabModeParams['submittals'] ?? 'submittalMode', '')"
-            :submittal-id="$selectedSubmittalId"
+            :mode="$submittalsContext['mode']"
+            :submittal-id="$submittalsContext['detailId']"
             :key="'project-submittals-tab-'.$project->id"
         />
     @endif
 
     @if ($activeTab === 'change-orders' && in_array('change-orders', $tabs, true))
+        @php($changeOrdersContext = $tabContext['change-orders'] ?? ['mode' => '', 'detailId' => ''])
         <livewire:change-orders::admin.change-orders.index
             :project="$project"
             :embedded="true"
-            :mode="(string) request()->query($tabModeParams['change-orders'] ?? 'changeOrderMode', '')"
-            :change-order-id="$selectedChangeOrderId"
+            :mode="$changeOrdersContext['mode']"
+            :change-order-id="$changeOrdersContext['detailId']"
             :key="'project-change-orders-tab-'.$project->id"
         />
     @endif
 
     @if ($activeTab === 'rfis' && in_array('rfis', $tabs, true))
+        @php($rfisContext = $tabContext['rfis'] ?? ['isCreateMode' => false])
         @livewire(
             \App\Domains\RFIs\Livewire\Admin\RFIs\Index::class,
             [
                 'project' => $project,
                 'embedded' => true,
-                'isCreateMode' => $isRfiCreateMode,
+                'isCreateMode' => (bool) $rfisContext['isCreateMode'],
             ],
-            key('project-rfis-tab-'.$project->id.($isRfiCreateMode ? '-create' : ''))
+            key('project-rfis-tab-'.$project->id.((bool) $rfisContext['isCreateMode'] ? '-create' : ''))
         )
     @endif
 

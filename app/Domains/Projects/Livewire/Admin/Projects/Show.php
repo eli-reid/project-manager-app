@@ -132,47 +132,35 @@ class Show extends Component
         $hiddenTabItems = $this->projectTabRegistry->hiddenTabItems($this->project, $user);
         $tabBadges = $this->projectTabRegistry->tabBadges($this->project, $user instanceof User ? $user : null);
 
-        $selectedDailyId = '';
-        if (in_array('dailies', $tabs, true)) {
-            $dailyDetailParam = $this->projectTabRegistry->detailQueryParam('dailies');
-            $selectedDailyId = $dailyDetailParam !== null
-                ? (string) request()->query($dailyDetailParam, '')
-                : '';
-        }
+        $tabContext = collect($visibleTabItems)
+            ->mapWithKeys(static function (array $tabItem): array {
+                $tabKey = $tabItem['key'];
+                $modeParam = is_string($tabItem['mode_param'] ?? null) ? $tabItem['mode_param'] : null;
+                $detailQueryParam = is_string($tabItem['detail_query_param'] ?? null) ? $tabItem['detail_query_param'] : null;
+                $resolvedModeParam = $modeParam ?? str($tabKey)->replace('-', ' ')->singular()->camel()->append('Mode')->value();
 
-        $selectedSubmittalId = '';
-        if (in_array('submittals', $tabs, true)) {
-            $submittalDetailParam = $this->projectTabRegistry->detailQueryParam('submittals');
-            $selectedSubmittalId = $submittalDetailParam !== null
-                ? (string) request()->query($submittalDetailParam, '')
-                : '';
-        }
+                $mode = (string) request()->query($resolvedModeParam, '');
 
-        $selectedChangeOrderId = '';
-        if (in_array('change-orders', $tabs, true)) {
-            $changeOrderDetailParam = $this->projectTabRegistry->detailQueryParam('change-orders');
-            $selectedChangeOrderId = $changeOrderDetailParam !== null
-                ? (string) request()->query($changeOrderDetailParam, '')
-                : '';
-        }
+                $detailId = $detailQueryParam !== null
+                    ? (string) request()->query($detailQueryParam, '')
+                    : '';
 
-        $tabModeParams = [
-            'submittals' => $this->projectTabRegistry->modeQueryParam('submittals'),
-            'change-orders' => $this->projectTabRegistry->modeQueryParam('change-orders'),
-            'rfis' => $this->projectTabRegistry->modeQueryParam('rfis'),
-        ];
-        $isRfiCreateMode = $this->projectTabRegistry->isCreateMode('rfis', request());
+                return [$tabKey => [
+                    'modeParam' => $resolvedModeParam,
+                    'mode' => $mode,
+                    'detailParam' => $detailQueryParam,
+                    'detailId' => $detailId,
+                    'isCreateMode' => $mode === 'create',
+                ]];
+            })
+            ->all();
 
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $tabs,
             'visibleTabItems' => $visibleTabItems,
             'hiddenTabItems' => $hiddenTabItems,
             'tabBadges' => $tabBadges,
-            'tabModeParams' => $tabModeParams,
-            'selectedDailyId' => $selectedDailyId,
-            'selectedSubmittalId' => $selectedSubmittalId,
-            'selectedChangeOrderId' => $selectedChangeOrderId,
-            'isRfiCreateMode' => $isRfiCreateMode,
+            'tabContext' => $tabContext,
             'projectAddress' => $this->project->loadMissing('address')->address,
         ])->title('Project Details');
     }
