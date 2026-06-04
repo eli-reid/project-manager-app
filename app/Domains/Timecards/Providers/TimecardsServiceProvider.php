@@ -19,6 +19,7 @@ use App\Domains\Timecards\Observers\TimecardObserver;
 use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
 use App\Domains\Timecards\Reports\TimecardReportDefinitions;
+use App\Domains\Timecards\Services\ProjectTimecardMetricsService;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -149,6 +150,8 @@ class TimecardsServiceProvider extends ServiceProvider
                 'key' => 'time',
                 'label' => 'Time',
                 'sort' => 110,
+                'badge_count' => static fn (User $user, Project $project): ?int => app(ProjectTimecardMetricsService::class)
+                    ->summaryForProject((string) $project->id)['time_entry_count'] ?? 0,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Timecard::class),
             ],
         ]);

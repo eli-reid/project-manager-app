@@ -96,7 +96,7 @@
 
             <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Task Count</p>
-                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $taskCount }}</p>
+                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $tabBadges['tasks'] ?? 0 }}</p>
             </div>
         </div>
 
@@ -166,7 +166,7 @@
         <livewire:submittals::admin.submittals.index
             :project="$project"
             :embedded="true"
-            :mode="(string) request()->query('submittalMode', '')"
+            :mode="(string) request()->query($tabModeParams['submittals'] ?? 'submittalMode', '')"
             :submittal-id="$selectedSubmittalId"
             :key="'project-submittals-tab-'.$project->id"
         />
@@ -176,7 +176,7 @@
         <livewire:change-orders::admin.change-orders.index
             :project="$project"
             :embedded="true"
-            :mode="(string) request()->query('changeOrderMode', '')"
+            :mode="(string) request()->query($tabModeParams['change-orders'] ?? 'changeOrderMode', '')"
             :change-order-id="$selectedChangeOrderId"
             :key="'project-change-orders-tab-'.$project->id"
         />
@@ -196,272 +196,12 @@
     @endif
 
     @if ($activeTab === 'access' && in_array('access', $tabs, true))
-        <div class="space-y-4">
-            @if (auth()->user()?->hasPermission('project-access.grant'))
-                <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                    <div class="grid gap-4 xl:grid-cols-2">
-                        <div class="space-y-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
-                            <flux:heading size="sm">Grant User Access</flux:heading>
-                            <flux:field>
-                                <flux:label>Grant Access To User</flux:label>
-                                <flux:select wire:model.live="selectedAccessUserId">
-                                    <option value="">Select a user</option>
-                                    @foreach ($assignableUsers as $assignableUser)
-                                        <option value="{{ $assignableUser->id }}">{{ trim($assignableUser->first_name.' '.$assignableUser->last_name) }} ({{ $assignableUser->email }})</option>
-                                    @endforeach
-                                </flux:select>
-                                <flux:error name="selectedAccessUserId" />
-                            </flux:field>
-
-                            <div class="grid gap-2 sm:grid-cols-3">
-                                @foreach ($availableAccessPermissionOptions as $permissionKey => $permissionLabel)
-                                    <flux:field>
-                                        <flux:checkbox wire:model.live="selectedAccessPermissionKeys" value="{{ $permissionKey }}" :label="$permissionLabel" />
-                                    </flux:field>
-                                @endforeach
-                            </div>
-                            <flux:error name="selectedAccessPermissionKeys" />
-                            <flux:error name="selectedAccessPermissionKeys.*" />
-
-                            <flux:button wire:click="grantProjectAccess" variant="primary" class="w-full">Grant User Access</flux:button>
-                        </div>
-
-                        <div class="space-y-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
-                            <flux:heading size="sm">Grant Role Access</flux:heading>
-                            <flux:field>
-                                <flux:label>Grant Access To Role</flux:label>
-                                <flux:select wire:model.live="selectedAccessRoleId">
-                                    <option value="">Select a role</option>
-                                    @foreach ($assignableRoles as $assignableRole)
-                                        <option value="{{ $assignableRole->id }}">{{ $assignableRole->name }}</option>
-                                    @endforeach
-                                </flux:select>
-                                <flux:error name="selectedAccessRoleId" />
-                            </flux:field>
-
-                            <div class="grid gap-2 sm:grid-cols-3">
-                                @foreach ($availableAccessPermissionOptions as $permissionKey => $permissionLabel)
-                                    <flux:field>
-                                        <flux:checkbox wire:model.live="selectedAccessPermissionKeys" value="{{ $permissionKey }}" :label="$permissionLabel" />
-                                    </flux:field>
-                                @endforeach
-                            </div>
-
-                            <flux:button wire:click="grantProjectRoleAccess" variant="primary" class="w-full">Grant Role Access</flux:button>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                        <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">User</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Granted By</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Granted At</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                            @forelse ($accessAssignments as $assignment)
-                                <tr wire:key="project-access-assignment-{{ $assignment->id }}">
-                                    <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
-                                        {{ trim(($assignment->user?->first_name ?? '').' '.($assignment->user?->last_name ?? '')) ?: 'Unknown User' }}
-                                        @if ($assignment->user?->email)
-                                            <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $assignment->user->email }}</div>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
-                                        {{ trim(($assignment->grantedBy?->first_name ?? '').' '.($assignment->grantedBy?->last_name ?? '')) ?: 'System' }}
-                                    </td>
-                                    <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $assignment->created_at?->format('M j, Y g:i A') ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right align-top">
-                                        <div class="mb-2 flex flex-wrap justify-end gap-1">
-                                            @foreach (($assignment->permission_keys ?? []) as $permissionKey)
-                                                <span class="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $permissionKey }}</span>
-                                            @endforeach
-                                        </div>
-                                        @if (auth()->user()?->hasPermission('project-access.revoke'))
-                                            <flux:button size="sm" variant="ghost" wire:click="revokeProjectAccess('{{ $assignment->user_id }}')">Revoke</flux:button>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No explicit user access assignments yet.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                        <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Role</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Granted By</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Granted At</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                            @forelse ($roleAccessAssignments as $roleAssignment)
-                                <tr wire:key="project-role-access-assignment-{{ $roleAssignment->id }}">
-                                    <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $roleAssignment->role?->name ?? 'Unknown Role' }}</td>
-                                    <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ trim(($roleAssignment->grantedBy?->first_name ?? '').' '.($roleAssignment->grantedBy?->last_name ?? '')) ?: 'System' }}</td>
-                                    <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $roleAssignment->created_at?->format('M j, Y g:i A') ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right align-top">
-                                        <div class="mb-2 flex flex-wrap justify-end gap-1">
-                                            @foreach (($roleAssignment->permission_keys ?? []) as $permissionKey)
-                                                <span class="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $permissionKey }}</span>
-                                            @endforeach
-                                        </div>
-
-                                        @if (auth()->user()?->hasPermission('project-access.revoke'))
-                                            <flux:button size="sm" variant="ghost" wire:click="revokeProjectRoleAccess('{{ $roleAssignment->role_id }}')">Revoke</flux:button>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No explicit role access assignments yet.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        <livewire:projects::admin.projects.access-tab :project="$project" :key="'project-access-tab-'.$project->id" />
     @endif
     @if ($activeTab === 'time' && in_array('time', $tabs, true))
-        <div class="grid gap-4 md:grid-cols-4">
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total Hours</p>
-                <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ number_format($totalHours, 2) }}</p>
-            </div>
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Regular</p>
-                <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ number_format($regularHours, 2) }}</p>
-            </div>
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Overtime</p>
-                <p class="mt-2 text-2xl font-bold {{ $overtimeHours > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-900 dark:text-zinc-100' }}">{{ number_format($overtimeHours, 2) }}</p>
-            </div>
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Double Time</p>
-                <p class="mt-2 text-2xl font-bold {{ $doubleTimeHours > 0 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100' }}">{{ number_format($doubleTimeHours, 2) }}</p>
-            </div>
-        </div>
-
-        @if ($hoursByUser->isNotEmpty())
-            <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-                    <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Hours by Employee</p>
-                </div>
-                <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                    @foreach ($hoursByUser as $row)
-                        <div class="flex items-center justify-between px-4 py-3">
-                            <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $row->user?->name ?? 'Unknown' }}</span>
-                            <span class="text-sm tabular-nums text-zinc-600 dark:text-zinc-400">{{ number_format((float) $row->total_hours, 2) }}h</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
-        <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-                <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Recent Time Entries</p>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                    <thead>
-                        <tr class="bg-zinc-50 dark:bg-zinc-800/50">
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Date</th>
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Employee</th>
-                            <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Hours</th>
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Cost Code</th>
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
-                        @forelse ($recentTimeEntries as $entry)
-                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">{{ $entry->date?->format('M j, Y') ?? '—' }}</td>
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100">{{ $entry->user?->name ?? '—' }}</td>
-                                <td class="whitespace-nowrap px-4 py-3 text-right text-sm tabular-nums text-zinc-900 dark:text-zinc-100">{{ number_format((float) $entry->hours, 2) }}</td>
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">
-                                    @if ($entry->costCode)
-                                        <span class="font-mono">{{ $entry->costCode->code }}</span>
-                                        <span class="ml-1 text-xs">{{ $entry->costCode->name }}</span>
-                                    @else
-                                        —
-                                    @endif
-                                </td>
-                                <td class="max-w-xs truncate px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">{{ $entry->notes ?? '—' }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No time entries for this project.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <livewire:timecards::admin.projects.timecard-tab :project="$project" :key="'project-timecard-tab-'.$project->id" />
     @endif
 
     @if ($activeTab === 'financials' && in_array('financials', $tabs, true))
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Budget</p>
-                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {{ $financialSummary['budget'] !== null ? '$'.number_format($financialSummary['budget'], 2) : '—' }}
-                </p>
-            </div>
-
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total Invoiced</p>
-                <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    ${{ number_format($financialSummary['invoiced'], 2) }}
-                    <span class="ml-1 text-xs text-zinc-400 dark:text-zinc-500">({{ $financialSummary['invoice_count'] }} {{ Str::plural('invoice', $financialSummary['invoice_count']) }})</span>
-                </p>
-            </div>
-
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Remaining Budget</p>
-                <p class="mt-2 text-sm font-medium {{ $financialSummary['remaining'] !== null && $financialSummary['remaining'] < 0 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100' }}">
-                    {{ $financialSummary['remaining'] !== null ? '$'.number_format($financialSummary['remaining'], 2) : '—' }}
-                </p>
-            </div>
-
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Budget Used</p>
-                <p class="mt-2 text-sm font-medium {{ $financialSummary['variance_pct'] !== null && $financialSummary['variance_pct'] > 100 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100' }}">
-                    {{ $financialSummary['variance_pct'] !== null ? $financialSummary['variance_pct'].'%' : '—' }}
-                </p>
-            </div>
-        </div>
-
-        @if (in_array('time', $tabs, true))
-            <div class="grid gap-4 md:grid-cols-3">
-                <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total Hours Logged</p>
-                    <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ number_format($totalHours, 2) }}h</p>
-                </div>
-                <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Regular Hours</p>
-                    <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ number_format($regularHours, 2) }}h</p>
-                </div>
-                <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Overtime Hours</p>
-                    <p class="mt-2 text-sm font-medium {{ $overtimeHours > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-900 dark:text-zinc-100' }}">{{ number_format($overtimeHours, 2) }}h</p>
-                </div>
-            </div>
-        @endif
+        <livewire:projects::admin.projects.financials-tab :project="$project" :key="'project-financials-tab-'.$project->id" />
     @endif</div>

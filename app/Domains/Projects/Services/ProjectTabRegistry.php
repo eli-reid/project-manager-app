@@ -20,12 +20,12 @@ use Illuminate\Support\Facades\Schema;
 class ProjectTabRegistry
 {
     /**
-     * @var array<string, array{key:string,label:string,sort:int,mode_param:string|null,is_visible:callable(User, Project): bool}>
+     * @var array<string, array{key:string,label:string,sort:int,mode_param:string|null,detail_query_param:string|null,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
      */
     private array $registeredDefinitions = [];
 
     /**
-     * @return array<string, array{label:string,mode_param:string|null,sort:int,is_visible:callable(User, Project): bool}>
+     * @return array<string, array{label:string,mode_param:string|null,detail_query_param:string|null,sort:int,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
      */
     public function definitions(): array
     {
@@ -47,7 +47,9 @@ class ProjectTabRegistry
 
             $label = $definition['label'];
             $modeParam = $definition['mode_param'];
+            $detailQueryParam = $definition['detail_query_param'];
             $sortOrder = $definition['sort'];
+            $badgeCount = $definition['badge_count'];
             $isActive = true;
 
             if ($override instanceof ProjectTabDefinition) {
@@ -64,7 +66,9 @@ class ProjectTabRegistry
             $resolvedDefinitions[$tabKey] = [
                 'label' => $label,
                 'mode_param' => $modeParam,
+                'detail_query_param' => $detailQueryParam,
                 'sort' => $sortOrder,
+                'badge_count' => $badgeCount,
                 'is_visible' => $definition['is_visible'],
             ];
         }
@@ -82,7 +86,9 @@ class ProjectTabRegistry
             $resolvedDefinitions = ['overview' => [
                 'label' => $fallback['label'],
                 'mode_param' => $fallback['mode_param'],
+                'detail_query_param' => $fallback['detail_query_param'],
                 'sort' => $fallback['sort'],
+                'badge_count' => $fallback['badge_count'],
                 'is_visible' => $fallback['is_visible'],
             ]] + $resolvedDefinitions;
         }
@@ -91,7 +97,7 @@ class ProjectTabRegistry
     }
 
     /**
-     * @param  array<int, array{key:string,label?:string,sort?:int,mode_param?:string|null,is_visible?:callable(User, Project): bool}>  $definitions
+     * @param  array<int, array{key:string,label?:string,sort?:int,mode_param?:string|null,detail_query_param?:string|null,badge_count?:callable(User, Project): int|null,is_visible?:callable(User, Project): bool}>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {
@@ -104,6 +110,8 @@ class ProjectTabRegistry
             $label = (string) ($definition['label'] ?? str($key)->replace(['-', '_', '.'], ' ')->headline()->value());
             $sort = (int) ($definition['sort'] ?? 100);
             $modeParam = $definition['mode_param'] ?? null;
+            $detailQueryParam = $definition['detail_query_param'] ?? null;
+            $badgeCount = $definition['badge_count'] ?? null;
             $isVisible = $definition['is_visible'] ?? static fn (User $user, Project $project): bool => false;
 
             $this->registeredDefinitions[$key] = [
@@ -111,6 +119,8 @@ class ProjectTabRegistry
                 'label' => $label,
                 'sort' => $sort,
                 'mode_param' => is_string($modeParam) && $modeParam !== '' ? $modeParam : null,
+                'detail_query_param' => is_string($detailQueryParam) && $detailQueryParam !== '' ? $detailQueryParam : null,
+                'badge_count' => is_callable($badgeCount) ? $badgeCount : static fn (): ?int => null,
                 'is_visible' => $isVisible,
             ];
         }
@@ -127,7 +137,7 @@ class ProjectTabRegistry
     }
 
     /**
-     * @return array<int, array{key:string,label:string,mode_param:string|null,sort:int,is_hidden:bool}>
+     * @return array<int, array{key:string,label:string,mode_param:string|null,detail_query_param:string|null,sort:int,is_hidden:bool}>
      */
     public function tabItems(Project $project, ?User $user): array
     {
@@ -142,6 +152,7 @@ class ProjectTabRegistry
                 'key' => 'overview',
                 'label' => $overview['label'],
                 'mode_param' => $overview['mode_param'],
+                'detail_query_param' => $overview['detail_query_param'],
                 'sort' => $overview['sort'],
                 'is_hidden' => false,
             ]];
@@ -165,6 +176,7 @@ class ProjectTabRegistry
                     'key' => $tabKey,
                     'label' => $definition['label'],
                     'mode_param' => $definition['mode_param'],
+                    'detail_query_param' => $definition['detail_query_param'],
                     'sort' => $preference?->sort_order ?? $definition['sort'],
                     'is_hidden' => $tabKey === 'overview' ? false : (bool) ($preference?->is_hidden ?? false),
                 ];
@@ -180,7 +192,7 @@ class ProjectTabRegistry
     }
 
     /**
-     * @return array<int, array{key:string,label:string,mode_param:string|null,sort:int,is_hidden:bool}>
+     * @return array<int, array{key:string,label:string,mode_param:string|null,detail_query_param:string|null,sort:int,is_hidden:bool}>
      */
     public function visibleTabItems(Project $project, ?User $user): array
     {
@@ -191,7 +203,7 @@ class ProjectTabRegistry
     }
 
     /**
-     * @return array<int, array{key:string,label:string,mode_param:string|null,sort:int,is_hidden:bool}>
+     * @return array<int, array{key:string,label:string,mode_param:string|null,detail_query_param:string|null,sort:int,is_hidden:bool}>
      */
     public function hiddenTabItems(Project $project, ?User $user): array
     {
@@ -278,6 +290,54 @@ class ProjectTabRegistry
             : null;
     }
 
+    public function detailQueryParam(string $tab): ?string
+    {
+        $definition = $this->definitions()[$tab] ?? null;
+
+        if (! is_array($definition)) {
+            return null;
+        }
+
+        $detailQueryParam = $definition['detail_query_param'] ?? null;
+
+        return is_string($detailQueryParam) && $detailQueryParam !== ''
+            ? $detailQueryParam
+            : null;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function tabBadges(Project $project, ?User $user): array
+    {
+        if (! $user instanceof User) {
+            return [];
+        }
+
+        $badges = [];
+
+        foreach ($this->visibleTabs($project, $user) as $tabKey) {
+            $definition = $this->definitions()[$tabKey] ?? null;
+            if (! is_array($definition)) {
+                continue;
+            }
+
+            $resolver = $definition['badge_count'] ?? null;
+            if (! is_callable($resolver)) {
+                continue;
+            }
+
+            $count = $resolver($user, $project);
+            if (! is_int($count)) {
+                continue;
+            }
+
+            $badges[$tabKey] = $count;
+        }
+
+        return $badges;
+    }
+
     public function isCreateMode(string $tab, Request $request): bool
     {
         $modeQueryParam = $this->modeQueryParam($tab);
@@ -290,7 +350,7 @@ class ProjectTabRegistry
     }
 
     /**
-     * @return array<string, array{key:string,label:string,sort:int,mode_param:string|null,is_visible:callable(User, Project): bool}>
+     * @return array<string, array{key:string,label:string,sort:int,mode_param:string|null,detail_query_param:string|null,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
      */
     private function fallbackDefinitions(): array
     {
@@ -300,6 +360,8 @@ class ProjectTabRegistry
                 'label' => 'Overview',
                 'sort' => 10,
                 'mode_param' => null,
+                'detail_query_param' => null,
+                'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => true,
             ],
             'dailies' => [
@@ -307,6 +369,8 @@ class ProjectTabRegistry
                 'label' => 'Dailies',
                 'sort' => 20,
                 'mode_param' => null,
+                'detail_query_param' => 'dailyId',
+                'badge_count' => static fn (User $user, Project $project): ?int => $project->dailyReports()->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAll', DailyReport::class),
             ],
             'tasks' => [
@@ -314,6 +378,8 @@ class ProjectTabRegistry
                 'label' => 'Tasks',
                 'sort' => 30,
                 'mode_param' => null,
+                'detail_query_param' => null,
+                'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('tasks.view')
                     || $user->hasPermission('task-categories.view'),
             ],
@@ -322,6 +388,10 @@ class ProjectTabRegistry
                 'label' => 'Invoices',
                 'sort' => 40,
                 'mode_param' => 'invoiceMode',
+                'detail_query_param' => 'invoiceId',
+                'badge_count' => static fn (User $user, Project $project): ?int => Invoice::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Invoice::class),
             ],
             'stock' => [
@@ -329,6 +399,10 @@ class ProjectTabRegistry
                 'label' => 'Stock',
                 'sort' => 50,
                 'mode_param' => null,
+                'detail_query_param' => 'stockOrderId',
+                'badge_count' => static fn (User $user, Project $project): ?int => StockOrder::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', StockOrder::class),
             ],
             'submittals' => [
@@ -336,6 +410,10 @@ class ProjectTabRegistry
                 'label' => 'Submittals',
                 'sort' => 60,
                 'mode_param' => 'submittalMode',
+                'detail_query_param' => 'submittalId',
+                'badge_count' => static fn (User $user, Project $project): ?int => $user->can('viewAny', Submittal::class)
+                    ? Submittal::query()->where('project_id', $project->id)->count()
+                    : 0,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Submittal::class)
                     || $user->can('create', Submittal::class),
             ],
@@ -344,6 +422,10 @@ class ProjectTabRegistry
                 'label' => 'Change Orders',
                 'sort' => 70,
                 'mode_param' => 'changeOrderMode',
+                'detail_query_param' => 'changeOrderId',
+                'badge_count' => static fn (User $user, Project $project): ?int => ChangeOrder::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', ChangeOrder::class),
             ],
             'rfis' => [
@@ -351,6 +433,10 @@ class ProjectTabRegistry
                 'label' => 'RFIs',
                 'sort' => 80,
                 'mode_param' => 'rfiMode',
+                'detail_query_param' => 'rfiId',
+                'badge_count' => static fn (User $user, Project $project): ?int => RFI::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('rfis.view-any')
                     || $user->hasPermission('rfis.view')
                     || $user->hasPermission('rfis.create'),
@@ -360,6 +446,8 @@ class ProjectTabRegistry
                 'label' => 'Library',
                 'sort' => 90,
                 'mode_param' => null,
+                'detail_query_param' => null,
+                'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Document::class),
             ],
             'access' => [
@@ -367,6 +455,8 @@ class ProjectTabRegistry
                 'label' => 'Access',
                 'sort' => 100,
                 'mode_param' => null,
+                'detail_query_param' => null,
+                'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('project-access.view')
                     || $user->hasPermission('project-access.grant')
                     || $user->hasPermission('project-access.revoke')
@@ -377,6 +467,8 @@ class ProjectTabRegistry
                 'label' => 'Time',
                 'sort' => 110,
                 'mode_param' => null,
+                'detail_query_param' => null,
+                'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Timecard::class),
             ],
             'financials' => [
@@ -384,6 +476,8 @@ class ProjectTabRegistry
                 'label' => 'Financials',
                 'sort' => 120,
                 'mode_param' => null,
+                'detail_query_param' => null,
+                'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewFinancials', $project),
             ],
         ];

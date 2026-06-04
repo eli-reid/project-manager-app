@@ -71,6 +71,10 @@ class RFIsServiceProvider extends ServiceProvider
                 'label' => 'RFIs',
                 'sort' => 80,
                 'mode_param' => 'rfiMode',
+                'detail_query_param' => 'rfiId',
+                'badge_count' => static fn (User $user, Project $project): ?int => RFI::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('rfis.view-any')
                     || $user->hasPermission('rfis.view')
                     || $user->hasPermission('rfis.create'),

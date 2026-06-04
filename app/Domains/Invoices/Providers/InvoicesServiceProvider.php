@@ -97,6 +97,10 @@ class InvoicesServiceProvider extends ServiceProvider
                 'label' => 'Invoices',
                 'sort' => 40,
                 'mode_param' => 'invoiceMode',
+                'detail_query_param' => 'invoiceId',
+                'badge_count' => static fn (User $user, Project $project): ?int => Invoice::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Invoice::class),
             ],
         ]);

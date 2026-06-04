@@ -110,6 +110,10 @@ class StockServiceProvider extends ServiceProvider
                 'key' => 'stock',
                 'label' => 'Stock',
                 'sort' => 50,
+                'detail_query_param' => 'stockOrderId',
+                'badge_count' => static fn (User $user, Project $project): ?int => StockOrder::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', StockOrder::class),
             ],
         ]);

@@ -84,6 +84,10 @@ class SubmittalsServiceProvider extends ServiceProvider
                 'label' => 'Submittals',
                 'sort' => 60,
                 'mode_param' => 'submittalMode',
+                'detail_query_param' => 'submittalId',
+                'badge_count' => static fn (User $user, Project $project): ?int => $user->can('viewAny', Submittal::class)
+                    ? Submittal::query()->where('project_id', $project->id)->count()
+                    : 0,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Submittal::class)
                     || $user->can('create', Submittal::class),
             ],

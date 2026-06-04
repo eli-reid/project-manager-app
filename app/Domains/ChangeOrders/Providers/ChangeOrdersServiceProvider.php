@@ -84,6 +84,10 @@ class ChangeOrdersServiceProvider extends ServiceProvider
                 'label' => 'Change Orders',
                 'sort' => 70,
                 'mode_param' => 'changeOrderMode',
+                'detail_query_param' => 'changeOrderId',
+                'badge_count' => static fn (User $user, Project $project): ?int => ChangeOrder::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', ChangeOrder::class),
             ],
         ]);

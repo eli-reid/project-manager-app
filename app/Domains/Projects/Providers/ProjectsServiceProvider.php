@@ -9,6 +9,8 @@ use App\Core\Identity\Models\User;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Models\ProjectRoleAccess;
+use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
 use App\Domains\Projects\Policies\ProjectPolicy;
@@ -141,6 +143,11 @@ class ProjectsServiceProvider extends ServiceProvider
                 'key' => 'access',
                 'label' => 'Access',
                 'sort' => 100,
+                'badge_count' => static fn (User $user, Project $project): ?int => ProjectUserAccess::query()
+                    ->where('project_id', $project->id)
+                    ->count() + ProjectRoleAccess::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('project-access.view')
                     || $user->hasPermission('project-access.grant')
                     || $user->hasPermission('project-access.revoke')

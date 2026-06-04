@@ -121,6 +121,8 @@ class DailiesServiceProvider extends ServiceProvider
                 'key' => 'dailies',
                 'label' => 'Dailies',
                 'sort' => 20,
+                'detail_query_param' => 'dailyId',
+                'badge_count' => static fn (User $user, Project $project): ?int => $project->dailyReports()->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAll', DailyReport::class),
             ],
         ]);

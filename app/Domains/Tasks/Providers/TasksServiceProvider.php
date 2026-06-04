@@ -127,6 +127,9 @@ class TasksServiceProvider extends ServiceProvider
                 'key' => 'tasks',
                 'label' => 'Tasks',
                 'sort' => 30,
+                'badge_count' => static fn (User $user, Project $project): ?int => Task::query()
+                    ->where('project_id', $project->id)
+                    ->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('tasks.view')
                     || $user->hasPermission('task-categories.view'),
             ],
