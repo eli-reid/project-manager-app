@@ -7,9 +7,13 @@ use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\Projects\Contracts\ProjectTabPanel;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
 use App\Domains\Projects\Models\ProjectTabUserPreference;
+use App\Domains\Projects\Support\ProjectTabs\DailiesTabPanel;
+use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
+use App\Domains\RFIs\Models\RFI;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Timecards\Models\Timecard;
@@ -20,12 +24,12 @@ use Illuminate\Support\Facades\Schema;
 class ProjectTabRegistry
 {
     /**
-     * @var array<string, array{key:string,label:string,sort:int,mode_param:string|null,detail_query_param:string|null,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
+     * @var array<string, array{key:string,label:string,sort:int,mode_param:string|null,detail_query_param:string|null,panel:?ProjectTabPanel,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
      */
     private array $registeredDefinitions = [];
 
     /**
-     * @return array<string, array{label:string,mode_param:string|null,detail_query_param:string|null,sort:int,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
+     * @return array<string, array{label:string,mode_param:string|null,detail_query_param:string|null,panel:?ProjectTabPanel,sort:int,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
      */
     public function definitions(): array
     {
@@ -48,6 +52,7 @@ class ProjectTabRegistry
             $label = $definition['label'];
             $modeParam = $definition['mode_param'];
             $detailQueryParam = $definition['detail_query_param'];
+            $panel = $definition['panel'] ?? null;
             $sortOrder = $definition['sort'];
             $badgeCount = $definition['badge_count'];
             $isActive = true;
@@ -67,6 +72,7 @@ class ProjectTabRegistry
                 'label' => $label,
                 'mode_param' => $modeParam,
                 'detail_query_param' => $detailQueryParam,
+                'panel' => $panel,
                 'sort' => $sortOrder,
                 'badge_count' => $badgeCount,
                 'is_visible' => $definition['is_visible'],
@@ -87,6 +93,7 @@ class ProjectTabRegistry
                 'label' => $fallback['label'],
                 'mode_param' => $fallback['mode_param'],
                 'detail_query_param' => $fallback['detail_query_param'],
+                'panel' => $fallback['panel'],
                 'sort' => $fallback['sort'],
                 'badge_count' => $fallback['badge_count'],
                 'is_visible' => $fallback['is_visible'],
@@ -97,7 +104,7 @@ class ProjectTabRegistry
     }
 
     /**
-     * @param  array<int, array{key:string,label?:string,sort?:int,mode_param?:string|null,detail_query_param?:string|null,badge_count?:callable(User, Project): int|null,is_visible?:callable(User, Project): bool}>  $definitions
+     * @param  array<int, array{key:string,label?:string,sort?:int,mode_param?:string|null,detail_query_param?:string|null,panel?:ProjectTabPanel|class-string<ProjectTabPanel>|null,badge_count?:callable(User, Project): int|null,is_visible?:callable(User, Project): bool}>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {
@@ -111,8 +118,17 @@ class ProjectTabRegistry
             $sort = (int) ($definition['sort'] ?? 100);
             $modeParam = $definition['mode_param'] ?? null;
             $detailQueryParam = $definition['detail_query_param'] ?? null;
+            $panel = $definition['panel'] ?? null;
             $badgeCount = $definition['badge_count'] ?? null;
             $isVisible = $definition['is_visible'] ?? static fn (User $user, Project $project): bool => false;
+
+            if (is_string($panel) && class_exists($panel) && is_subclass_of($panel, ProjectTabPanel::class)) {
+                $panel = app($panel);
+            }
+
+            if (! $panel instanceof ProjectTabPanel) {
+                $panel = $this->defaultPanelFor($key);
+            }
 
             $this->registeredDefinitions[$key] = [
                 'key' => $key,
@@ -120,10 +136,51 @@ class ProjectTabRegistry
                 'sort' => $sort,
                 'mode_param' => is_string($modeParam) && $modeParam !== '' ? $modeParam : null,
                 'detail_query_param' => is_string($detailQueryParam) && $detailQueryParam !== '' ? $detailQueryParam : null,
+                'panel' => $panel,
                 'badge_count' => is_callable($badgeCount) ? $badgeCount : static fn (): ?int => null,
                 'is_visible' => $isVisible,
             ];
         }
+    }
+
+    /**
+     * @param  array<string, array{modeParam:string,mode:string,detailParam:?string,detailId:string,isCreateMode:bool}>  $tabContext
+     * @param  array<string, mixed>  $viewState
+     * @return array<int, array{tab:string,component:string,props:array<string, mixed>,key:string}>
+     */
+    public function tabPanels(Project $project, ?User $user, array $tabContext = [], array $viewState = []): array
+    {
+        $definitions = $this->definitions();
+
+        return collect($this->visibleTabItems($project, $user))
+            ->map(function (array $item) use ($definitions, $project, $tabContext, $viewState): ?array {
+                $tabKey = $item['key'];
+                $definition = $definitions[$tabKey] ?? null;
+
+                if (! is_array($definition)) {
+                    return null;
+                }
+
+                $panel = $definition['panel'] ?? null;
+                if (! $panel instanceof ProjectTabPanel) {
+                    return null;
+                }
+
+                $resolved = $panel->resolve($tabKey, $project, $tabContext, $viewState);
+                if (! is_array($resolved)) {
+                    return null;
+                }
+
+                return [
+                    'tab' => $tabKey,
+                    'component' => $resolved['component'],
+                    'props' => $resolved['props'],
+                    'key' => $resolved['key'],
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 
     /**
@@ -350,7 +407,7 @@ class ProjectTabRegistry
     }
 
     /**
-     * @return array<string, array{key:string,label:string,sort:int,mode_param:string|null,detail_query_param:string|null,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
+     * @return array<string, array{key:string,label:string,sort:int,mode_param:string|null,detail_query_param:string|null,panel:?ProjectTabPanel,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
      */
     private function fallbackDefinitions(): array
     {
@@ -361,6 +418,7 @@ class ProjectTabRegistry
                 'sort' => 10,
                 'mode_param' => null,
                 'detail_query_param' => null,
+                'panel' => null,
                 'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => true,
             ],
@@ -370,6 +428,7 @@ class ProjectTabRegistry
                 'sort' => 20,
                 'mode_param' => null,
                 'detail_query_param' => 'dailyId',
+                'panel' => $this->defaultPanelFor('dailies'),
                 'badge_count' => static fn (User $user, Project $project): ?int => $project->dailyReports()->count(),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAll', DailyReport::class),
             ],
@@ -379,6 +438,7 @@ class ProjectTabRegistry
                 'sort' => 30,
                 'mode_param' => null,
                 'detail_query_param' => null,
+                'panel' => $this->defaultPanelFor('tasks'),
                 'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('tasks.view')
                     || $user->hasPermission('task-categories.view'),
@@ -389,6 +449,7 @@ class ProjectTabRegistry
                 'sort' => 40,
                 'mode_param' => 'invoiceMode',
                 'detail_query_param' => 'invoiceId',
+                'panel' => $this->defaultPanelFor('invoices'),
                 'badge_count' => static fn (User $user, Project $project): ?int => Invoice::query()
                     ->where('project_id', $project->id)
                     ->count(),
@@ -400,6 +461,7 @@ class ProjectTabRegistry
                 'sort' => 50,
                 'mode_param' => null,
                 'detail_query_param' => 'stockOrderId',
+                'panel' => $this->defaultPanelFor('stock'),
                 'badge_count' => static fn (User $user, Project $project): ?int => StockOrder::query()
                     ->where('project_id', $project->id)
                     ->count(),
@@ -411,6 +473,7 @@ class ProjectTabRegistry
                 'sort' => 60,
                 'mode_param' => 'submittalMode',
                 'detail_query_param' => 'submittalId',
+                'panel' => $this->defaultPanelFor('submittals'),
                 'badge_count' => static fn (User $user, Project $project): ?int => $user->can('viewAny', Submittal::class)
                     ? Submittal::query()->where('project_id', $project->id)->count()
                     : 0,
@@ -423,6 +486,7 @@ class ProjectTabRegistry
                 'sort' => 70,
                 'mode_param' => 'changeOrderMode',
                 'detail_query_param' => 'changeOrderId',
+                'panel' => $this->defaultPanelFor('change-orders'),
                 'badge_count' => static fn (User $user, Project $project): ?int => ChangeOrder::query()
                     ->where('project_id', $project->id)
                     ->count(),
@@ -434,6 +498,7 @@ class ProjectTabRegistry
                 'sort' => 80,
                 'mode_param' => 'rfiMode',
                 'detail_query_param' => 'rfiId',
+                'panel' => $this->defaultPanelFor('rfis'),
                 'badge_count' => static fn (User $user, Project $project): ?int => RFI::query()
                     ->where('project_id', $project->id)
                     ->count(),
@@ -447,6 +512,7 @@ class ProjectTabRegistry
                 'sort' => 90,
                 'mode_param' => null,
                 'detail_query_param' => null,
+                'panel' => $this->defaultPanelFor('documents'),
                 'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Document::class),
             ],
@@ -456,6 +522,7 @@ class ProjectTabRegistry
                 'sort' => 100,
                 'mode_param' => null,
                 'detail_query_param' => null,
+                'panel' => $this->defaultPanelFor('access'),
                 'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('project-access.view')
                     || $user->hasPermission('project-access.grant')
@@ -468,6 +535,7 @@ class ProjectTabRegistry
                 'sort' => 110,
                 'mode_param' => null,
                 'detail_query_param' => null,
+                'panel' => $this->defaultPanelFor('time'),
                 'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Timecard::class),
             ],
@@ -477,10 +545,62 @@ class ProjectTabRegistry
                 'sort' => 120,
                 'mode_param' => null,
                 'detail_query_param' => null,
+                'panel' => $this->defaultPanelFor('financials'),
                 'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewFinancials', $project),
             ],
         ];
+    }
+
+    private function defaultPanelFor(string $tabKey): ?ProjectTabPanel
+    {
+        return match ($tabKey) {
+            'dailies' => new DailiesTabPanel,
+            'tasks' => new LivewireComponentTabPanel(
+                component: 'tasks::admin.projects.task-hierarchy-widget',
+                baseProps: [],
+                keyPattern: 'project-task-widget-{projectId}-{taskWidgetVersion}',
+            ),
+            'invoices' => new LivewireComponentTabPanel(
+                component: 'invoices::admin.invoices.index',
+                baseProps: ['embedded' => true],
+            ),
+            'stock' => new LivewireComponentTabPanel(
+                component: 'stock::admin.stock-orders.index',
+                baseProps: ['embedded' => true],
+            ),
+            'submittals' => new LivewireComponentTabPanel(
+                component: 'submittals::admin.submittals.index',
+                baseProps: ['embedded' => true],
+                modeProp: 'mode',
+                detailProp: 'submittalId',
+            ),
+            'change-orders' => new LivewireComponentTabPanel(
+                component: 'change-orders::admin.change-orders.index',
+                baseProps: ['embedded' => true],
+                modeProp: 'mode',
+                detailProp: 'changeOrderId',
+            ),
+            'rfis' => new LivewireComponentTabPanel(
+                component: 'App\\Domains\\RFIs\\Livewire\\Admin\\RFIs\\Index',
+                baseProps: ['embedded' => true],
+                createModeProp: 'isCreateMode',
+                appendCreateSuffix: true,
+            ),
+            'documents' => new LivewireComponentTabPanel(
+                component: 'documents::admin.projects.documents-tab',
+            ),
+            'access' => new LivewireComponentTabPanel(
+                component: 'projects::admin.projects.access-tab',
+            ),
+            'time' => new LivewireComponentTabPanel(
+                component: 'timecards::admin.projects.timecard-tab',
+            ),
+            'financials' => new LivewireComponentTabPanel(
+                component: 'projects::admin.projects.financials-tab',
+            ),
+            default => null,
+        };
     }
 
     /**

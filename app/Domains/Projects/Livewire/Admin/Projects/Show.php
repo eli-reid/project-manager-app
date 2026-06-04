@@ -155,12 +155,20 @@ class Show extends Component
             })
             ->all();
 
+        $tabPanels = $this->projectTabRegistry->tabPanels(
+            $this->project,
+            $user instanceof User ? $user : null,
+            $tabContext,
+            ['taskWidgetVersion' => $this->taskWidgetVersion],
+        );
+
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $tabs,
             'visibleTabItems' => $visibleTabItems,
             'hiddenTabItems' => $hiddenTabItems,
             'tabBadges' => $tabBadges,
             'tabContext' => $tabContext,
+            'tabPanels' => $tabPanels,
             'projectAddress' => $this->project->loadMissing('address')->address,
         ])->title('Project Details');
     }

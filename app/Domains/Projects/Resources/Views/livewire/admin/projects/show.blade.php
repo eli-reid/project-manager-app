@@ -125,90 +125,9 @@
         </div>
     @endif
 
-    @if ($activeTab === 'dailies' && in_array('dailies', $tabs, true))
-        @php($selectedDailyId = $tabContext['dailies']['detailId'] ?? '')
-        @if ($selectedDailyId !== '')
-            <livewire:dailies::admin.dailies.show
-                :daily-report="$selectedDailyId"
-                :embedded="true"
-                :return-to="route('admin.projects.show', ['project' => $project, 'tab' => 'dailies'])"
-                :key="'project-dailies-show-'.$project->id.'-'.$selectedDailyId"
-            />
-        @else
-            <livewire:dailies::admin.dailies.index
-                :project="$project"
-                :embedded="true"
-                :key="'project-dailies-tab-'.$project->id"
-            />
+    @foreach ($tabPanels as $tabPanel)
+        @if ($activeTab === $tabPanel['tab'] && in_array($tabPanel['tab'], $tabs, true))
+            @livewire($tabPanel['component'], $tabPanel['props'], key($tabPanel['key']))
         @endif
-    @endif
-
-    @if ($activeTab === 'tasks' && in_array('tasks', $tabs, true))
-        <livewire:tasks::admin.projects.task-hierarchy-widget :project="$project" :key="'project-task-widget-'.$project->id.'-'.$taskWidgetVersion" />
-    @endif
-
-    @if ($activeTab === 'invoices' && in_array('invoices', $tabs, true))
-        <livewire:invoices::admin.invoices.index
-            :project="$project"
-            :embedded="true"
-            :key="'project-invoices-tab-'.$project->id"
-        />
-    @endif
-
-    @if ($activeTab === 'stock' && in_array('stock', $tabs, true))
-        <livewire:stock::admin.stock-orders.index
-            :project="$project"
-            :embedded="true"
-            :key="'project-stock-tab-'.$project->id"
-        />
-    @endif
-
-    @if ($activeTab === 'submittals' && in_array('submittals', $tabs, true))
-        @php($submittalsContext = $tabContext['submittals'] ?? ['mode' => '', 'detailId' => ''])
-        <livewire:submittals::admin.submittals.index
-            :project="$project"
-            :embedded="true"
-            :mode="$submittalsContext['mode']"
-            :submittal-id="$submittalsContext['detailId']"
-            :key="'project-submittals-tab-'.$project->id"
-        />
-    @endif
-
-    @if ($activeTab === 'change-orders' && in_array('change-orders', $tabs, true))
-        @php($changeOrdersContext = $tabContext['change-orders'] ?? ['mode' => '', 'detailId' => ''])
-        <livewire:change-orders::admin.change-orders.index
-            :project="$project"
-            :embedded="true"
-            :mode="$changeOrdersContext['mode']"
-            :change-order-id="$changeOrdersContext['detailId']"
-            :key="'project-change-orders-tab-'.$project->id"
-        />
-    @endif
-
-    @if ($activeTab === 'rfis' && in_array('rfis', $tabs, true))
-        @php($rfisContext = $tabContext['rfis'] ?? ['isCreateMode' => false])
-        @livewire(
-            \App\Domains\RFIs\Livewire\Admin\RFIs\Index::class,
-            [
-                'project' => $project,
-                'embedded' => true,
-                'isCreateMode' => (bool) $rfisContext['isCreateMode'],
-            ],
-            key('project-rfis-tab-'.$project->id.((bool) $rfisContext['isCreateMode'] ? '-create' : ''))
-        )
-    @endif
-
-    @if ($activeTab === 'documents' && in_array('documents', $tabs, true))
-        <livewire:documents::admin.projects.documents-tab :project="$project" :key="'project-documents-tab-'.$project->id" />
-    @endif
-
-    @if ($activeTab === 'access' && in_array('access', $tabs, true))
-        <livewire:projects::admin.projects.access-tab :project="$project" :key="'project-access-tab-'.$project->id" />
-    @endif
-    @if ($activeTab === 'time' && in_array('time', $tabs, true))
-        <livewire:timecards::admin.projects.timecard-tab :project="$project" :key="'project-timecard-tab-'.$project->id" />
-    @endif
-
-    @if ($activeTab === 'financials' && in_array('financials', $tabs, true))
-        <livewire:projects::admin.projects.financials-tab :project="$project" :key="'project-financials-tab-'.$project->id" />
-    @endif</div>
+    @endforeach
+</div>
