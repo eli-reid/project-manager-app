@@ -19,6 +19,25 @@ it('defines project tab mode query params for routed create modes', function ():
         ->and($registry->modeQueryParam('rfis'))->toBe('rfiMode');
 });
 
+it('includes the expected provider-registered project view tabs', function (): void {
+    $registry = app(ProjectTabRegistry::class);
+
+    expect(array_keys($registry->definitions()))->toEqual([
+        'overview',
+        'dailies',
+        'tasks',
+        'invoices',
+        'stock',
+        'submittals',
+        'change-orders',
+        'rfis',
+        'documents',
+        'access',
+        'time',
+        'financials',
+    ]);
+});
+
 it('returns visible tabs for the current project and user permissions', function (): void {
     $project = Project::factory()->create();
     $registry = app(ProjectTabRegistry::class);

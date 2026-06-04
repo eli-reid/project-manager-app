@@ -139,19 +139,17 @@
     @endif
 
     @if ($activeTab === 'invoices' && in_array('invoices', $tabs, true))
-        <livewire:invoices::admin.projects.project-tab
+        <livewire:invoices::admin.invoices.index
             :project="$project"
-            :invoices="$projectInvoices"
-            :invoice-count="$invoiceCount"
+            :embedded="true"
             :key="'project-invoices-tab-'.$project->id"
         />
     @endif
 
     @if ($activeTab === 'stock' && in_array('stock', $tabs, true))
-        <livewire:stock::admin.projects.project-tab
+        <livewire:stock::admin.stock-orders.index
             :project="$project"
-            :stock-orders="$projectStockOrders"
-            :stock-order-count="$stockOrderCount"
+            :embedded="true"
             :key="'project-stock-tab-'.$project->id"
         />
     @endif

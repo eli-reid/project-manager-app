@@ -7,6 +7,7 @@ use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Addresses\Models\Address;
+use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
@@ -15,6 +16,9 @@ use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Livewire\Admin\Projects\Index as AdminProjectsIndex;
 use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectsIndex;
 use App\Domains\Projects\Models\Project;
+use App\Domains\RFIs\Models\RFI;
+use App\Domains\Stock\Models\StockOrder;
+use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
@@ -755,6 +759,136 @@ it('shows employee names on project time tab recent entries', function (): void 
         ->assertSee('Recent Time Entries')
         ->assertSee('Taylor Foreman')
         ->assertDontSee('Unknown');
+});
+
+it('shows stock tab on project view with project scoped stock orders', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'stock-orders.view-any',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Stock Orders',
+        'project_number' => 'PRJ-STK-1',
+    ]);
+
+    StockOrder::factory()->forProject($project)->create([
+        'po_number' => 'PO-PROJECT-1',
+    ]);
+
+    StockOrder::factory()->forProject(Project::factory()->create())->create([
+        'po_number' => 'PO-OTHER-1',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Stock');
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=stock')
+        ->assertSuccessful()
+        ->assertSee('PO-PROJECT-1')
+        ->assertDontSee('PO-OTHER-1');
+});
+
+it('shows submittals tab on project view with project scoped submittals', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'submittals.view-any',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Submittals',
+        'project_number' => 'PRJ-SUB-1',
+    ]);
+
+    Submittal::factory()->create([
+        'project_id' => $project->id,
+        'vendor' => 'Project Vendor Inc',
+    ]);
+
+    Submittal::factory()->create([
+        'project_id' => Project::factory()->create()->id,
+        'vendor' => 'Other Vendor LLC',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Submittals');
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=submittals')
+        ->assertSuccessful()
+        ->assertSee('Project Vendor Inc')
+        ->assertDontSee('Other Vendor LLC');
+});
+
+it('shows change orders tab on project view with project scoped change orders', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'change-orders.view',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Change Orders',
+        'project_number' => 'PRJ-CO-1',
+    ]);
+
+    ChangeOrder::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Project Change Order',
+    ]);
+
+    ChangeOrder::factory()->create([
+        'project_id' => Project::factory()->create()->id,
+        'title' => 'Other Change Order',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Change Orders');
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=change-orders')
+        ->assertSuccessful()
+        ->assertSee('Project Change Order')
+        ->assertDontSee('Other Change Order');
+});
+
+it('shows rfis tab on project view with project scoped rfis', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'rfis.view-any',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With RFIs',
+        'project_number' => 'PRJ-RFI-1',
+    ]);
+
+    RFI::factory()->submitted()->create([
+        'project_id' => $project->id,
+        'subject' => 'Project RFI Subject',
+    ]);
+
+    RFI::factory()->submitted()->create([
+        'project_id' => Project::factory()->create()->id,
+        'subject' => 'Other RFI Subject',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('RFIs');
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=rfis')
+        ->assertSuccessful()
+        ->assertSee('Project RFI Subject')
+        ->assertDontSee('Other RFI Subject');
 });
 
 it('auto generates project numbers with configured prefix when enabled', function (): void {
