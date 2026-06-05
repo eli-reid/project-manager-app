@@ -180,6 +180,12 @@ it('builds project tab urls from registered metadata', function (): void {
         ]
     );
 
+    app()->forgetInstance(ProjectTabRegistry::class);
+    app()->forgetInstance(ProjectTabLinkBuilder::class);
+
+    $linkBuilder = app(ProjectTabLinkBuilder::class);
+    $submittalsBaseUrl = $linkBuilder->to($project, 'submittals', absolute: false);
+
     expect($linkBuilder->to($project, 'submittals', mode: 'create', detailId: 'sub-456', absolute: false))
         ->toContain($submittalsBaseUrl)
         ->toContain('submittalAction=create')

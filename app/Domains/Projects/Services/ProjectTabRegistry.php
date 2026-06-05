@@ -29,16 +29,39 @@ class ProjectTabRegistry
     private array $registeredDefinitions = [];
 
     /**
+     * @var array<string, array{label:string,mode_param:string|null,detail_query_param:string|null,panel:?ProjectTabPanel,sort:int,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>|null
+     */
+    private ?array $resolvedDefinitions = null;
+
+    /**
+     * @var array<string, Collection<string, ProjectTabUserPreference>>
+     */
+    private array $preferencesCache = [];
+
+    /**
+     * @var array<string, array<int, array{key:string,label:string,mode_param:string|null,detail_query_param:string|null,sort:int,is_hidden:bool}>>
+     */
+    private array $tabItemsCache = [];
+
+    private ?bool $hasProjectTabDefinitionsTable = null;
+
+    private ?bool $hasProjectTabUserPreferencesTable = null;
+
+    /**
      * @return array<string, array{label:string,mode_param:string|null,detail_query_param:string|null,panel:?ProjectTabPanel,sort:int,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
      */
     public function definitions(): array
     {
+        if (is_array($this->resolvedDefinitions)) {
+            return $this->resolvedDefinitions;
+        }
+
         $definitions = $this->registeredDefinitions;
         if ($definitions === []) {
             $definitions = $this->fallbackDefinitions();
         }
 
-        $overrides = Schema::hasTable('project_tab_definitions')
+        $overrides = $this->projectTabDefinitionsTableExists()
             ? ProjectTabDefinition::query()
                 ->whereIn('key', array_keys($definitions))
                 ->get()
@@ -100,7 +123,9 @@ class ProjectTabRegistry
             ]] + $resolvedDefinitions;
         }
 
-        return $resolvedDefinitions;
+        $this->resolvedDefinitions = $resolvedDefinitions;
+
+        return $this->resolvedDefinitions;
     }
 
     /**
@@ -141,6 +166,9 @@ class ProjectTabRegistry
                 'is_visible' => $isVisible,
             ];
         }
+
+        $this->resolvedDefinitions = null;
+        $this->tabItemsCache = [];
     }
 
     /**
@@ -198,6 +226,11 @@ class ProjectTabRegistry
      */
     public function tabItems(Project $project, ?User $user): array
     {
+        $cacheKey = $this->tabItemsCacheKey($project, $user);
+        if (array_key_exists($cacheKey, $this->tabItemsCache)) {
+            return $this->tabItemsCache[$cacheKey];
+        }
+
         if (! $user instanceof User) {
             $overview = $this->definitions()['overview'] ?? null;
 
@@ -205,7 +238,7 @@ class ProjectTabRegistry
                 return [];
             }
 
-            return [[
+            $this->tabItemsCache[$cacheKey] = [[
                 'key' => 'overview',
                 'label' => $overview['label'],
                 'mode_param' => $overview['mode_param'],
@@ -213,6 +246,8 @@ class ProjectTabRegistry
                 'sort' => $overview['sort'],
                 'is_hidden' => false,
             ]];
+
+            return $this->tabItemsCache[$cacheKey];
         }
 
         $accessibleDefinitions = collect($this->definitions())
@@ -245,7 +280,9 @@ class ProjectTabRegistry
             ->values()
             ->all();
 
-        return $items;
+        $this->tabItemsCache[$cacheKey] = $items;
+
+        return $this->tabItemsCache[$cacheKey];
     }
 
     /**
@@ -609,15 +646,24 @@ class ProjectTabRegistry
      */
     private function preferencesByTab(User $user, array $tabKeys): Collection
     {
-        if ($tabKeys === [] || ! Schema::hasTable('project_tab_user_preferences')) {
+        if ($tabKeys === [] || ! $this->projectTabUserPreferencesTableExists()) {
             return collect();
         }
 
-        return ProjectTabUserPreference::query()
+        sort($tabKeys);
+        $cacheKey = (string) $user->id.'|'.implode(',', $tabKeys);
+
+        if (array_key_exists($cacheKey, $this->preferencesCache)) {
+            return $this->preferencesCache[$cacheKey];
+        }
+
+        $this->preferencesCache[$cacheKey] = ProjectTabUserPreference::query()
             ->where('user_id', $user->id)
             ->whereIn('tab_key', $tabKeys)
             ->get()
             ->keyBy('tab_key');
+
+        return $this->preferencesCache[$cacheKey];
     }
 
     /**
@@ -626,7 +672,7 @@ class ProjectTabRegistry
      */
     private function persistUserPreferences(User $user, array $visibleKeys, array $hiddenKeys): void
     {
-        if (! Schema::hasTable('project_tab_user_preferences')) {
+        if (! $this->projectTabUserPreferencesTableExists()) {
             return;
         }
 
@@ -665,5 +711,40 @@ class ProjectTabRegistry
             ['user_id', 'tab_key'],
             ['sort_order', 'is_hidden', 'updated_at'],
         );
+
+        $this->flushRuntimeCaches();
+    }
+
+    private function projectTabDefinitionsTableExists(): bool
+    {
+        if (is_bool($this->hasProjectTabDefinitionsTable)) {
+            return $this->hasProjectTabDefinitionsTable;
+        }
+
+        $this->hasProjectTabDefinitionsTable = Schema::hasTable('project_tab_definitions');
+
+        return $this->hasProjectTabDefinitionsTable;
+    }
+
+    private function projectTabUserPreferencesTableExists(): bool
+    {
+        if (is_bool($this->hasProjectTabUserPreferencesTable)) {
+            return $this->hasProjectTabUserPreferencesTable;
+        }
+
+        $this->hasProjectTabUserPreferencesTable = Schema::hasTable('project_tab_user_preferences');
+
+        return $this->hasProjectTabUserPreferencesTable;
+    }
+
+    private function tabItemsCacheKey(Project $project, ?User $user): string
+    {
+        return (string) $project->id.'|'.($user instanceof User ? (string) $user->id : 'guest');
+    }
+
+    private function flushRuntimeCaches(): void
+    {
+        $this->preferencesCache = [];
+        $this->tabItemsCache = [];
     }
 }
