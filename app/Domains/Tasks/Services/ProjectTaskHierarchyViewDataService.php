@@ -17,17 +17,22 @@ class ProjectTaskHierarchyViewDataService
      */
     public function forProject(Project $project): array
     {
-        /** @var EloquentCollection<int, Task> $allTasks */
-        $allTasks = Task::query()
+        $taskMetrics = Task::query()
             ->where('project_id', $project->id)
-            ->get(['id', 'status', 'due_date', 'parent_task_id', 'task_category_id']);
+            ->selectRaw('COUNT(*) as task_count')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed_task_count', [Task::STATUS_COMPLETED])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as in_progress_task_count', [Task::STATUS_IN_PROGRESS])
+            ->selectRaw(
+                'SUM(CASE WHEN status != ? AND due_date IS NOT NULL AND due_date < ? THEN 1 ELSE 0 END) as overdue_task_count',
+                [Task::STATUS_COMPLETED, now()]
+            )
+            ->first();
 
         /** @var EloquentCollection<int, Task> $rootTasks */
         $rootTasks = Task::query()
             ->where('project_id', $project->id)
             ->whereNull('parent_task_id')
             ->with([
-                'category:id,name,parent_id',
                 'assignedTo:id,first_name,last_name',
                 'subTasks' => fn ($query) => $query
                     ->with(['assignedTo:id,first_name,last_name'])
@@ -58,14 +63,16 @@ class ProjectTaskHierarchyViewDataService
         $canViewTaskTemplates = $user?->hasPermission('task-templates.view') ?? false;
         $canCreateTaskTemplate = $user?->hasPermission('task-templates.create') ?? false;
 
+        $taskCount = (int) ($taskMetrics?->task_count ?? 0);
+        $completedTaskCount = (int) ($taskMetrics?->completed_task_count ?? 0);
+        $inProgressTaskCount = (int) ($taskMetrics?->in_progress_task_count ?? 0);
+        $overdueTaskCount = (int) ($taskMetrics?->overdue_task_count ?? 0);
+
         return [
-            'taskCount' => $allTasks->count(),
-            'completedTaskCount' => $allTasks->where('status', Task::STATUS_COMPLETED)->count(),
-            'inProgressTaskCount' => $allTasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
-            'overdueTaskCount' => $allTasks
-                ->where('status', '!=', Task::STATUS_COMPLETED)
-                ->filter(fn (Task $task) => $task->due_date !== null && $task->due_date->isPast())
-                ->count(),
+            'taskCount' => $taskCount,
+            'completedTaskCount' => $completedTaskCount,
+            'inProgressTaskCount' => $inProgressTaskCount,
+            'overdueTaskCount' => $overdueTaskCount,
             'categories' => $categories,
             'collapsedCategoryIds' => $this->defaultCollapsedCategoryIds($categories),
             'copyCategoryOptions' => $this->categoryOptions($categories),
