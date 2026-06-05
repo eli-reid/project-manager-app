@@ -52,7 +52,7 @@
 
         @auth
             <div class="hidden lg:block">
-                <livewire:auth.user.desktop-user-menu />
+                <livewire:auth.user.user-menu variant="desktop" />
             </div>
         @else
             <div class="hidden px-4 pb-4 lg:block">
@@ -68,6 +68,6 @@
 
         <flux:spacer />
 
-        <livewire:auth.user.mobile-user-menu />
+        <livewire:auth.user.user-menu variant="mobile" />
     </flux:header>
 </div>
