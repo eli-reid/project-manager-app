@@ -74,6 +74,7 @@ class ProjectTaskHierarchyViewDataService
             'inProgressTaskCount' => $inProgressTaskCount,
             'overdueTaskCount' => $overdueTaskCount,
             'categories' => $categories,
+            'flatCategories' => $this->flatCategories($categories),
             'collapsedCategoryIds' => $this->defaultCollapsedCategoryIds($categories),
             'copyCategoryOptions' => $this->categoryOptions($categories),
             'assignableUsers' => User::query()
@@ -103,6 +104,37 @@ class ProjectTaskHierarchyViewDataService
             'hasTaskHierarchy' => $categories->isNotEmpty() || $tasksByCategory->get('', collect())->isNotEmpty(),
             'uncategorizedTasks' => $tasksByCategory->get('', collect()),
         ];
+    }
+
+    /**
+     * @param  Collection<int, mixed>  $categories
+     * @return array<int, array{category: mixed, depth: int}>
+     */
+    protected function flatCategories(Collection $categories): array
+    {
+        $rows = [];
+
+        foreach ($categories as $category) {
+            $this->appendFlatCategoryRow($rows, $category, 0);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param  array<int, array{category: mixed, depth: int}>  $rows
+     */
+    protected function appendFlatCategoryRow(array &$rows, mixed $category, int $depth): void
+    {
+        $rows[] = [
+            'category' => $category,
+            'depth' => $depth,
+        ];
+
+        $children = $category->childrenRecursive ?? collect();
+        foreach ($children as $child) {
+            $this->appendFlatCategoryRow($rows, $child, $depth + 1);
+        }
     }
 
     /**
