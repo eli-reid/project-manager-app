@@ -10,7 +10,7 @@
             <div class="w-60">
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search documents..." class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
             </div>
-            @can('manageProjectDocuments', [App\Domains\Documents\Models\Document::class, $project])
+            @if ($canManageProjectDocuments)
                 <button
                     type="button"
                     x-data
@@ -19,7 +19,7 @@
                 >
                     {{ $editingDocumentId ? 'Editing Document' : '+ Upload' }}
                 </button>
-            @endcan
+            @endif
         </div>
     </div>
 
@@ -43,7 +43,7 @@
 
 
     {{-- Upload / Edit panel (collapsible) --}}
-    @can('manageProjectDocuments', [App\Domains\Documents\Models\Document::class, $project])
+    @if ($canManageProjectDocuments)
         <div
             x-data="{
                 open: @js($editingDocumentId !== null),
@@ -146,7 +146,7 @@
                 </div>
             </div>
         </div>
-    @endcan
+    @endif
 
     {{-- Documents grouped by folder --}}
     @php
@@ -203,13 +203,13 @@
                                                 <flux:button size="xs" variant="ghost" icon-trailing="ellipsis-horizontal"></flux:button>
                                                 <flux:menu>
                                                     <flux:menu.item :href="route('documents.download', $document)" icon="arrow-down-tray">Download</flux:menu.item>
-                                                    @can('update', $document)
+                                                    @if ($canUpdateProjectDocuments)
                                                         <flux:menu.item as="button" type="button" wire:click="edit('{{ $document->id }}')" icon="pencil-square">Edit</flux:menu.item>
-                                                    @endcan
-                                                    @can('delete', $document)
+                                                    @endif
+                                                    @if ($canDeleteProjectDocuments)
                                                         <flux:menu.separator />
                                                         <flux:menu.item as="button" type="button" wire:click="delete('{{ $document->id }}')" wire:confirm="Delete this document?" icon="trash" variant="danger">Delete</flux:menu.item>
-                                                    @endcan
+                                                    @endif
                                                 </flux:menu>
                                             </flux:dropdown>
                                         </td>

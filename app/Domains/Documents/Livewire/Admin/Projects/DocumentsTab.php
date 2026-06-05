@@ -35,6 +35,12 @@ class DocumentsTab extends Component
 
     public int $maxKilobytes = 0;
 
+    public bool $canManageProjectDocuments = false;
+
+    public bool $canUpdateProjectDocuments = false;
+
+    public bool $canDeleteProjectDocuments = false;
+
     /**
      * @var array<int, string>
      */
@@ -46,6 +52,7 @@ class DocumentsTab extends Component
         $this->authorize('view', $project);
         $this->authorize('viewAny', Document::class);
 
+        $this->syncCapabilities();
         $this->syncUploadConstraints();
     }
 
@@ -179,6 +186,29 @@ class DocumentsTab extends Component
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function syncCapabilities(): void
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            $this->canManageProjectDocuments = false;
+            $this->canUpdateProjectDocuments = false;
+            $this->canDeleteProjectDocuments = false;
+
+            return;
+        }
+
+        $this->canManageProjectDocuments = $user->hasPermission('documents.manage-project')
+            && $user->hasPermission('documents.view');
+
+        $this->canUpdateProjectDocuments = $this->canManageProjectDocuments
+            && $user->hasPermission('documents.update');
+
+        $this->canDeleteProjectDocuments = $user->isAdmin()
+            || ($this->canManageProjectDocuments && $user->hasPermission('documents.delete'));
     }
 
     private function maxFileSizeLabel(): string
