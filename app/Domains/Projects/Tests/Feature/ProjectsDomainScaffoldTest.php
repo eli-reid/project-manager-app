@@ -16,6 +16,7 @@ use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Livewire\Admin\Projects\Index as AdminProjectsIndex;
 use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectsIndex;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use App\Domains\RFIs\Models\RFI;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Submittals\Models\Submittal;
@@ -656,7 +657,7 @@ it('shows the livewire tabbed project page and supports tab query state', functi
         ->assertDontSee('setTab(\'templates\')', false);
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=tasks')
+        ->get(projectTabUrl($project, 'tasks'))
         ->assertSuccessful()
         ->assertSee('Project Work Breakdown')
         ->assertSee('Add Task')
@@ -688,7 +689,7 @@ it('shows invoices tab on project view when user can view invoices', function ()
         ->assertSee('Invoices');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=invoices')
+        ->get(projectTabUrl($project, 'invoices'))
         ->assertSuccessful()
         ->assertSee('Project Invoices')
         ->assertSee('Vendor On Project')
@@ -722,7 +723,7 @@ it('shows dailies tab on project view when user can view all dailies', function 
         ->assertSee('Dailies');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=dailies')
+        ->get(projectTabUrl($project, 'dailies'))
         ->assertSuccessful()
         ->assertSee('Project Dailies')
         ->assertSee('Submitted')
@@ -754,7 +755,7 @@ it('shows employee names on project time tab recent entries', function (): void 
     ]);
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=time')
+        ->get(projectTabUrl($project, 'time'))
         ->assertSuccessful()
         ->assertSee('Recent Time Entries')
         ->assertSee('Taylor Foreman')
@@ -786,7 +787,7 @@ it('shows stock tab on project view with project scoped stock orders', function 
         ->assertSee('Stock');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=stock')
+        ->get(projectTabUrl($project, 'stock'))
         ->assertSuccessful()
         ->assertSee('PO-PROJECT-1')
         ->assertDontSee('PO-OTHER-1');
@@ -819,7 +820,7 @@ it('shows submittals tab on project view with project scoped submittals', functi
         ->assertSee('Submittals');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=submittals')
+        ->get(projectTabUrl($project, 'submittals'))
         ->assertSuccessful()
         ->assertSee('Project Vendor Inc')
         ->assertDontSee('Other Vendor LLC');
@@ -852,7 +853,7 @@ it('shows change orders tab on project view with project scoped change orders', 
         ->assertSee('Change Orders');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=change-orders')
+        ->get(projectTabUrl($project, 'change-orders'))
         ->assertSuccessful()
         ->assertSee('Project Change Order')
         ->assertDontSee('Other Change Order');
@@ -885,7 +886,7 @@ it('shows rfis tab on project view with project scoped rfis', function (): void 
         ->assertSee('RFIs');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=rfis')
+        ->get(projectTabUrl($project, 'rfis'))
         ->assertSuccessful()
         ->assertSee('Project RFI Subject')
         ->assertDontSee('Other RFI Subject');
@@ -1560,4 +1561,9 @@ function userWithProjectDomainPermissions(array $permissions): User
     $user->roles()->sync([$role->id]);
 
     return $user->fresh();
+}
+
+function projectTabUrl(Project $project, string $tab): string
+{
+    return app(ProjectTabLinkBuilder::class)->to($project, $tab);
 }

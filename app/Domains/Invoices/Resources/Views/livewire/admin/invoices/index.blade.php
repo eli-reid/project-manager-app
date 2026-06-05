@@ -10,7 +10,7 @@
 
             <div class="flex items-center gap-2">
                 @can('create', \App\Domains\Invoices\Models\Invoice::class)
-                    <a href="{{ route('admin.projects.show', ['project' => $embeddedProject, 'tab' => 'invoices', 'invoiceMode' => 'create']) }}" wire:navigate class="inline-flex items-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                    <a href="{{ app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'invoices', mode: 'create') }}" wire:navigate class="inline-flex items-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
                         Create Invoice
                     </a>
                 @endcan

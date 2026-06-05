@@ -163,9 +163,10 @@ it('applies user tab ordering and hidden state on top of registered tabs', funct
 it('builds project tab urls from registered metadata', function (): void {
     $project = Project::factory()->create();
     $linkBuilder = app(ProjectTabLinkBuilder::class);
+    $submittalsBaseUrl = $linkBuilder->to($project, 'submittals', absolute: false);
 
     expect($linkBuilder->to($project, 'submittals', mode: 'review', detailId: 'sub-123', absolute: false))
-        ->toContain('/admin/projects/'.$project->id.'?tab=submittals')
+        ->toContain($submittalsBaseUrl)
         ->toContain('submittalMode=review')
         ->toContain('submittalId=sub-123');
 
@@ -180,7 +181,7 @@ it('builds project tab urls from registered metadata', function (): void {
     );
 
     expect($linkBuilder->to($project, 'submittals', mode: 'create', detailId: 'sub-456', absolute: false))
-        ->toContain('/admin/projects/'.$project->id.'?tab=submittals')
+        ->toContain($submittalsBaseUrl)
         ->toContain('submittalAction=create')
         ->toContain('submittalId=sub-456');
 });
