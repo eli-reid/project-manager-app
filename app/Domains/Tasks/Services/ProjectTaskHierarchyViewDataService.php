@@ -43,7 +43,20 @@ class ProjectTaskHierarchyViewDataService
 
         /** @var Collection<int, mixed> $categories */
         $categories = app(TaskTreeService::class)->getCachedCategoryTree($project->id);
-        $canViewTaskTemplates = Auth::user()?->hasPermission('task-templates.view') ?? false;
+        $user = Auth::user();
+
+        $canCreateTask = $user?->hasPermission('tasks.create') ?? false;
+        $canUpdateTask = $user?->hasPermission('tasks.edit') ?? false;
+        $canDeleteTask = $user?->hasPermission('tasks.delete') ?? false;
+        $canUpdateTaskStatus = $canUpdateTask || ($user?->hasPermission('tasks.edit-status') ?? false);
+        $canUpdateTaskPriority = $canUpdateTask || ($user?->hasPermission('tasks.edit-priority') ?? false);
+
+        $canCreateTaskCategory = $user?->hasPermission('task-categories.create') ?? false;
+        $canUpdateTaskCategory = $user?->hasPermission('task-categories.edit') ?? false;
+        $canDeleteTaskCategory = $user?->hasPermission('task-categories.delete') ?? false;
+
+        $canViewTaskTemplates = $user?->hasPermission('task-templates.view') ?? false;
+        $canCreateTaskTemplate = $user?->hasPermission('task-templates.create') ?? false;
 
         return [
             'taskCount' => $allTasks->count(),
@@ -62,7 +75,16 @@ class ProjectTaskHierarchyViewDataService
                 ->get(['id', 'first_name', 'last_name']),
             'tasksByCategory' => $tasksByCategory,
             'categorySummaries' => $this->categorySummaries($categories, $tasksByCategory),
+            'canCreateTask' => $canCreateTask,
+            'canUpdateTask' => $canUpdateTask,
+            'canDeleteTask' => $canDeleteTask,
+            'canUpdateTaskStatus' => $canUpdateTaskStatus,
+            'canUpdateTaskPriority' => $canUpdateTaskPriority,
+            'canCreateTaskCategory' => $canCreateTaskCategory,
+            'canUpdateTaskCategory' => $canUpdateTaskCategory,
+            'canDeleteTaskCategory' => $canDeleteTaskCategory,
             'canViewTaskTemplates' => $canViewTaskTemplates,
+            'canCreateTaskTemplate' => $canCreateTaskTemplate,
             'templates' => $canViewTaskTemplates
                 ? TaskTemplate::query()
                     ->where('is_active', true)

@@ -74,25 +74,25 @@
             </button>
 
             <div x-show="open" x-cloak class="fixed z-30 w-56 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
-                @can('create', \App\Domains\Tasks\Models\Task::class)
+                @if ($canCreateTask)
                     <button type="button" @click="closeMenu()" wire:click="startInlineTaskForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Task</button>
-                @endcan
-                @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
+                @endif
+                @if ($canCreateTaskCategory)
                     <button type="button" @click="closeMenu()" wire:click="startInlineCategoryForm" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Quick Add Category</button>
-                @endcan
-                @can('create', \App\Domains\Tasks\Models\Task::class)
+                @endif
+                @if ($canCreateTask)
                     <div class="my-1 border-t border-zinc-200 dark:border-zinc-700"></div>
                     <a href="{{ route('admin.tasks.create', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Add Task</a>
-                @endcan
-                @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
+                @endif
+                @if ($canCreateTaskCategory)
                     <a href="{{ route('admin.task-categories.create', ['project_id' => $project->id]) }}" wire:navigate class="block px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Add Category</a>
-                @endcan
-                @can('create', \App\Domains\Tasks\Models\TaskCategory::class)
+                @endif
+                @if ($canCreateTaskCategory)
                     <button type="button" @click="closeMenu(); showCopyCategoryModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category</button>
-                @endcan
-                @can('create', \App\Domains\Tasks\Models\Task::class)
+                @endif
+                @if ($canCreateTask)
                     <button type="button" @click="closeMenu(); showCopyModal = true" class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Category Tasks</button>
-                @endcan
+                @endif
             </div>
         </div>
     </div>
@@ -428,13 +428,13 @@
                             @contextmenu.prevent.stop="openContextMenu($event, {
                                 type: 'task',
                                 id: '{{ $task->id }}',
-                                canUpdate: @js(auth()->user()?->can('update', $task)),
-                                canDelete: @js(auth()->user()?->can('delete', $task)),
-                                canCreateTask: @js(auth()->user()?->can('create', \App\Domains\Tasks\Models\Task::class)),
+                                canUpdate: @js($canUpdateTask),
+                                canDelete: @js($canDeleteTask),
+                                canCreateTask: @js($canCreateTask),
                             })"
                         >
                             <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200">
-                                @if ($editingTaskTitle === $task->id && auth()->user()?->can('update', $task))
+                                @if ($editingTaskTitle === $task->id && $canUpdateTask)
                                     <form wire:submit="saveTaskTitle" class="flex items-center gap-1">
                                         <input
                                             type="text"
@@ -447,32 +447,32 @@
                                         <button type="button" wire:click="cancelEditTaskTitle" class="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Cancel</button>
                                     </form>
                                 @else
-                                    <span @if(auth()->user()?->can('update', $task)) @dblclick="$wire.startEditTaskTitle('{{ $task->id }}')" title="Double-click to rename" @endif>{{ $task->title }}</span>
+                                    <span @if($canUpdateTask) @dblclick="$wire.startEditTaskTitle('{{ $task->id }}')" title="Double-click to rename" @endif>{{ $task->title }}</span>
                                 @endif
                             </td>
                             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">Task</td>
                             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">
-                                @if ($editingTaskStatus === $task->id && auth()->user()?->can('updateStatus', $task))
+                                @if ($editingTaskStatus === $task->id && $canUpdateTaskStatus)
                                     <select wire:model.live="editingTaskStatusValue" wire:change="saveTaskStatus" class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                                         @foreach (Task::statuses() as $status)
                                             <option value="{{ $status }}">{{ str($status)->replace('_', ' ')->headline() }}</option>
                                         @endforeach
                                     </select>
                                 @else
-                                    <span class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded px-1" @if(auth()->user()?->can('updateStatus', $task)) wire:click="startEditTaskStatus('{{ $task->id }}')" @endif>
+                                    <span class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded px-1" @if($canUpdateTaskStatus) wire:click="startEditTaskStatus('{{ $task->id }}')" @endif>
                                         {{ str($task->status)->replace('_', ' ')->headline() }}
                                     </span>
                                 @endif
                             </td>
                             <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">
-                                @if ($editingTaskPriority === $task->id && auth()->user()?->can('updatePriority', $task))
+                                @if ($editingTaskPriority === $task->id && $canUpdateTaskPriority)
                                     <select wire:model.live="editingTaskPriorityValue" wire:change="saveTaskPriority" class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                                         @foreach (Task::priorities() as $priority)
                                             <option value="{{ $priority }}">{{ ucfirst($priority) }}</option>
                                         @endforeach
                                     </select>
                                 @else
-                                    <span class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded px-1" @if(auth()->user()?->can('updatePriority', $task)) wire:click="startEditTaskPriority('{{ $task->id }}')" @endif>
+                                    <span class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded px-1" @if($canUpdateTaskPriority) wire:click="startEditTaskPriority('{{ $task->id }}')" @endif>
                                         {{ ucfirst($task->priority) }}
                                     </span>
                                 @endif
@@ -488,16 +488,16 @@
                                         </svg>
                                     </button>
                                     <div x-show="open" x-cloak class="fixed z-30 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
-                                        @can('update', $task)
+                                        @if ($canUpdateTask)
                                             <a href="{{ route('admin.tasks.edit', $task) }}" wire:navigate class="block px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit Task</a>
                                             <button type="button" @click="open = false" wire:click="startEditTaskTitle('{{ $task->id }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Rename Task</button>
-                                        @endcan
-                                        @can('create', \App\Domains\Tasks\Models\Task::class)
+                                        @endif
+                                        @if ($canCreateTask)
                                             <button type="button" @click="open = false" wire:click="copyTaskFrom('{{ $task->id }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Task</button>
-                                        @endcan
-                                        @can('delete', $task)
+                                        @endif
+                                        @if ($canDeleteTask)
                                             <button type="button" @click="open = false" wire:click="deleteTask('{{ $task->id }}')" wire:confirm="Delete this task?" class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30">Delete Task</button>
-                                        @endcan
+                                        @endif
                                     </div>
                                 </div>
                             </td>
@@ -636,9 +636,9 @@
         <div class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/60 p-4 dark:border-zinc-700 dark:bg-zinc-800/40">
             <div class="flex items-center justify-between gap-3">
                 <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Task Templates</h3>
-                @can('viewAny', \App\Domains\Tasks\Models\TaskTemplate::class)
+                @if ($canViewTaskTemplates)
                     <a href="{{ route('admin.task-templates.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Manage Templates</a>
-                @endcan
+                @endif
             </div>
 
             <ul class="space-y-2">
