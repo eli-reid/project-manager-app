@@ -9,6 +9,8 @@ use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyMetrics;
+use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyTemplates;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
@@ -62,6 +64,8 @@ class TasksServiceProvider extends ServiceProvider
     private function registerUIComponents(): void
     {
         Livewire::addNamespace('tasks', classNamespace: 'App\Domains\Tasks\Livewire');
+        Livewire::component('tasks.admin.projects.task-hierarchy-metrics', TaskHierarchyMetrics::class);
+        Livewire::component('tasks.admin.projects.task-hierarchy-templates', TaskHierarchyTemplates::class);
     }
 
     private function registerRoutes(): void

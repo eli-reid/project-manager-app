@@ -67,14 +67,46 @@ class ProjectTaskHierarchyViewDataService
         $completedTaskCount = (int) ($taskMetrics?->completed_task_count ?? 0);
         $inProgressTaskCount = (int) ($taskMetrics?->in_progress_task_count ?? 0);
         $overdueTaskCount = (int) ($taskMetrics?->overdue_task_count ?? 0);
+        $templates = $canViewTaskTemplates
+            ? TaskTemplate::query()
+                ->where('is_active', true)
+                ->with(['category:id,name'])
+                ->latest()
+                ->limit(10)
+                ->get()
+            : collect();
+
+        $categorySummaries = $this->categorySummaries($categories, $tasksByCategory);
 
         return [
             'taskCount' => $taskCount,
             'completedTaskCount' => $completedTaskCount,
             'inProgressTaskCount' => $inProgressTaskCount,
             'overdueTaskCount' => $overdueTaskCount,
+            'metricCards' => [
+                [
+                    'label' => 'Total',
+                    'value' => (string) $taskCount,
+                    'valueClass' => 'text-zinc-900 dark:text-zinc-100',
+                ],
+                [
+                    'label' => 'In Progress',
+                    'value' => (string) $inProgressTaskCount,
+                    'valueClass' => 'text-amber-600 dark:text-amber-400',
+                ],
+                [
+                    'label' => 'Completed',
+                    'value' => (string) $completedTaskCount,
+                    'valueClass' => 'text-emerald-600 dark:text-emerald-400',
+                ],
+                [
+                    'label' => 'Overdue',
+                    'value' => (string) $overdueTaskCount,
+                    'valueClass' => 'text-rose-600 dark:text-rose-400',
+                ],
+            ],
             'categories' => $categories,
-            'flatCategories' => $this->flatCategories($categories),
+            'flatCategories' => $this->flatCategories($categories, $tasksByCategory, $categorySummaries),
             'collapsedCategoryIds' => $this->defaultCollapsedCategoryIds($categories),
             'copyCategoryOptions' => $this->categoryOptions($categories),
             'assignableUsers' => User::query()
@@ -82,7 +114,7 @@ class ProjectTaskHierarchyViewDataService
                 ->orderBy('last_name')
                 ->get(['id', 'first_name', 'last_name']),
             'tasksByCategory' => $tasksByCategory,
-            'categorySummaries' => $this->categorySummaries($categories, $tasksByCategory),
+            'categorySummaries' => $categorySummaries,
             'canCreateTask' => $canCreateTask,
             'canUpdateTask' => $canUpdateTask,
             'canDeleteTask' => $canDeleteTask,
@@ -93,48 +125,161 @@ class ProjectTaskHierarchyViewDataService
             'canDeleteTaskCategory' => $canDeleteTaskCategory,
             'canViewTaskTemplates' => $canViewTaskTemplates,
             'canCreateTaskTemplate' => $canCreateTaskTemplate,
-            'templates' => $canViewTaskTemplates
-                ? TaskTemplate::query()
-                    ->where('is_active', true)
-                    ->with(['category:id,name'])
-                    ->latest()
-                    ->limit(10)
-                    ->get()
-                : collect(),
+            'templates' => $templates,
+            'templateItems' => $templates
+                ->map(fn (TaskTemplate $template): array => [
+                    'id' => (string) $template->id,
+                    'name' => $template->name,
+                    'priorityLabel' => ucfirst($template->priority),
+                ])
+                ->values()
+                ->all(),
+            'taskTemplateManageUrl' => route('admin.task-templates.index'),
             'hasTaskHierarchy' => $categories->isNotEmpty() || $tasksByCategory->get('', collect())->isNotEmpty(),
             'uncategorizedTasks' => $tasksByCategory->get('', collect()),
+            'uncategorizedTaskRows' => $this->taskRows(
+                $tasksByCategory->get('', collect()),
+                null,
+                0,
+                null,
+                'uncategorized-task-row',
+                'Task',
+                '',
+                true,
+                true,
+                false,
+            ),
         ];
     }
 
     /**
      * @param  Collection<int, mixed>  $categories
-     * @return array<int, array{category: mixed, depth: int}>
+     * @param  Collection<string, EloquentCollection<int, Task>>  $tasksByCategory
+     * @param  array<string, array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}>  $categorySummaries
+     * @return array<int, array{category: mixed, depth: int, categoryId: string, summary: array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}, categoryIndent: int, progressWidth: string, taskRows: array<int, array<string, mixed>>}>
      */
-    protected function flatCategories(Collection $categories): array
+    protected function flatCategories(Collection $categories, Collection $tasksByCategory, array $categorySummaries): array
     {
         $rows = [];
 
         foreach ($categories as $category) {
-            $this->appendFlatCategoryRow($rows, $category, 0);
+            $this->appendFlatCategoryRow($rows, $category, 0, $tasksByCategory, $categorySummaries);
         }
 
         return $rows;
     }
 
     /**
-     * @param  array<int, array{category: mixed, depth: int}>  $rows
+     * @param  array<int, array{category: mixed, depth: int, categoryId: string, summary: array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}, categoryIndent: int, progressWidth: string, taskRows: array<int, array<string, mixed>>}>  $rows
+     * @param  Collection<string, EloquentCollection<int, Task>>  $tasksByCategory
+     * @param  array<string, array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}>  $categorySummaries
      */
-    protected function appendFlatCategoryRow(array &$rows, mixed $category, int $depth): void
+    protected function appendFlatCategoryRow(array &$rows, mixed $category, int $depth, Collection $tasksByCategory, array $categorySummaries): void
     {
+        $categoryId = (string) $category->id;
+        $summary = $categorySummaries[$categoryId] ?? [
+            'taskCount' => 0,
+            'completedTaskCount' => 0,
+            'progressPercent' => 0,
+            'ancestorVisibilityCondition' => 'true',
+            'childrenVisibilityCondition' => "!isCollapsed('{$categoryId}')",
+        ];
+        $taskIndent = (($depth + 1) * 18) + 20;
+        $subTaskIndent = (($depth + 2) * 18) + 28;
+
         $rows[] = [
             'category' => $category,
             'depth' => $depth,
+            'categoryId' => $categoryId,
+            'summary' => $summary,
+            'categoryIndent' => ($depth * 18) + 12,
+            'progressWidth' => $summary['progressPercent'].'%',
+            'taskRows' => $this->taskRows(
+                $tasksByCategory->get($categoryId, collect()),
+                $summary['childrenVisibilityCondition'],
+                $taskIndent,
+                $subTaskIndent,
+            ),
         ];
 
         $children = $category->childrenRecursive ?? collect();
         foreach ($children as $child) {
-            $this->appendFlatCategoryRow($rows, $child, $depth + 1);
+            $this->appendFlatCategoryRow($rows, $child, $depth + 1, $tasksByCategory, $categorySummaries);
         }
+    }
+
+    /**
+     * @param  Collection<int, Task>|EloquentCollection<int, Task>  $tasks
+     * @return array<int, array<string, mixed>>
+     */
+    protected function taskRows(
+        Collection|EloquentCollection $tasks,
+        ?string $visibilityCondition,
+        ?int $indent,
+        ?int $subTaskIndent,
+        string $keyPrefix = 'task-row',
+        string $typeLabel = 'Task',
+        string $titlePrefix = '',
+        bool $supportsInlineStatusEditing = true,
+        bool $supportsInlinePriorityEditing = true,
+        bool $includeSubTasks = true,
+    ): array {
+        return $tasks
+            ->map(function (Task $task) use ($visibilityCondition, $indent, $subTaskIndent, $keyPrefix, $typeLabel, $titlePrefix, $supportsInlineStatusEditing, $supportsInlinePriorityEditing, $includeSubTasks): array {
+                return [
+                    'task' => $task,
+                    'taskId' => (string) $task->id,
+                    'visibilityCondition' => $visibilityCondition,
+                    'indent' => $indent,
+                    'keyPrefix' => $keyPrefix,
+                    'typeLabel' => $typeLabel,
+                    'titlePrefix' => $titlePrefix,
+                    'displayTitle' => $titlePrefix.$task->title,
+                    'statusLabel' => $this->taskStatusLabel($task),
+                    'priorityLabel' => $this->taskPriorityLabel($task),
+                    'assignedLabel' => $this->assignedName($task),
+                    'assignedName' => $this->assignedName($task),
+                    'supportsInlineStatusEditing' => $supportsInlineStatusEditing,
+                    'supportsInlinePriorityEditing' => $supportsInlinePriorityEditing,
+                    'subTaskRows' => $includeSubTasks && $subTaskIndent !== null
+                        ? $this->taskRows(
+                            $task->subTasks,
+                            $visibilityCondition,
+                            $subTaskIndent,
+                            null,
+                            'subtask-row',
+                            'Subtask',
+                            '-> ',
+                            false,
+                            false,
+                            false,
+                        )
+                        : [],
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    protected function taskStatusLabel(Task $task): string
+    {
+        return str($task->status)->replace('_', ' ')->headline()->value();
+    }
+
+    protected function taskPriorityLabel(Task $task): string
+    {
+        return ucfirst($task->priority);
+    }
+
+    protected function assignedName(Task $task): string
+    {
+        if (! $task->assignedTo) {
+            return '—';
+        }
+
+        $fullName = trim($task->assignedTo->first_name.' '.$task->assignedTo->last_name);
+
+        return $fullName !== '' ? $fullName : '—';
     }
 
     /**
