@@ -6,6 +6,7 @@ use App\Domains\Dailies\Livewire\Admin\Dailies\Index as DailiesIndex;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Show as DailiesShow;
 use App\Domains\Projects\Contracts\ProjectTabPanel;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 
 class DailiesTabPanel implements ProjectTabPanel
 {
@@ -24,7 +25,7 @@ class DailiesTabPanel implements ProjectTabPanel
                 'props' => [
                     'dailyReport' => $dailyId,
                     'embedded' => true,
-                    'returnTo' => route('admin.projects.show', ['project' => $project, 'tab' => $tabKey]),
+                    'returnTo' => app(ProjectTabLinkBuilder::class)->to($project, $tabKey),
                 ],
                 'key' => 'project-dailies-show-'.$project->id.'-'.$dailyId,
             ];

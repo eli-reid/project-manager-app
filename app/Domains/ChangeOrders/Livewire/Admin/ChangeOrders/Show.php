@@ -5,6 +5,7 @@ namespace App\Domains\ChangeOrders\Livewire\Admin\ChangeOrders;
 use App\Core\Identity\Models\User;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\ChangeOrders\Services\ChangeOrderLifecycleService;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -104,10 +105,7 @@ class Show extends Component
         $backUrl = $this->returnTo;
 
         if ($backUrl === '' && $this->embedded) {
-            $backUrl = route('admin.projects.show', [
-                'project' => $this->changeOrder->project_id,
-                'tab' => 'change-orders',
-            ]);
+            $backUrl = app(ProjectTabLinkBuilder::class)->to((string) $this->changeOrder->project_id, 'change-orders');
         }
 
         return view('change-orders::livewire.admin.change-orders.show', [

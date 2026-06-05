@@ -104,7 +104,7 @@
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ trim(($submittal->submittedBy?->first_name ?? '').' '.($submittal->submittedBy?->last_name ?? '')) ?: '—' }}</td>
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $submittal->statusLabel() }}</td>
                             <td class="px-4 py-3 text-right text-sm">
-                                <a href="{{ $embeddedProject ? route('admin.projects.show', ['project' => $embeddedProject, 'tab' => 'submittals', 'submittalMode' => 'review', 'submittalId' => $submittal->id]) : route('admin.submittals.show', $submittal) }}" wire:navigate class="font-medium text-zinc-700 hover:underline dark:text-zinc-200">Review</a>
+                                <a href="{{ $embeddedProject ? app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'submittals', mode: 'review', detailId: (string) $submittal->id) : route('admin.submittals.show', $submittal) }}" wire:navigate class="font-medium text-zinc-700 hover:underline dark:text-zinc-200">Review</a>
                             </td>
                         </tr>
                     @empty

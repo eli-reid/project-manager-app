@@ -59,7 +59,7 @@
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ ucfirst($changeOrder->status) }}</td>
                             <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-200">${{ number_format((float) $changeOrder->total_amount, 2) }}</td>
                             <td class="px-4 py-3 text-right">
-                                <a href="{{ $embeddedProject ? route('admin.projects.show', ['project' => $embeddedProject, 'tab' => 'change-orders', 'changeOrderMode' => 'review', 'changeOrderId' => $changeOrder->id]) : route('admin.change-orders.show', $changeOrder) }}" wire:navigate class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Review</a>
+                                <a href="{{ $embeddedProject ? app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'change-orders', mode: 'review', detailId: (string) $changeOrder->id) : route('admin.change-orders.show', $changeOrder) }}" wire:navigate class="rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Review</a>
                             </td>
                         </tr>
                     @empty

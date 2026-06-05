@@ -4,6 +4,7 @@ namespace App\Domains\Dailies\Livewire\Admin\Dailies;
 
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Services\DailyReportLifecycleService;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -84,10 +85,7 @@ class Show extends Component
         $backUrl = $this->returnTo;
 
         if ($backUrl === '' && $this->embedded) {
-            $backUrl = route('admin.projects.show', [
-                'project' => $this->dailyReport->project_id,
-                'tab' => 'dailies',
-            ]);
+            $backUrl = app(ProjectTabLinkBuilder::class)->to((string) $this->dailyReport->project_id, 'dailies');
         }
 
         return view('dailies::livewire.admin.dailies.show', [

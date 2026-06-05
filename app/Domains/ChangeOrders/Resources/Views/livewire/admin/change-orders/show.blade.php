@@ -76,7 +76,7 @@
                 <button wire:click="cancel" class="rounded-md bg-zinc-700 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-600">Cancel</button>
             @endcan
             @can('update', $changeOrder)
-                <a href="{{ $embedded ? route('admin.projects.show', ['project' => $changeOrder->project_id, 'tab' => 'change-orders', 'changeOrderMode' => 'create', 'changeOrderId' => $changeOrder->id]) : route('admin.change-orders.edit', $changeOrder) }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
+                <a href="{{ $embedded ? app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to((string) $changeOrder->project_id, 'change-orders', mode: 'create', detailId: (string) $changeOrder->id) : route('admin.change-orders.edit', $changeOrder) }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit</a>
             @endcan
         </div>
     </div>

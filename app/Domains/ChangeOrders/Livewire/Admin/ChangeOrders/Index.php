@@ -4,6 +4,7 @@ namespace App\Domains\ChangeOrders\Livewire\Admin\ChangeOrders;
 
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -48,7 +49,7 @@ class Index extends Component
         $isReviewMode = $this->embedded && $this->mode === 'review' && $this->changeOrderId !== '';
 
         $projectChangeOrdersUrl = $this->embedded && $this->project instanceof Project
-            ? route('admin.projects.show', ['project' => $this->project, 'tab' => 'change-orders'])
+            ? app(ProjectTabLinkBuilder::class)->to($this->project, 'change-orders')
             : route('admin.change-orders.index');
 
         $reviewChangeOrder = null;
@@ -82,7 +83,7 @@ class Index extends Component
             'editChangeOrder' => $editChangeOrder,
             'projectChangeOrdersUrl' => $projectChangeOrdersUrl,
             'changeOrderCreateUrl' => $this->embedded && $this->project instanceof Project
-                ? route('admin.projects.show', ['project' => $this->project, 'tab' => 'change-orders', 'changeOrderMode' => 'create'])
+                ? app(ProjectTabLinkBuilder::class)->to($this->project, 'change-orders', mode: 'create')
                 : route('admin.change-orders.create'),
             'changeOrderCount' => $this->embedded && $this->project instanceof Project
                 ? ChangeOrder::query()->where('project_id', (string) $this->project->id)->count()

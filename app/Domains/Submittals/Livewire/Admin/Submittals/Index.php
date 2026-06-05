@@ -3,6 +3,7 @@
 namespace App\Domains\Submittals\Livewire\Admin\Submittals;
 
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use App\Domains\Submittals\Models\Submittal;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
@@ -121,7 +122,7 @@ class Index extends Component
         $isReviewMode = $this->embedded && $this->mode === 'review' && $this->submittalId !== '';
 
         $projectSubmittalsUrl = $this->embedded && $this->project instanceof Project
-            ? route('admin.projects.show', ['project' => $this->project, 'tab' => 'submittals'])
+            ? app(ProjectTabLinkBuilder::class)->to($this->project, 'submittals')
             : route('admin.submittals.index');
 
         $reviewSubmittal = null;
@@ -143,7 +144,7 @@ class Index extends Component
             'reviewSubmittal' => $reviewSubmittal,
             'projectSubmittalsUrl' => $projectSubmittalsUrl,
             'submittalCreateUrl' => $this->embedded && $this->project instanceof Project
-                ? route('admin.projects.show', ['project' => $this->project, 'tab' => 'submittals', 'submittalMode' => 'create'])
+                ? app(ProjectTabLinkBuilder::class)->to($this->project, 'submittals', mode: 'create')
                 : route('admin.submittals.index'),
             'submittalCount' => $this->embedded && $this->project instanceof Project
                 ? Submittal::query()->where('project_id', (string) $this->project->id)->count()

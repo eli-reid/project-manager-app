@@ -110,7 +110,7 @@
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ $embeddedProject ? route('admin.projects.show', ['project' => $embeddedProject, 'tab' => 'dailies', 'dailyId' => $report->id]) : route('admin.dailies.show', $report) }}" wire:navigate class="rounded px-2 py-1 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                                    <a href="{{ $embeddedProject ? app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'dailies', detailId: (string) $report->id) : route('admin.dailies.show', $report) }}" wire:navigate class="rounded px-2 py-1 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
                                         {{ $report->status === \App\Domains\Dailies\Models\DailyReport::STATUS_SUBMITTED ? __('Review') : __('View') }}
                                     </a>
                                     @can('update', $report)

@@ -11,7 +11,7 @@
 
         <div class="flex items-center gap-2">
             @if ($embeddedProject && auth()->user()?->can('create', \App\Domains\RFIs\Models\RFI::class) && ! $isCreateMode)
-                <a href="{{ route('admin.projects.show', ['project' => $embeddedProject, 'tab' => 'rfis', 'rfiMode' => 'create']) }}" wire:navigate class="rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">+ New RFI</a>
+                <a href="{{ app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'rfis', mode: 'create') }}" wire:navigate class="rounded-md bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">+ New RFI</a>
             @endif
             <select
                 wire:model.live="status"

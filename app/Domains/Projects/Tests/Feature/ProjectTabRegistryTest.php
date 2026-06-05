@@ -7,6 +7,7 @@ use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
 use App\Domains\Projects\Models\ProjectTabUserPreference;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 
 it('defines project tab mode query params for routed create modes', function (): void {
@@ -157,6 +158,31 @@ it('applies user tab ordering and hidden state on top of registered tabs', funct
 
     expect($registry->visibleTabs($project, $user))->toBe(['overview', 'time', 'tasks'])
         ->and(collect($registry->hiddenTabItems($project, $user))->pluck('key')->all())->toBe(['invoices']);
+});
+
+it('builds project tab urls from registered metadata', function (): void {
+    $project = Project::factory()->create();
+    $linkBuilder = app(ProjectTabLinkBuilder::class);
+
+    expect($linkBuilder->to($project, 'submittals', mode: 'review', detailId: 'sub-123', absolute: false))
+        ->toContain('/admin/projects/'.$project->id.'?tab=submittals')
+        ->toContain('submittalMode=review')
+        ->toContain('submittalId=sub-123');
+
+    ProjectTabDefinition::query()->updateOrCreate(
+        ['key' => 'submittals'],
+        [
+            'label' => 'Submittals',
+            'mode_query_param' => 'submittalAction',
+            'sort_order' => 60,
+            'is_active' => true,
+        ]
+    );
+
+    expect($linkBuilder->to($project, 'submittals', mode: 'create', detailId: 'sub-456', absolute: false))
+        ->toContain('/admin/projects/'.$project->id.'?tab=submittals')
+        ->toContain('submittalAction=create')
+        ->toContain('submittalId=sub-456');
 });
 
 /**
