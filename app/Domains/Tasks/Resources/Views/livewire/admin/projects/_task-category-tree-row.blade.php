@@ -92,7 +92,3 @@
         </div>
     </td>
 </tr>
-
-@foreach ($categoryRow['taskRows'] as $taskRow)
-    @include('tasks::livewire.admin.projects._task-hierarchy-task-row', ['taskRow' => $taskRow])
-@endforeach

@@ -77,6 +77,19 @@ class ProjectTaskHierarchyViewDataService
             : collect();
 
         $categorySummaries = $this->categorySummaries($categories, $tasksByCategory);
+        $flatCategories = $this->flatCategories($categories, $tasksByCategory, $categorySummaries);
+        $uncategorizedTaskRows = $this->taskRows(
+            $tasksByCategory->get('', collect()),
+            null,
+            0,
+            null,
+            'uncategorized-task-row',
+            'Task',
+            '',
+            true,
+            true,
+            false,
+        );
 
         return [
             'taskCount' => $taskCount,
@@ -106,7 +119,7 @@ class ProjectTaskHierarchyViewDataService
                 ],
             ],
             'categories' => $categories,
-            'flatCategories' => $this->flatCategories($categories, $tasksByCategory, $categorySummaries),
+            'flatCategories' => $flatCategories,
             'collapsedCategoryIds' => $this->defaultCollapsedCategoryIds($categories),
             'copyCategoryOptions' => $this->categoryOptions($categories),
             'assignableUsers' => User::query()
@@ -115,6 +128,7 @@ class ProjectTaskHierarchyViewDataService
                 ->get(['id', 'first_name', 'last_name']),
             'tasksByCategory' => $tasksByCategory,
             'categorySummaries' => $categorySummaries,
+            'flatRows' => $this->flatRows($flatCategories, $uncategorizedTaskRows),
             'canCreateTask' => $canCreateTask,
             'canUpdateTask' => $canUpdateTask,
             'canDeleteTask' => $canDeleteTask,
@@ -137,19 +151,60 @@ class ProjectTaskHierarchyViewDataService
             'taskTemplateManageUrl' => route('admin.task-templates.index'),
             'hasTaskHierarchy' => $categories->isNotEmpty() || $tasksByCategory->get('', collect())->isNotEmpty(),
             'uncategorizedTasks' => $tasksByCategory->get('', collect()),
-            'uncategorizedTaskRows' => $this->taskRows(
-                $tasksByCategory->get('', collect()),
-                null,
-                0,
-                null,
-                'uncategorized-task-row',
-                'Task',
-                '',
-                true,
-                true,
-                false,
-            ),
+            'uncategorizedTaskRows' => $uncategorizedTaskRows,
         ];
+    }
+
+    /**
+     * @param  array<int, array{category: mixed, depth: int, categoryId: string, summary: array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}, categoryIndent: int, progressWidth: string, taskRows: array<int, array<string, mixed>>}>  $flatCategories
+     * @param  array<int, array<string, mixed>>  $uncategorizedTaskRows
+     * @return array<int, array{type: 'category'|'task', categoryRow?: array<string, mixed>, taskRow?: array<string, mixed>}>
+     */
+    protected function flatRows(array $flatCategories, array $uncategorizedTaskRows): array
+    {
+        $rows = [];
+
+        foreach ($flatCategories as $categoryRow) {
+            $rows[] = [
+                'type' => 'category',
+                'categoryRow' => $categoryRow,
+            ];
+
+            foreach ($this->flattenTaskRows($categoryRow['taskRows']) as $taskRow) {
+                $rows[] = [
+                    'type' => 'task',
+                    'taskRow' => $taskRow,
+                ];
+            }
+        }
+
+        foreach ($this->flattenTaskRows($uncategorizedTaskRows) as $taskRow) {
+            $rows[] = [
+                'type' => 'task',
+                'taskRow' => $taskRow,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $taskRows
+     * @return array<int, array<string, mixed>>
+     */
+    protected function flattenTaskRows(array $taskRows): array
+    {
+        $rows = [];
+
+        foreach ($taskRows as $taskRow) {
+            $rows[] = $taskRow;
+
+            foreach ($this->flattenTaskRows($taskRow['subTaskRows'] ?? []) as $subTaskRow) {
+                $rows[] = $subTaskRow;
+            }
+        }
+
+        return $rows;
     }
 
     /**

@@ -55,12 +55,12 @@
         </thead>
         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
             @if ($hasTaskHierarchy)
-                @foreach ($flatCategories as $categoryRow)
-                    @include('tasks::livewire.admin.projects._task-category-tree-row', ['categoryRow' => $categoryRow])
-                @endforeach
-
-                @foreach ($uncategorizedTaskRows as $taskRow)
-                    @include('tasks::livewire.admin.projects._task-hierarchy-task-row', ['taskRow' => $taskRow])
+                @foreach ($flatRows as $row)
+                    @if ($row['type'] === 'category')
+                        @include('tasks::livewire.admin.projects._task-category-tree-row', ['categoryRow' => $row['categoryRow']])
+                    @else
+                        @include('tasks::livewire.admin.projects._task-hierarchy-task-row', ['taskRow' => $row['taskRow']])
+                    @endif
                 @endforeach
             @else
                 <tr>
