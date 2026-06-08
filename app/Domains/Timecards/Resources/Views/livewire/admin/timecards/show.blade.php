@@ -86,13 +86,23 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                        @foreach ($timecard->entries as $entry)
-                            <tr wire:key="admin-timecard-entry-{{ $entry->id }}">
-                                <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ optional($entry->date)->format('M j, Y') }}</td>
-                                <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $entry->project?->name ?? $entry->custom_project_name ?? 'Unassigned' }}</td>
-                                <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $entry->notes ?: '—' }}</td>
-                                <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ number_format((float) $entry->hours, 2) }}</td>
+                        @php
+                            $groups = $timecard->entries->groupBy(fn($e) => optional($e->date)->format('l') ?? __('Unknown'));
+                        @endphp
+
+                        @foreach ($groups as $day => $entries)
+                            <tr class="bg-zinc-50 dark:bg-zinc-800/50">
+                                <td colspan="4" class="px-4 py-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">{{ $day }} @if($entries->first()?->date) — {{ optional($entries->first()->date)->format('M j, Y') }}@endif</td>
                             </tr>
+
+                            @foreach ($entries as $entry)
+                                <tr wire:key="admin-timecard-entry-{{ $entry->id }}">
+                                    <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ optional($entry->date)->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $entry->project?->name ?: $entry->custom_project_name ?: __('Unassigned') }}</td>
+                                    <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $entry->notes ?: '—' }}</td>
+                                    <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ number_format((float) $entry->hours, 2) }}</td>
+                                </tr>
+                            @endforeach
                         @endforeach
                     </tbody>
                 </table>
