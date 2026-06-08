@@ -10,16 +10,16 @@
                 <button type="button" onclick="window.Livewire.dispatch('timecard-form:add-sick-entry')" class="rounded-md border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-200 dark:hover:bg-emerald-900/30">{{ __('Add Sick Entry') }}</button>
             @endif
 
+            <div class="px-1 py-1 text-center text-sm font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
+                {{ __('Timecard for Week of') }} {{ \Illuminate\Support\Carbon::parse($week_starting)->format('M j, Y') }}
+            </div>
+
             @if (data_get($leaveProjectsByCategory, 'vacation.id'))
                 <button type="button" onclick="window.Livewire.dispatch('timecard-form:add-vacation-entry')" class="rounded-md border border-sky-300 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-200 dark:hover:bg-sky-900/30">{{ __('Add Vacation Entry') }}</button>
             @endif
         </div>
 
         <div class="flex flex-wrap items-center justify-end gap-2">
-            <div class="px-1 py-1 text-center text-sm font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
-                {{ __('Timecard for Week of') }} {{ \Illuminate\Support\Carbon::parse($week_starting)->format('M j, Y') }}
-            </div>
-
             <div class="rounded-md border border-emerald-300 bg-emerald-50/70 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200">
                 {{ __('Sick Remaining') }}: {{ number_format((float) data_get($leaveBalances, 'sick.remaining', 0), 2) }} {{ __('hrs') }}
                 · {{ __('Used') }}: {{ number_format((float) data_get($leaveBalances, 'sick.used', 0), 2) }} {{ __('hrs') }}
