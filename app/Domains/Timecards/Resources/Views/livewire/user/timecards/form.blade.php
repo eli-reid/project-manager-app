@@ -1,37 +1,27 @@
+<x-slot:domainNavbar>
+    <div class="flex items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" wire:click="addEntry" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Add Entry') }}</button>
+
+            @if (data_get($leaveProjectsByCategory, 'sick.id'))
+                <button type="button" wire:click="addLeaveEntry('sick')" class="rounded-md border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-200 dark:hover:bg-emerald-900/30">{{ __('Add Sick Entry') }}</button>
+            @endif
+
+            @if (data_get($leaveProjectsByCategory, 'vacation.id'))
+                <button type="button" wire:click="addLeaveEntry('vacation')" class="rounded-md border border-sky-300 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-200 dark:hover:bg-sky-900/30">{{ __('Add Vacation Entry') }}</button>
+            @endif
+        </div>
+
+        <a href="{{ route('timecards.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Back to Timecards') }}</a>
+    </div>
+</x-slot:domainNavbar>
+
 <div class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
     <div>
         <flux:heading size="xl" level="1">{{ $isEdit ? __('Edit Timecard') : __('Create Timecard') }}</flux:heading>
         <flux:text class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
             {{ __('Create or update a draft timecard and manage the daily entries for the selected week.') }}
         </flux:text>
-    </div>
-
-    <div class="mt-4">
-        <flux:navbar class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <flux:navbar.item>
-                    <button type="button" wire:click="addEntry" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Add Entry') }}</button>
-                </flux:navbar.item>
-
-                @if (data_get($leaveProjectsByCategory, 'sick.id'))
-                    <flux:navbar.item>
-                        <button type="button" wire:click="addLeaveEntry('sick')" class="rounded-md border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-200 dark:hover:bg-emerald-900/30">{{ __('Add Sick Entry') }}</button>
-                    </flux:navbar.item>
-                @endif
-
-                @if (data_get($leaveProjectsByCategory, 'vacation.id'))
-                    <flux:navbar.item>
-                        <button type="button" wire:click="addLeaveEntry('vacation')" class="rounded-md border border-sky-300 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-200 dark:hover:bg-sky-900/30">{{ __('Add Vacation Entry') }}</button>
-                    </flux:navbar.item>
-                @endif
-            </div>
-
-            <div>
-                <flux:navbar.item>
-                    <a href="{{ route('timecards.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Back to Timecards') }}</a>
-                </flux:navbar.item>
-            </div>
-        </flux:navbar>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2">
