@@ -81,12 +81,22 @@
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Start') }}</label>
                                     <input type="time" wire:model="entries.{{ $index }}.start_time" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     @error('entries.'.$index.'.start_time') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            @foreach ([['value' => '06:00', 'label' => '6:00 AM'], ['value' => '06:30', 'label' => '6:30 AM'], ['value' => '07:00', 'label' => '7:00 AM'], ['value' => '07:30', 'label' => '7:30 AM'], ['value' => '08:00', 'label' => '8:00 AM']] as $presetStart)
+                                                <button type="button" wire:click="applyStartTimePreset({{ $index }}, '{{ $presetStart['value'] }}')" class="rounded-full border border-zinc-300 px-2.5 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ $presetStart['label'] }}</button>
+                                            @endforeach
+                                        </div>
                                 </div>
 
                                 <div>
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Hours') }}</label>
                                     <input type="number" step="0.25" min="0" max="24" wire:model="entries.{{ $index }}.hours" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     @error('entries.'.$index.'.hours') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        @foreach (['4.00', '6.00', '8.00', '10.00', '12.00'] as $presetHours)
+                                            <button type="button" wire:click="applyHoursPreset({{ $index }}, '{{ $presetHours }}')" class="rounded-full border border-zinc-300 px-2.5 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ $presetHours }}h</button>
+                                        @endforeach
+                                    </div>
                                 </div>
 
                                 <div class="lg:col-span-2">

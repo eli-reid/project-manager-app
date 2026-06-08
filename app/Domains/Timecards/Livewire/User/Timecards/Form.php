@@ -310,4 +310,36 @@ class Form extends Component
             'delete' => false,
         ];
     }
+
+    public function applyStartTimePreset(int $index, string $startTime): void
+    {
+        if (! isset($this->entries[$index]) || ($this->entries[$index]['delete'] ?? false)) {
+            return;
+        }
+
+        $allowedPresets = ['06:00', '06:30', '07:00', '07:30', '08:00'];
+
+        if (! in_array($startTime, $allowedPresets, true)) {
+            return;
+        }
+
+        $this->entries[$index]['start_time'] = $startTime;
+        $this->resetValidation('entries.'.$index.'.start_time');
+    }
+
+    public function applyHoursPreset(int $index, string $hours): void
+    {
+        if (! isset($this->entries[$index]) || ($this->entries[$index]['delete'] ?? false)) {
+            return;
+        }
+
+        $allowedPresets = ['4.00', '6.00', '8.00', '10.00', '12.00'];
+
+        if (! in_array($hours, $allowedPresets, true)) {
+            return;
+        }
+
+        $this->entries[$index]['hours'] = $hours;
+        $this->resetValidation('entries.'.$index.'.hours');
+    }
 }
