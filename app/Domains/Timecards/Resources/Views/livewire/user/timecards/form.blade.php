@@ -15,6 +15,10 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-end gap-2">
+            <div class="rounded-md border border-zinc-300 bg-zinc-50/70 px-3 py-2 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-200">
+                {{ __('Week Starting') }}: {{ \Illuminate\Support\Carbon::parse($week_starting)->format('M j, Y') }}
+            </div>
+
             <div class="rounded-md border border-emerald-300 bg-emerald-50/70 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200">
                 {{ __('Sick Remaining') }}: {{ number_format((float) data_get($leaveBalances, 'sick.remaining', 0), 2) }} {{ __('hrs') }}
                 · {{ __('Used') }}: {{ number_format((float) data_get($leaveBalances, 'sick.used', 0), 2) }} {{ __('hrs') }}
@@ -37,19 +41,7 @@
     </div>
 
     <form id="timecard-form-desktop" wire:submit="save" class="space-y-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div class="grid gap-4 md:grid-cols-2">
-            <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Week Starting') }}</label>
-                <input type="date" wire:model="week_starting" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                @error('week_starting') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div class="md:col-span-2">
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Notes') }}</label>
-                <textarea wire:model="notes" rows="4" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>
-                @error('notes') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            </div>
-        </div>
+        @error('week_starting') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
 
         <div class="space-y-4">
             <div>
@@ -84,7 +76,7 @@
                                     <input type="time" wire:model="entries.{{ $index }}.start_time" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     @error('entries.'.$index.'.start_time') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                     <div class="mt-2 grid max-w-xs grid-cols-2 gap-2">
-                                        @foreach ([['value' => '06:00', 'label' => '6:00 AM'], ['value' => '06:30', 'label' => '6:30 AM'], ['value' => '07:00', 'label' => '7:00 AM'], ['value' => '07:30', 'label' => '7:30 AM']] as $presetStart)
+                                        @foreach ([['value' => '06:00', 'label' => '6:00A'], ['value' => '06:30', 'label' => '6:30A'], ['value' => '07:00', 'label' => '7:00A'], ['value' => '07:30', 'label' => '7:30A']] as $presetStart)
                                             <button type="button" wire:click="applyStartTimePreset({{ $index }}, '{{ $presetStart['value'] }}')" class="rounded-full border border-zinc-300 px-2.5 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ $presetStart['label'] }}</button>
                                         @endforeach
                                     </div>
@@ -95,7 +87,7 @@
                                     <input type="number" step="0.25" min="0" max="24" wire:model="entries.{{ $index }}.hours" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     @error('entries.'.$index.'.hours') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                     <div class="mt-2 flex flex-wrap gap-2">
-                                        @foreach (['4.00', '6.00', '8.00', '10.00', '12.00'] as $presetHours)
+                                        @foreach (['4.00', '6.00', '8.00', '10.00'] as $presetHours)
                                             <button type="button" wire:click="applyHoursPreset({{ $index }}, '{{ $presetHours }}')" class="rounded-full border border-zinc-300 px-2.5 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ $presetHours }}h</button>
                                         @endforeach
                                     </div>
@@ -112,35 +104,14 @@
                                     @error('entries.'.$index.'.project_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                 </div>
 
-                                <div class="lg:col-span-2">
-                                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Cost Code') }}</label>
-                                    <select wire:model="entries.{{ $index }}.cost_code_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-                                        <option value="">{{ __('No Cost Code') }}</option>
-                                        @php
-                                            $projectId = $entry['project_id'] ?? null;
-                                            $costCodes = $projectId ? ($costCodesByProject[$projectId] ?? collect()) : collect();
-                                        @endphp
-                                        @foreach ($costCodes as $costCode)
-                                            <option value="{{ $costCode->id }}">{{ $costCode->code }} - {{ $costCode->description }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('entries.'.$index.'.cost_code_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                                </div>
-
                                 <div class="flex items-end justify-end">
                                     <button type="button" wire:click="removeEntry({{ $index }})" class="rounded-md border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/20"><flux:icon.trash/></button>
                                 </div>
 
-                                <div class="lg:col-span-3">
+                                <div class="lg:col-span-5">
                                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Custom Project Name') }}</label>
                                     <input type="text" wire:model="entries.{{ $index }}.custom_project_name" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                                     @error('entries.'.$index.'.custom_project_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                                </div>
-
-                                <div class="lg:col-span-3">
-                                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Entry Notes') }}</label>
-                                    <input type="text" wire:model="entries.{{ $index }}.notes" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
-                                    @error('entries.'.$index.'.notes') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                 </div>
                             </div>
                         </div>

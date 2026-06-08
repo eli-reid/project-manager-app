@@ -234,11 +234,6 @@ class Form extends Component
             'leaveBalances' => $user instanceof User
                 ? app(LeaveBalanceService::class)->forUser($user)
                 : ['sick' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0], 'vacation' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0]],
-            'costCodesByProject' => CostCode::query()
-                ->where('is_active', true)
-                ->orderBy('code')
-                ->get(['id', 'project_id', 'code', 'description'])
-                ->groupBy('project_id'),
         ]);
     }
 
@@ -352,7 +347,7 @@ class Form extends Component
             return;
         }
 
-        $allowedPresets = ['4.00', '6.00', '8.00', '10.00', '12.00'];
+        $allowedPresets = ['4.00', '6.00', '8.00', '10.00'];
 
         if (! in_array($hours, $allowedPresets, true)) {
             return;
