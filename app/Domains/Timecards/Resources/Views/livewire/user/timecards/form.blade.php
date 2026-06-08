@@ -2,6 +2,7 @@
     <div class="flex items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-2">
             <button type="submit" form="timecard-form-desktop" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">{{ __('Save') }}</button>
+            <a href="{{ route('timecards.index') }}" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" wire:navigate>{{ __('Cancel') }}</a>
 
             <button type="button" onclick="window.Livewire.dispatch('timecard-form:add-entry')" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Add Entry') }}</button>
 
@@ -15,8 +16,8 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-end gap-2">
-            <div class="rounded-md border border-zinc-300 bg-zinc-50/70 px-3 py-2 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-200">
-                {{ __('Week Starting') }}: {{ \Illuminate\Support\Carbon::parse($week_starting)->format('M j, Y') }}
+            <div class="px-1 py-1 text-center text-sm font-bold tracking-wide text-zinc-800 dark:text-zinc-100">
+                {{ __('Timecard for Week of') }} {{ \Illuminate\Support\Carbon::parse($week_starting)->format('M j, Y') }}
             </div>
 
             <div class="rounded-md border border-emerald-300 bg-emerald-50/70 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200">
@@ -101,7 +102,7 @@
                                 </div>
 
                                 <div class="flex items-start justify-end lg:col-start-6 lg:row-start-1">
-                                    <button type="button" wire:click="removeEntry({{ $index }})" class="rounded-md border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/20"><flux:icon.trash/></button>
+                                    <button type="button" wire:click="removeEntry({{ $index }})" class="rounded-md border border-rose-300 p-1.5 text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/20"><flux:icon.trash class="size-4" /></button>
                                 </div>
 
                             </div>
@@ -111,8 +112,5 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-            <a href="{{ route('timecards.index') }}" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800" wire:navigate>{{ __('Cancel') }}</a>
-        </div>
     </form>
 </div>
