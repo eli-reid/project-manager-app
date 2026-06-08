@@ -33,21 +33,9 @@
 </x-slot:domainNavbar>
 
 <div class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-    <div>
-        <flux:heading size="xl" level="1">{{ $isEdit ? __('Edit Timecard') : __('Create Timecard') }}</flux:heading>
-        <flux:text class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            {{ __('Create or update a draft timecard and manage the daily entries for the selected week.') }}
-        </flux:text>
-    </div>
-
     <form id="timecard-form-desktop" wire:submit="save" class="space-y-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         @error('week_starting') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
 
-        <div class="space-y-4">
-            <div>
-                <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Entries') }}</p>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Add one or more daily entries for this week.') }}</p>
-            </div>
 
             @error('entries') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
 

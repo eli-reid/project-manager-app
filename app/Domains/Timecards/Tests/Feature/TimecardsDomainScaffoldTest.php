@@ -309,7 +309,34 @@ it('defaults user timecard create form to prior week and shows prior week quick-
         ->assertSet('week_starting', $expectedPriorWeek);
 
     Livewire::test(UserIndex::class)
-        ->assertSee(route('timecards.create', ['week_starting' => $expectedPriorWeek]), false);
+        ->assertSee("createForWeek('{$expectedPriorWeek}')", false);
+
+    Carbon::setTestNow();
+});
+
+it('creates a draft from index quick-create and redirects to edit', function (): void {
+    Carbon::setTestNow('2026-04-27 10:00:00');
+
+    $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit']);
+    actingAs($user);
+
+    $timecardWeekService = app(TimecardWeekService::class);
+    $weekStarting = $timecardWeekService->currentWeekStart()->copy()->subWeek()->toDateString();
+
+    Livewire::test(UserIndex::class)
+        ->call('createForWeek', $weekStarting)
+        ->assertRedirect();
+
+    $timecard = Timecard::query()
+        ->where('user_id', $user->id)
+        ->whereDate('week_starting', $weekStarting)
+        ->first();
+
+    expect($timecard)->not->toBeNull();
+
+    Livewire::test(UserIndex::class)
+        ->call('createForWeek', $weekStarting)
+        ->assertRedirect(route('timecards.edit', ['timecard' => $timecard]));
 
     Carbon::setTestNow();
 });
@@ -411,7 +438,7 @@ it('creates a timecard with entries through the user form component', function (
         ->and($timecard?->fresh()->total_hours)->toBe(8.0);
 });
 
-it('supports quick sick leave entries and shows remaining leave balances on the user form', function (): void {
+it('supports quick sick leave entries on the user form', function (): void {
     $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit']);
 
     PayrollEmployeeProfile::factory()->create([
@@ -456,10 +483,8 @@ it('supports quick sick leave entries and shows remaining leave balances on the 
     Livewire::test(UserForm::class)
         ->call('addLeaveEntry', 'sick')
         ->assertSet('entries.1.project_id', (string) $sickProject->id)
-        ->assertSee('Sick Remaining')
-        ->assertSee('32.00')
-        ->assertSee('Vacation Remaining')
-        ->assertSee('64.00');
+        ->assertSet('entries.1.day_of_week', 1)
+        ->assertSet('entries.1.hours', '0.00');
 });
 
 it('shows remaining leave balances on the user timecard details page', function (): void {
