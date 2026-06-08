@@ -1,6 +1,8 @@
 <x-slot:domainNavbar>
     <div class="flex items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-2">
+            <button type="submit" form="timecard-form-desktop" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">{{ __('Save') }}</button>
+
             <button type="button" onclick="window.Livewire.dispatch('timecard-form:add-entry')" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Add Entry') }}</button>
 
             @if (data_get($leaveProjectsByCategory, 'sick.id'))
@@ -15,13 +17,13 @@
         <div class="flex flex-wrap items-center justify-end gap-2">
             <div class="rounded-md border border-emerald-300 bg-emerald-50/70 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200">
                 {{ __('Sick Remaining') }}: {{ number_format((float) data_get($leaveBalances, 'sick.remaining', 0), 2) }} {{ __('hrs') }}
+                · {{ __('Used') }}: {{ number_format((float) data_get($leaveBalances, 'sick.used', 0), 2) }} {{ __('hrs') }}
             </div>
 
             <div class="rounded-md border border-sky-300 bg-sky-50/70 px-3 py-2 text-xs font-semibold text-sky-700 dark:border-sky-700 dark:bg-sky-900/20 dark:text-sky-200">
                 {{ __('Vacation Remaining') }}: {{ number_format((float) data_get($leaveBalances, 'vacation.remaining', 0), 2) }} {{ __('hrs') }}
+                · {{ __('Used') }}: {{ number_format((float) data_get($leaveBalances, 'vacation.used', 0), 2) }} {{ __('hrs') }}
             </div>
-
-            <button type="submit" form="timecard-form-desktop" class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">{{ $isEdit ? __('Save Timecard') : __('Create Timecard') }}</button>
         </div>
     </div>
 </x-slot:domainNavbar>
