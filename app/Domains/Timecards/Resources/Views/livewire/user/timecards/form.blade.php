@@ -6,6 +6,34 @@
         </flux:text>
     </div>
 
+    <div class="mt-4">
+        <flux:navbar class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <flux:navbar.item>
+                    <button type="button" wire:click="addEntry" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Add Entry') }}</button>
+                </flux:navbar.item>
+
+                @if (data_get($leaveProjectsByCategory, 'sick.id'))
+                    <flux:navbar.item>
+                        <button type="button" wire:click="addLeaveEntry('sick')" class="rounded-md border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-200 dark:hover:bg-emerald-900/30">{{ __('Add Sick Entry') }}</button>
+                    </flux:navbar.item>
+                @endif
+
+                @if (data_get($leaveProjectsByCategory, 'vacation.id'))
+                    <flux:navbar.item>
+                        <button type="button" wire:click="addLeaveEntry('vacation')" class="rounded-md border border-sky-300 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-200 dark:hover:bg-sky-900/30">{{ __('Add Vacation Entry') }}</button>
+                    </flux:navbar.item>
+                @endif
+            </div>
+
+            <div>
+                <flux:navbar.item>
+                    <a href="{{ route('timecards.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Back to Timecards') }}</a>
+                </flux:navbar.item>
+            </div>
+        </flux:navbar>
+    </div>
+
     <div class="grid gap-4 md:grid-cols-2">
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/30">
             <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{{ __('Sick Remaining') }}</p>
