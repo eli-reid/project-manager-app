@@ -336,7 +336,7 @@ class Form extends Component
             return;
         }
 
-        $allowedPresets = ['06:00', '06:30', '07:00', '07:30', '08:00'];
+        $allowedPresets = ['06:00', '06:30', '07:00', '07:30'];
 
         if (! in_array($startTime, $allowedPresets, true)) {
             return;
