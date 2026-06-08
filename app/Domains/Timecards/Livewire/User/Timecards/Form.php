@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -113,6 +114,12 @@ class Form extends Component
         $this->entries[] = $this->newEntry();
     }
 
+    #[On('timecard-form:add-entry')]
+    public function addEntryFromNavbar(): void
+    {
+        $this->addEntry();
+    }
+
     public function addLeaveEntry(string $leaveCategory): void
     {
         if (! in_array($leaveCategory, ['sick', 'vacation'], true)) {
@@ -132,6 +139,18 @@ class Form extends Component
         }
 
         $this->entries[] = $this->newEntry($leaveProjectId);
+    }
+
+    #[On('timecard-form:add-sick-entry')]
+    public function addSickEntryFromNavbar(): void
+    {
+        $this->addLeaveEntry('sick');
+    }
+
+    #[On('timecard-form:add-vacation-entry')]
+    public function addVacationEntryFromNavbar(): void
+    {
+        $this->addLeaveEntry('vacation');
     }
 
     public function removeEntry(int $index): void

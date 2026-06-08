@@ -1,14 +1,14 @@
 <x-slot:domainNavbar>
     <div class="flex items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-2">
-            <button type="button" wire:click="addEntry" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Add Entry') }}</button>
+            <button type="button" onclick="window.Livewire.dispatch('timecard-form:add-entry')" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Add Entry') }}</button>
 
             @if (data_get($leaveProjectsByCategory, 'sick.id'))
-                <button type="button" wire:click="addLeaveEntry('sick')" class="rounded-md border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-200 dark:hover:bg-emerald-900/30">{{ __('Add Sick Entry') }}</button>
+                <button type="button" onclick="window.Livewire.dispatch('timecard-form:add-sick-entry')" class="rounded-md border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-200 dark:hover:bg-emerald-900/30">{{ __('Add Sick Entry') }}</button>
             @endif
 
             @if (data_get($leaveProjectsByCategory, 'vacation.id'))
-                <button type="button" wire:click="addLeaveEntry('vacation')" class="rounded-md border border-sky-300 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-200 dark:hover:bg-sky-900/30">{{ __('Add Vacation Entry') }}</button>
+                <button type="button" onclick="window.Livewire.dispatch('timecard-form:add-vacation-entry')" class="rounded-md border border-sky-300 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-200 dark:hover:bg-sky-900/30">{{ __('Add Vacation Entry') }}</button>
             @endif
         </div>
 
