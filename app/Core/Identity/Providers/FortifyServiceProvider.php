@@ -6,11 +6,13 @@ use App\Core\Audit\Contracts\AuditLoggerContract;
 use App\Core\Identity\Actions\Fortify\CreateNewUser;
 use App\Core\Identity\Actions\Fortify\ResetUserPassword;
 use App\Core\Identity\Http\Responses\MobileAwareLoginResponse;
+use App\Core\Identity\Models\User;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -45,6 +47,29 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $login = trim((string) $request->input('login'));
+            $password = (string) $request->input('password');
+
+            if ($login === '' || $password === '') {
+                return null;
+            }
+
+            $user = User::query()
+                ->whereRaw('LOWER(email) = ?', [Str::lower($login)])
+                ->orWhereRaw('LOWER(username) = ?', [Str::lower($login)])
+                ->first();
+
+            if (! $user instanceof User) {
+                return null;
+            }
+
+            if (! Hash::check($password, (string) $user->password)) {
+                return null;
+            }
+
+            return $user;
+        });
     }
 
     /**
@@ -72,7 +97,7 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $throttleKey = Str::transliterate(Str::lower((string) $request->input(Fortify::username())).'|'.$request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
         });

@@ -9,7 +9,8 @@ use Laravel\Fortify\Features;
 test('home route renders the login screen for guests', function () {
     $response = $this->get(route('home'));
 
-    $response->assertSuccessful()
+    $response->assertOk()
+        ->assertSee('Email or username')
         ->assertSee('Log in to your account');
 });
 
@@ -42,11 +43,11 @@ test('login screen responses are not cached', function () {
         ->toContain('max-age=0');
 });
 
-test('users can authenticate using the login screen', function () {
+test('users can authenticate using email on the login screen', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'login' => $user->email,
         'password' => 'password',
     ]);
 
@@ -68,15 +69,32 @@ test('users can authenticate using the login screen', function () {
     ]);
 });
 
+test('users can authenticate using username on the login screen', function () {
+    $user = User::factory()->create([
+        'username' => 'casey.jones',
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'login' => 'casey.jones',
+        'password' => 'password',
+    ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticatedAs($user);
+});
+
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'login' => $user->email,
         'password' => 'wrong-password',
     ]);
 
-    $response->assertSessionHasErrorsIn('email');
+    $response->assertSessionHasErrorsIn('login');
 
     $this->assertGuest();
 });
@@ -90,17 +108,17 @@ test('login attempts are throttled after repeated failures', function () {
     for ($attempt = 1; $attempt <= 5; $attempt++) {
         $this->from(route('login'))
             ->post(route('login.store'), [
-                'email' => $user->email,
+                'login' => $user->email,
                 'password' => 'wrong-password',
             ])
-            ->assertSessionHasErrors('email');
+            ->assertSessionHasErrors('login');
     }
 
     expect(RateLimiter::tooManyAttempts($throttleKey, 5))->toBeTrue();
 
     $this->from(route('login'))
         ->post(route('login.store'), [
-            'email' => $user->email,
+            'login' => $user->email,
             'password' => 'wrong-password',
         ])
         ->assertTooManyRequests();
@@ -120,7 +138,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
     $user = User::factory()->withTwoFactor()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'login' => $user->email,
         'password' => 'password',
     ]);
 
@@ -149,7 +167,7 @@ test('mobile users are redirected to the mobile dashboard after login', function
     $response = $this
         ->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1')
         ->post(route('login.store'), [
-            'email' => $user->email,
+            'login' => $user->email,
             'password' => 'password',
         ]);
 
