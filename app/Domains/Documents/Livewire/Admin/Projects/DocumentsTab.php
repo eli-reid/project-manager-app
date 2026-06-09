@@ -201,8 +201,13 @@ class DocumentsTab extends Component
             return;
         }
 
-        $this->canManageProjectDocuments = $user->hasPermission('documents.manage-project')
-            && $user->hasPermission('documents.view');
+        $this->canManageProjectDocuments = (
+            $user->hasPermission('documents.manage-project')
+            || $user->hasPermission('projects.upload-documents')
+        ) && (
+            $user->hasPermission('documents.view')
+            || $user->hasPermission('projects.view-documents')
+        );
 
         $this->canUpdateProjectDocuments = $this->canManageProjectDocuments
             && $user->hasPermission('documents.update');
