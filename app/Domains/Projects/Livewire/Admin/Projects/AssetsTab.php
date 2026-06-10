@@ -3,13 +3,14 @@
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Assets\Contracts\AssetOrchestratorContract;
+use App\Domains\Assets\DTOs\AssetMeta;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectAsset;
-use App\Domains\Assets\Contracts\AssetOrchestratorContract;
-use Illuminate\Foundation\Application;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Http\UploadedFile;
 
 class AssetsTab extends Component
 {
@@ -47,12 +48,18 @@ class AssetsTab extends Component
             'title' => 'nullable|string|max:255',
         ]);
 
-        $uploader = auth()->user() ?: User::first();
+        $uploader = auth()->user();
+        abort_unless($uploader instanceof User, 401);
 
-        $asset = $orchestrator->uploadAsset($uploader, $this->file);
+        $meta = AssetMeta::fromArray([
+            'disk' => 'public',
+            'folder_path' => 'projects/'.$this->project->id.'/libraries',
+        ]);
+
+        $asset = $orchestrator->uploadAsset($uploader, $this->file, $meta);
 
         ProjectAsset::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'project_id' => $this->project->id,
             'asset_id' => $asset->id,
             'created_by_id' => $uploader?->id,
@@ -71,6 +78,7 @@ class AssetsTab extends Component
 
         if (! $pa) {
             $this->dispatchBrowserEvent('toast', ['type' => 'error', 'message' => 'Project asset not found.']);
+
             return;
         }
 
