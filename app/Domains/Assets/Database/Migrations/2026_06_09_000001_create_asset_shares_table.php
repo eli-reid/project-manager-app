@@ -8,17 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('asset_shares', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->ulid('asset_id');
-            $table->string('token')->unique();
-            $table->timestamp('expires_at')->nullable()->index();
-            $table->foreignUlid('created_by_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
+        if (! Schema::hasTable('asset_shares')) {
+            Schema::create('asset_shares', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->ulid('asset_id');
+                $table->string('token')->unique();
+                $table->timestamp('expires_at')->nullable()->index();
+                $table->foreignUlid('created_by_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->timestamps();
 
-            $table->index('asset_id');
-            $table->foreign('asset_id')->references('id')->on('assets')->onDelete('cascade');
-        });
+                $table->index('asset_id');
+                $table->foreign('asset_id')->references('id')->on('assets')->onDelete('cascade');
+            });
+        }
     }
 
     public function down(): void
