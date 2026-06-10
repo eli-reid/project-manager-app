@@ -10,6 +10,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Prevent repeated runs from failing: if the temp table exists, stop with guidance
+        if (Schema::hasTable('assets_new')) {
+            throw new \RuntimeException("Temporary table 'assets_new' already exists. Either rollback the previous migration or drop the 'assets_new' table before re-running this migration.");
+        }
+
         // Create a new table with ULID primary key to copy data into
         Schema::create('assets_new', function (Blueprint $table) {
             $table->ulid('id')->primary();
