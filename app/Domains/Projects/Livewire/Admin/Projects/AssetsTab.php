@@ -21,6 +21,12 @@ class AssetsTab extends Component
 
     public ?string $title = null;
 
+    public ?string $deletingId = null;
+
+    protected $listeners = [
+        'deleteProjectAsset',
+    ];
+
     public function mount(Project $project): void
     {
         $this->project = $project;
@@ -57,5 +63,29 @@ class AssetsTab extends Component
         $this->title = null;
 
         $this->dispatchBrowserEvent('project-asset:uploaded');
+    }
+
+    public function deleteProjectAsset(string $id): void
+    {
+        $pa = ProjectAsset::find($id);
+
+        if (! $pa) {
+            $this->dispatchBrowserEvent('toast', ['type' => 'error', 'message' => 'Project asset not found.']);
+            return;
+        }
+
+        // Resolve orchestrator from container to perform storage deletion
+        $orchestrator = app(AssetOrchestratorContract::class);
+
+        try {
+            // delete underlying asset (orchestrator may remove file and asset row)
+            $orchestrator->deleteAsset($pa->asset);
+        } catch (\Throwable $e) {
+            // If deleting asset fails, still remove the project pivot to avoid orphaned UI state
+        }
+
+        $pa->delete();
+
+        $this->dispatchBrowserEvent('project-asset:deleted');
     }
 }
