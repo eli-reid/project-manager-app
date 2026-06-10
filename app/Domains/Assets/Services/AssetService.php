@@ -3,6 +3,7 @@
 namespace App\Domains\Assets\Services;
 
 use App\Domains\Assets\Contracts\AssetOrchestratorContract;
+use App\Domains\Assets\DTOs\AssetMeta;
 use App\Domains\Assets\Models\Asset;
 use App\Core\Files\Contracts\FileStorageContract;
 use App\Core\Files\Contracts\FilePathNormalizerContract;
@@ -18,18 +19,17 @@ class AssetService implements AssetOrchestratorContract
     ) {
     }
 
-    public function uploadAsset(Authenticatable $uploader, UploadedFile $file, array $meta = []): Asset
+    public function uploadAsset(Authenticatable $uploader, UploadedFile $file, ?AssetMeta $meta = null): Asset
     {
-        $folder = $this->pathNormalizer->normalize($meta['folder_path'] ?? null) ?? null;
+        $folder = $this->pathNormalizer->normalize($meta?->folderPath ?? null) ?? null;
 
-        $disk = $meta['disk'] ?? Config::get('filesystems.default');
+        $disk = $meta?->disk ?? Config::get('filesystems.default');
 
         $directory = $folder !== null ? $folder : 'assets';
 
         $storagePath = $this->fileStorage->store($file, $directory, $disk);
 
         $asset = Asset::create([
-            'title' => $meta['title'] ?? null,
             'original_name' => $file->getClientOriginalName(),
             'mime_type' => $file->getClientMimeType(),
             'size_bytes' => $file->getSize(),
@@ -112,6 +112,31 @@ class AssetService implements AssetOrchestratorContract
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    public function updateHints(Asset $asset, ?AssetMeta $meta): Asset
+    {
+        $folder = $this->pathNormalizer->normalize($meta?->folderPath ?? $asset->folder_path ?? null);
+        $disk = $meta?->disk ?? $asset->storage_disk ?? Config::get('filesystems.default');
+
+        $directory = $folder !== null ? $folder : 'assets';
+
+        $filename = basename((string) $asset->storage_path);
+        $targetPath = $directory . '/' . $filename;
+
+        if (! empty($asset->storage_path) && $asset->storage_path !== $targetPath) {
+            $this->fileStorage->move((string) $asset->storage_path, $targetPath, $disk);
+        }
+
+        $asset->fill([
+            'folder_path' => $folder,
+            'storage_disk' => $disk,
+            'storage_path' => $targetPath,
+        ]);
+
+        $asset->save();
+
+        return $asset->fresh();
     }
 
     public function validationRules(): array
