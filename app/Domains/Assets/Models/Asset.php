@@ -4,8 +4,15 @@ namespace App\Domains\Assets\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+
+/**
+ * @mixin IdeHelperAsset
+ */
 class Asset extends Model
 {
+    use HasUlids;
+
     protected $table = 'assets';
 
     protected $fillable = [
@@ -18,4 +25,8 @@ class Asset extends Model
         'folder_path',
         'created_by_id',
     ];
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 }

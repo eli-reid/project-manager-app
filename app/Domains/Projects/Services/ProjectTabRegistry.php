@@ -625,7 +625,7 @@ class ProjectTabRegistry
                 appendCreateSuffix: true,
             ),
             'documents' => new LivewireComponentTabPanel(
-                component: 'documents::admin.projects.documents-tab',
+                component: 'projects::admin.projects.assets-tab',
             ),
             'access' => new LivewireComponentTabPanel(
                 component: 'projects::admin.projects.access-tab',
