@@ -15,6 +15,7 @@ use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
 use App\Domains\Projects\Policies\ProjectPolicy;
 use App\Domains\Projects\Services\ProjectTabRegistry;
+use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -158,6 +159,13 @@ class ProjectsServiceProvider extends ServiceProvider
                 'label' => 'Financials',
                 'sort' => 120,
                 'is_visible' => static fn ($user, Project $project): bool => $user->can('viewFinancials', $project),
+            ],
+            [
+                'key' => 'libraries',
+                'label' => 'Libraries',
+                'sort' => 130,
+                'panel' => new LivewireComponentTabPanel(component: 'projects.admin.projects.assets-tab'),
+                'is_visible' => static fn (User $user, Project $project): bool => $user->can('view', $project),
             ],
         ]);
     }
