@@ -34,6 +34,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->app->singleton(DocumentOrchestratorContract::class, DocumentService::class);
         $this->app->singleton(DocumentSharingContract::class, DocumentShareService::class);
         $this->app->singleton(ProjectDocumentLibraryContract::class, ProjectDocumentLibrary::class);
+        $this->commands([\App\Domains\Documents\Console\MigrateDocumentsToAssets::class]);
     }
 
     public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void

@@ -16,5 +16,11 @@ class AssetsServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AssetOrchestratorContract::class, AssetService::class);
         $this->app->singleton(AssetSharingContract::class, AssetShareService::class);
+        $this->app->singleton(ProjectAssetLibraryContract::class, ProjectAssetLibrary::class);
+    }
+
+    public function boot(): void
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 }

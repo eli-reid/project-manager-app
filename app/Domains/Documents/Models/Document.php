@@ -49,6 +49,7 @@ class Document extends Model
         'file_size',
         'storage_disk',
         'storage_path',
+        'asset_id',
         'owner_scope',
         'owner_id',
         'visibility',
@@ -104,6 +105,11 @@ class Document extends Model
     public function internalShares(): HasMany
     {
         return $this->hasMany(DocumentInternalShare::class);
+    }
+
+    public function asset(): BelongsTo
+    {
+        return $this->belongsTo(\App\Domains\Assets\Models\Asset::class, 'asset_id');
     }
 
     public function scopeUserOwned(Builder $query): Builder
