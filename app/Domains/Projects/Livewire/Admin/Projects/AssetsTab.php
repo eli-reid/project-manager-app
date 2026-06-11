@@ -70,6 +70,8 @@ class AssetsTab extends Component
         $this->file = null;
         $this->title = null;
 
+        // Reset client-side file input and UI like DocumentsTab does
+        $this->dispatch('project-documents-file-input-reset');
         $this->dispatch('project-asset:uploaded');
     }
 

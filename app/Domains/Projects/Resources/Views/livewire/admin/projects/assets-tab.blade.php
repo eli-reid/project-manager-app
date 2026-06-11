@@ -30,12 +30,37 @@
                 </div>
             </div>
 
-            <form wire:submit.prevent="upload" onsubmit="console.log('assets-tab: submit - input.files[0]:', document.getElementById('library-file')?.files?.[0], window.__lastLibraryFile)" class="space-y-4">
+            <div
+                x-data="{
+                    selectedFileName: '',
+                    lastAutoTitle: '',
+                    titleValue: $wire.entangle('title'),
+                    isUploading: false,
+                    uploadProgress: 0,
+                    fileBaseName(fileName) { return fileName ? fileName.replace(/\.[^/.]+$/, '') : '' },
+                    syncSelectedFile(fileName) {
+                        this.selectedFileName = fileName
+                        if (! fileName) { return }
+                        const nextTitle = this.fileBaseName(fileName)
+                        if (this.titleValue.trim() === '' || this.titleValue === this.lastAutoTitle) {
+                            this.titleValue = nextTitle
+                            this.lastAutoTitle = nextTitle
+                        }
+                    }
+                }"
+                x-on:project-documents-file-input-reset.window="titleValue = ''; selectedFileName = ''; lastAutoTitle = ''; isUploading = false; uploadProgress = 0; $refs.libraryFile && ($refs.libraryFile.value = null)"
+                x-on:livewire-upload-start="isUploading = true; uploadProgress = 0"
+                x-on:livewire-upload-finish="isUploading = false; uploadProgress = 100"
+                x-on:livewire-upload-error="isUploading = false; uploadProgress = 0"
+                x-on:livewire-upload-cancel="isUploading = false; uploadProgress = 0"
+                x-on:livewire-upload-progress="uploadProgress = $event.detail.progress"
+                class="space-y-4"
+            >
                 <div>
                     <label for="library-title" class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Display title</label>
                     <input
                         id="library-title"
-                        wire:model.defer="title"
+                        x-model="titleValue"
                         type="text"
                         placeholder="Leave empty to use the original file name"
                         class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
@@ -46,14 +71,15 @@
                 </div>
 
                 <div>
-                    <label for="library-file" class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">File</label>
-                    <input
-                        id="library-file"
-                        wire:model="file"
-                        type="file"
-                        onchange="console.log('assets-tab: file change', this.files, this.files[0] && this.files[0].name); window.__lastLibraryFile = this.files[0];"
-                        class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-700 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:file:bg-zinc-100 dark:file:text-zinc-900 dark:hover:file:bg-zinc-300"
-                    />
+                    <label class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">File</label>
+                    <label for="library-file" class="relative flex cursor-pointer flex-col gap-2 overflow-hidden rounded-lg border border-zinc-300 bg-white px-3 py-3 text-sm shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600" :class="isUploading ? 'pointer-events-none opacity-75' : ''">
+                        <div x-show="isUploading" class="absolute inset-y-0 left-0 bg-sky-100/80 transition-[width] duration-200 ease-out dark:bg-sky-900/30" x-bind:style="`width: ${uploadProgress}%`"></div>
+                        <div class="relative z-10 flex flex-col gap-1">
+                            <span class="font-medium text-zinc-900 dark:text-zinc-100">Choose file</span>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400" x-text="selectedFileName || 'No file selected yet.'"></span>
+                        </div>
+                    </label>
+                    <input id="library-file" x-ref="libraryFile" type="file" wire:model="file" x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? ''); console.log('assets-tab: file change', $event.target.files?.[0])" class="sr-only" />
                     @error('file')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -61,7 +87,8 @@
 
                 <div class="flex items-center gap-3">
                     <button
-                        type="submit"
+                        type="button"
+                        wire:click="upload"
                         wire:loading.attr="disabled"
                         wire:target="upload,file"
                         class="inline-flex items-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
@@ -70,7 +97,7 @@
                     </button>
                     <span wire:loading wire:target="upload,file" class="text-sm text-zinc-500 dark:text-zinc-400">Uploading...</span>
                 </div>
-            </form>
+            </div>
         </div>
 
         <div class="grid gap-3 sm:grid-cols-3">
