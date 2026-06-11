@@ -145,8 +145,7 @@ class DocumentsServiceProvider extends ServiceProvider
                 'key' => 'documents',
                 'label' => 'Library',
                 'sort' => 90,
-                'badge_count' => static fn (User $user, Project $project): ?int => app(ProjectDocumentLibraryContract::class)
-                    ->countProjectAccessible((string) $project->id),
+                'badge_count' => 0,
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Document::class),
             ],
         ]);

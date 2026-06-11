@@ -161,10 +161,18 @@ class ProjectsServiceProvider extends ServiceProvider
                 'is_visible' => static fn ($user, Project $project): bool => $user->can('viewFinancials', $project),
             ],
             [
-                'key' => 'libraries',
-                'label' => 'Libraries',
-                'sort' => 130,
-                'panel' => new LivewireComponentTabPanel(component: 'projects.admin.projects.assets-tab'),
+                'key' => 'documents',
+                'label' => 'Library',
+                'sort' => 90,
+                'badge_count' => 0,
+                'is_visible' => static fn (User $user, Project $project): bool => $user->can('view', $project),
+            ],
+
+            [
+                'key' => 'plans',
+                'label' => 'Plans',
+                'sort' => 135,
+                'panel' => new LivewireComponentTabPanel(component: 'projects.admin.projects.plans-tab'),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('view', $project),
             ],
         ]);
