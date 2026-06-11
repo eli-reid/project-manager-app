@@ -31,7 +31,7 @@
             </div>
 
             <div
-                x-data="{
+                    x-data="{
                     selectedFileName: '',
                     lastAutoTitle: '',
                     titleValue: $wire.entangle('title'),
@@ -42,7 +42,9 @@
                         this.selectedFileName = fileName
                         if (! fileName) { return }
                         const nextTitle = this.fileBaseName(fileName)
-                        if (this.titleValue.trim() === '' || this.titleValue === this.lastAutoTitle) {
+                        // Guard against null/undefined titleValue before calling trim()
+                        const currentTitle = (this.titleValue ?? '')
+                        if (currentTitle.trim() === '' || this.titleValue === this.lastAutoTitle) {
                             this.titleValue = nextTitle
                             this.lastAutoTitle = nextTitle
                         }
@@ -79,8 +81,8 @@
                             <span class="text-xs text-zinc-500 dark:text-zinc-400" x-text="selectedFileName || 'No file selected yet.'"></span>
                         </div>
                     </label>
-                    <input id="library-file" x-ref="libraryFile" type="file" wire:model="file" x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? ''); console.log('assets-tab: file change', $event.target.files?.[0])" class="sr-only" />
-                    @error('file')
+                    <input id="library-file" x-ref="libraryFile" type="file" wire:model="assetFile" x-on:change="syncSelectedFile($event.target.files?.[0]?.name ?? ''); console.log('assets-tab: file change', $event.target.files?.[0])" class="sr-only" />
+                    @error('assetFile')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
@@ -88,14 +90,36 @@
                 <div class="flex items-center gap-3">
                     <button
                         type="button"
-                        wire:click="upload"
                         wire:loading.attr="disabled"
-                        wire:target="upload,file"
+                        wire:target="saveAsset,assetFile"
+                        x-bind:disabled="!selectedFileName || isUploading"
+                        x-on:click="
+                            if (!selectedFileName || isUploading) return;
+                            const file = $refs.libraryFile?.files?.[0];
+                            if (! file) { console.warn('No file selected for upload'); return }
+                            try {
+                                // Register the file upload with Livewire's upload manager
+                                // so UploadManager.startUpload receives the correct `name`.
+                                $wire.upload('assetFile', file,
+                                    () => { // finish callback
+                                        $wire.call('saveAsset')
+                                    },
+                                    (error) => { // error callback
+                                        console.error('assets-tab: upload failed', error)
+                                    },
+                                    (progressEvent) => { // progress callback
+                                        uploadProgress = progressEvent?.detail?.progress ?? 0
+                                    }
+                                )
+                            } catch (e) {
+                                console.error('assets-tab: upload failed', e)
+                            }
+                        "
                         class="inline-flex items-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
                     >
                         Upload file
                     </button>
-                    <span wire:loading wire:target="upload,file" class="text-sm text-zinc-500 dark:text-zinc-400">Uploading...</span>
+                    <span wire:loading wire:target="saveAsset,assetFile" class="text-sm text-zinc-500 dark:text-zinc-400">Uploading...</span>
                 </div>
             </div>
         </div>

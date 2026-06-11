@@ -17,7 +17,7 @@ class AssetsTab extends Component
 
     public Project $project;
 
-    public mixed $file = null;
+    public mixed $assetFile = null;
 
     public ?string $title = null;
 
@@ -40,12 +40,12 @@ class AssetsTab extends Component
         ]);
     }
 
-    public function upload(AssetOrchestratorContract $orchestrator): void
+    public function saveAsset(AssetOrchestratorContract $orchestrator): void
     {
         $rules = $orchestrator->validationRules();
 
         $this->validate([
-            'file' => ['required', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
+            'assetFile' => ['required', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
             'title' => 'nullable|string|max:255',
         ]);
 
@@ -57,7 +57,7 @@ class AssetsTab extends Component
             'folder_path' => 'projects/'.$this->project->id.'/libraries',
         ]);
 
-        $asset = $orchestrator->uploadAsset($uploader, $this->file, $meta);
+        $asset = $orchestrator->uploadAsset($uploader, $this->assetFile, $meta);
 
         ProjectAsset::create([
             'id' => (string) Str::ulid(),
@@ -67,7 +67,7 @@ class AssetsTab extends Component
             'title' => $this->title,
         ]);
 
-        $this->file = null;
+        $this->assetFile = null;
         $this->title = null;
 
         // Reset client-side file input and UI like DocumentsTab does
