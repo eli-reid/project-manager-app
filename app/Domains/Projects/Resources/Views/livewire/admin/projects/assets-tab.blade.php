@@ -30,7 +30,7 @@
                 </div>
             </div>
 
-            <form wire:submit="upload" class="space-y-4">
+            <form wire:submit.prevent="upload" class="space-y-4">
                 <div>
                     <label for="library-title" class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Display title</label>
                     <input

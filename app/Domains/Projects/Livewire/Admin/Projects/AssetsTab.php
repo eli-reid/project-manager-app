@@ -7,10 +7,9 @@ use App\Domains\Assets\Contracts\AssetOrchestratorContract;
 use App\Domains\Assets\DTOs\AssetMeta;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectAsset;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Livewire\Component;
-use Livewire\WithFileUploads;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 class AssetsTab extends Component
 {
@@ -18,7 +17,7 @@ class AssetsTab extends Component
 
     public Project $project;
 
-    public ?UploadedFile $file = null;
+    public mixed $file = null;
 
     public ?string $title = null;
 
@@ -43,8 +42,10 @@ class AssetsTab extends Component
 
     public function upload(AssetOrchestratorContract $orchestrator): void
     {
+        $rules = $orchestrator->validationRules();
+
         $this->validate([
-            'file' => 'required|file',
+            'file' => ['required', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
             'title' => 'nullable|string|max:255',
         ]);
 
@@ -69,7 +70,7 @@ class AssetsTab extends Component
         $this->file = null;
         $this->title = null;
 
-        $this->dispatchBrowserEvent('project-asset:uploaded');
+        $this->dispatch('project-asset:uploaded');
     }
 
     public function deleteProjectAsset(string $id): void
@@ -77,7 +78,7 @@ class AssetsTab extends Component
         $pa = ProjectAsset::find($id);
 
         if (! $pa) {
-            $this->dispatchBrowserEvent('toast', ['type' => 'error', 'message' => 'Project asset not found.']);
+            $this->dispatch('toast', type: 'error', message: 'Project asset not found.');
 
             return;
         }
@@ -94,6 +95,6 @@ class AssetsTab extends Component
 
         $pa->delete();
 
-        $this->dispatchBrowserEvent('project-asset:deleted');
+        $this->dispatch('project-asset:deleted');
     }
 }
