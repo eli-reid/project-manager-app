@@ -30,7 +30,7 @@
                 </div>
             </div>
 
-            <form wire:submit.prevent="upload" class="space-y-4">
+            <form wire:submit.prevent="upload" onsubmit="console.log('assets-tab: submit - input.files[0]:', document.getElementById('library-file')?.files?.[0], window.__lastLibraryFile)" class="space-y-4">
                 <div>
                     <label for="library-title" class="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Display title</label>
                     <input
@@ -51,6 +51,7 @@
                         id="library-file"
                         wire:model="file"
                         type="file"
+                        onchange="console.log('assets-tab: file change', this.files, this.files[0] && this.files[0].name); window.__lastLibraryFile = this.files[0];"
                         class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-700 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:file:bg-zinc-100 dark:file:text-zinc-900 dark:hover:file:bg-zinc-300"
                     />
                     @error('file')
