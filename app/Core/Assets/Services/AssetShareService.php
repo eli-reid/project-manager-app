@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domains\Assets\Services;
+namespace App\Core\Assets\Services;
 
-use App\Domains\Assets\Contracts\AssetSharingContract;
-use App\Domains\Assets\Models\Asset;
-use App\Domains\Assets\Models\AssetShare;
+use App\Core\Assets\Contracts\AssetSharingContract;
+use App\Core\Assets\Models\Asset;
+use App\Core\Assets\Models\AssetShare;
 use DateTimeInterface;
 
 class AssetShareService implements AssetSharingContract

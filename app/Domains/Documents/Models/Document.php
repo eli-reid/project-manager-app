@@ -109,7 +109,7 @@ class Document extends Model
 
     public function asset(): BelongsTo
     {
-        return $this->belongsTo(\App\Domains\Assets\Models\Asset::class, 'asset_id');
+        return $this->belongsTo(\App\Core\Assets\Models\Asset::class, 'asset_id');
     }
 
     public function scopeUserOwned(Builder $query): Builder

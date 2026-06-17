@@ -2,9 +2,9 @@
 
 namespace App\Domains\Documents\Console;
 
-use App\Domains\Assets\Contracts\AssetOrchestratorContract;
-use App\Domains\Assets\DTOs\AssetMeta;
-use App\Domains\Assets\Models\Asset;
+use App\Core\Assets\Contracts\AssetOrchestratorContract;
+use App\Core\Assets\DTOs\AssetMeta;
+use App\Core\Assets\Models\Asset;
 use App\Domains\Documents\Models\Document;
 use App\Core\Identity\Models\User;
 use Illuminate\Console\Command;

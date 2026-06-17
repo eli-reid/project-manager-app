@@ -3,8 +3,8 @@
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Assets\Contracts\AssetOrchestratorContract;
-use App\Domains\Assets\DTOs\AssetMeta;
+use App\Core\Assets\Contracts\AssetOrchestratorContract;
+use App\Core\Assets\DTOs\AssetMeta;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectAsset;
 use Illuminate\Support\Str;
@@ -30,6 +30,24 @@ class AssetsTab extends Component
     public function mount(Project $project): void
     {
         $this->project = $project;
+    }
+
+    public function attachUploadedAsset(string $assetId, ?array $payload = null, ?string $title = null): void
+    {
+        $uploader = auth()->user();
+        abort_unless($uploader instanceof User, 401);
+
+        ProjectAsset::create([
+            'id' => (string) Str::ulid(),
+            'project_id' => $this->project->id,
+            'asset_id' => $assetId,
+            'created_by_id' => $uploader?->id,
+            'title' => $title ?: ($payload['original_name'] ?? null),
+        ]);
+
+        // Notify the UI that a project asset was added
+        $this->dispatch('project-documents-file-input-reset');
+        $this->dispatch('project-asset:uploaded');
     }
 
     public function render()

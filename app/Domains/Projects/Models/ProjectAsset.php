@@ -24,7 +24,7 @@ class ProjectAsset extends Model
 
     public function asset()
     {
-        return $this->belongsTo(\App\Domains\Assets\Models\Asset::class, 'asset_id');
+        return $this->belongsTo(\App\Core\Assets\Models\Asset::class, 'asset_id');
     }
 
     public function project()

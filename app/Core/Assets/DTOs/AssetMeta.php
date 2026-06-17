@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Assets\DTOs;
+namespace App\Core\Assets\DTOs;
 
 use DateTimeInterface;
 

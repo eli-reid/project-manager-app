@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Domains\Assets\Contracts;
+namespace App\Core\Assets\Contracts;
 
-use App\Domains\Assets\Models\Asset;
-use App\Domains\Assets\Models\AssetShare;
+use App\Core\Assets\Models\Asset;
+use App\Core\Assets\Models\AssetShare;
 use DateTimeInterface;
 
 interface AssetSharingContract

@@ -1,7 +1,7 @@
 <?php
 
 use App\Core\Identity\Models\User;
-use App\Domains\Assets\Models\Asset;
+use App\Core\Assets\Models\Asset;
 use App\Domains\Projects\Livewire\Admin\Projects\AssetsTab;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectAsset;

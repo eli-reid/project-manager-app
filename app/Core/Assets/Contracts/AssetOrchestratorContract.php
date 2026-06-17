@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Domains\Assets\Contracts;
+namespace App\Core\Assets\Contracts;
 
-use App\Domains\Assets\DTOs\AssetMeta;
-use App\Domains\Assets\Models\Asset;
+use App\Core\Assets\DTOs\AssetMeta;
+use App\Core\Assets\Models\Asset;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\UploadedFile;
 

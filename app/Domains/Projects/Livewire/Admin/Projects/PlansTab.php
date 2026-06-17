@@ -3,8 +3,8 @@
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Assets\Contracts\AssetOrchestratorContract;
-use App\Domains\Assets\DTOs\AssetMeta;
+use App\Core\Assets\Contracts\AssetOrchestratorContract;
+use App\Core\Assets\DTOs\AssetMeta;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectAsset;
 use Illuminate\Support\Str;

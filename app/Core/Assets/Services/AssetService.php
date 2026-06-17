@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domains\Assets\Services;
+namespace App\Core\Assets\Services;
 
-use App\Domains\Assets\Contracts\AssetOrchestratorContract;
-use App\Domains\Assets\DTOs\AssetMeta;
-use App\Domains\Assets\Models\Asset;
+use App\Core\Assets\Contracts\AssetOrchestratorContract;
+use App\Core\Assets\DTOs\AssetMeta;
+use App\Core\Assets\Models\Asset;
 use App\Core\Files\Contracts\FileStorageContract;
 use App\Core\Files\Contracts\FilePathNormalizerContract;
 use Illuminate\Contracts\Auth\Authenticatable;
