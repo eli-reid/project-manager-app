@@ -172,7 +172,7 @@ class ProjectsServiceProvider extends ServiceProvider
                 'key' => 'plans',
                 'label' => 'Plans',
                 'sort' => 135,
-                'panel' => new LivewireComponentTabPanel(component: 'projects.admin.projects.plans-tab'),
+                'panel' => new LivewireComponentTabPanel(component: 'projects::admin.projects.plans-tab'),
                 'is_visible' => static fn (User $user, Project $project): bool => $user->can('view', $project),
             ],
         ]);
