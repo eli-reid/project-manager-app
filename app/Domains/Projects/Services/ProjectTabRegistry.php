@@ -3,20 +3,13 @@
 namespace App\Domains\Projects\Services;
 
 use App\Core\Identity\Models\User;
-use App\Domains\ChangeOrders\Models\ChangeOrder;
-use App\Domains\Dailies\Models\DailyReport;
-use App\Domains\Documents\Models\Document;
-use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Contracts\ProjectTabPanel;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
 use App\Domains\Projects\Models\ProjectTabUserPreference;
+use App\Domains\Projects\Support\ProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\DailiesTabPanel;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
-use App\Domains\RFIs\Models\RFI;
-use App\Domains\Stock\Models\StockOrder;
-use App\Domains\Submittals\Models\Submittal;
-use App\Domains\Timecards\Models\Timecard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
@@ -46,6 +39,9 @@ class ProjectTabRegistry
     private ?bool $hasProjectTabDefinitionsTable = null;
 
     private ?bool $hasProjectTabUserPreferencesTable = null;
+
+    /** @var array<int, object> */
+    private array $providers = [];
 
     /**
      * @return array<string, array{label:string,mode_param:string|null,detail_query_param:string|null,panel:?ProjectTabPanel,sort:int,badge_count:callable(User, Project): int|null,is_visible:callable(User, Project): bool}>
@@ -129,27 +125,24 @@ class ProjectTabRegistry
     }
 
     /**
-     * @param  array<int, array{key:string,label?:string,sort?:int,mode_param?:string|null,detail_query_param?:string|null,panel?:ProjectTabPanel|class-string<ProjectTabPanel>|null,badge_count?:callable(User, Project): int|null,is_visible?:callable(User, Project): bool}>  $definitions
+     * @param  array<int, ProjectTab|array<string,mixed>>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {
         foreach ($definitions as $definition) {
-            $key = (string) ($definition['key'] ?? '');
-            if ($key === '') {
+            try {
+                $tab = ProjectTab::from($definition);
+            } catch (\InvalidArgumentException $e) {
+                // skip invalid definitions rather than failing boots
                 continue;
             }
 
-            $label = (string) ($definition['label'] ?? str($key)->replace(['-', '_', '.'], ' ')->headline()->value());
-            $sort = (int) ($definition['sort'] ?? 100);
-            $modeParam = $definition['mode_param'] ?? null;
-            $detailQueryParam = $definition['detail_query_param'] ?? null;
-            $panel = $definition['panel'] ?? null;
-            $badgeCount = $definition['badge_count'] ?? null;
-            $isVisible = $definition['is_visible'] ?? static fn (User $user, Project $project): bool => false;
-
-            if (is_string($panel) && class_exists($panel) && is_subclass_of($panel, ProjectTabPanel::class)) {
-                $panel = app($panel);
-            }
+            $key = $tab->key;
+            $label = $tab->label;
+            $sort = $tab->sort;
+            $modeParam = $tab->modeParam;
+            $detailQueryParam = $tab->detailQueryParam;
+            $panel = $tab->panelInstance();
 
             if (! $panel instanceof ProjectTabPanel) {
                 $panel = $this->defaultPanelFor($key);
@@ -162,13 +155,41 @@ class ProjectTabRegistry
                 'mode_param' => is_string($modeParam) && $modeParam !== '' ? $modeParam : null,
                 'detail_query_param' => is_string($detailQueryParam) && $detailQueryParam !== '' ? $detailQueryParam : null,
                 'panel' => $panel,
-                'badge_count' => is_callable($badgeCount) ? $badgeCount : static fn (): ?int => null,
-                'is_visible' => $isVisible,
+                'badge_count' => static fn (User $user, Project $project) => $tab->badgeCount($user, $project),
+                'is_visible' => static fn (User $user, Project $project) => $tab->isVisible($user, $project),
             ];
         }
 
         $this->resolvedDefinitions = null;
         $this->tabItemsCache = [];
+    }
+
+    /**
+     * Register a tab provider that returns tab definitions.
+     */
+    public function registerProvider(object $provider): void
+    {
+        $this->providers[] = $provider;
+
+        if (! is_object($provider) || ! method_exists($provider, 'definitions')) {
+            return;
+        }
+
+        $this->registerDefinitions($provider->definitions());
+    }
+
+    /**
+     * Register multiple tab providers.
+     *
+     * @param  array<int, object>  $providers
+     */
+    public function registerProviders(array $providers): void
+    {
+        foreach ($providers as $provider) {
+            if (is_object($provider) && method_exists($provider, 'definitions')) {
+                $this->registerProvider($provider);
+            }
+        }
     }
 
     /**
@@ -458,133 +479,6 @@ class ProjectTabRegistry
                 'panel' => null,
                 'badge_count' => static fn (): ?int => null,
                 'is_visible' => static fn (User $user, Project $project): bool => true,
-            ],
-            'dailies' => [
-                'key' => 'dailies',
-                'label' => 'Dailies',
-                'sort' => 20,
-                'mode_param' => null,
-                'detail_query_param' => 'dailyId',
-                'panel' => $this->defaultPanelFor('dailies'),
-                'badge_count' => static fn (User $user, Project $project): ?int => $project->dailyReports()->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAll', DailyReport::class),
-            ],
-            'tasks' => [
-                'key' => 'tasks',
-                'label' => 'Tasks',
-                'sort' => 30,
-                'mode_param' => null,
-                'detail_query_param' => null,
-                'panel' => $this->defaultPanelFor('tasks'),
-                'badge_count' => static fn (): ?int => null,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('tasks.view')
-                    || $user->hasPermission('task-categories.view'),
-            ],
-            'invoices' => [
-                'key' => 'invoices',
-                'label' => 'Invoices',
-                'sort' => 40,
-                'mode_param' => 'invoiceMode',
-                'detail_query_param' => 'invoiceId',
-                'panel' => $this->defaultPanelFor('invoices'),
-                'badge_count' => static fn (User $user, Project $project): ?int => Invoice::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Invoice::class),
-            ],
-            'stock' => [
-                'key' => 'stock',
-                'label' => 'Stock',
-                'sort' => 50,
-                'mode_param' => null,
-                'detail_query_param' => 'stockOrderId',
-                'panel' => $this->defaultPanelFor('stock'),
-                'badge_count' => static fn (User $user, Project $project): ?int => StockOrder::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', StockOrder::class),
-            ],
-            'submittals' => [
-                'key' => 'submittals',
-                'label' => 'Submittals',
-                'sort' => 60,
-                'mode_param' => 'submittalMode',
-                'detail_query_param' => 'submittalId',
-                'panel' => $this->defaultPanelFor('submittals'),
-                'badge_count' => static fn (User $user, Project $project): ?int => $user->can('viewAny', Submittal::class)
-                    ? Submittal::query()->where('project_id', $project->id)->count()
-                    : 0,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Submittal::class)
-                    || $user->can('create', Submittal::class),
-            ],
-            'change-orders' => [
-                'key' => 'change-orders',
-                'label' => 'Change Orders',
-                'sort' => 70,
-                'mode_param' => 'changeOrderMode',
-                'detail_query_param' => 'changeOrderId',
-                'panel' => $this->defaultPanelFor('change-orders'),
-                'badge_count' => static fn (User $user, Project $project): ?int => ChangeOrder::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', ChangeOrder::class),
-            ],
-            'rfis' => [
-                'key' => 'rfis',
-                'label' => 'RFIs',
-                'sort' => 80,
-                'mode_param' => 'rfiMode',
-                'detail_query_param' => 'rfiId',
-                'panel' => $this->defaultPanelFor('rfis'),
-                'badge_count' => static fn (User $user, Project $project): ?int => RFI::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('rfis.view-any')
-                    || $user->hasPermission('rfis.view')
-                    || $user->hasPermission('rfis.create'),
-            ],
-            'documents' => [
-                'key' => 'documents',
-                'label' => 'Library',
-                'sort' => 90,
-                'mode_param' => null,
-                'detail_query_param' => null,
-                'panel' => $this->defaultPanelFor('documents'),
-                'badge_count' => static fn (): ?int => null,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Document::class),
-            ],
-            'access' => [
-                'key' => 'access',
-                'label' => 'Access',
-                'sort' => 100,
-                'mode_param' => null,
-                'detail_query_param' => null,
-                'panel' => $this->defaultPanelFor('access'),
-                'badge_count' => static fn (): ?int => null,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('project-access.view')
-                    || $user->hasPermission('project-access.grant')
-                    || $user->hasPermission('project-access.revoke')
-                    || $user->hasPermission('project-access.manage'),
-            ],
-            'time' => [
-                'key' => 'time',
-                'label' => 'Time',
-                'sort' => 110,
-                'mode_param' => null,
-                'detail_query_param' => null,
-                'panel' => $this->defaultPanelFor('time'),
-                'badge_count' => static fn (): ?int => null,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Timecard::class),
-            ],
-            'financials' => [
-                'key' => 'financials',
-                'label' => 'Financials',
-                'sort' => 120,
-                'mode_param' => null,
-                'detail_query_param' => null,
-                'panel' => $this->defaultPanelFor('financials'),
-                'badge_count' => static fn (): ?int => null,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewFinancials', $project),
             ],
         ];
     }

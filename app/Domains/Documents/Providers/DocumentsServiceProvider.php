@@ -5,9 +5,9 @@ namespace App\Domains\Documents\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
-use App\Core\Identity\Models\User;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Documents\Console\MigrateDocumentsToAssets;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
 use App\Domains\Documents\Contracts\DocumentSharingContract;
 use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
@@ -16,8 +16,8 @@ use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
 use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Documents\Services\DocumentShareService;
+use App\Domains\Documents\Services\DocumentsProjectTabProvider;
 use App\Domains\Documents\Services\ProjectDocumentLibrary;
-use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -34,7 +34,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->app->singleton(DocumentOrchestratorContract::class, DocumentService::class);
         $this->app->singleton(DocumentSharingContract::class, DocumentShareService::class);
         $this->app->singleton(ProjectDocumentLibraryContract::class, ProjectDocumentLibrary::class);
-        $this->commands([\App\Domains\Documents\Console\MigrateDocumentsToAssets::class]);
+        $this->commands([MigrateDocumentsToAssets::class]);
     }
 
     public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
@@ -45,7 +45,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->registerSettings($settingsRegistry);
         $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
-        $this->registerProjectTabs($projectTabRegistry);
+        $projectTabRegistry->registerProvider(new DocumentsProjectTabProvider);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -135,19 +135,6 @@ class DocumentsServiceProvider extends ServiceProvider
             'required',
             'file',
             'max:'.$maxKilobytes,
-        ]);
-    }
-
-    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
-    {
-        $projectTabRegistry->registerDefinitions([
-            [
-                'key' => 'documents',
-                'label' => 'Library',
-                'sort' => 90,
-                'badge_count' => 0,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Document::class),
-            ],
         ]);
     }
 }

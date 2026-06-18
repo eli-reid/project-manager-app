@@ -3,11 +3,10 @@
 namespace App\Domains\ChangeOrders\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Identity\Models\User;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\ChangeOrders\Permissions\ChangeOrderPermissions;
 use App\Domains\ChangeOrders\Policies\ChangeOrderPolicy;
-use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Support\ProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -29,7 +28,7 @@ class ChangeOrdersServiceProvider extends ServiceProvider
         $this->registerMobileRoutePrefixMapping('change-orders.', 'change-orders.mobile.');
 
         $this->registerPermissions($permissionRegistry);
-        $this->registerProjectTabs($projectTabRegistry);
+        $this->registerProjectTab($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -39,6 +38,20 @@ class ChangeOrdersServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(ChangeOrderPermissions::all());
+    }
+
+    private function registerProjectTab(ProjectTabRegistry $projectTabRegistry): void
+    {
+
+        projectTabPanel
+        $projectTabRegistry->registerProvider(new ProjectTab(
+            key: 'change-orders',
+            label: 'Change Orders',
+            sort: 120,
+            badgeResolver: static fn (ProjectTab $tab, $project) => $project->changeOrders()->count(),
+            visibilityResolver: static fn (ProjectTab $tab, $project, $user) => $user->can('viewAny', [ChangeOrder::class, $project]),
+
+        ));
     }
 
     private function registerAuthorization(): void
@@ -74,22 +87,5 @@ class ChangeOrdersServiceProvider extends ServiceProvider
             ->name('api.')
             ->middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/api.php');
-    }
-
-    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
-    {
-        $projectTabRegistry->registerDefinitions([
-            [
-                'key' => 'change-orders',
-                'label' => 'Change Orders',
-                'sort' => 70,
-                'mode_param' => 'changeOrderMode',
-                'detail_query_param' => 'changeOrderId',
-                'badge_count' => static fn (User $user, Project $project): ?int => ChangeOrder::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', ChangeOrder::class),
-            ],
-        ]);
     }
 }

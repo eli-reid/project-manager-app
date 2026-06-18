@@ -3,8 +3,6 @@
 namespace App\Domains\Stock\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Identity\Models\User;
-use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Stock\Models\StockOrder;
@@ -13,6 +11,7 @@ use App\Domains\Stock\Permissions\StockOrderPermissions;
 use App\Domains\Stock\Permissions\StockOrderTemplatePermissions;
 use App\Domains\Stock\Policies\StockOrderPolicy;
 use App\Domains\Stock\Policies\StockOrderTemplatePolicy;
+use App\Domains\Stock\Services\StockProjectTabProvider;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -34,7 +33,7 @@ class StockServiceProvider extends ServiceProvider
 
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
-        $this->registerProjectTabs($projectTabRegistry);
+        $projectTabRegistry->registerProvider(new StockProjectTabProvider);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -99,22 +98,6 @@ class StockServiceProvider extends ServiceProvider
                 'badge_label' => 'Available',
                 'badge_color' => 'green',
                 'sort' => 30,
-            ],
-        ]);
-    }
-
-    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
-    {
-        $projectTabRegistry->registerDefinitions([
-            [
-                'key' => 'stock',
-                'label' => 'Stock',
-                'sort' => 50,
-                'detail_query_param' => 'stockOrderId',
-                'badge_count' => static fn (User $user, Project $project): ?int => StockOrder::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', StockOrder::class),
             ],
         ]);
     }

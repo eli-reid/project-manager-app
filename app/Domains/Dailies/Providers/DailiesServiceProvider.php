@@ -5,11 +5,10 @@ namespace App\Domains\Dailies\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
-use App\Core\Identity\Models\User;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;
-use App\Domains\Projects\Models\Project;
+use App\Domains\Dailies\Services\DailiesProjectTabProvider;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
@@ -33,7 +32,7 @@ class DailiesServiceProvider extends ServiceProvider
 
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
-        $this->registerProjectTabs($projectTabRegistry);
+        $projectTabRegistry->registerProvider(new DailiesProjectTabProvider);
         $this->registerDashboardWidgets($widgetRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -110,20 +109,6 @@ class DailiesServiceProvider extends ServiceProvider
                 'badge_label' => 'Operational',
                 'badge_color' => 'sky',
                 'sort' => 10,
-            ],
-        ]);
-    }
-
-    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
-    {
-        $projectTabRegistry->registerDefinitions([
-            [
-                'key' => 'dailies',
-                'label' => 'Dailies',
-                'sort' => 20,
-                'detail_query_param' => 'dailyId',
-                'badge_count' => static fn (User $user, Project $project): ?int => $project->dailyReports()->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAll', DailyReport::class),
             ],
         ]);
     }

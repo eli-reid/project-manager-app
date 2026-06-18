@@ -161,14 +161,6 @@ class ProjectsServiceProvider extends ServiceProvider
                 'is_visible' => static fn ($user, Project $project): bool => $user->can('viewFinancials', $project),
             ],
             [
-                'key' => 'documents',
-                'label' => 'Library',
-                'sort' => 90,
-                'badge_count' => 0,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('view', $project),
-            ],
-
-            [
                 'key' => 'plans',
                 'label' => 'Plans',
                 'sort' => 135,

@@ -3,10 +3,8 @@
 namespace App\Domains\Tasks\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Identity\Models\User;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyMetrics;
@@ -22,6 +20,7 @@ use App\Domains\Tasks\Permissions\TaskTemplatePermissions;
 use App\Domains\Tasks\Policies\TaskCategoryPolicy;
 use App\Domains\Tasks\Policies\TaskPolicy;
 use App\Domains\Tasks\Policies\TaskTemplatePolicy;
+use App\Domains\Tasks\Services\TasksProjectTabProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -40,7 +39,7 @@ class TasksServiceProvider extends ServiceProvider
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
-        $this->registerProjectTabs($projectTabRegistry);
+        $projectTabRegistry->registerProvider(new TasksProjectTabProvider);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -122,21 +121,5 @@ class TasksServiceProvider extends ServiceProvider
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('tasks', __DIR__.'/../config/settings.php');
-    }
-
-    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
-    {
-        $projectTabRegistry->registerDefinitions([
-            [
-                'key' => 'tasks',
-                'label' => 'Tasks',
-                'sort' => 30,
-                'badge_count' => static fn (User $user, Project $project): ?int => Task::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('tasks.view')
-                    || $user->hasPermission('task-categories.view'),
-            ],
-        ]);
     }
 }

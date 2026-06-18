@@ -3,12 +3,11 @@
 namespace App\Domains\Submittals\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Identity\Models\User;
-use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Permissions\SubmittalPermissions;
 use App\Domains\Submittals\Policies\SubmittalPolicy;
+use App\Domains\Submittals\Services\SubmittalsProjectTabProvider;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -29,7 +28,7 @@ class SubmittalsServiceProvider extends ServiceProvider
         $this->registerMobileRoutePrefixMapping('submittals.', 'submittals.mobile.');
 
         $this->registerPermissions($permissionRegistry);
-        $this->registerProjectTabs($projectTabRegistry);
+        $projectTabRegistry->registerProvider(new SubmittalsProjectTabProvider);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -74,23 +73,5 @@ class SubmittalsServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(SubmittalPermissions::all());
-    }
-
-    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
-    {
-        $projectTabRegistry->registerDefinitions([
-            [
-                'key' => 'submittals',
-                'label' => 'Submittals',
-                'sort' => 60,
-                'mode_param' => 'submittalMode',
-                'detail_query_param' => 'submittalId',
-                'badge_count' => static fn (User $user, Project $project): ?int => $user->can('viewAny', Submittal::class)
-                    ? Submittal::query()->where('project_id', $project->id)->count()
-                    : 0,
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('viewAny', Submittal::class)
-                    || $user->can('create', Submittal::class),
-            ],
-        ]);
     }
 }
