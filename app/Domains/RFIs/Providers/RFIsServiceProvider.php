@@ -7,7 +7,7 @@ use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\RFIs\Models\RFI;
 use App\Domains\RFIs\Permissions\RFIPermissions;
 use App\Domains\RFIs\Policies\RFIPolicy;
-use App\Domains\RFIs\Services\RFIsProjectTabProvider;
+use App\Domains\RFIs\Support\RFIsProjectTab;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -23,7 +23,7 @@ class RFIsServiceProvider extends ServiceProvider
     public function boot(PermissionRegistryContract $permissionRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
-        $projectTabRegistry->registerProvider(new RFIsProjectTabProvider);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -60,5 +60,12 @@ class RFIsServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(RFIPermissions::all());
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            RFIsProjectTab::class,
+        ]);
     }
 }

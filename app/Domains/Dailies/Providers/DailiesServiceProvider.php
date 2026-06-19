@@ -8,7 +8,7 @@ use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;
-use App\Domains\Dailies\Services\DailiesProjectTabProvider;
+use App\Domains\Dailies\Support\DailiesProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
@@ -32,7 +32,7 @@ class DailiesServiceProvider extends ServiceProvider
 
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
-        $projectTabRegistry->registerProvider(new DailiesProjectTabProvider);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerDashboardWidgets($widgetRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -110,6 +110,13 @@ class DailiesServiceProvider extends ServiceProvider
                 'badge_color' => 'sky',
                 'sort' => 10,
             ],
+        ]);
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            DailiesProjectTab::class,
         ]);
     }
 }

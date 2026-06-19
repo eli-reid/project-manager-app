@@ -16,8 +16,8 @@ use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
 use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Documents\Services\DocumentShareService;
-use App\Domains\Documents\Services\DocumentsProjectTabProvider;
 use App\Domains\Documents\Services\ProjectDocumentLibrary;
+use App\Domains\Documents\Support\DocumentsProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -45,7 +45,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->registerSettings($settingsRegistry);
         $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
-        $projectTabRegistry->registerProvider(new DocumentsProjectTabProvider);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -116,6 +116,13 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(DocumentPermissions::all());
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            DocumentsProjectTab::class,
+        ]);
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void

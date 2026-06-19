@@ -11,7 +11,7 @@ use App\Domains\Stock\Permissions\StockOrderPermissions;
 use App\Domains\Stock\Permissions\StockOrderTemplatePermissions;
 use App\Domains\Stock\Policies\StockOrderPolicy;
 use App\Domains\Stock\Policies\StockOrderTemplatePolicy;
-use App\Domains\Stock\Services\StockProjectTabProvider;
+use App\Domains\Stock\Support\StockProjectTab;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -33,7 +33,7 @@ class StockServiceProvider extends ServiceProvider
 
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
-        $projectTabRegistry->registerProvider(new StockProjectTabProvider);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -99,6 +99,13 @@ class StockServiceProvider extends ServiceProvider
                 'badge_color' => 'green',
                 'sort' => 30,
             ],
+        ]);
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            StockProjectTab::class,
         ]);
     }
 }

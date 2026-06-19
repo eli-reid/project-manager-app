@@ -5,17 +5,18 @@ namespace App\Domains\Projects\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
-use App\Core\Identity\Models\User;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Models\ProjectRoleAccess;
-use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
 use App\Domains\Projects\Policies\ProjectPolicy;
+use App\Domains\Projects\Services\ProjectTabCatalog;
+use App\Domains\Projects\Services\ProjectTabPreferenceStore;
 use App\Domains\Projects\Services\ProjectTabRegistry;
-use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
+use App\Domains\Projects\Support\AccessProjectTab;
+use App\Domains\Projects\Support\FinancialsProjectTab;
+use App\Domains\Projects\Support\OverviewProjectTab;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -29,7 +30,9 @@ class ProjectsServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->app->singleton(ProjectTabRegistry::class, fn (): ProjectTabRegistry => new ProjectTabRegistry);
+        $this->app->singleton(ProjectTabCatalog::class);
+        $this->app->singleton(ProjectTabPreferenceStore::class);
+        $this->app->singleton(ProjectTabRegistry::class);
     }
 
     public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
@@ -134,39 +137,9 @@ class ProjectsServiceProvider extends ServiceProvider
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
     {
         $projectTabRegistry->registerDefinitions([
-            [
-                'key' => 'overview',
-                'label' => 'Overview',
-                'sort' => 10,
-                'is_visible' => static fn (User $user, Project $project): bool => true,
-            ],
-            [
-                'key' => 'access',
-                'label' => 'Access',
-                'sort' => 100,
-                'badge_count' => static fn (User $user, Project $project): ?int => ProjectUserAccess::query()
-                    ->where('project_id', $project->id)
-                    ->count() + ProjectRoleAccess::query()
-                    ->where('project_id', $project->id)
-                    ->count(),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->hasPermission('project-access.view')
-                    || $user->hasPermission('project-access.grant')
-                    || $user->hasPermission('project-access.revoke')
-                    || $user->hasPermission('project-access.manage'),
-            ],
-            [
-                'key' => 'financials',
-                'label' => 'Financials',
-                'sort' => 120,
-                'is_visible' => static fn ($user, Project $project): bool => $user->can('viewFinancials', $project),
-            ],
-            [
-                'key' => 'plans',
-                'label' => 'Plans',
-                'sort' => 135,
-                'panel' => new LivewireComponentTabPanel(component: 'projects::admin.projects.plans-tab'),
-                'is_visible' => static fn (User $user, Project $project): bool => $user->can('view', $project),
-            ],
+            OverviewProjectTab::class,
+            AccessProjectTab::class,
+            FinancialsProjectTab::class,
         ]);
     }
 }

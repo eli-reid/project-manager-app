@@ -20,7 +20,7 @@ use App\Domains\Tasks\Permissions\TaskTemplatePermissions;
 use App\Domains\Tasks\Policies\TaskCategoryPolicy;
 use App\Domains\Tasks\Policies\TaskPolicy;
 use App\Domains\Tasks\Policies\TaskTemplatePolicy;
-use App\Domains\Tasks\Services\TasksProjectTabProvider;
+use App\Domains\Tasks\Support\TasksProjectTab;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -39,7 +39,7 @@ class TasksServiceProvider extends ServiceProvider
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
-        $projectTabRegistry->registerProvider(new TasksProjectTabProvider);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -121,5 +121,12 @@ class TasksServiceProvider extends ServiceProvider
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('tasks', __DIR__.'/../config/settings.php');
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            TasksProjectTab::class,
+        ]);
     }
 }

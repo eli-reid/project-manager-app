@@ -6,7 +6,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\ChangeOrders\Permissions\ChangeOrderPermissions;
 use App\Domains\ChangeOrders\Policies\ChangeOrderPolicy;
-use App\Domains\Projects\Support\ProjectTab;
+use App\Domains\ChangeOrders\Support\ChangeOrderTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -42,16 +42,9 @@ class ChangeOrdersServiceProvider extends ServiceProvider
 
     private function registerProjectTab(ProjectTabRegistry $projectTabRegistry): void
     {
-
-        projectTabPanel
-        $projectTabRegistry->registerProvider(new ProjectTab(
-            key: 'change-orders',
-            label: 'Change Orders',
-            sort: 120,
-            badgeResolver: static fn (ProjectTab $tab, $project) => $project->changeOrders()->count(),
-            visibilityResolver: static fn (ProjectTab $tab, $project, $user) => $user->can('viewAny', [ChangeOrder::class, $project]),
-
-        ));
+        $projectTabRegistry->registerDefinitions([
+            ChangeOrderTab::class,
+        ]);
     }
 
     private function registerAuthorization(): void

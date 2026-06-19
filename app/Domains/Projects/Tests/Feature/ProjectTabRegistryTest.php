@@ -4,6 +4,7 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Domains\Dailies\Livewire\Admin\Dailies\Show;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
 use App\Domains\Projects\Models\ProjectTabUserPreference;
@@ -23,7 +24,7 @@ it('defines project tab mode query params for routed create modes', function ():
 it('includes the expected provider-registered project view tabs', function (): void {
     $registry = app(ProjectTabRegistry::class);
 
-    expect(array_keys($registry->definitions()))->toEqual([
+    expect(array_keys($registry->tabs()))->toEqual([
         'overview',
         'dailies',
         'tasks',
@@ -190,6 +191,41 @@ it('builds project tab urls from registered metadata', function (): void {
         ->toContain($submittalsBaseUrl)
         ->toContain('submittalAction=create')
         ->toContain('submittalId=sub-456');
+});
+
+it('passes return urls to dailies detail panels through view state', function (): void {
+    $project = Project::factory()->create();
+    $registry = app(ProjectTabRegistry::class);
+
+    $user = userWithProjectTabPermissions([
+        'projects.view',
+        'dailies.view-all',
+    ]);
+
+    $tabPanels = $registry->tabPanels(
+        $project,
+        $user,
+        [
+            'dailies' => [
+                'modeParam' => 'dailyMode',
+                'mode' => '',
+                'detailParam' => 'dailyId',
+                'detailId' => 'daily-123',
+                'isCreateMode' => false,
+            ],
+        ],
+        [
+            'returnTo' => [
+                'dailies' => '/admin/projects/test?tab=dailies',
+            ],
+        ],
+    );
+
+    $dailiesPanel = collect($tabPanels)->firstWhere('tab', 'dailies');
+
+    expect($dailiesPanel)->not->toBeNull()
+        ->and($dailiesPanel['component'] ?? null)->toBe(Show::class)
+        ->and($dailiesPanel['props']['returnTo'] ?? null)->toBe('/admin/projects/test?tab=dailies');
 });
 
 /**

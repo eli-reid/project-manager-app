@@ -4,7 +4,9 @@ namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use App\Domains\Projects\Services\ProjectTabRegistry;
+use App\Domains\Projects\Support\ProjectTabViewItem;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -56,7 +58,7 @@ class Show extends Component
         abort_unless($user instanceof User, 401);
 
         $visibleTabKeys = collect($this->projectTabRegistry->visibleTabItems($this->project, $user))
-            ->pluck('key')
+            ->map(static fn (ProjectTabViewItem $tabItem): string => $tabItem->key)
             ->values()
             ->all();
 
@@ -133,10 +135,10 @@ class Show extends Component
         $tabBadges = $this->projectTabRegistry->tabBadges($this->project, $user instanceof User ? $user : null);
 
         $tabContext = collect($visibleTabItems)
-            ->mapWithKeys(static function (array $tabItem): array {
-                $tabKey = $tabItem['key'];
-                $modeParam = is_string($tabItem['mode_param'] ?? null) ? $tabItem['mode_param'] : null;
-                $detailQueryParam = is_string($tabItem['detail_query_param'] ?? null) ? $tabItem['detail_query_param'] : null;
+            ->mapWithKeys(static function (ProjectTabViewItem $tabItem): array {
+                $tabKey = $tabItem->key;
+                $modeParam = $tabItem->modeQueryParam;
+                $detailQueryParam = $tabItem->detailQueryParam;
                 $resolvedModeParam = $modeParam ?? str($tabKey)->replace('-', ' ')->singular()->camel()->append('Mode')->value();
 
                 $mode = (string) request()->query($resolvedModeParam, '');
@@ -155,11 +157,20 @@ class Show extends Component
             })
             ->all();
 
+        $tabReturnUrls = collect($visibleTabItems)
+            ->mapWithKeys(fn (ProjectTabViewItem $tabItem): array => [
+                $tabItem->key => app(ProjectTabLinkBuilder::class)->to($this->project, $tabItem->key),
+            ])
+            ->all();
+
         $tabPanels = $this->projectTabRegistry->tabPanels(
             $this->project,
             $user instanceof User ? $user : null,
             $tabContext,
-            ['taskWidgetVersion' => $this->taskWidgetVersion],
+            [
+                'taskWidgetVersion' => $this->taskWidgetVersion,
+                'returnTo' => $tabReturnUrls,
+            ],
         );
 
         return view('projects::livewire.admin.projects.show', [

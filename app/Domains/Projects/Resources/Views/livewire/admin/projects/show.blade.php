@@ -32,10 +32,10 @@
         <div class="overflow-x-auto">
             <div class="flex min-w-max gap-2">
                 @foreach ($visibleTabItems as $tabItem)
-                    <button type="button" wire:key="project-tab-button-{{ $tabItem['key'] }}" wire:click="setTab('{{ $tabItem['key'] }}')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === $tabItem['key'] ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
-                        {{ $tabItem['label'] }}
-                        @if (array_key_exists($tabItem['key'], $tabBadges))
-                            <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $tabBadges[$tabItem['key']] }}</span>
+                    <button type="button" wire:key="project-tab-button-{{ $tabItem->key }}" wire:click="setTab('{{ $tabItem->key }}')" class="rounded-lg px-3 py-2 text-sm font-medium {{ $activeTab === $tabItem->key ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}">
+                        {{ $tabItem->label }}
+                        @if (array_key_exists($tabItem->key, $tabBadges))
+                            <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-100 px-1.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ $tabBadges[$tabItem->key] }}</span>
                         @endif
                     </button>
                 @endforeach
@@ -51,11 +51,11 @@
 
                 <div wire:sort="sortProjectTab" class="flex flex-wrap gap-2">
                     @foreach ($visibleTabItems as $tabItem)
-                        <div wire:key="project-tab-sort-item-{{ $tabItem['key'] }}" wire:sort:item="{{ $tabItem['key'] }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                        <div wire:key="project-tab-sort-item-{{ $tabItem->key }}" wire:sort:item="{{ $tabItem->key }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
                             <button type="button" wire:sort:handle class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Move</button>
-                            <span>{{ $tabItem['label'] }}</span>
-                            @if ($tabItem['key'] !== 'overview')
-                                <button type="button" wire:click="hideTab('{{ $tabItem['key'] }}')" class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Hide</button>
+                            <span>{{ $tabItem->label }}</span>
+                            @if ($tabItem->key !== 'overview')
+                                <button type="button" wire:click="hideTab('{{ $tabItem->key }}')" class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Hide</button>
                             @endif
                         </div>
                     @endforeach
@@ -66,9 +66,9 @@
                         <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">Hidden Tabs</flux:text>
                         <div class="flex flex-wrap gap-2">
                             @foreach ($hiddenTabItems as $tabItem)
-                                <div wire:key="project-hidden-tab-item-{{ $tabItem['key'] }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-                                    <span>{{ $tabItem['label'] }}</span>
-                                    <button type="button" wire:click="showTab('{{ $tabItem['key'] }}')" class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Show</button>
+                                <div wire:key="project-hidden-tab-item-{{ $tabItem->key }}" class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                                    <span>{{ $tabItem->label }}</span>
+                                    <button type="button" wire:click="showTab('{{ $tabItem->key }}')" class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">Show</button>
                                 </div>
                             @endforeach
                         </div>

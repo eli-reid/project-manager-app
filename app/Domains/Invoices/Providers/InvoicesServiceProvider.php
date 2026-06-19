@@ -6,7 +6,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Permissions\InvoicePermissions;
 use App\Domains\Invoices\Policies\InvoicePolicy;
-use App\Domains\Invoices\Services\InvoicesProjectTabProvider;
+use App\Domains\Invoices\Support\InvoicesProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -25,7 +25,7 @@ class InvoicesServiceProvider extends ServiceProvider
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
-        $projectTabRegistry->registerProvider(new InvoicesProjectTabProvider);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -70,6 +70,13 @@ class InvoicesServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(InvoicePermissions::all());
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            InvoicesProjectTab::class,
+        ]);
     }
 
     private function registerReports(ReportRegistry $reportRegistry): void
