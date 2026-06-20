@@ -84,15 +84,15 @@ return new class extends Migration
         }
 
         // Swap columns: drop old foreign keys & columns and rename new_asset_id -> asset_id
-        // Documents
-        Schema::table('documents', function (Blueprint $table) {
-            // drop foreign if exists
-            try {
-                $table->dropForeign(['asset_id']);
-            } catch (\Throwable $e) {
-                // ignore if constraint not present
+        // Documents: drop existing foreign key (use information_schema lookup to handle differing constraint names)
+        try {
+            $fk = DB::selectOne("SELECT CONSTRAINT_NAME as name FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL", [DB::getDatabaseName(), 'documents', 'asset_id']);
+            if ($fk && isset($fk->name)) {
+                DB::statement("ALTER TABLE `documents` DROP FOREIGN KEY `{$fk->name}`");
             }
-        });
+        } catch (\Throwable $e) {
+            // ignore if constraint not present or query fails
+        }
 
         Schema::table('documents', function (Blueprint $table) {
             if (Schema::hasColumn('documents', 'asset_id')) {
@@ -120,12 +120,13 @@ return new class extends Migration
         });
 
         // Project assets
-        Schema::table('project_assets', function (Blueprint $table) {
-            try {
-                $table->dropForeign(['asset_id']);
-            } catch (\Throwable $e) {
+        try {
+            $fk = DB::selectOne("SELECT CONSTRAINT_NAME as name FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL", [DB::getDatabaseName(), 'project_assets', 'asset_id']);
+            if ($fk && isset($fk->name)) {
+                DB::statement("ALTER TABLE `project_assets` DROP FOREIGN KEY `{$fk->name}`");
             }
-        });
+        } catch (\Throwable $e) {
+        }
 
         Schema::table('project_assets', function (Blueprint $table) {
             if (Schema::hasColumn('project_assets', 'asset_id')) {
@@ -152,12 +153,13 @@ return new class extends Migration
         });
 
         // Asset shares
-        Schema::table('asset_shares', function (Blueprint $table) {
-            try {
-                $table->dropForeign(['asset_id']);
-            } catch (\Throwable $e) {
+        try {
+            $fk = DB::selectOne("SELECT CONSTRAINT_NAME as name FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL", [DB::getDatabaseName(), 'asset_shares', 'asset_id']);
+            if ($fk && isset($fk->name)) {
+                DB::statement("ALTER TABLE `asset_shares` DROP FOREIGN KEY `{$fk->name}`");
             }
-        });
+        } catch (\Throwable $e) {
+        }
 
         Schema::table('asset_shares', function (Blueprint $table) {
             if (Schema::hasColumn('asset_shares', 'asset_id')) {
@@ -188,27 +190,36 @@ return new class extends Migration
         Schema::rename('assets_new', 'assets');
 
         // Recreate foreign keys referencing the new assets table to point to 'assets'
-        Schema::table('documents', function (Blueprint $table) {
-            try {
-                $table->dropForeign(['asset_id']);
-            } catch (\Throwable $e) {
+        try {
+            $fk = DB::selectOne("SELECT CONSTRAINT_NAME as name FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL", [DB::getDatabaseName(), 'documents', 'asset_id']);
+            if ($fk && isset($fk->name)) {
+                DB::statement("ALTER TABLE `documents` DROP FOREIGN KEY `{$fk->name}`");
             }
+        } catch (\Throwable $e) {
+        }
+        Schema::table('documents', function (Blueprint $table) {
             $table->foreign('asset_id')->references('id')->on('assets')->onDelete('set null');
         });
 
-        Schema::table('project_assets', function (Blueprint $table) {
-            try {
-                $table->dropForeign(['asset_id']);
-            } catch (\Throwable $e) {
+        try {
+            $fk = DB::selectOne("SELECT CONSTRAINT_NAME as name FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL", [DB::getDatabaseName(), 'project_assets', 'asset_id']);
+            if ($fk && isset($fk->name)) {
+                DB::statement("ALTER TABLE `project_assets` DROP FOREIGN KEY `{$fk->name}`");
             }
+        } catch (\Throwable $e) {
+        }
+        Schema::table('project_assets', function (Blueprint $table) {
             $table->foreign('asset_id')->references('id')->on('assets')->onDelete('cascade');
         });
 
-        Schema::table('asset_shares', function (Blueprint $table) {
-            try {
-                $table->dropForeign(['asset_id']);
-            } catch (\Throwable $e) {
+        try {
+            $fk = DB::selectOne("SELECT CONSTRAINT_NAME as name FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL", [DB::getDatabaseName(), 'asset_shares', 'asset_id']);
+            if ($fk && isset($fk->name)) {
+                DB::statement("ALTER TABLE `asset_shares` DROP FOREIGN KEY `{$fk->name}`");
             }
+        } catch (\Throwable $e) {
+        }
+        Schema::table('asset_shares', function (Blueprint $table) {
             $table->foreign('asset_id')->references('id')->on('assets')->onDelete('cascade');
         });
     }

@@ -181,6 +181,7 @@ class Form extends Component
     public function save(): void
     {
         $validated = $this->validate();
+        $this->assertValidCustomProjectNames($validated['entries'] ?? []);
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         // Convert day_of_week to actual dates
@@ -210,6 +211,25 @@ class Form extends Component
         }
 
         $this->redirectRoute('timecards.show', ['timecard' => $timecard], navigate: true);
+    }
+
+    /**
+     * Ensure entries using Custom / Unassigned (no project_id) provide a custom_project_name.
+     *
+     * @param  array<int, array<string, mixed>>  $entries
+     */
+    protected function assertValidCustomProjectNames(array $entries): void
+    {
+        foreach ($entries as $index => $entry) {
+            $projectId = (string) ($entry['project_id'] ?? '');
+            $custom = trim((string) ($entry['custom_project_name'] ?? ''));
+
+            if ($projectId === '' && $custom === '') {
+                throw ValidationException::withMessages([
+                    "entries.{$index}.custom_project_name" => 'Please provide a custom project name when Custom / Unassigned is selected.',
+                ]);
+            }
+        }
     }
 
     public function render()

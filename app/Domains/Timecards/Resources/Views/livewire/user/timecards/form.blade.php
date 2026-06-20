@@ -97,7 +97,11 @@
                                     <div>
                                         <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Custom Project Name') }}</label>
                                         <input type="text" wire:model="entries.{{ $index }}.custom_project_name" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                        <input type="text" wire:model="entries.{{ $index }}.custom_project_name" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" @if(! $entry['project_id']) required @endif />
                                         @error('entries.'.$index.'.custom_project_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                        @if(! $entry['project_id'])
+                                            <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Required when Custom / Unassigned is selected.') }}</p>
+                                        @endif
                                     </div>
                                 </div>
 
