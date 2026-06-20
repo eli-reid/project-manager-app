@@ -57,18 +57,24 @@ return new class extends Migration
             }
         });
 
-        // Add temporary new_asset_id columns to referencing tables
-        Schema::table('documents', function (Blueprint $table) {
-            $table->ulid('new_asset_id')->nullable()->after('id');
-        });
+        // Add temporary new_asset_id columns to referencing tables (skip if already present)
+        if (! Schema::hasColumn('documents', 'new_asset_id')) {
+            Schema::table('documents', function (Blueprint $table) {
+                $table->ulid('new_asset_id')->nullable()->after('id');
+            });
+        }
 
-        Schema::table('project_assets', function (Blueprint $table) {
-            $table->ulid('new_asset_id')->nullable()->after('project_id');
-        });
+        if (! Schema::hasColumn('project_assets', 'new_asset_id')) {
+            Schema::table('project_assets', function (Blueprint $table) {
+                $table->ulid('new_asset_id')->nullable()->after('project_id');
+            });
+        }
 
-        Schema::table('asset_shares', function (Blueprint $table) {
-            $table->ulid('new_asset_id')->nullable()->after('id');
-        });
+        if (! Schema::hasColumn('asset_shares', 'new_asset_id')) {
+            Schema::table('asset_shares', function (Blueprint $table) {
+                $table->ulid('new_asset_id')->nullable()->after('id');
+            });
+        }
 
         // Populate new_asset_id using the mapping
         foreach ($mapping as $old => $new) {
@@ -94,9 +100,11 @@ return new class extends Migration
             }
         });
 
-        Schema::table('documents', function (Blueprint $table) {
-            $table->ulid('asset_id')->nullable()->after('id');
-        });
+        if (! Schema::hasColumn('documents', 'asset_id')) {
+            Schema::table('documents', function (Blueprint $table) {
+                $table->ulid('asset_id')->nullable()->after('id');
+            });
+        }
 
         // copy new_asset_id -> asset_id
         DB::table('documents')->whereNotNull('new_asset_id')->chunk(100, function ($rows) {
@@ -125,9 +133,11 @@ return new class extends Migration
             }
         });
 
-        Schema::table('project_assets', function (Blueprint $table) {
-            $table->ulid('asset_id')->nullable()->after('project_id');
-        });
+        if (! Schema::hasColumn('project_assets', 'asset_id')) {
+            Schema::table('project_assets', function (Blueprint $table) {
+                $table->ulid('asset_id')->nullable()->after('project_id');
+            });
+        }
 
         DB::table('project_assets')->whereNotNull('new_asset_id')->chunk(100, function ($rows) {
             foreach ($rows as $r) {
@@ -155,9 +165,11 @@ return new class extends Migration
             }
         });
 
-        Schema::table('asset_shares', function (Blueprint $table) {
-            $table->ulid('asset_id')->nullable()->after('id');
-        });
+        if (! Schema::hasColumn('asset_shares', 'asset_id')) {
+            Schema::table('asset_shares', function (Blueprint $table) {
+                $table->ulid('asset_id')->nullable()->after('id');
+            });
+        }
 
         DB::table('asset_shares')->whereNotNull('new_asset_id')->chunk(100, function ($rows) {
             foreach ($rows as $r) {

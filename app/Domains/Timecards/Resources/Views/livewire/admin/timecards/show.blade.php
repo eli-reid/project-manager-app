@@ -98,7 +98,7 @@
                             @foreach ($entries as $entry)
                                 <tr wire:key="admin-timecard-entry-{{ $entry->id }}">
                                     <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ optional($entry->date)->format('M j, Y') }}</td>
-                                    <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $entry->project?->name ?: $entry->custom_project_name ?: __('Unassigned') }}</td>
+                                    <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $entry->project?->name ?? $entry->custom_project_name ?? __('Unassigned') }}</td>
                                     <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $entry->notes ?: '—' }}</td>
                                     <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ number_format((float) $entry->hours, 2) }}</td>
                                 </tr>
