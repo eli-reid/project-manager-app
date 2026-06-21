@@ -4,12 +4,7 @@ namespace App\Domains\Projects\Models;
 
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Accounting\Models\AccountingCode;
-use App\Domains\Addresses\Models\Address;
-use App\Domains\ChangeOrders\Models\ChangeOrder;
-use App\Domains\Clients\Models\Client;
-use App\Domains\Dailies\Models\DailyReport;
-use App\Domains\Payroll\Models\PayRateType;
+use App\Domains\Projects\Contracts\ProjectRef;
 use App\Domains\Projects\Database\Factories\ProjectFactory;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
 use DomainException;
@@ -23,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * @mixin IdeHelperProject
  */
-class Project extends Model
+class Project extends Model implements ProjectRef
 {
     use HasFactory, HasUlids, SoftDeletes;
 
@@ -46,7 +41,6 @@ class Project extends Model
         'status',
         'start_date',
         'end_date',
-        'client_id',
         'address_id',
         'project_manager_id',
         'leave_category',
@@ -74,12 +68,12 @@ class Project extends Model
 
     public function payRateType(): BelongsTo
     {
-        return $this->belongsTo(PayRateType::class);
+        throw new DomainException('Pay rate type access moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function accountingCode(): BelongsTo
     {
-        return $this->belongsTo(AccountingCode::class);
+        throw new DomainException('Accounting access moved to plugin. Use ProjectPluginRegistry.');
     }
 
     protected static function booted(): void
@@ -168,12 +162,12 @@ class Project extends Model
 
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        throw new DomainException('Client access moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function address(): BelongsTo
     {
-        return $this->belongsTo(Address::class);
+        throw new DomainException('Address access moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function projectManager(): BelongsTo
@@ -183,12 +177,12 @@ class Project extends Model
 
     public function availableClientAddresses(): HasMany
     {
-        return $this->hasMany(Address::class, 'client_id', 'client_id');
+        throw new DomainException('Client addresses moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function dailyReports(): HasMany
     {
-        return $this->hasMany(DailyReport::class);
+        throw new DomainException('Daily reports moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function isLeaveProject(): bool
@@ -206,26 +200,34 @@ class Project extends Model
 
     public function userAccesses(): HasMany
     {
-        return $this->hasMany(ProjectUserAccess::class);
+        throw new DomainException('User accesses moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function roleAccesses(): HasMany
     {
-        return $this->hasMany(ProjectRoleAccess::class);
+        throw new DomainException('Role accesses moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function costCodes(): HasMany
     {
-        return $this->hasMany(CostCode::class);
+        throw new DomainException('Cost codes moved to plugin. Use ProjectPluginRegistry.');
     }
 
     public function changeOrders(): HasMany
     {
-        return $this->hasMany(ChangeOrder::class);
+        throw new DomainException('Change orders moved to plugin. Use ProjectPluginRegistry.');
     }
 
     protected static function newFactory(): ProjectFactory
     {
         return ProjectFactory::new();
     }
+
+    // ProjectRef implementation
+    public function id(): string
+    {
+        return (string) $this->getKey();
+    }
+
+    // ProjectContext responsibilities moved to ProjectContextService
 }
