@@ -37,19 +37,18 @@ class LeaveBalanceService
         ];
 
         $rows = TimecardEntry::query()
-            ->selectRaw('projects.leave_category as leave_category, COALESCE(SUM(timecard_entries.hours), 0) as hours_used')
-            ->join('projects', 'projects.id', '=', 'timecard_entries.project_id')
+            ->selectRaw('timecard_entries.leave_type as leave_type, COALESCE(SUM(timecard_entries.hours), 0) as hours_used')
             ->join('timecards', 'timecards.id', '=', 'timecard_entries.timecard_id')
             ->where('timecard_entries.user_id', $user->id)
             ->where('timecards.status', Timecard::STATUS_APPROVED)
-            ->whereIn('projects.leave_category', ['sick', 'vacation'])
+            ->whereIn('timecard_entries.leave_type', ['sick', 'vacation'])
             ->whereDate('timecard_entries.date', '>=', $periodStart->toDateString())
             ->whereDate('timecard_entries.date', '<=', $periodEnd->toDateString())
-            ->groupBy('projects.leave_category')
+            ->groupBy('timecard_entries.leave_type')
             ->get();
 
         foreach ($rows as $row) {
-            $category = (string) ($row->leave_category ?? '');
+            $category = (string) ($row->leave_type ?? '');
 
             if (! array_key_exists($category, $used)) {
                 continue;

@@ -72,7 +72,6 @@ class Index extends Component
         $projects = Project::query()
             ->with(['address:id,address1,address2,city,state,zip,country'])
             ->where('is_active', true)
-            ->whereNull('leave_category')
             ->whereNotIn('status', $closedStatuses)
             ->when($this->search !== '', function ($query): void {
                 $search = '%'.$this->search.'%';

@@ -58,6 +58,7 @@ class Form extends Component
                     'day_of_week' => (int) optional($entry->date)->dayOfWeek,
                     'start_time' => $entry->start_time ? substr((string) $entry->start_time, 0, 5) : null,
                     'project_id' => $entry->project_id ? (string) $entry->project_id : null,
+                    'leave_type' => $entry->leave_type ?? null,
                     'cost_code_id' => $entry->cost_code_id ? (string) $entry->cost_code_id : null,
                     'custom_project_name' => $entry->custom_project_name,
                     'hours' => number_format((float) $entry->hours, 2, '.', ''),
@@ -101,6 +102,7 @@ class Form extends Component
             'entries.*.day_of_week' => ['required', 'integer', 'between:0,6'],
             'entries.*.start_time' => ['nullable', 'date_format:H:i'],
             'entries.*.project_id' => ['nullable', 'exists:projects,id'],
+            'entries.*.leave_type' => ['nullable', 'string', 'in:sick,vacation'],
             'entries.*.cost_code_id' => ['nullable', 'exists:cost_codes,id'],
             'entries.*.custom_project_name' => ['nullable', 'string', 'max:255'],
             'entries.*.hours' => ['required', 'numeric', 'min:0', 'max:24'],
@@ -125,20 +127,10 @@ class Form extends Component
         if (! in_array($leaveCategory, ['sick', 'vacation'], true)) {
             return;
         }
-
-        $leaveProjectId = Project::query()
-            ->where('leave_category', $leaveCategory)
-            ->orderByDesc('is_active')
-            ->orderBy('name')
-            ->value('id');
-
-        if (! is_string($leaveProjectId)) {
-            $this->addError('entries', 'No active '.str($leaveCategory)->title().' leave project is configured.');
-
-            return;
-        }
-
-        $this->entries[] = $this->newEntry($leaveProjectId);
+        // Create a leave entry (no project) and mark leave_type on the entry
+        $entry = $this->newEntry(null);
+        $entry['leave_type'] = $leaveCategory;
+        $this->entries[] = $entry;
     }
 
     #[On('timecard-form:add-sick-entry')]
@@ -235,16 +227,11 @@ class Form extends Component
     public function render()
     {
         $projects = Project::query()
-            ->where(function ($query): void {
-                $query->where('is_active', true)
-                    ->orWhereNotNull('leave_category');
-            })
+            ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'leave_category']);
+            ->get(['id', 'name']);
 
-        $leaveProjectsByCategory = $projects
-            ->whereNotNull('leave_category')
-            ->keyBy('leave_category');
+        $leaveProjectsByCategory = collect([]); // leave now represented on timecard entries via leave_type
 
         $user = Auth::user();
 
@@ -289,18 +276,13 @@ class Form extends Component
             ->values()
             ->all();
 
-        $leaveProjectIds = Project::query()
-            ->whereIn('id', $projectIds)
-            ->whereNotNull('leave_category')
-            ->pluck('id')
-            ->map(fn ($projectId): string => (string) $projectId)
-            ->all();
-
         foreach ($entries as $index => $entry) {
             $costCodeId = (string) ($entry['cost_code_id'] ?? '');
             $projectId = (string) ($entry['project_id'] ?? '');
+            $leaveType = (string) ($entry['leave_type'] ?? '');
 
-            if ($costCodeId !== '' && in_array($projectId, $leaveProjectIds, true)) {
+            // Entries that are leave (have a leave_type) must not use cost codes
+            if ($costCodeId !== '' && $leaveType !== '') {
                 throw ValidationException::withMessages([
                     "entries.{$index}.cost_code_id" => 'Leave entries cannot use cost codes.',
                 ]);
@@ -337,6 +319,7 @@ class Form extends Component
             'day_of_week' => 1,
             'start_time' => null,
             'project_id' => $projectId,
+            'leave_type' => null,
             'cost_code_id' => null,
             'custom_project_name' => null,
             'hours' => '0.00',

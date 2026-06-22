@@ -3,12 +3,15 @@
 namespace App\Domains\Tasks\Support;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Projects\support\ProjectTab;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Support\ProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 use App\Domains\Tasks\Models\Task;
+use App\Domains\Tasks\Livewire\Admin\Tasks\Index as TasksIndex;
 
-final class TasksProjectTab extends ProjectTab
+
+
+final class TasksProjectTab extends ProjectTab 
 {
     public function __construct()
     {
@@ -16,12 +19,36 @@ final class TasksProjectTab extends ProjectTab
             key: 'tasks',
             label: 'Tasks',
             sort: 30,
+            modeParam: 'mode',
+            detailQueryParam: 'detail',
             panel: new LivewireComponentTabPanel(
-                component: 'tasks::admin.projects.task-hierarchy-widget',
-                baseProps: [],
-                keyPattern: 'project-task-widget-{projectId}-{taskWidgetVersion}',
+                component: TasksIndex::class,
+                baseProps: ['embedded' => true],
+                detailView: [
+                    'component' => Null, // To be implemented: Task detail component
+                    'baseProps' => ['embedded' => true],
+                    'detailProp' => 'task',
+                    'keyPattern' => 'project-tasks-show-{projectId}-{detailId}',
+                    'viewStateProps' => ['returnTo' => 'returnTo'],
+                ],
+                keyPattern: 'project-tasks-index-{projectId}',
             ),
         );
+    }
+
+    public function modeQueryParam(): ?string
+    {
+        return 'mode';
+    }
+
+    public function detailQueryParam(): ?string
+    {
+        return 'detail';
+    }
+
+    public function panel(): LivewireComponentTabPanel
+    {
+        return $this->panel;
     }
 
     public function isVisible(User $user, Project $project): bool

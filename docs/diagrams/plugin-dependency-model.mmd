@@ -1,0 +1,92 @@
+flowchart LR
+  %% External plugin boundary
+  subgraph PLUGIN[Plugin Layer]
+    P1[Plugin Module]
+  end
+
+  %% Stable app-owned integration surface
+  subgraph ACCESS[Core Plugin Access Surface]
+    REG[Plugin Registry\napp/Core/*]
+    API[Domain Contracts / Facades\napp/Core/*/Contracts]
+    AUTH[AuthZ + Policy Gateway]
+    EVENTS[Domain Event Bus]
+  end
+
+  %% Domain model boundary
+  subgraph DOMAINS[Domain Mesh - app/Domains]
+    ADDR[Addresses]
+    CLIENTS[Clients]
+    PROJECTS[Projects]
+    TASKS[Tasks]
+    DOCS[Documents]
+    RFIS[RFIs]
+    CHANGE[ChangeOrders]
+    DAILIES[Dailies]
+    INVOICES[Invoices]
+    STOCK[Stock]
+    EQUIP[Equipment]
+    SUBMITTALS[Submittals]
+    TIMECARDS[Timecards]
+    PAYROLL[Payroll]
+    ACCOUNTING[Accounting]
+    REPORTS[Reports]
+    PROVIDERS[Providers]
+  end
+
+  %% Plugin access rules
+  P1 --> REG
+  P1 --> API
+  REG --> AUTH
+  AUTH --> API
+  API --> PROJECTS
+  API --> TASKS
+  API --> CLIENTS
+  API --> DOCS
+  API --> REPORTS
+
+  %% Event-driven extension path
+  TIMECARDS --> EVENTS
+  PAYROLL --> EVENTS
+  PROJECTS --> EVENTS
+  EVENTS --> P1
+
+  %% Domain interactions
+  PROJECTS --> CLIENTS
+  CLIENTS --> ADDR
+  TASKS --> PROJECTS
+  DOCS --> PROJECTS
+  RFIS --> PROJECTS
+  CHANGE --> PROJECTS
+  DAILIES --> PROJECTS
+  INVOICES --> PROJECTS
+  STOCK --> PROJECTS
+  EQUIP --> PROJECTS
+  SUBMITTALS --> PROJECTS
+  TIMECARDS --> PROJECTS
+  TIMECARDS --> PAYROLL
+  PAYROLL --> ACCOUNTING
+  REPORTS --> PROJECTS
+  REPORTS --> ACCOUNTING
+  PROVIDERS --> STOCK
+
+  %% Explicit anti-pattern
+  P1 -. forbidden: direct domain calls .-> PROJECTS
+  P1 -. forbidden: cross-domain writes .-> ACCOUNTING
+
+  %% Edge styling (by declaration order)
+  linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12 stroke:#60A5FA,stroke-width:2px,color:#DBEAFE
+  linkStyle 13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29 stroke:#94A3B8,stroke-width:1.5px,color:#E2E8F0
+  linkStyle 30,31 stroke:#F43F5E,stroke-width:2.5px,color:#FFE4E6
+
+  classDef plugin fill:#3A2618,stroke:#F59E0B,stroke-width:2px,color:#FFF7ED;
+  classDef access fill:#102A43,stroke:#60A5FA,stroke-width:2px,color:#E0F2FE;
+  classDef domain fill:#10261A,stroke:#4ADE80,stroke-width:1.5px,color:#DCFCE7;
+  classDef denied fill:#3A0F1C,stroke:#FB7185,stroke-width:2px,color:#FFE4E6;
+
+  style PLUGIN fill:#1F1610,stroke:#F59E0B,stroke-width:2px,color:#FFF7ED
+  style ACCESS fill:#0B1B2A,stroke:#60A5FA,stroke-width:2px,color:#DBEAFE
+  style DOMAINS fill:#0C1C13,stroke:#4ADE80,stroke-width:2px,color:#DCFCE7
+
+  class P1 plugin;
+  class REG,API,AUTH,EVENTS access;
+  class ADDR,CLIENTS,PROJECTS,TASKS,DOCS,RFIS,CHANGE,DAILIES,INVOICES,STOCK,EQUIP,SUBMITTALS,TIMECARDS,PAYROLL,ACCOUNTING,REPORTS,PROVIDERS domain;

@@ -32,12 +32,7 @@
                             <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                 <div>{{ $project->name }}</div>
 
-                                @if ($project->isLeaveProject())
-                                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                                        <span class="inline-flex rounded-md bg-amber-100 px-2 py-1 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">Timecard Leave</span>
-                                        <span class="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{{ ucfirst($project->leave_category) }}</span>
-                                    </div>
-                                @endif
+                                {{-- Leave projects no longer stored on Project; leave is recorded on Timecard entries via `leave_type`. --}}
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->project_number ?? 'N/A' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->accounting_code ?? 'N/A' }}</td>

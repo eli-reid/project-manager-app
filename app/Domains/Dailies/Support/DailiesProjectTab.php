@@ -7,10 +7,10 @@ use App\Domains\Dailies\Livewire\Admin\Dailies\Index as DailiesIndex;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Show as DailiesShow;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Support\ProjectTab;
+use App\Domains\Projects\Support\AbstractProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 
-final class DailiesProjectTab extends ProjectTab
+final readonly class DailiesProjectTab extends AbstractProjectTab
 {
     public function __construct()
     {
@@ -18,7 +18,8 @@ final class DailiesProjectTab extends ProjectTab
             key: 'dailies',
             label: 'Dailies',
             sort: 20,
-            detailQueryParam: 'dailyId',
+            modeParam: 'mode',
+            detailQueryParam: 'detail',
             panel: new LivewireComponentTabPanel(
                 component: DailiesIndex::class,
                 baseProps: ['embedded' => true],
@@ -29,6 +30,7 @@ final class DailiesProjectTab extends ProjectTab
                     'keyPattern' => 'project-dailies-show-{projectId}-{detailId}',
                     'viewStateProps' => ['returnTo' => 'returnTo'],
                 ],
+                keyPattern: 'project-dailies-index-{projectId}',
             ),
         );
     }

@@ -25,8 +25,8 @@ class TimecardReportingService
     {
         $query = TimecardEntry::query()
             ->whereNotNull('project_id')
-            ->whereHas('project', fn (Builder $builder): Builder => $builder->whereNull('leave_category'))
-            ->with(['user:id,first_name,last_name,username', 'project:id,name,project_number,leave_category']);
+            ->whereNull('leave_type')
+            ->with(['user:id,first_name,last_name,username', 'project:id,name,project_number']);
 
         if ($fromDate !== null) {
             $query->whereDate('date', '>=', $fromDate);

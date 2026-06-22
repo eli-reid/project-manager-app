@@ -219,43 +219,6 @@ it('keeps desktop browsers on the standard projects index route', function (): v
         ->assertDontSee('Project Access');
 });
 
-it('hides leave projects from user project list', function (): void {
-    $user = userWithProjectDomainPermissions([
-        'projects.view',
-    ]);
-
-    Project::factory()->create([
-        'name' => 'Standard Assigned Project',
-        'project_manager_id' => $user->id,
-        'status' => 'in_progress',
-        'is_active' => true,
-        'leave_category' => null,
-    ]);
-
-    Project::factory()->create([
-        'name' => 'Sick Leave Project Hidden',
-        'project_manager_id' => $user->id,
-        'status' => 'active',
-        'is_active' => true,
-        'leave_category' => 'sick',
-    ]);
-
-    Project::factory()->create([
-        'name' => 'Vacation Leave Project Hidden',
-        'project_manager_id' => $user->id,
-        'status' => 'active',
-        'is_active' => true,
-        'leave_category' => 'vacation',
-    ]);
-
-    $this->actingAs($user)
-        ->get(route('projects.index'))
-        ->assertSuccessful()
-        ->assertSee('Standard Assigned Project')
-        ->assertDontSee('Sick Leave Project Hidden')
-        ->assertDontSee('Vacation Leave Project Hidden');
-});
-
 it('does not offer include closed filter on user project list', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
@@ -460,22 +423,18 @@ it('flags leave projects on the admin project list as timecard leave items', fun
     Project::factory()->create([
         'name' => 'Standard Admin Project',
         'project_number' => 'PRJ-ADMIN-1',
-        'leave_category' => null,
     ]);
 
     Project::factory()->create([
         'name' => 'Vacation Time Entry Bucket',
         'project_number' => Project::BUILT_IN_VACATION_PROJECT_NUMBER,
-        'leave_category' => 'vacation',
     ]);
 
     Livewire::actingAs($user)
         ->test(AdminProjectsIndex::class)
         ->assertSeeInOrder(['Vacation Time Entry Bucket', 'Standard Admin Project'])
         ->assertSee('Standard Admin Project')
-        ->assertSee('Vacation Time Entry Bucket')
-        ->assertSee('Timecard Leave')
-        ->assertSee('Vacation');
+        ->assertSee('Vacation Time Entry Bucket');
 });
 
 it('shows inline client and address widgets on project create form', function (): void {
@@ -490,7 +449,7 @@ it('shows inline client and address widgets on project create form', function ()
         ->get(route('admin.projects.create'))
         ->assertSuccessful()
         ->assertSee('Accounting Code')
-        ->assertSee('Leave Tracking')
+        ->assertDontSee('Leave Tracking')
         ->assertSee('Default Pay Rate Type')
         ->assertSee('Quick Add Client')
         ->assertSee('Quick Add Address');
@@ -577,15 +536,13 @@ it('allows authorized users to edit and update a project', function (): void {
         ->set('project_number', 'PRJ-EDIT-1')
         ->set('accounting_code_id', (string) $accountingCode->id)
         ->set('status', 'in_progress')
-        ->set('leave_category', 'vacation')
         ->call('save')
         ->assertHasNoErrors();
 
     expect($project->fresh()->name)->toBe('Updated Project Name')
         ->and($project->fresh()->status?->value)->toBe('in_progress')
         ->and($project->fresh()->accounting_code_id)->toBe($accountingCode->id)
-        ->and($project->fresh()->accounting_code)->toBe('BULK-AGGREGATE-01')
-        ->and($project->fresh()->leave_category)->toBe('vacation');
+        ->and($project->fresh()->accounting_code)->toBe('BULK-AGGREGATE-01');
 });
 
 it('shows unassigned and selected addresses on project edit form', function (): void {

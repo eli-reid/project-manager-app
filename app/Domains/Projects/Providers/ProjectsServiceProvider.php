@@ -2,27 +2,6 @@
 
 namespace App\Domains\Projects\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use App\Domains\Projects\Services\ProjectPluginRegistry;
-
-class ProjectsServiceProvider extends ServiceProvider
-{
-    public function register(): void
-    {
-        $this->app->singleton(ProjectPluginRegistry::class, function ($app) {
-            return new ProjectPluginRegistry();
-        });
-    }
-
-    public function boot(): void
-    {
-        // placeholder for plugin bindings
-    }
-}
-<?php
-
-namespace App\Domains\Projects\Providers;
-
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;

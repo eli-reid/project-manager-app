@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Core\Assets\Services;
 
-use App\Core\Assets\Contracts\AssetOrchestratorContract;
+use App\Core\Assets\Contracts\AssetOrchestratorInterface;
 use App\Core\Assets\DTOs\AssetMeta;
 use App\Core\Assets\Models\Asset;
 use App\Core\Files\Contracts\FileStorageContract;
@@ -11,7 +13,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
 
-class AssetService implements AssetOrchestratorContract
+class AssetService implements AssetOrchestratorInterface
 {
     public function __construct(
         private readonly FileStorageContract $fileStorage,

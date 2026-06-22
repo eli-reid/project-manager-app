@@ -88,11 +88,17 @@
                                         <select wire:model="entries.{{ $index }}.project_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                                             <option value="">{{ __('Custom / Unassigned') }}</option>
                                             @foreach ($projects as $project)
-                                                <option value="{{ $project->id }}">{{ $project->name }}{{ $project->leave_category ? ' ('.str($project->leave_category)->headline().' Leave)' : '' }}</option>
+                                                <option value="{{ $project->id }}">{{ $project->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('entries.'.$index.'.project_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                     </div>
+
+                                    @if (! empty($entry['leave_type']))
+                                        <div class="mt-2">
+                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">{{ ucfirst($entry['leave_type']) }} Leave</span>
+                                        </div>
+                                    @endif
 
                                     <div>
                                         <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Custom Project Name') }}</label>

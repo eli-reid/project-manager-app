@@ -30,7 +30,6 @@ class ProjectFactory extends Factory
             'start_date' => fake()->optional()->dateTimeBetween('-30 days', 'now'),
             'end_date' => fake()->optional()->dateTimeBetween('now', '+120 days'),
             'project_manager_id' => User::factory(),
-            'leave_category' => null,
             'is_active' => true,
         ];
     }

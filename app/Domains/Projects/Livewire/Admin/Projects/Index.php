@@ -4,7 +4,6 @@ namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -26,9 +25,7 @@ class Index extends Component
     {
         $query = Project::query();
 
-        if (Schema::hasColumn('projects', 'leave_category')) {
-            $query->orderByRaw('CASE WHEN leave_category IS NOT NULL THEN 0 ELSE 1 END');
-        }
+        // Leave is now recorded on timecard entries; no special ordering needed.
 
         return view('projects::livewire.admin.projects.index', [
             'projects' => $query

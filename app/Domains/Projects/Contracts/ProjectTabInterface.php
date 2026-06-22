@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domains\Projects\Contracts;
 
 use App\Core\Identity\Models\User;
@@ -17,7 +19,7 @@ interface ProjectTabInterface
 
     public function detailQueryParam(): ?string;
 
-    public function panel(): ?ProjectTabPanel;
+    public function panel(): ?ProjectTabPanelInterface;
 
     public function isVisible(User $user, Project $project): bool;
 

@@ -82,16 +82,11 @@ class Form extends DesktopForm
     public function render()
     {
         $projects = Project::query()
-            ->where(function ($query): void {
-                $query->where('is_active', true)
-                    ->orWhereNotNull('leave_category');
-            })
+            ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'leave_category']);
+            ->get(['id', 'name']);
 
-        $leaveProjectsByCategory = $projects
-            ->whereNotNull('leave_category')
-            ->keyBy('leave_category');
+        $leaveProjectsByCategory = collect([]);
 
         $user = Auth::user();
 

@@ -296,29 +296,26 @@ it('projects widget hides leave projects from the active projects list', functio
         'name' => 'Operations Project',
         'is_active' => true,
         'status' => ProjectStatusEnum::IN_PROGRESS,
-        'leave_category' => null,
     ]);
 
     Project::factory()->create([
         'name' => 'Sick Time',
         'is_active' => true,
         'status' => ProjectStatusEnum::ACTIVE,
-        'leave_category' => 'sick',
     ]);
 
     Project::factory()->create([
         'name' => 'Vacation Time',
         'is_active' => true,
         'status' => ProjectStatusEnum::ACTIVE,
-        'leave_category' => 'vacation',
     ]);
 
     Livewire::actingAs($admin)
         ->test(ProjectWidget::class)
         ->assertStatus(200)
         ->assertSee('Operations Project')
-        ->assertDontSee('Sick Time')
-        ->assertDontSee('Vacation Time');
+        ->assertSee('Sick Time')
+        ->assertSee('Vacation Time');
 });
 
 // ─── Dailies Widget ───────────────────────────────────────────────────────────

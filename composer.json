@@ -40,14 +40,13 @@
             "Database\\Seeders\\": "database/seeders/"
         }
     },
-
-        "extra": {
-            "laravel": {
-                "providers": [
-                    "App\\Domains\\Projects\\Providers\\ProjectsServiceProvider"
-                ]
-            }
-        },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "App\\Domains\\Projects\\Providers\\ProjectsServiceProvider"
+            ]
+        }
+    },
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"

@@ -43,8 +43,6 @@ class Form extends Component
 
     public ?string $address_id = null;
 
-    public ?string $leave_category = null;
-
     public ?string $pay_rate_type_id = null;
 
     public bool $is_active = true;
@@ -65,7 +63,6 @@ class Form extends Component
             $this->end_date = $project->end_date?->format('Y-m-d');
             $this->client_id = $project->client_id;
             $this->address_id = $project->address_id;
-            $this->leave_category = $project->leave_category;
             $this->pay_rate_type_id = $project->pay_rate_type_id;
             $this->is_active = (bool) $project->is_active;
 
@@ -92,7 +89,6 @@ class Form extends Component
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'client_id' => ['nullable', 'exists:clients,id'],
             'address_id' => ['nullable', 'exists:addresses,id'],
-            'leave_category' => ['nullable', Rule::in(['sick', 'vacation'])],
             'pay_rate_type_id' => ['nullable', 'exists:pay_rate_types,id'],
             'is_active' => ['boolean'],
         ];
@@ -100,9 +96,6 @@ class Form extends Component
 
     public function save(): void
     {
-        if ($this->leave_category === '') {
-            $this->leave_category = null;
-        }
 
         if ($this->accounting_code_id === '') {
             $this->accounting_code_id = null;

@@ -172,12 +172,17 @@
                                 >
                                     <option value="">{{ __('Custom / Unassigned') }}</option>
                                     @foreach ($projects as $project)
-                                        <option value="{{ $project->id }}">{{ $project->name }}{{ $project->leave_category ? ' ('.str($project->leave_category)->headline().' Leave)' : '' }}</option>
+                                        <option value="{{ $project->id }}">{{ $project->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('entries.'.$index.'.project_id')
                                     <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
                                 @enderror
+                                @if (! empty($entry['leave_type']))
+                                    <div class="mt-2">
+                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">{{ ucfirst($entry['leave_type']) }} Leave</span>
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- Custom Project Name --}}
@@ -211,27 +216,23 @@
                     {{ __('Add Entry') }}
                 </button>
 
-                @if (data_get($leaveProjectsByCategory, 'sick.id'))
-                    <button
-                        type="button"
-                        wire:click="addLeaveEntry('sick')"
-                        data-mobile-haptic
-                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-800/60 bg-emerald-950/30 text-sm font-semibold text-emerald-300"
-                    >
-                        {{ __('Add Sick Entry') }}
-                    </button>
-                @endif
+                <button
+                    type="button"
+                    wire:click="addLeaveEntry('sick')"
+                    data-mobile-haptic
+                    class="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-800/60 bg-emerald-950/30 text-sm font-semibold text-emerald-300"
+                >
+                    {{ __('Add Sick Entry') }}
+                </button>
 
-                @if (data_get($leaveProjectsByCategory, 'vacation.id'))
-                    <button
-                        type="button"
-                        wire:click="addLeaveEntry('vacation')"
-                        data-mobile-haptic
-                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-sky-800/60 bg-sky-950/30 text-sm font-semibold text-sky-300"
-                    >
-                        {{ __('Add Vacation Entry') }}
-                    </button>
-                @endif
+                <button
+                    type="button"
+                    wire:click="addLeaveEntry('vacation')"
+                    data-mobile-haptic
+                    class="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-sky-800/60 bg-sky-950/30 text-sm font-semibold text-sky-300"
+                >
+                    {{ __('Add Vacation Entry') }}
+                </button>
             </div>
         </div>
 

@@ -2,10 +2,10 @@
 
 namespace App\Core\Assets\Providers;
 
-use App\Core\Assets\Contracts\AssetOrchestratorContract;
-use App\Core\Assets\Contracts\AssetSharingContract;
+use App\Core\Assets\Contracts\AssetOrchestratorInterface;
+use App\Core\Assets\Contracts\AssetSharingInterface;
 use App\Core\Assets\Services\AssetService;
-use App\Core\Assets\Services\AssetShareService;
+use App\Core\Assets\Services\AbstractAssetShare;
 
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -15,8 +15,8 @@ class AssetsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(AssetOrchestratorContract::class, AssetService::class);
-        $this->app->singleton(AssetSharingContract::class, AssetShareService::class);
+        $this->app->singleton(AssetOrchestratorInterface::class, AssetService::class);
+        $this->app->singleton(AssetSharingInterface::class, AbstractAssetShare::class);
     }
 
     public function boot(): void

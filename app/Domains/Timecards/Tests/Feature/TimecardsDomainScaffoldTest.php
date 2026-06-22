@@ -447,15 +447,7 @@ it('supports quick sick leave entries on the user form', function (): void {
         'vacation_hours_allowance' => 80,
     ]);
 
-    $sickProject = Project::factory()->create([
-        'leave_category' => 'sick',
-        'is_active' => true,
-    ]);
-
-    $vacationProject = Project::factory()->create([
-        'leave_category' => 'vacation',
-        'is_active' => true,
-    ]);
+    // leave projects not needed; leave entries use `leave_type` on timecard entries
 
     $approved = Timecard::factory()->create([
         'user_id' => $user->id,
@@ -466,14 +458,16 @@ it('supports quick sick leave entries on the user form', function (): void {
 
     $approved->entries()->create([
         'user_id' => $user->id,
-        'project_id' => $sickProject->id,
+        'project_id' => null,
+        'leave_type' => 'sick',
         'date' => '2026-04-06',
         'hours' => 8,
     ]);
 
     $approved->entries()->create([
         'user_id' => $user->id,
-        'project_id' => $vacationProject->id,
+        'project_id' => null,
+        'leave_type' => 'vacation',
         'date' => '2026-04-07',
         'hours' => 16,
     ]);
@@ -498,10 +492,7 @@ it('shows remaining leave balances on the user timecard details page', function 
         'vacation_hours_allowance' => 80,
     ]);
 
-    $sickProject = Project::factory()->create([
-        'leave_category' => 'sick',
-        'is_active' => true,
-    ]);
+    // sick project not needed; create leave entry directly
 
     $approved = Timecard::factory()->create([
         'user_id' => $user->id,
@@ -512,7 +503,8 @@ it('shows remaining leave balances on the user timecard details page', function 
 
     $approved->entries()->create([
         'user_id' => $user->id,
-        'project_id' => $sickProject->id,
+        'project_id' => null,
+        'leave_type' => 'sick',
         'date' => '2026-04-08',
         'hours' => 10,
     ]);
@@ -545,11 +537,7 @@ it('resets leave usage on calendar year policy', function (): void {
         'vacation_hours_allowance' => 80,
     ]);
 
-    $sickProject = Project::factory()->create([
-        'leave_category' => 'sick',
-        'is_active' => true,
-    ]);
-
+    // sick project not needed; use leave_type on entries
     $currentYear = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_APPROVED,
@@ -559,7 +547,8 @@ it('resets leave usage on calendar year policy', function (): void {
 
     $currentYear->entries()->create([
         'user_id' => $user->id,
-        'project_id' => $sickProject->id,
+        'project_id' => null,
+        'leave_type' => 'sick',
         'date' => '2026-03-10',
         'hours' => 8,
     ]);
@@ -573,7 +562,8 @@ it('resets leave usage on calendar year policy', function (): void {
 
     $priorYear->entries()->create([
         'user_id' => $user->id,
-        'project_id' => $sickProject->id,
+        'project_id' => null,
+        'leave_type' => 'sick',
         'date' => '2025-12-29',
         'hours' => 12,
     ]);
@@ -607,11 +597,7 @@ it('resets leave usage on hire date anniversary policy', function (): void {
         'vacation_hours_allowance' => 80,
     ]);
 
-    $sickProject = Project::factory()->create([
-        'leave_category' => 'sick',
-        'is_active' => true,
-    ]);
-
+    // sick project not needed; use leave_type on entries
     $beforeAnniversaryWindow = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_APPROVED,
@@ -621,7 +607,8 @@ it('resets leave usage on hire date anniversary policy', function (): void {
 
     $beforeAnniversaryWindow->entries()->create([
         'user_id' => $user->id,
-        'project_id' => $sickProject->id,
+        'project_id' => null,
+        'leave_type' => 'sick',
         'date' => '2026-03-10',
         'hours' => 8,
     ]);
@@ -635,7 +622,8 @@ it('resets leave usage on hire date anniversary policy', function (): void {
 
     $insideCycle->entries()->create([
         'user_id' => $user->id,
-        'project_id' => $sickProject->id,
+        'project_id' => null,
+        'leave_type' => 'sick',
         'date' => '2026-04-01',
         'hours' => 10,
     ]);

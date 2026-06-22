@@ -31,4 +31,17 @@ return [
         'is_required' => false,
         'encrypted' => false,
     ],
+    [
+        'key' => 'projects.number_padding',
+        'value' => env('PROJECTS_NUMBER_PADDING', 4),
+        'display_name' => 'Project Number Padding',
+        'description' => 'Number of digits for auto-generated project numbers.',
+        'type' => 'number',
+        'group' => 'projects',
+        'order' => 3,
+        'is_visible' => true,
+        'is_public' => false,
+        'is_required' => false,
+        'encrypted' => false,
+    ],
 ];

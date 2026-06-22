@@ -22,6 +22,7 @@ class TimecardEntry extends Model
         'timecard_id',
         'user_id',
         'project_id',
+        'leave_type',
         'custom_project_name',
         'date',
         'start_time',
