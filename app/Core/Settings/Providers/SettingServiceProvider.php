@@ -3,7 +3,8 @@
 namespace App\Core\Settings\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Settings\Commands\RotateAppKeyCommand;
+use App\Core\Settings\Console\Commands\RotateAppKeyCommand;
+use App\Core\Settings\Console\Commands\SettingsSyncCommand;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;

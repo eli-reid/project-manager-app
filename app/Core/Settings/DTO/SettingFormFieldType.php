@@ -4,13 +4,13 @@ namespace App\Core\Settings\DTO;
 
 enum SettingFormFieldType: string
 {
-    case Text = 'text';
-    case Textarea = 'textarea';
-    case Select = 'select';
-    case Multiselect = 'multiselect';
-    case Toggle = 'toggle';
-    case Number = 'number';
-    case Password = 'password';
-    case Json = 'json';
-    case Datetime = 'datetime';
+    case TEXT = 'text';
+    case TEXTAREA = 'textarea';
+    case SELECT = 'select';
+    case MULTISELECT = 'multiselect';
+    case TOGGLE = 'toggle';
+    case NUMBER = 'number';
+    case PASSWORD = 'password';
+    case JSON = 'json';
+    case DATETIME = 'datetime';
 }

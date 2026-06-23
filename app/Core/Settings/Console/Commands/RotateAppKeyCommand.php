@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\Settings\Commands;
+namespace App\Core\Settings\Console\Commands;
 
 use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Console\Command;
@@ -156,6 +156,8 @@ class RotateAppKeyCommand extends Command
             $updated = rtrim($contents).$lineEnding.'APP_KEY='.$newKey.$lineEnding;
         }
 
-        file_put_contents($envFile, (string) $updated);
+        if (file_put_contents($envFile, (string) $updated, LOCK_EX) === false) {
+            throw new \RuntimeException("Unable to write to env file: {$envFile}");
+        }
     }
 }
