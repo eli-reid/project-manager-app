@@ -4,8 +4,7 @@ namespace App\Core\Settings\Console\Commands;
 
 use App\Core\Settings\Services\SettingsClassDiscoverer;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
-use App\Core\Settings\Services\SettingsRegistry;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Core\Settings\DTO\Setting;
 use Illuminate\Console\Command;
 
 class SettingsSyncCommand extends Command
@@ -14,65 +13,52 @@ class SettingsSyncCommand extends Command
 
     protected $description = 'Discover class-based settings and synchronize them into the settings database.';
 
-    public function handle(SettingsClassDiscoverer $discoverer, SettingsRegistryContract $registry, DomainSettingsSynchronizer $synchronizer): int
+    public function handle(SettingsClassDiscoverer $discoverer, DomainSettingsSynchronizer $synchronizer): int
     {
         $this->info('Discovering settings classes...');
 
         $classes = $discoverer->discover();
 
-        // Optionally include legacy config files from domains
+        $allDefinitions = [];
+
+        // Optionally include legacy config files from domains — only accept Setting DTOs
         if ($this->option('include-configs')) {
             $this->info('Including legacy domain config/settings.php files...');
-            $pattern = base_path('app/Core/*/config/settings.php');
-            foreach ((array) glob($pattern) as $file) {
-                if (! is_file($file)) {
-                    continue;
-                }
+            $paths = config('settings.class_discover_paths', ['app/Core/*/Settings']);
 
-                $domain = basename(dirname(dirname($file)));
-                $this->info("Loading config file for domain: {$domain}");
+            foreach ((array) $paths as $pattern) {
+                $glob = base_path($pattern);
 
-                try {
-                    $payload = require $file;
-                } catch (\Throwable $e) {
-                    $this->error("Failed to load {$file}: {$e->getMessage()}");
-                    continue;
-                }
-
-                if (is_array($payload) && $payload !== []) {
-                    // Normalize payload entries: convert DTOs to arrays when present
-                    $normalized = [];
-                    foreach ($payload as $entry) {
-                        if (is_object($entry) && method_exists($entry, 'toArray')) {
-                            $normalized[] = $entry->toArray();
-                            continue;
-                        }
-
-                        if (is_object($entry)) {
-                            // basic best-effort mapping
-                            $normalized[] = [
-                                'key' => $entry->key ?? null,
-                                'value' => $entry->value ?? null,
-                                'default_value' => $entry->value ?? null,
-                                'display_name' => $entry->display_name ?? null,
-                                'description' => $entry->description ?? null,
-                                'type' => is_object($entry->type) ? $entry->type->value : (string) $entry->type,
-                                'form_field_type' => is_object($entry->formFieldType) ? $entry->formFieldType->value : (string) ($entry->formFieldType ?? $entry->type ?? 'text'),
-                                'group' => $entry->group ?? null,
-                                'options' => $entry->options ?? null,
-                                'order' => $entry->order ?? 100,
-                                'is_public' => $entry->is_public ?? false,
-                                'is_visible' => $entry->is_visible ?? true,
-                                'is_required' => $entry->is_required ?? false,
-                                'encrypted' => $entry->encrypted ?? false,
-                            ];
-                            continue;
-                        }
-
-                        $normalized[] = $entry;
+                foreach ((array) glob($glob) as $dir) {
+                    if (! is_dir($dir)) {
+                        continue;
                     }
 
-                    $registry->registerDefinitions($domain, $normalized);
+                    // Expect domain at app/Core/{Domain}/...
+                    $domainDir = dirname($dir);
+                    $domain = basename($domainDir);
+                    $file = $domainDir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'settings.php';
+
+                    if (! is_file($file)) {
+                        continue;
+                    }
+
+                    $this->info("Loading config file for domain: {$domain}");
+
+                    try {
+                        $payload = require $file;
+                    } catch (\Throwable $e) {
+                        $this->error("Failed to load {$file}: {$e->getMessage()}");
+                        continue;
+                    }
+
+                    if (is_array($payload) && $payload !== []) {
+                        foreach ($payload as $entry) {
+                            if ($entry instanceof Setting) {
+                                $allDefinitions[] = $entry;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -98,39 +84,14 @@ class SettingsSyncCommand extends Command
                 continue;
             }
 
-            // If definitions are Setting DTOs, convert to array shape expected by registry
-            $payload = [];
             foreach ($definitions as $def) {
-                if (is_object($def) && method_exists($def, 'toArray')) {
-                    $payload[] = $def->toArray();
-                    continue;
-                }
-
-                if (is_object($def)) {
-                    // Fallback mapping for objects without toArray()
-                    $payload[] = [
-                        'key' => $def->key ?? null,
-                        'value' => $def->value ?? null,
-                        'default_value' => $def->value ?? null,
-                        'display_name' => $def->display_name ?? null,
-                        'description' => $def->description ?? null,
-                        'type' => is_object($def->type) ? $def->type->value : (string) $def->type,
-                        'form_field_type' => is_object($def->formFieldType) ? $def->formFieldType->value : (string) $def->formFieldType,
-                        'group' => $def->group ?? null,
-                        'options' => $def->options ?? null,
-                        'order' => $def->order ?? 100,
-                        'is_public' => $def->is_public ?? false,
-                        'is_visible' => $def->is_visible ?? true,
-                        'is_required' => $def->is_required ?? false,
-                        'encrypted' => $def->encrypted ?? false,
-                    ];
-                } else {
-                    $payload[] = $def;
+                if ($def instanceof Setting) {
+                    $allDefinitions[] = $def;
                 }
             }
-
-            $registry->registerDefinitions($domain, $payload);
         }
+
+        $this->info('Discovered definitions: '.count($allDefinitions));
 
         if ($this->option('dry-run')) {
             $this->info('Dry run complete — no database mutations performed.');
@@ -142,7 +103,7 @@ class SettingsSyncCommand extends Command
 
         $this->info('Synchronizing definitions into database...');
 
-        $changes = $synchronizer->sync($overwrite, $prune);
+        $changes = $synchronizer->syncFromPayload($allDefinitions, $overwrite, $prune);
 
         $this->info("Synchronization complete. Changed: {$changes}");
 

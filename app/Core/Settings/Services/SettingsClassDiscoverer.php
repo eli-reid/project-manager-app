@@ -2,15 +2,15 @@
 
 namespace App\Core\Settings\Services;
 
-use App\Core\Settings\Contracts\ClassSettingsProvider;
+use App\Core\Settings\Contracts\SettingsProvider;
 use Illuminate\Support\Str;
 
 class SettingsClassDiscoverer
 {
     /**
-     * Discover classes implementing ClassSettingsProvider based on configured paths.
+     * Discover classes implementing `SettingsProvider` based on configured paths.
      *
-     * @return array<int, class-string<ClassSettingsProvider>>
+     * @return array<int, class-string<\App\Core\Settings\Contracts\SettingsProvider>>
      */
     public function discover(): array
     {
@@ -45,7 +45,7 @@ class SettingsClassDiscoverer
                     $new = array_diff($after, $before);
 
                     foreach ($new as $fqcn) {
-                        if (is_subclass_of($fqcn, ClassSettingsProvider::class)) {
+                        if (is_subclass_of($fqcn, SettingsProvider::class)) {
                             $found[] = $fqcn;
                         }
                     }

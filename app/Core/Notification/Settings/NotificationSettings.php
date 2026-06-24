@@ -2,16 +2,16 @@
 
 namespace App\Core\Notification\Settings;
 
-use App\Core\Settings\Contracts\DomainSettingsProvider;
+use App\Core\Settings\Contracts\SettingsProvider;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Tasks\Notifications\TaskNotificationDefinitions;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 
-class NotificationSettings implements DomainSettingsProvider
+class NotificationSettings implements SettingsProvider
 {
     public const GROUP = 'notifications';
 
-    public static function settings(): array
+    public static function definitions(): array
     {
         return [
             [

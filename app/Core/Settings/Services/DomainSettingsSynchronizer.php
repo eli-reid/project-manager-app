@@ -2,12 +2,13 @@
 
 namespace App\Core\Settings\Services;
 
-use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Core\Settings\Services\SettingsClassDiscoverer;
 use App\Core\Settings\Models\SettingsSqlite;
+use App\Core\Settings\DTO\Setting;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
+ 
 
 class DomainSettingsSynchronizer
 {
@@ -16,7 +17,7 @@ class DomainSettingsSynchronizer
     private const CACHE_KEY_NEXT_CHECK_AT = 'settings.domain-definitions.next-check-at';
 
     public function __construct(
-        private readonly SettingsRegistryContract $settingsRegistry
+        private readonly SettingsClassDiscoverer $discoverer
     ) {}
 
     /**
@@ -69,10 +70,156 @@ class DomainSettingsSynchronizer
      */
     public function sync(bool $overwriteValues = false, bool $pruneUndefined = false): int
     {
-        $definitions = $this->loadDefinitions();
+        $settings = $this->loadDefinitions();
         $changedCount = 0;
 
-        foreach ($definitions as $definition) {
+        foreach ($settings as $settingDto) {
+            if (! $settingDto instanceof Setting) {
+                continue;
+            }
+
+            $definition = $this->toNormalizedArrayFromSetting($settingDto);
+
+            $setting = SettingsSqlite::query()->where('key', $definition['key'])->first();
+
+            if ($setting === null) {
+                SettingsSqlite::query()->create($definition);
+                $changedCount++;
+
+                continue;
+            }
+
+            $value = $setting->value;
+            $incomingValue = $definition['value'];
+
+            $metadataUpdate = $definition;
+            unset($metadataUpdate['value']);
+
+            if ($overwriteValues || $value === null || $value === '') {
+                $metadataUpdate['value'] = $incomingValue;
+            }
+
+            $setting->fill($metadataUpdate);
+
+            if ($setting->isDirty()) {
+                $setting->save();
+                $changedCount++;
+            }
+        }
+
+        $prunedCount = 0;
+        if ($pruneUndefined) {
+            $definitionKeys = collect($settings)
+                ->pluck('key')
+                ->filter(fn ($key) => is_string($key) && $key !== '')
+                ->values()
+                ->all();
+
+            $prunedCount = $this->pruneUndefinedSettings($definitionKeys);
+        }
+
+        if (($changedCount + $prunedCount) > 0) {
+            app(SettingsSqliteService::class)->clearAllCache();
+        }
+
+        return $changedCount + $prunedCount;
+    }
+
+    /**
+     * @param  array<int, string>  $definitionKeys
+     */
+    protected function pruneUndefinedSettings(array $definitionKeys): int
+    {
+        if ($definitionKeys === []) {
+            Log::warning('Skipping undefined settings prune because no settings definitions were discovered.');
+
+            return 0;
+        }
+
+        return SettingsSqlite::query()
+            ->whereNotIn('key', $definitionKeys)
+            ->delete();
+    }
+
+    /**
+     * Load settings definitions from discovered provider classes.
+     *
+     * Returns an array of `Setting` DTO instances. Providers may still
+     * return Setting DTOs only.
+     *
+     * @return array<int, Setting>
+     */
+    public function loadDefinitions(): array
+    {
+        $settings = [];
+
+        $classes = $this->discoverer->discover();
+
+        foreach ($classes as $class) {
+            try {
+                $domain = $this->discoverer->domainFromClass($class);
+                $defs = $class::definitions();
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            if (! is_array($defs) || $defs === []) {
+                continue;
+            }
+
+            foreach ($defs as $definition) {
+                // Only accept Setting DTO instances from providers.
+                if ($definition instanceof Setting) {
+                    $settings[] = $definition;
+                }
+            }
+        }
+
+        return $settings;
+    }
+
+    private function toNormalizedArrayFromSetting(Setting $s): array
+    {
+        $options = $s->options;
+
+        if (is_array($options)) {
+            $options = json_encode($options);
+        }
+
+        return [
+            'key' => $s->key,
+            'value' => $s->value,
+            'default_value' => $s->value,
+            'display_name' => $s->display_name ?? '',
+            'description' => $s->description ?? '',
+            'type' => $s->type->value,
+            'group' => $s->group ?? '',
+            'options' => $options,
+            'order' => $s->order,
+            'is_public' => $s->is_public,
+            'is_visible' => $s->is_visible,
+            'is_required' => $s->is_required,
+            'encrypted' => $s->encrypted,
+        ];
+    }
+    
+
+    /**
+     * Sync using an externally-provided set of normalized definitions.
+     *
+     * @param array<int, Setting> $definitions
+     */
+    public function syncFromPayload(array $definitions, bool $overwriteValues = false, bool $pruneUndefined = false): int
+    {
+        $changedCount = 0;
+
+        foreach ($definitions as $settingDto) {
+            if (! $settingDto instanceof Setting) {
+                continue;
+            }
+
+            $definition = $this->toNormalizedArrayFromSetting($settingDto);
+
             $setting = SettingsSqlite::query()->where('key', $definition['key'])->first();
 
             if ($setting === null) {
@@ -118,93 +265,21 @@ class DomainSettingsSynchronizer
         return $changedCount + $prunedCount;
     }
 
-    /**
-     * @param  array<int, string>  $definitionKeys
-     */
-    protected function pruneUndefinedSettings(array $definitionKeys): int
-    {
-        if ($definitionKeys === []) {
-            Log::warning('Skipping undefined settings prune because no settings definitions were discovered.');
-
-            return 0;
-        }
-
-        return SettingsSqlite::query()
-            ->whereNotIn('key', $definitionKeys)
-            ->delete();
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    public function loadDefinitions(): array
-    {
-        $definitions = [];
-
-        foreach ($this->settingsRegistry->definitionsByDomain() as $domain => $domainDefinitions) {
-            if (! is_string($domain)) {
-                continue;
-            }
-
-            foreach ($domainDefinitions as $definition) {
-                if (! is_array($definition)) {
-                    continue;
-                }
-
-                $normalized = $this->normalizeDefinition($definition, $domain);
-
-                if ($normalized !== null) {
-                    $definitions[] = $normalized;
-                }
-            }
-        }
-
-        return $definitions;
-    }
-
     protected function definitionsHash(): string
     {
-        return hash('sha256', json_encode($this->loadDefinitions(), JSON_THROW_ON_ERROR));
-    }
+        $settings = $this->loadDefinitions();
+        $normalized = [];
 
-    /**
-     * @param  array<string, mixed>  $definition
-     * @return array<string, mixed>|null
-     */
-    protected function normalizeDefinition(array $definition, string $domain): ?array
-    {
-        $key = trim((string) ($definition['key'] ?? ''));
-
-        if ($key === '') {
-            return null;
+        foreach ($settings as $s) {
+            if ($s instanceof Setting) {
+                $normalized[] = $this->toNormalizedArrayFromSetting($s);
+            }
         }
 
-        $defaultValue = $definition['default_value'] ?? $definition['value'] ?? null;
-        $displayName = (string) ($definition['display_name'] ?? Str::of($key)->afterLast('.')->replace(['_', '-'], ' ')->headline());
-        $group = (string) ($definition['group'] ?? Str::lower($domain));
-
-        $options = $definition['options'] ?? null;
-
-        if (is_array($options)) {
-            $options = json_encode($options);
-        }
-
-        return [
-            'key' => $key,
-            'value' => $definition['value'] ?? $defaultValue,
-            'default_value' => $defaultValue,
-            'display_name' => $displayName,
-            'description' => (string) ($definition['description'] ?? ''),
-            'type' => (string) ($definition['type'] ?? 'text'),
-            'group' => $group,
-            'options' => $options,
-            'order' => (int) ($definition['order'] ?? 0),
-            'is_public' => (bool) ($definition['is_public'] ?? false),
-            'is_visible' => (bool) ($definition['is_visible'] ?? true),
-            'is_required' => (bool) ($definition['is_required'] ?? false),
-            'encrypted' => (bool) ($definition['encrypted'] ?? false),
-        ];
+        return hash('sha256', json_encode($normalized, JSON_THROW_ON_ERROR));
     }
+
+    
 
     protected function isCacheStoreReady(): bool
     {

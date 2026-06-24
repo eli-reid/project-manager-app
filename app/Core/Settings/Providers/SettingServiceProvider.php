@@ -5,7 +5,6 @@ namespace App\Core\Settings\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Console\Commands\RotateAppKeyCommand;
 use App\Core\Settings\Console\Commands\SettingsSyncCommand;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Observers\SettingsObserver;
 use App\Core\Settings\Permissions\SettingsPermissions;
@@ -14,7 +13,6 @@ use App\Core\Settings\Repositories\SettingsRepository;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
 use App\Core\Settings\Services\SettingsCacheService;
 use App\Core\Settings\Services\SettingsDatabaseProvisioner;
-use App\Core\Settings\Services\SettingsRegistry;
 use App\Core\Settings\Services\SettingsSqliteService;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
@@ -52,11 +50,8 @@ class SettingServiceProvider extends ServiceProvider
         });
 
         // Register domain settings synchronizer
-        $this->app->singleton(SettingsRegistry::class);
-        $this->app->singleton(SettingsRegistryContract::class, SettingsRegistry::class);
-
         $this->app->singleton(DomainSettingsSynchronizer::class, function ($app): DomainSettingsSynchronizer {
-            return new DomainSettingsSynchronizer($app->make(SettingsRegistryContract::class));
+            return new DomainSettingsSynchronizer($app->make(\App\Core\Settings\Services\SettingsClassDiscoverer::class));
         });
 
         $this->app->alias(SettingsSqliteService::class, 'Settings');
@@ -65,22 +60,19 @@ class SettingServiceProvider extends ServiceProvider
     /**
      * Bootstrap services.
      */
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, SettingsDatabaseProvisioner $settingsDatabaseProvisioner, DomainSettingsSynchronizer $domainSettingsSynchronizer): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsDatabaseProvisioner $settingsDatabaseProvisioner): void
     {
         $this->registerAuthorization();
         $this->registerCommands();
         $this->registerInfrastructure();
         $this->registerObservers();
-        $this->registerSettings($settingsRegistry);
+        // configuration-based registration is handled by the sync command and discovery
         $this->registerPermissions($permissionRegistry);
 
         // Initialize settings database early (no database config needed)
         $this->initializeSettingsDatabase($settingsDatabaseProvisioner);
 
-        // Sync settings after all providers have had a chance to register their definitions.
-        $this->app->booted(function () use ($domainSettingsSynchronizer): void {
-            $this->syncDomainSettings($domainSettingsSynchronizer);
-        });
+        // Settings are synchronized explicitly during install/plugin flows via the `settings:sync` command.
     }
 
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
@@ -118,6 +110,7 @@ class SettingServiceProvider extends ServiceProvider
 
         $this->commands([
             RotateAppKeyCommand::class,
+            SettingsSyncCommand::class,
         ]);
     }
 
@@ -126,10 +119,7 @@ class SettingServiceProvider extends ServiceProvider
         SettingsSqlite::observe(SettingsObserver::class);
     }
 
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('app', config_path('settings.php'));
-    }
+    // Configuration-based registration is handled by the sync command and discovery.
 
     /**
      * Initialize the settings database
@@ -159,30 +149,5 @@ class SettingServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Synchronize settings defined by domain-level config providers.
-     */
-    private function syncDomainSettings(DomainSettingsSynchronizer $domainSettingsSynchronizer): void
-    {
-        $syncOnBoot = config('settings-db.sync.on_boot');
-        if ($syncOnBoot === null) {
-            $syncOnBoot = ! $this->app->environment('production');
-        }
-
-        if (! (bool) $syncOnBoot) {
-            return;
-        }
-
-        try {
-            $changes = $domainSettingsSynchronizer->syncIfChanged();
-
-            if ($changes > 0 && $this->app->bound('log')) {
-                Log::info('Domain settings synchronized', ['changes' => $changes]);
-            }
-        } catch (\Exception $e) {
-            if ($this->app->bound('log')) {
-                Log::warning('Failed to synchronize domain settings: '.$e->getMessage());
-            }
-        }
-    }
+    // Settings are synchronized explicitly during install or plugin flows via `settings:sync`.
 }

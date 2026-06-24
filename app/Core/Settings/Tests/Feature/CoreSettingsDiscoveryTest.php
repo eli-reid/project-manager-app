@@ -1,16 +1,8 @@
 <?php
 
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
 use App\Core\Settings\Services\DomainSettingsSynchronizer;
-use App\Core\Settings\Services\SettingsRegistry;
 use Illuminate\Support\Str;
-
-it('binds settings registry contract to concrete implementation', function () {
-    $registry = app(SettingsRegistryContract::class);
-
-    expect($registry)->toBeInstanceOf(SettingsRegistry::class);
-});
 
 it('discovers core app settings definitions', function () {
     $definitions = app(DomainSettingsSynchronizer::class)->loadDefinitions();

@@ -7,7 +7,7 @@ use App\Domains\Tasks\Notifications\TaskNotificationDefinitions;
 use App\Domains\Timecards\Notifications\TimecardNotificationDefinitions;
 
 it('defines admin allowed channel settings for domain notification types', function (): void {
-    $keys = collect(NotificationSettings::settings())
+    $keys = collect(NotificationSettings::definitions())
         ->pluck('key')
         ->all();
 
