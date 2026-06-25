@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Domains\Projects\Support;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Projects\Contracts\ProjectTabInterface;
+use App\Domains\Projects\Contracts\ProjectTab;
 use App\Domains\Projects\Contracts\ProjectTabPanel;
 use App\Domains\Projects\Models\Project;
 
-abstract class ProjectTab implements ProjectTabInterface
+abstract class ProjectTab implements ProjectTab
 {
     public function __construct(
         private readonly string $key,

@@ -3,7 +3,7 @@
 namespace App\Domains\Projects\Services;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Projects\Contracts\ProjectTabInterface;
+use App\Domains\Projects\Contracts\ProjectTab;
 use App\Domains\Projects\Contracts\ProjectTabPanel;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
@@ -98,7 +98,7 @@ class ProjectTabRegistry
     /**
      * Register tab definitions by class name.
      *
-     * @param  array<int, class-string<ProjectTabInterface>>  $definitions
+     * @param  array<int, class-string<ProjectTab>>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {

@@ -2,16 +2,16 @@
 
 namespace App\Domains\Projects\Services;
 
-use App\Domains\Projects\Contracts\ProjectTabInterface;
+use App\Domains\Projects\Contracts\ProjectTab;
 use App\Domains\Projects\Support\ResolvedProjectTab;
 
 class ProjectTabCatalog
 {
-    /** @var array<int, class-string<ProjectTabInterface>> */
+    /** @var array<int, class-string<ProjectTab>> */
     private array $registeredTabs = [];
 
     /**
-     * @param  array<int, class-string<ProjectTabInterface>>  $definitions
+     * @param  array<int, class-string<ProjectTab>>  $definitions
      */
     public function registerDefinitions(array $definitions): void
     {
@@ -21,7 +21,7 @@ class ProjectTabCatalog
             }
 
             $tab = app($definition);
-            if (! $tab instanceof ProjectTabInterface) {
+            if (! $tab instanceof ProjectTab) {
                 continue;
             }
 
@@ -41,7 +41,7 @@ class ProjectTabCatalog
         foreach ($this->registeredTabs as $className) {
             $tab = app($className);
 
-            if (! $tab instanceof ProjectTabInterface) {
+            if (! $tab instanceof ProjectTab) {
                 continue;
             }
 
