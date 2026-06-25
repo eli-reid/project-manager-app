@@ -1,0 +1,26 @@
+flowchart TB
+    U["Identity: User model"]
+    IUI["Identity: Settings/Auth UI"]
+    IFortify["Identity: Fortify actions"]
+    INotif["Identity: Notification preference service"]
+
+    CAuthz["Auth: Contracts/AuthorizationSnapshotResolver"]
+    SAuthz["Auth: Services/AuthorizationSnapshotService"]
+    Role["Auth: Role model"]
+    Perm["Auth: Permission model"]
+    Reg["Auth: Permission registry/sync"]
+    Policies["Auth: Policies + Gate"]
+
+    U --> IUI
+    U --> IFortify
+    U --> INotif
+    U --> CAuthz
+    CAuthz --> SAuthz
+    SAuthz --> Role
+    SAuthz --> Perm
+    Reg --> Role
+    Reg --> Perm
+    Policies --> U
+
+    U -. no direct import .-> Role
+    U -. no direct import .-> SAuthz

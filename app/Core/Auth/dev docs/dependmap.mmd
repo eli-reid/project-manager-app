@@ -1,0 +1,12 @@
+flowchart LR
+    IdentityUser["Identity: User model"] --> AuthContract["Auth: Snapshot Resolver Contract"]
+    AuthImpl["Auth: Snapshot Resolver Service"] --> AuthContract
+    AuthImpl --> Role["Auth: Role"]
+    AuthImpl --> Permission["Auth: Permission"]
+
+    IdentityUI["Identity UI"] --> Gate["Gate abilities"]
+    Gate --> AuthPolicy["Auth Policies"]
+
+    IdentityUser -. forbidden .-> Role
+    IdentityUser -. forbidden .-> Permission
+    IdentityUI -. forbidden .-> Role

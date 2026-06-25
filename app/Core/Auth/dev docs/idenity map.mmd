@@ -1,0 +1,10 @@
+flowchart LR
+    Identity["Identity Domain"] -->|uses contract only| AuthContract["Auth Contract (interface)"]
+    AuthImpl["Auth Domain Implementation"] -->|implements| AuthContract
+    AuthImpl --> Identity["Identity User model allowed"]
+
+    Identity -. forbidden concrete dependency .-> AuthImpl
+
+
+
+    

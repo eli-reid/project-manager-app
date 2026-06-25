@@ -1,0 +1,25 @@
+flowchart TB
+    subgraph Core
+        subgraph Identity["Core/Identity (Ownership)"]
+            IUser["Models/User"]
+            IFortify["Actions/Fortify/*"]
+            ISettings["Livewire/Settings/*"]
+            IProfile["Concerns/ProfileValidationRules"]
+            IPassword["Concerns/PasswordValidationRules"]
+        end
+
+        subgraph Auth["Core/Auth (Ownership)"]
+            ARole["Role/Models/Role"]
+            APerm["Permission/Models/Permission"]
+            ARegistry["Permission/Services/PermissionRegistry"]
+            ASync["Permission/Services/DomainPermissionSynchronizer"]
+            APolicy["User|Role Policies + Gate Wiring"]
+            AAuthz["AuthorizationSnapshotContract + Service"]
+        end
+    end
+
+    IUser --> IFortify
+    IUser --> ISettings
+    ARole --> APerm
+    ARegistry --> ASync
+    APolicy --> AAuthz
