@@ -5,7 +5,7 @@ namespace App\Domains\Projects\Contracts;
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 
-interface ProjectTabInterface
+interface ProjectTab
 {
     public function key(): string;
 

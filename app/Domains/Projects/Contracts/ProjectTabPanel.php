@@ -4,7 +4,7 @@ namespace App\Domains\Projects\Contracts;
 
 use App\Domains\Projects\Models\Project;
 
-interface ProjectTabPanelInterface
+interface ProjectTabPanel
 {
     /**
      * @param  array<string, array{modeParam:string,mode:string,detailParam:?string,detailId:string,isCreateMode:bool}>  $tabContext
