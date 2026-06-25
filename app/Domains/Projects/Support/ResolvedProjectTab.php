@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Domains\Projects\Support;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Projects\Contracts\ProjectTab;
+use App\Domains\Projects\Contracts\ProjectTab As ProjectTabInterface;
 use App\Domains\Projects\Contracts\ProjectTabPanel;
 use App\Domains\Projects\Models\Project;
 
 final class ResolvedProjectTab
 {
     public function __construct(
-        private readonly ProjectTab $tab,
+        private readonly ProjectTabInterface $tab,
         private readonly string $label,
         private readonly int $sort,
         private readonly ?string $modeQueryParam,
@@ -20,7 +20,7 @@ final class ResolvedProjectTab
         private readonly bool $isActive = true,
     ) {}
 
-    public static function from(ProjectTab $tab): self
+    public static function from(ProjectTabInterface $tab): self
     {
         return new self(
             tab: $tab,
