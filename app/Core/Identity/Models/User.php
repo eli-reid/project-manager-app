@@ -7,14 +7,14 @@ use App\Core\Announcement\Models\Announcement;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\User\Database\Factories\UserFactory;
 use App\Core\Identity\Services\UserAuthorizationSnapshotService;
+use App\Core\Identity\Services\UserRelationshipRegistry;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
+// Payroll relations moved to domain registry to decouple User model.
 use App\Domains\Addresses\Models\Address;
-use App\Domains\Payroll\Models\PayrollEmployeeProfile;
-use App\Domains\Payroll\Models\PayrollStatement;
-use App\Domains\Payroll\Models\PayRun;
 use App\Domains\Projects\Models\ProjectTabUserPreference;
 use App\Domains\Timecards\Models\TimecardRequiredUser;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -29,6 +29,10 @@ use Throwable;
 
 /**
  * @property string $id
+ * @property-read \App\Domains\Payroll\Models\PayrollEmployeeProfile|null $payrollProfile
+ * @property-read Collection|\App\Domains\Payroll\Models\PayrollStatement[] $payrollStatements
+ * @property-read Collection|\App\Domains\Payroll\Models\PayRun[] $createdPayRuns
+ * @property-read Collection|\App\Domains\Payroll\Models\PayRun[] $approvedPayRuns
  *
  * @mixin IdeHelperUser
  */
@@ -143,29 +147,33 @@ class User extends Authenticatable
         return $this->hasMany(ProjectTabUserPreference::class);
     }
 
-    public function payrollProfile(): HasOne
-    {
-        return $this->hasOne(PayrollEmployeeProfile::class);
-    }
-
     public function timecardRequiredEntry(): HasOne
     {
         return $this->hasOne(TimecardRequiredUser::class, 'user_id');
     }
 
-    public function payrollStatements(): HasMany
+    /**
+     * Magic relationship resolution: delegate unknown relation methods to the
+     * UserRelationshipRegistry so domain packages can register relations at runtime.
+     *
+     * @param  string  $method
+     * @param  array<int, mixed>  $parameters
+     */
+    public function __call($method, $parameters)
     {
-        return $this->hasMany(PayrollStatement::class);
-    }
+        // Resolve registry if available and the method is a registered relation
+        if (app()->bound(UserRelationshipRegistry::class)) {
+            $registry = app(UserRelationshipRegistry::class);
 
-    public function createdPayRuns(): HasMany
-    {
-        return $this->hasMany(PayRun::class, 'created_by');
-    }
+            if ($registry->has($method)) {
+                $resolver = $registry->get($method);
 
-    public function approvedPayRuns(): HasMany
-    {
-        return $this->hasMany(PayRun::class, 'approved_by');
+                // Resolver must return an Eloquent Relation when invoked with ($user, ...$params)
+                return $resolver($this, ...$parameters);
+            }
+        }
+
+        return parent::__call($method, $parameters);
     }
 
     public function notificationPreferenceFor(string $notificationKey, string $channel): ?bool

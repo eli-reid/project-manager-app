@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Core\Identity\Services\UserRelationshipRegistry;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
@@ -16,7 +17,14 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void {}
+    public function register(): void
+    {
+        // Bind the UserRelationshipRegistry as a singleton so domains can register
+        // user relationship resolvers during provider boot.
+        $this->app->singleton(UserRelationshipRegistry::class, function () {
+            return new UserRelationshipRegistry;
+        });
+    }
 
     /**
      * Bootstrap any application services.

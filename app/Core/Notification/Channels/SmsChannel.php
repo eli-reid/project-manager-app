@@ -2,14 +2,15 @@
 
 namespace App\Core\Notification\Channels;
 
-use App\Core\Notification\Contracts\SmsServiceContract;
-use App\Core\Zoom\Exceptions\ZoomSmsException;
+use App\Core\Notification\Contracts\SmsNotification;
+use App\Core\Notification\Contracts\SmsMessage;
 use Illuminate\Notifications\Notification;
+
 use Illuminate\Support\Facades\Log;
 
-class SmsChannel
+class SmsChannel implements SmsChannel
 {
-    public function __construct(private readonly SmsServiceContract $smsService) {}
+    public function __construct(private readonly SmsNotification $smsService) {}
 
     public function send(object $notifiable, Notification $notification): void
     {
@@ -30,7 +31,7 @@ class SmsChannel
         }
 
         if (! $this->smsService->isConfigured()) {
-            Log::warning('Zoom SMS is not configured; skipping SMS notification.', [
+            Log::warning('SMS is not configured; skipping SMS notification.', [
                 'notification' => get_class($notification),
             ]);
 
@@ -41,18 +42,18 @@ class SmsChannel
             $result = $this->smsService->send((string) $payload['to'], (string) $payload['message']);
 
             if ($result === []) {
-                Log::warning('SMS notification was withheld by Zoom consent flow.', [
+                Log::warning('SMS notification was withheld by consent flow.', [
                     'notification' => get_class($notification),
                     'to' => (string) $payload['to'],
                 ]);
             }
         } catch (\Throwable $exception) {
-            Log::error('SMS notification failed to send via Zoom.', [
+            Log::error('SMS notification failed to send.', [
                 'notification' => get_class($notification),
                 'to' => (string) $payload['to'],
                 'error' => $exception->getMessage(),
                 'exception_class' => $exception::class,
-                'is_zoom_exception' => $exception instanceof ZoomSmsException,
+                'is_sms_exception' => null,
             ]);
         }
     }

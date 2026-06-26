@@ -3,6 +3,7 @@
 namespace App\Domains\Payroll\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Identity\Services\UserRelationshipRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
@@ -48,6 +49,26 @@ class PayrollServiceProvider extends ServiceProvider
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
+        $this->registerUserRelations(app(UserRelationshipRegistry::class));
+    }
+
+    private function registerUserRelations(UserRelationshipRegistry $registry): void
+    {
+        $registry->register('payrollProfile', function ($user) {
+            return $user->hasOne(PayrollEmployeeProfile::class);
+        });
+
+        $registry->register('payrollStatements', function ($user) {
+            return $user->hasMany(PayrollStatement::class);
+        });
+
+        $registry->register('createdPayRuns', function ($user) {
+            return $user->hasMany(PayRun::class, 'created_by');
+        });
+
+        $registry->register('approvedPayRuns', function ($user) {
+            return $user->hasMany(PayRun::class, 'approved_by');
+        });
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
