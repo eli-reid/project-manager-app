@@ -7,7 +7,7 @@ use App\Domains\Dailies\Livewire\Admin\Dailies\Index as DailiesIndex;
 use App\Domains\Dailies\Livewire\Admin\Dailies\Show as DailiesShow;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Support\AbstractProjectTab;
+use App\Domains\Projects\Contracts\AbstractProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 
 final readonly class DailiesProjectTab extends AbstractProjectTab

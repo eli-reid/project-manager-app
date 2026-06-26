@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Projects\Support;
+namespace App\Domains\Projects\Contracts;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Contracts\ProjectTabInterface;

@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
+
 class ProjectsServiceProvider extends ServiceProvider
 {
     use RegistersMobileRedirectMappings;
@@ -132,6 +133,9 @@ class ProjectsServiceProvider extends ServiceProvider
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('projects', __DIR__.'/../config/settings.php');
+        $settingsRegistry->registerSetting();
+    
+
     }
 
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void

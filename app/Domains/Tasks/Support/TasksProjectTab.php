@@ -3,7 +3,7 @@
 namespace App\Domains\Tasks\Support;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Projects\support\ProjectTab;
+use App\Domains\Projects\Contracts\AbstractProjectTab;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 use App\Domains\Tasks\Models\Task;
@@ -11,7 +11,7 @@ use App\Domains\Tasks\Livewire\Admin\Tasks\Index as TasksIndex;
 
 
 
-final class TasksProjectTab extends ProjectTab 
+final readonly class TasksProjectTab extends AbstractProjectTab   
 {
     public function __construct()
     {
@@ -19,7 +19,7 @@ final class TasksProjectTab extends ProjectTab
             key: 'tasks',
             label: 'Tasks',
             sort: 30,
-            modeParam: 'mode',
+            //modeParam: 'mode',
             detailQueryParam: 'detail',
             panel: new LivewireComponentTabPanel(
                 component: TasksIndex::class,

@@ -5,7 +5,6 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
-use App\Domains\Projects\Models\Project;
 use App\Domains\Reports\Livewire\User\LeaveBalanceSummary\Index;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;

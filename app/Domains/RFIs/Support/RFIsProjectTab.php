@@ -4,11 +4,11 @@ namespace App\Domains\RFIs\Support;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Support\ProjectTab;
+use App\Domains\Projects\Contracts\AbstractProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 use App\Domains\RFIs\Models\RFI;
 
-final class RFIsProjectTab extends ProjectTab
+final readonly class RFIsProjectTab extends AbstractProjectTab
 {
     public function __construct()
     {
@@ -16,7 +16,7 @@ final class RFIsProjectTab extends ProjectTab
             key: 'rfis',
             label: 'RFIs',
             sort: 80,
-            modeParam: 'rfiMode',
+            //modeParam: 'rfiMode',
             detailQueryParam: 'rfiId',
             panel: new LivewireComponentTabPanel(
                 component: 'App\\Domains\\RFIs\\Livewire\\Admin\\RFIs\\Index',

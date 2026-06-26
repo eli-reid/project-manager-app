@@ -4,6 +4,7 @@ namespace App\Core\Settings\Services;
 
 use App\Core\Settings\Contracts\DomainSettingsProvider;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Core\Settings\DTO\Setting;
 use Illuminate\Support\Facades\Log;
 
 class SettingsRegistry implements SettingsRegistryContract
@@ -73,4 +74,10 @@ class SettingsRegistry implements SettingsRegistryContract
 
         return [];
     }
+    public function registerSetting(Setting $setting): void
+    {
+        // Ensure the domain exists in the registry
+    }
+
+    
 }

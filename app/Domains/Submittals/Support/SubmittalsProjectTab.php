@@ -4,11 +4,11 @@ namespace App\Domains\Submittals\Support;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Support\ProjectTab;
+use App\Domains\Projects\Contracts\AbstractProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 use App\Domains\Submittals\Models\Submittal;
 
-final class SubmittalsProjectTab extends ProjectTab
+final readonly class SubmittalsProjectTab extends AbstractProjectTab
 {
     public function __construct()
     {
@@ -16,12 +16,12 @@ final class SubmittalsProjectTab extends ProjectTab
             key: 'submittals',
             label: 'Submittals',
             sort: 60,
-            modeParam: 'submittalMode',
+            //modeParam: 'submittalMode',
             detailQueryParam: 'submittalId',
             panel: new LivewireComponentTabPanel(
                 component: 'submittals::admin.submittals.index',
                 baseProps: ['embedded' => true],
-                modeProp: 'mode',
+                //modeProp: 'mode',
                 detailProp: 'submittalId',
             ),
         );

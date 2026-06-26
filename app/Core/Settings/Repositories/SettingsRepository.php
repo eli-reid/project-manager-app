@@ -4,6 +4,10 @@ namespace App\Core\Settings\Repositories;
 
 use App\Core\Settings\Models\SettingsSqlite;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use App\Core\Settings\DTO\Setting;
+use App\Core\Settings\DTO\SettingType;
+Use App\Core\Settings\DTO\SettingFormFieldType;
+
 use Illuminate\Support\Str;
 
 /**
@@ -26,6 +30,26 @@ class SettingsRepository
         }
     }
 
+    public function saveSetting(Setting $setting): ?SettingsSqlite
+    {
+        return $this->save(
+            key: $setting->key,
+            value: $setting->value,
+            attributes: [
+                'display_name' => $setting->display_name,
+                'description' => $setting->description,
+                'type' => $setting->type,
+                'group' => $setting->group,
+                'options' => $setting->options,
+                'order' => $setting->order,
+                'is_public' => $setting->is_public,
+                'is_visible' => $setting->is_visible,
+                'is_required' => $setting->is_required,
+                'encrypted' => $setting->encrypted,
+                'default_value' => '',
+            ]
+        );
+    }
     /**
      * Save a setting
      */

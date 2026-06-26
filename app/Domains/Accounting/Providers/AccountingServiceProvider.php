@@ -55,4 +55,9 @@ class AccountingServiceProvider extends ServiceProvider
             ->middleware(['web', 'auth'])
             ->group(__DIR__.'/../Routes/admin.php');
     }
+
+    Private function registerSettings(): void
+    {
+        // Register settings here if needed in the future
+    }
 }

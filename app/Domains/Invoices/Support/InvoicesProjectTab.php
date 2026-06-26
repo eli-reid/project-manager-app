@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Domains\Invoices\Support;
+
+use App\Core\Identity\Models\User;
+use App\Domains\Invoices\Models\Invoice;
+use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Contracts\AbstractProjectTab;
+use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
+
+final readonly class InvoicesProjectTab extends AbstractProjectTab
+{
+    public function __construct()
+    {
+        parent::__construct(
+            key: 'invoices',
+            label: 'Invoices',
+            sort: 40,
+            //modeParam: 'invoiceMode',
+            detailQueryParam: 'invoiceId',
+            panel: new LivewireComponentTabPanel(
+                component: 'invoices::admin.invoices.index',
+                baseProps: ['embedded' => true],
+            ),
+        );
+    }
+
+    public function isVisible(User $user, Project $project): bool
+    {
+        return $user->can('viewAny', Invoice::class);
+    }
+
+    public function badgeCount(User $user, Project $project): ?int
+    {
+        return Invoice::query()
+            ->where('project_id', $project->id)
+            ->count();
+    }
+}
