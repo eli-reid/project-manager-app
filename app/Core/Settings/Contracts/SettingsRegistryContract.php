@@ -14,6 +14,7 @@ use App\Core\Settings\DTO\Setting;
  */
 interface SettingsRegistryContract
 {
+    public const GROUP = 'notifications';
     /**
      * Return an array of settings definitions.
      *

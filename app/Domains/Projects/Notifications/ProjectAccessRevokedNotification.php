@@ -3,18 +3,16 @@
 namespace App\Domains\Projects\Notifications;
 
 use App\Core\Identity\Models\User;
-use App\Core\Notification\Channels\SmsChannel;
-use App\Core\Notification\Services\NotificationPreferenceService;
+use App\Core\Notification\Channels\RegistryBridgeChannel;
+use App\Core\Notification\Contracts\RegistryNotification;
+use App\Core\Notification\DTO\NotificationMessage;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
-use NotificationChannels\WebPush\WebPushChannel;
-use NotificationChannels\WebPush\WebPushMessage;
 
-class ProjectAccessRevokedNotification extends Notification implements ShouldQueue
+class ProjectAccessRevokedNotification extends Notification implements RegistryNotification, ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -31,20 +29,22 @@ class ProjectAccessRevokedNotification extends Notification implements ShouldQue
             return [];
         }
 
-        return app(NotificationPreferenceService::class)->resolveChannels(
-            $notifiable,
-            $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
-        );
+        return [RegistryBridgeChannel::class];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toNotificationMessage(object $notifiable): NotificationMessage
     {
-        return (new MailMessage)
-            ->subject('Project Access Revoked: '.$this->project->name)
-            ->markdown('projects::emails.notifications.project-access-revoked', [
-                'project' => $this->project,
-            ]);
+        return new NotificationMessage(
+            type: $this->notificationKey(),
+            title: 'Project Access Revoked',
+            body: 'Your access to project '.$this->project->name.' has been revoked.',
+            data: $this->toArray($notifiable),
+            recipients: $this->resolveRecipients($notifiable),
+            metadata: [
+                'project_id' => (string) $this->project->id,
+                'project_name' => $this->project->name,
+            ],
+        );
     }
 
     /**
@@ -76,24 +76,26 @@ class ProjectAccessRevokedNotification extends Notification implements ShouldQue
         ];
     }
 
-    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
-    {
-        return (new WebPushMessage)
-            ->title('Project access revoked')
-            ->body('Your access to '.$this->project->name.' was removed.')
-            ->icon('/icon-192.png')
-            ->badge('/icon-192.png')
-            ->tag('project-access-revoked-'.(string) $this->project->id)
-            ->data([
-                'url' => route('projects.index'),
-                'key' => $this->notificationKey(),
-                'project_id' => (string) $this->project->id,
-                'project_name' => $this->project->name,
-            ]);
-    }
-
-    private function notificationKey(): string
+    public function notificationKey(): string
     {
         return ProjectNotificationDefinitions::ACCESS_REVOKED;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function resolveRecipients(object $notifiable): array
+    {
+        $recipients = [];
+
+        if (property_exists($notifiable, 'email') && is_string($notifiable->email) && $notifiable->email !== '') {
+            $recipients[] = 'email:'.$notifiable->email;
+        }
+
+        if (property_exists($notifiable, 'phone') && is_string($notifiable->phone) && $notifiable->phone !== '') {
+            $recipients[] = 'phone:'.$notifiable->phone;
+        }
+
+        return $recipients;
     }
 }

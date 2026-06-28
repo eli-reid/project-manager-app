@@ -61,21 +61,7 @@ class NotificationSettings implements SettingsRegistryContract
                 is_required: true,
                 encrypted: false
             ),
-            new Setting(
-                key: 'notifications.push.enabled',
-                type: SettingType::BOOLEAN,
-                formFieldType: SettingFormFieldType::TOGGLE,
-                value: 'true',
-                options: ['true' => 'Enabled', 'false' => 'Disabled'],
-                display_name: 'Enable Push Notifications',
-                description: 'Master switch for push notification delivery.',
-                group: self::GROUP,
-                order: 2,
-                is_visible: true,
-                is_public: false,
-                is_required: true,
-                encrypted: false
-            ),
+
             new Setting(
                 key: 'notifications.default_priority',
                 type: SettingType::STRING,

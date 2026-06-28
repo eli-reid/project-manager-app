@@ -2,18 +2,17 @@
 
 namespace App\Core\Notification\Providers;
 
-use App\Core\Notification\Commands\SetupVapidKeysCommand;
-use App\Core\Notification\Services\NotificationRegistry;
+use App\Core\Notification\Channels\DatabaseChannelAdapter;
+use App\Core\Notification\Channels\MailChannelAdapter;
+use App\Core\Notification\Channels\RegistryBridgeChannel;
 use App\Core\Notification\Services\NotificationChannelRegistry;
 use App\Core\Notification\Services\NotificationDispatcher;
-use Psr\Log\LoggerInterface;
+use App\Core\Notification\Services\NotificationPreferenceService;
+use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use App\Core\Notification\Contracts\SmsServiceContract;
-use App\Core\Notification\Services\NullSmsService;
-use App\Core\Notification\Contracts\EmailServiceContract;
-use App\Core\Notification\Services\NullEmailService;
+use Psr\Log\LoggerInterface;
 
 class NotificationServiceProvider extends ServiceProvider
 {
@@ -22,7 +21,25 @@ class NotificationServiceProvider extends ServiceProvider
         $this->app->singleton(NotificationRegistry::class, fn (): NotificationRegistry => new NotificationRegistry);
 
         // Registry for available channel implementations (plugins/domains register into this)
-        $this->app->singleton(NotificationChannelRegistry::class, fn (): NotificationChannelRegistry => new NotificationChannelRegistry());
+        $this->app->singleton(NotificationChannelRegistry::class, function (): NotificationChannelRegistry {
+            $registry = new NotificationChannelRegistry;
+
+            // Built-in adapters; plugins/domains can register more channels.
+            $registry->register('database', DatabaseChannelAdapter::class);
+            $registry->register('mail', MailChannelAdapter::class);
+
+            return $registry;
+        });
+
+        // Register Laravel channel bridge used by via() => [RegistryBridgeChannel::class]
+        $this->app->singleton(RegistryBridgeChannel::class, function ($app): RegistryBridgeChannel {
+            return new RegistryBridgeChannel(
+                $app->make(NotificationDispatcher::class),
+                $app->make(NotificationPreferenceService::class),
+                $app->make(NotificationChannelRegistry::class),
+                $app->make(LoggerInterface::class)
+            );
+        });
 
         // Dispatcher uses the channel registry and notification registry; logger is injected by the container
         $this->app->singleton(NotificationDispatcher::class, function ($app): NotificationDispatcher {
@@ -32,30 +49,16 @@ class NotificationServiceProvider extends ServiceProvider
                 $app->make(LoggerInterface::class)
             );
         });
-
-
     }
 
     public function boot(SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerInfrastructure();
-        $this->registerCommands();
     }
 
     private function registerInfrastructure(): void
     {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-notification');
         Livewire::addNamespace('core.notification', classNamespace: 'App\Core\Notification\Livewire');
-    }
-
-    private function registerCommands(): void
-    {
-        if (! $this->app->runningInConsole()) {
-            return;
-        }
-
-        $this->commands([
-            SetupVapidKeysCommand::class,
-        ]);
     }
 }

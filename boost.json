@@ -1,6 +1,10 @@
 {
     "agents": [
-        "claude_code"
+        "claude_code",
+        "gpt_code",
+        "gpt_assistant",
+        
+
     ],
     "mcp": true,
     "nightwatch_mcp": false,

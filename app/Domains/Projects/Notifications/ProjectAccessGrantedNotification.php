@@ -3,18 +3,16 @@
 namespace App\Domains\Projects\Notifications;
 
 use App\Core\Identity\Models\User;
-use App\Core\Notification\Channels\SmsChannel;
-use App\Core\Notification\Services\NotificationPreferenceService;
+use App\Core\Notification\Channels\RegistryBridgeChannel;
+use App\Core\Notification\Contracts\RegistryNotification;
+use App\Core\Notification\DTO\NotificationMessage;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
-use NotificationChannels\WebPush\WebPushChannel;
-use NotificationChannels\WebPush\WebPushMessage;
 
-class ProjectAccessGrantedNotification extends Notification implements ShouldQueue
+class ProjectAccessGrantedNotification extends Notification implements RegistryNotification, ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -31,21 +29,22 @@ class ProjectAccessGrantedNotification extends Notification implements ShouldQue
             return [];
         }
 
-        return app(NotificationPreferenceService::class)->resolveChannels(
-            $notifiable,
-            $this->notificationKey(),
-            ['mail', 'database', SmsChannel::class, WebPushChannel::class],
-        );
+        return [RegistryBridgeChannel::class];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toNotificationMessage(object $notifiable): NotificationMessage
     {
-        return (new MailMessage)
-            ->subject('Project Access Granted: '.$this->project->name)
-            ->markdown('projects::emails.notifications.project-access-granted', [
-                'project' => $this->project,
-                'showUrl' => route('projects.show', $this->project),
-            ]);
+        return new NotificationMessage(
+            type: $this->notificationKey(),
+            title: 'Project Access Granted',
+            body: 'You have been granted access to '.$this->project->name.'.',
+            data: $this->toArray($notifiable),
+            recipients: $this->resolveRecipients($notifiable),
+            metadata: [
+                'project_id' => (string) $this->project->id,
+                'project_name' => $this->project->name,
+            ],
+        );
     }
 
     /**
@@ -78,24 +77,26 @@ class ProjectAccessGrantedNotification extends Notification implements ShouldQue
         ];
     }
 
-    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
-    {
-        return (new WebPushMessage)
-            ->title('Project access granted')
-            ->body('You now have access to '.$this->project->name.'.')
-            ->icon('/icon-192.png')
-            ->badge('/icon-192.png')
-            ->tag('project-access-granted-'.(string) $this->project->id)
-            ->data([
-                'url' => route('projects.show', $this->project),
-                'key' => $this->notificationKey(),
-                'project_id' => (string) $this->project->id,
-                'project_name' => $this->project->name,
-            ]);
-    }
-
-    private function notificationKey(): string
+    public function notificationKey(): string
     {
         return ProjectNotificationDefinitions::ACCESS_GRANTED;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function resolveRecipients(object $notifiable): array
+    {
+        $recipients = [];
+
+        if (property_exists($notifiable, 'email') && is_string($notifiable->email) && $notifiable->email !== '') {
+            $recipients[] = 'email:'.$notifiable->email;
+        }
+
+        if (property_exists($notifiable, 'phone') && is_string($notifiable->phone) && $notifiable->phone !== '') {
+            $recipients[] = 'phone:'.$notifiable->phone;
+        }
+
+        return $recipients;
     }
 }

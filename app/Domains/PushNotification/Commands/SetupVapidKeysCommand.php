@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\Notification\Commands;
+namespace App\Domains\PushNotification\Commands;
 
 use Illuminate\Console\Command;
 

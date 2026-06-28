@@ -2,10 +2,10 @@
 
 namespace App\Domains\PushNotification\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Core\Notification\Services\NotificationChannelRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Domains\PushNotification\Channels\WebPushChannel;
+use Illuminate\Support\ServiceProvider;
 
 class PushNotificationServiceProvider extends ServiceProvider
 {
@@ -21,8 +21,8 @@ class PushNotificationServiceProvider extends ServiceProvider
         // Register the push channel implementation into the global channel registry
         if ($app->bound(NotificationChannelRegistry::class)) {
             $channels = $app->make(NotificationChannelRegistry::class);
-            // Register by name 'webpush' — domain/plugin installers can change this
-            $channels->register('webpush', WebPushChannel::class);
+            // Register by canonical key used by preferences/dispatcher mapping
+            $channels->register('push', WebPushChannel::class);
         }
 
         // Register notification definitions (keys) into the NotificationRegistry
