@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\Notification\Contracts\NotificationMessage;
+use App\Core\Notification\DTO\NotificationMessage;
 use PHPUnit\Framework\TestCase;
 
 final class NotificationMessageTest extends TestCase

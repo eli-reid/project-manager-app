@@ -4,6 +4,7 @@ namespace App\Core\Notification\Contracts;
 
 use App\Core\Notification\DTO\ChannelMessage;
 use App\Core\Notification\DTO\NotificationMessage;
+use App\Core\Notification\DTO\ChannelResult;
 
 
 interface NotificationChannel

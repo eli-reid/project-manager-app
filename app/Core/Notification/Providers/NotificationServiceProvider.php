@@ -4,6 +4,9 @@ namespace App\Core\Notification\Providers;
 
 use App\Core\Notification\Commands\SetupVapidKeysCommand;
 use App\Core\Notification\Services\NotificationRegistry;
+use App\Core\Notification\Services\NotificationChannelRegistry;
+use App\Core\Notification\Services\NotificationDispatcher;
+use Psr\Log\LoggerInterface;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -18,21 +21,25 @@ class NotificationServiceProvider extends ServiceProvider
     {
         $this->app->singleton(NotificationRegistry::class, fn (): NotificationRegistry => new NotificationRegistry);
 
-        // Default SMS service binding (no-op). Plugins should rebind this.
-        $this->app->bind(SmsServiceContract::class, NullSmsService::class);
-        $this->app->bind(EmailServiceContract::class, NullEmailService::class);
+        // Registry for available channel implementations (plugins/domains register into this)
+        $this->app->singleton(NotificationChannelRegistry::class, fn (): NotificationChannelRegistry => new NotificationChannelRegistry());
+
+        // Dispatcher uses the channel registry and notification registry; logger is injected by the container
+        $this->app->singleton(NotificationDispatcher::class, function ($app): NotificationDispatcher {
+            return new NotificationDispatcher(
+                $app->make(NotificationChannelRegistry::class),
+                $app->make(NotificationRegistry::class),
+                $app->make(LoggerInterface::class)
+            );
+        });
+
+
     }
 
     public function boot(SettingsRegistryContract $settingsRegistry): void
     {
-        $this->registerSettings($settingsRegistry);
         $this->registerInfrastructure();
         $this->registerCommands();
-    }
-
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('notifications', __DIR__.'/../config/settings.php');
     }
 
     private function registerInfrastructure(): void
