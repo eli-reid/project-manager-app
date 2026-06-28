@@ -2,7 +2,8 @@
 
 use App\Core\Notification\Channels\SmsChannel;
 use App\Core\Notification\Contracts\SmsServiceContract;
-use App\Core\Zoom\Exceptions\ZoomSmsException;
+use App\Core\Notification\Contracts\SmsMessage;
+use App\PlugIns\Zoom\Exceptions\ZoomSmsException;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 
@@ -13,19 +14,21 @@ it('logs zoom exception details when sms send fails', function (): void {
     $smsService->shouldReceive('isConfigured')->once()->andReturn(true);
     $smsService->shouldReceive('send')
         ->once()
-        ->with('2125551212', 'Test message')
+        ->with('2125551212', Mockery::type(SmsMessage::class))
         ->andThrow(ZoomSmsException::apiRequestFailed('send', 401, 'Invalid access token'));
 
     $channel = new SmsChannel($smsService);
 
     $notification = new class extends Notification
     {
-        public function toSms(object $notifiable): array
+        public function toSms(object $notifiable): SmsMessage
         {
-            return [
-                'to' => '2125551212',
-                'message' => 'Test message',
-            ];
+            return new class implements SmsMessage {
+                public function to(): string { return '2125551212'; }
+                public function body(): string { return 'Test message'; }
+                public function title(): ?string { return null; }
+                public function from(): ?string { return null; }
+            };
         }
     };
 
@@ -46,19 +49,21 @@ it('logs when sms notification is withheld by zoom consent flow', function (): v
     $smsService->shouldReceive('isConfigured')->once()->andReturn(true);
     $smsService->shouldReceive('send')
         ->once()
-        ->with('2125551212', 'Test message')
+        ->with('2125551212', Mockery::type(SmsMessage::class))
         ->andReturn([]);
 
     $channel = new SmsChannel($smsService);
 
     $notification = new class extends Notification
     {
-        public function toSms(object $notifiable): array
+        public function toSms(object $notifiable): SmsMessage
         {
-            return [
-                'to' => '2125551212',
-                'message' => 'Test message',
-            ];
+            return new class implements SmsMessage {
+                public function to(): string { return '2125551212'; }
+                public function body(): string { return 'Test message'; }
+                public function title(): ?string { return null; }
+                public function from(): ?string { return null; }
+            };
         }
     };
 

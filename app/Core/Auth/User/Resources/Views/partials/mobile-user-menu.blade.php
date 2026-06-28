@@ -1,5 +1,5 @@
 @php
-    $showWebmailLink = app(\App\Core\Cpanel\Services\CpanelService::class)->isConfigured()
+    $showWebmailLink = app(\App\PlugIns\Cpanel\Services\CpanelService::class)->isConfigured()
         && filled(trim((string) (auth()->user()?->company_email ?? auth()->user()?->username ?? '')));
 @endphp
 

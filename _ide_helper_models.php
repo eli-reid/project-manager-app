@@ -152,7 +152,7 @@ namespace App\Core\Auth\Role\Models{
 	class IdeHelperRole {}
 }
 
-namespace App\Core\Cpanel\Models{
+namespace App\PlugIns\Cpanel\Models{
 /**
  * @property string $id
  * @property string $email
@@ -170,7 +170,7 @@ namespace App\Core\Cpanel\Models{
  * @property \Carbon\CarbonImmutable|null $updated_at
  * @property-read \App\Core\Identity\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount active()
- * @method static \App\Core\Cpanel\Database\Factories\CachedEmailAccountFactory factory($count = null, $state = [])
+ * @method static \App\PlugIns\Cpanel\Database\Factories\CachedEmailAccountFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount forDomain(string $domain)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount highUsage(float $threshold = 80)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CachedEmailAccount newModelQuery()
@@ -551,11 +551,11 @@ namespace App\Core\Settings\Models{
 	class IdeHelperSettingsSqlite {}
 }
 
-namespace App\Core\Zoom\Models{
+namespace App\PlugIns\Zoom\Models{
 /**
  * @property string $id
  * @property string $phone_number
- * @property \App\Core\Zoom\Enums\SmsConsentStatus $status
+ * @property \App\PlugIns\Zoom\Enums\SmsConsentStatus $status
  * @property \Carbon\CarbonImmutable|null $consent_requested_at
  * @property \Carbon\CarbonImmutable|null $consented_at
  * @property \Carbon\CarbonImmutable|null $declined_at

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Core\Zoom\Data\ZoomConfig;
-use App\Core\Zoom\Services\ZoomTokenService;
+use App\PlugIns\Zoom\Data\ZoomConfig;
+use App\PlugIns\Zoom\Services\ZoomTokenService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 

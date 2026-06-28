@@ -1,7 +1,7 @@
 <?php
 
 use App\Core\Audit\Models\AuditLog;
-use App\Core\Cpanel\Services\CpanelMailboxManager;
+use App\PlugIns\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Actions\Fortify\ResetUserPassword;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;

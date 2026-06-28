@@ -3,7 +3,7 @@
 namespace App\Core\Auth\User\Actions\Admin;
 
 use App\Core\Audit\Contracts\AuditLoggerContract;
-use App\Core\Cpanel\Services\CpanelMailboxManager;
+use App\PlugIns\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Models\User;
 use App\Core\Identity\Notifications\UserInvitationNotification;
 use Illuminate\Contracts\Auth\Authenticatable;

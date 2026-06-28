@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Core\Zoom\Data\ZoomConfig;
-use App\Core\Zoom\Services\ZoomSmsConsentService;
-use App\Core\Zoom\Services\ZoomSmsService;
-use App\Core\Zoom\Services\ZoomTokenService;
+use App\PlugIns\Zoom\Data\ZoomConfig;
+use App\PlugIns\Zoom\Services\ZoomSmsConsentService;
+use App\PlugIns\Zoom\Services\ZoomSmsService;
+use App\PlugIns\Zoom\Services\ZoomTokenService;
 use Illuminate\Console\Command;
 
 class ZoomSmsTestCommand extends Command
@@ -72,7 +72,13 @@ class ZoomSmsTestCommand extends Command
         try {
             $result = $rawSend
                 ? $smsService->sendRaw($toNumber, $message)
-                : $smsService->send($toNumber, $message);
+                : $smsService->send($toNumber, new class($toNumber, $message) implements \App\Core\Notification\Contracts\SmsMessage {
+                    public function __construct(private string $to, private string $body) {}
+                    public function to(): string { return $this->to; }
+                    public function body(): string { return $this->body; }
+                    public function title(): ?string { return null; }
+                    public function from(): ?string { return null; }
+                });
 
             if ($result === []) {
                 $this->warn('The message was withheld by the consent flow.');

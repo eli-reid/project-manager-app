@@ -14,7 +14,7 @@ namespace PHPSTORM_META {
     override(new \Illuminate\Contracts\Container\Container, map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -124,7 +124,7 @@ namespace PHPSTORM_META {
     override(\Illuminate\Container\Container::makeWith(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -234,7 +234,7 @@ namespace PHPSTORM_META {
     override(\Illuminate\Contracts\Container\Container::get(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -344,7 +344,7 @@ namespace PHPSTORM_META {
     override(\Illuminate\Contracts\Container\Container::make(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -454,7 +454,7 @@ namespace PHPSTORM_META {
     override(\Illuminate\Contracts\Container\Container::makeWith(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -564,7 +564,7 @@ namespace PHPSTORM_META {
     override(\App::get(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -674,7 +674,7 @@ namespace PHPSTORM_META {
     override(\App::make(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -784,7 +784,7 @@ namespace PHPSTORM_META {
     override(\App::makeWith(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -894,7 +894,7 @@ namespace PHPSTORM_META {
     override(\app(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -1004,7 +1004,7 @@ namespace PHPSTORM_META {
     override(\resolve(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,
@@ -1114,7 +1114,7 @@ namespace PHPSTORM_META {
     override(\Psr\Container\ContainerInterface::get(0), map([
         '' => '@',
             'App\Core\Auth\Permission\Contracts\PermissionRegistryContract' => \App\Core\Auth\Permission\Services\PermissionRegistry::class,
-            'App\Core\Notification\Contracts\SmsServiceContract' => \App\Core\Zoom\Services\ZoomSmsService::class,
+            'App\Core\Notification\Contracts\SmsServiceContract' => \App\PlugIns\Zoom\Services\ZoomSmsService::class,
             'App\Core\Settings\Contracts\SettingsRegistryContract' => \App\Core\Settings\Services\SettingsRegistry::class,
             'App\Core\WeatherApi\Contracts\WeatherApiContract' => \App\Core\WeatherApi\Services\WeatherApiService::class,
             'App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider' => \App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider::class,

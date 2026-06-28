@@ -3,7 +3,7 @@
 namespace App\Core\Identity\Actions\Fortify;
 
 use App\Core\Audit\Contracts\AuditLoggerContract;
-use App\Core\Cpanel\Services\CpanelMailboxManager;
+use App\PlugIns\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Concerns\PasswordValidationRules;
 use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Log;

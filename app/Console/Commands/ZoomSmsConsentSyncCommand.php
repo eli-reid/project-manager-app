@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Core\Identity\Models\User;
-use App\Core\Zoom\Enums\SmsConsentStatus;
-use App\Core\Zoom\Models\ZoomSmsConsent;
-use App\Core\Zoom\Services\ZoomSmsConsentService;
+use App\PlugIns\Zoom\Enums\SmsConsentStatus;
+use App\PlugIns\Zoom\Models\ZoomSmsConsent;
+use App\PlugIns\Zoom\Services\ZoomSmsConsentService;
 use Illuminate\Console\Command;
 
 class ZoomSmsConsentSyncCommand extends Command

@@ -2,8 +2,8 @@
 
 namespace App\Core\Identity\Livewire\Auth\User\Concerns;
 
-use App\Core\Cpanel\Services\CpanelMailboxManager;
-use App\Core\Cpanel\Services\CpanelService;
+use App\PlugIns\Cpanel\Services\CpanelMailboxManager;
+use App\PlugIns\Cpanel\Services\CpanelService;
 use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\Auth;
 

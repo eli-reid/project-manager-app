@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Core\Zoom\Data\ZoomConfig;
-use App\Core\Zoom\Services\ZoomSmsConsentService;
-use App\Core\Zoom\Services\ZoomTokenService;
+use App\PlugIns\Zoom\Data\ZoomConfig;
+use App\PlugIns\Zoom\Services\ZoomSmsConsentService;
+use App\PlugIns\Zoom\Services\ZoomTokenService;
 use Illuminate\Console\Command;
 
 class ZoomSmsCampaignListCommand extends Command

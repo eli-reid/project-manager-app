@@ -2,7 +2,7 @@
 
 namespace App\Core\Auth\User\Observers;
 
-use App\Core\Cpanel\Services\CpanelMailboxManager;
+use App\PlugIns\Cpanel\Services\CpanelMailboxManager;
 use App\Core\Identity\Models\User;
 
 class UserObserver
