@@ -18,6 +18,59 @@
         </div>
     </div>
 
+    <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="mb-3 flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Add Project Hours</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">Add one entry with any hour amount for a selected user.</p>
+            </div>
+        </div>
+
+        @if (session()->has('success'))
+            <div class="mb-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="grid gap-3 md:grid-cols-4">
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">User</label>
+                <select wire:model="quickAddUserId" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">Select User</option>
+                    @foreach ($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                    @endforeach
+                </select>
+                @error('quickAddUserId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Date</label>
+                <input type="date" wire:model="quickAddDate" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                @error('quickAddDate') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Hours</label>
+                <input type="number" step="0.25" min="0.01" wire:model="quickAddHours" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                @error('quickAddHours') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Notes (optional)</label>
+                <input type="text" wire:model="quickAddNotes" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" placeholder="Backfill hours" />
+                @error('quickAddNotes') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        <div class="mt-3 flex justify-end">
+            <button type="button" wire:click="addProjectHours" class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300" wire:loading.attr="disabled">
+                <span wire:loading.remove wire:target="addProjectHours">Add Hours</span>
+                <span wire:loading wire:target="addProjectHours">Saving...</span>
+            </button>
+        </div>
+    </div>
+
     @if ($hoursByUser->isNotEmpty())
         <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
             <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
