@@ -190,6 +190,41 @@ class PayrollReportingService
         return $rows;
     }
 
+    public function estimatedLaborCostTotalForProject(string $projectId): float
+    {
+        $entries = $this->approvedEntriesQuery(
+            projectId: $projectId,
+            from: Carbon::create(1970, 1, 1)->startOfDay(),
+            to: now()->endOfDay(),
+        );
+
+        if ($entries->isEmpty()) {
+            return 0.0;
+        }
+
+        $standardRateMap = $this->buildStandardRateMap($entries, now());
+
+        $cost = 0.0;
+
+        foreach ($entries as $entry) {
+            $hourlyRate = (float) ($entry->prevailing_base_rate ?? 0);
+
+            if ($hourlyRate <= 0) {
+                $hourlyRate = $standardRateMap[$entry->user_id] ?? 0.0;
+            }
+
+            $regularHours = (float) ($entry->regular_hours ?? $entry->hours ?? 0);
+            $overtimeHours = (float) ($entry->overtime_hours ?? 0);
+            $doubleTimeHours = (float) ($entry->double_time_hours ?? 0);
+
+            $cost += ($regularHours * $hourlyRate)
+                + ($overtimeHours * $hourlyRate * 1.5)
+                + ($doubleTimeHours * $hourlyRate * 2);
+        }
+
+        return round($cost, 2);
+    }
+
     /**
      * @return array<int, array{pay_run:string,employee:string,union_code:string,deduction:string,total_hours:float,gross_pay:float,remittance_due:float}>
      */

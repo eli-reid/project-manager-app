@@ -3,14 +3,20 @@
 namespace App\Domains\Projects\Services;
 
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\Payroll\Services\PayrollReportingService;
 use App\Domains\Projects\Models\Project;
 
 class ProjectFinancialsService
 {
+    public function __construct(
+        private readonly PayrollReportingService $payrollReportingService,
+    ) {}
+
     /**
      * @return array{
      *     budget: float|null,
      *     invoiced: float,
+     *     labor_cost: float,
      *     remaining: float|null,
      *     variance_pct: float|null,
      *     invoice_count: int,
@@ -28,6 +34,8 @@ class ProjectFinancialsService
 
         $budget = $project->budget !== null ? (float) $project->budget : null;
 
+        $laborCost = $this->payrollReportingService->estimatedLaborCostTotalForProject((string) $project->id);
+
         $remaining = $budget !== null ? $budget - $invoiced : null;
 
         $variancePct = ($budget !== null && $budget > 0)
@@ -37,6 +45,7 @@ class ProjectFinancialsService
         return [
             'budget' => $budget,
             'invoiced' => $invoiced,
+            'labor_cost' => $laborCost,
             'remaining' => $remaining,
             'variance_pct' => $variancePct,
             'invoice_count' => $invoiceCount,

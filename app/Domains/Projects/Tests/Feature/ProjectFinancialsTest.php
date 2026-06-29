@@ -5,10 +5,20 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\Payroll\Services\PayrollReportingService;
 use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectFinancialsService;
 use App\Domains\Tasks\Models\Task;
+
+beforeEach(function (): void {
+    $payrollReportingService = Mockery::mock(PayrollReportingService::class);
+    $payrollReportingService
+        ->shouldReceive('estimatedLaborCostTotalForProject')
+        ->andReturn(0.0);
+
+    $this->app->instance(PayrollReportingService::class, $payrollReportingService);
+});
 
 // ─── Service Unit Tests ───────────────────────────────────────────────────────
 
@@ -20,8 +30,26 @@ it('returns zero invoiced total when project has no invoices', function (): void
     expect($summary['invoiced'])->toBe(0.0)
         ->and($summary['invoice_count'])->toBe(0)
         ->and($summary['budget'])->toBeNull()
+        ->and($summary['labor_cost'])->toBe(0.0)
         ->and($summary['remaining'])->toBeNull()
         ->and($summary['variance_pct'])->toBeNull();
+});
+
+it('includes estimated labor cost in the financial summary', function (): void {
+    $project = Project::factory()->create(['budget' => 1000.00]);
+
+    $payrollReportingService = Mockery::mock(PayrollReportingService::class);
+    $payrollReportingService
+        ->shouldReceive('estimatedLaborCostTotalForProject')
+        ->once()
+        ->with((string) $project->id)
+        ->andReturn(325.75);
+
+    $this->app->instance(PayrollReportingService::class, $payrollReportingService);
+
+    $summary = app(ProjectFinancialsService::class)->summary($project);
+
+    expect($summary['labor_cost'])->toBe(325.75);
 });
 
 it('sums invoice total_amount correctly', function (): void {
