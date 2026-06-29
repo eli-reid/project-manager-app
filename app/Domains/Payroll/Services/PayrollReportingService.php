@@ -192,17 +192,19 @@ class PayrollReportingService
 
     public function estimatedLaborCostTotalForProject(string $projectId): float
     {
+        $asOf = Carbon::now();
+
         $entries = $this->approvedEntriesQuery(
             projectId: $projectId,
             from: Carbon::create(1970, 1, 1)->startOfDay(),
-            to: now()->endOfDay(),
+            to: $asOf->copy()->endOfDay(),
         );
 
         if ($entries->isEmpty()) {
             return 0.0;
         }
 
-        $standardRateMap = $this->buildStandardRateMap($entries, now());
+        $standardRateMap = $this->buildStandardRateMap($entries, $asOf);
 
         $cost = 0.0;
 
