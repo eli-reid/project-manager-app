@@ -512,6 +512,7 @@ it('persists accounting code when creating a project', function (): void {
     Livewire::test(Form::class)
         ->set('name', 'Project With Accounting Code')
         ->set('status', 'pending')
+        ->set('budget', '150000.50')
         ->set('accounting_code_id', (string) $accountingCode->id)
         ->call('save')
         ->assertHasNoErrors();
@@ -520,7 +521,8 @@ it('persists accounting code when creating a project', function (): void {
 
     expect($project)->not->toBeNull()
         ->and($project?->accounting_code_id)->toBe($accountingCode->id)
-        ->and($project?->accounting_code)->toBe('BULK-LUMBER-01');
+        ->and($project?->accounting_code)->toBe('BULK-LUMBER-01')
+        ->and((float) ($project?->budget ?? 0))->toBe(150000.5);
 });
 
 it('persists default pay rate type when creating a project', function (): void {
@@ -577,6 +579,7 @@ it('allows authorized users to edit and update a project', function (): void {
         ->set('project_number', 'PRJ-EDIT-1')
         ->set('accounting_code_id', (string) $accountingCode->id)
         ->set('status', 'in_progress')
+        ->set('budget', '240000.00')
         ->set('leave_category', 'vacation')
         ->call('save')
         ->assertHasNoErrors();
@@ -585,6 +588,7 @@ it('allows authorized users to edit and update a project', function (): void {
         ->and($project->fresh()->status?->value)->toBe('in_progress')
         ->and($project->fresh()->accounting_code_id)->toBe($accountingCode->id)
         ->and($project->fresh()->accounting_code)->toBe('BULK-AGGREGATE-01')
+        ->and((float) ($project->fresh()->budget ?? 0))->toBe(240000.0)
         ->and($project->fresh()->leave_category)->toBe('vacation');
 });
 

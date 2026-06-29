@@ -55,6 +55,13 @@
                 @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Budget</label>
+                <input type="number" min="0" step="0.01" wire:model="budget" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" placeholder="0.00" />
+                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Optional total budget used in project financial reporting.</p>
+                @error('budget') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             <div class="flex items-center pt-8">
                 <label class="inline-flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
                     <input type="checkbox" wire:model="is_active" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900" />

@@ -33,6 +33,8 @@ class Form extends Component
 
     public ?string $description = null;
 
+    public ?string $budget = null;
+
     public string $status = 'pending';
 
     public ?string $start_date = null;
@@ -60,6 +62,7 @@ class Form extends Component
             $this->project_number = $project->project_number;
             $this->accounting_code_id = $project->accounting_code_id;
             $this->description = $project->description;
+            $this->budget = $project->budget !== null ? (string) $project->budget : null;
             $this->status = $project->status?->value ?? 'pending';
             $this->start_date = $project->start_date?->format('Y-m-d');
             $this->end_date = $project->end_date?->format('Y-m-d');
@@ -87,6 +90,7 @@ class Form extends Component
             ],
             'accounting_code_id' => ['nullable', 'exists:accounting_codes,id'],
             'description' => ['nullable', 'string'],
+            'budget' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'in:'.implode(',', array_keys(ProjectStatusEnum::toArray()))],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -106,6 +110,10 @@ class Form extends Component
 
         if ($this->accounting_code_id === '') {
             $this->accounting_code_id = null;
+        }
+
+        if ($this->budget === '') {
+            $this->budget = null;
         }
 
         $validated = $this->validate();
