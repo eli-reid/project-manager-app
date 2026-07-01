@@ -127,7 +127,7 @@
 
     @foreach ($tabPanels as $tabPanel)
         @if ($activeTab === $tabPanel['tab'] && in_array($tabPanel['tab'], $tabs, true))
-            @livewire($tabPanel['component'], $tabPanel['props'], key($tabPanel['key']))
+            @livewire($tabPanel['component'], $tabPanel['props'], $tabPanel['key'])
         @endif
     @endforeach
 </div>
