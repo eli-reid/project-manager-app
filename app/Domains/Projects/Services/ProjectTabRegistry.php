@@ -181,7 +181,7 @@ class ProjectTabRegistry
         $accessibleTabs = collect($tabs)
             ->filter(fn (ResolvedProjectTab $tab): bool => $tab->isVisible($user, $project) === true);
 
-        $preferences = $this->preferencesByTab($user, $accessibleTabs->keys()->all());
+        $preferences = $this->preferencesByTab($user, $accessibleTabs->keys()->all(), $project);
 
         $items = $accessibleTabs
             ->map(function (ResolvedProjectTab $tab, string $tabKey) use ($preferences): ProjectTabViewItem {
@@ -252,6 +252,7 @@ class ProjectTabRegistry
             $user,
             array_merge($orderedVisibleKeys, $remainingVisibleKeys),
             $hiddenKeys,
+            $project,
         );
     }
 
@@ -287,7 +288,7 @@ class ProjectTabRegistry
             $visibleKeys[] = $tabKey;
         }
 
-        $this->persistUserPreferences($user, $visibleKeys, $hiddenKeys);
+        $this->persistUserPreferences($user, $visibleKeys, $hiddenKeys, $project);
     }
 
     public function modeQueryParam(string $tab): ?string
@@ -352,20 +353,20 @@ class ProjectTabRegistry
      * @param  array<int, string>  $tabKeys
      * @return Collection<string, ProjectTabUserPreference>
      */
-    private function preferencesByTab(User $user, array $tabKeys): Collection
+    private function preferencesByTab(User $user, array $tabKeys, Project $project): Collection
     {
         if ($tabKeys === []) {
             return collect();
         }
 
         sort($tabKeys);
-        $cacheKey = (string) $user->id.'|'.implode(',', $tabKeys);
+        $cacheKey = (string) $user->id.'|'.(string) $project->id.'|'.implode(',', $tabKeys);
 
         if (array_key_exists($cacheKey, $this->preferencesCache)) {
             return $this->preferencesCache[$cacheKey];
         }
 
-        $this->preferencesCache[$cacheKey] = $this->preferenceStore->loadPreferences($user, $tabKeys);
+        $this->preferencesCache[$cacheKey] = $this->preferenceStore->loadPreferences($user, $tabKeys, $project);
 
         return $this->preferencesCache[$cacheKey];
     }
@@ -374,9 +375,9 @@ class ProjectTabRegistry
      * @param  array<int, string>  $visibleKeys
      * @param  array<int, string>  $hiddenKeys
      */
-    private function persistUserPreferences(User $user, array $visibleKeys, array $hiddenKeys): void
+    private function persistUserPreferences(User $user, array $visibleKeys, array $hiddenKeys, ?Project $project = null): void
     {
-        $this->preferenceStore->persist($user, $visibleKeys, $hiddenKeys);
+        $this->preferenceStore->persist($user, $visibleKeys, $hiddenKeys, $project);
 
         $this->flushRuntimeCaches();
     }

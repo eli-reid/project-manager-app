@@ -17,6 +17,7 @@ class ProjectTabUserPreference extends Model
     protected $fillable = [
         'user_id',
         'tab_key',
+        'project_id',
         'sort_order',
         'is_hidden',
     ];
@@ -29,6 +30,7 @@ class ProjectTabUserPreference extends Model
         return [
             'sort_order' => 'integer',
             'is_hidden' => 'boolean',
+            'project_id' => 'string',
         ];
     }
 
