@@ -86,6 +86,24 @@ class ProjectTabPreferenceStore
                 }
             }
 
+            \Illuminate\Support\Facades\Log::debug('Loaded project tab preferences (prefixed-fallback)', [
+                'user_id' => $user->id,
+                'project_id' => $project->id ?? null,
+                'requested_keys' => $tabKeys,
+                'rows' => collect($rows)->map(fn($r) => [
+                    'raw_tab_key' => $r->tab_key,
+                    'tab_key' => (str_starts_with($r->tab_key, $prefix) ? substr($r->tab_key, strlen($prefix)) : $r->tab_key),
+                    'sort_order' => $r->sort_order,
+                    'is_hidden' => $r->is_hidden ?? null,
+                ])->all(),
+                'mapped' => $map->map(fn($r) => [
+                    'tab_key' => $r->tab_key,
+                    'sort_order' => $r->sort_order,
+                    'is_hidden' => $r->is_hidden ?? null,
+                    'project_id' => $r->project_id ?? null,
+                ])->all(),
+            ]);
+
             return $map;
         }
 
@@ -98,6 +116,17 @@ class ProjectTabPreferenceStore
         foreach ($rows as $row) {
             $map->put($row->tab_key, $row);
         }
+
+        \Illuminate\Support\Facades\Log::debug('Loaded project tab preferences (global)', [
+            'user_id' => $user->id,
+            'requested_keys' => $tabKeys,
+            'rows' => $map->map(fn($r) => [
+                'tab_key' => $r->tab_key,
+                'sort_order' => $r->sort_order,
+                'is_hidden' => $r->is_hidden ?? null,
+                'project_id' => $r->project_id ?? null,
+            ])->all(),
+        ]);
 
         return $map;
     }
