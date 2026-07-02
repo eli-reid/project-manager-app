@@ -241,19 +241,65 @@ class ProjectTabRegistry
             ->map(static fn (ProjectTabViewItem $item): string => $item->key)
             ->all();
 
+        // Normalize incoming keys: some front-end sortable libraries send DOM keys
+        // or prefixed keys (e.g. 'project-tab-sort-item-{tabKey}'). Try to map
+        // those back to the canonical tab keys expected by the registry.
+        $normalizedOrdered = [];
+        foreach ($orderedVisibleKeys as $incomingKey) {
+            if (in_array($incomingKey, $visibleKeys, true)) {
+                $normalizedOrdered[] = $incomingKey;
+                continue;
+            }
+
+            // Try to find a visible key that appears inside the incoming key
+            $found = null;
+            foreach ($visibleKeys as $vk) {
+                if (str_contains($incomingKey, $vk) || str_contains($vk, $incomingKey)) {
+                    $found = $vk;
+                    break;
+                }
+            }
+
+            if ($found !== null) {
+                $normalizedOrdered[] = $found;
+            }
+        }
+
         $orderedVisibleKeys = array_values(array_filter(
-            $orderedVisibleKeys,
+            array_values(array_unique($normalizedOrdered)),
             static fn (string $tabKey): bool => in_array($tabKey, $visibleKeys, true)
         ));
 
         $remainingVisibleKeys = array_values(array_diff($visibleKeys, $orderedVisibleKeys));
 
-        $this->persistUserPreferences(
-            $user,
-            array_merge($orderedVisibleKeys, $remainingVisibleKeys),
-            $hiddenKeys,
-            $project,
-        );
+        try {
+            \Illuminate\Support\Facades\Log::debug('Updating user tab order', [
+                'user_id' => $user->id,
+                'project_id' => $project->id,
+                'incoming_order' => $orderedVisibleKeys,
+                'current_visible' => $visibleKeys,
+                'remaining' => $remainingVisibleKeys,
+                'hidden' => $hiddenKeys,
+            ]);
+
+            $this->persistUserPreferences(
+                $user,
+                array_merge($orderedVisibleKeys, $remainingVisibleKeys),
+                $hiddenKeys,
+                $project,
+            );
+
+            \Illuminate\Support\Facades\Log::debug('User tab order updated successfully', [
+                'user_id' => $user->id,
+                'project_id' => $project->id,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed updating user tab order', [
+                'user_id' => $user->id,
+                'project_id' => $project->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function setUserTabHidden(User $user, Project $project, string $tabKey, bool $isHidden): void
