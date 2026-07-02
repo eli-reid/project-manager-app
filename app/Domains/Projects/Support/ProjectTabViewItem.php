@@ -24,7 +24,7 @@ final class ProjectTabViewItem
             label: $tab->label(),
             modeQueryParam: $tab->modeQueryParam(),
             detailQueryParam: $tab->detailQueryParam(),
-            sort: $sort ?? $tab->sort(),
+            sort: (int) ($sort ?? $tab->sort()),
             isHidden: $isHidden,
         );
     }

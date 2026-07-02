@@ -208,7 +208,7 @@ class ProjectTabRegistry
                     sort: $sort,
                     isHidden: $tabKey === 'overview' ? false : (bool) ($preference?->is_hidden ?? false),
                 );
-            })
+            });
 
         // Log assigned sorts for debugging before applying the final sort.
         \Illuminate\Support\Facades\Log::debug('Assigned tab sort values', [
