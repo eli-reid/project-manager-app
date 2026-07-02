@@ -211,17 +211,7 @@ class ProjectTabRegistry
             });
 
         // Log assigned sorts for debugging before applying the final sort.
-        \Illuminate\Support\Facades\Log::debug('Assigned tab sort values', [
-            'user_id' => $user->id,
-            'project_id' => $project->id ?? null,
-            'assigned' => $itemsCollection->map(fn(ProjectTabViewItem $i) => [
-                'key' => $i->key,
-                'label' => $i->label,
-                'assigned_sort' => $i->sort,
-                'default_sort' => $i->tab->sort(),
-                'is_hidden' => $i->isHidden,
-            ])->all(),
-        ]);
+        // Debug logging removed in cleanup.
 
         $items = $itemsCollection->values()->all();
 
@@ -447,17 +437,7 @@ class ProjectTabRegistry
         $prefs = $this->preferenceStore->loadPreferences($user, $tabKeys, $project);
 
         // Log the loaded preferences for debugging ordering issues.
-        \Illuminate\Support\Facades\Log::debug('Loaded project tab preferences', [
-            'user_id' => $user->id,
-            'project_id' => $project->id ?? null,
-            'requested_keys' => $tabKeys,
-            'loaded' => $prefs->map(fn($p) => [
-                'tab_key' => $p->tab_key,
-                'sort_order' => $p->sort_order,
-                'is_hidden' => $p->is_hidden ?? null,
-                'project_id' => $p->project_id ?? null,
-            ])->all(),
-        ]);
+        // Debug logging removed in cleanup.
 
         $this->preferencesCache[$cacheKey] = $prefs;
 

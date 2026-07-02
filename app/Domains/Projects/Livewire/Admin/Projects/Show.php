@@ -62,13 +62,7 @@ class Show extends Component
             ->values()
             ->all();
 
-        \Illuminate\Support\Facades\Log::debug('Livewire sortProjectTab called', [
-            'user_id' => $user->id ?? null,
-            'project_id' => $this->project->id ?? null,
-            'incoming_tabKey' => $tabKey,
-            'position' => $position,
-            'visibleTabKeys' => $visibleTabKeys,
-        ]);
+        // Debug logging removed in cleanup.
 
         if (! in_array($tabKey, $visibleTabKeys, true)) {
             return;
