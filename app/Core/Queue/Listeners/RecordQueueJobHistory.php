@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Log;
 
 class RecordQueueJobHistory
 {
@@ -61,6 +62,21 @@ class RecordQueueJobHistory
         $payload = $event->job->payload();
         $finishedAt = now();
         $jobUuid = (string) ($payload['uuid'] ?? '');
+
+        // Log the failure details for easier debugging
+        try {
+            Log::error('Queue job failed', [
+                'job_uuid' => $jobUuid !== '' ? $jobUuid : null,
+                'job_class' => (string) ($payload['displayName'] ?? $payload['job'] ?? 'UnknownJob'),
+                'queue' => (string) ($event->job->getQueue() ?? 'default'),
+                'connection' => (string) ($event->connectionName ?? 'database'),
+                'attempt' => (int) $event->job->attempts(),
+                'exception' => $event->exception->getMessage(),
+                'trace' => $event->exception->getTraceAsString(),
+            ]);
+        } catch (\\Throwable $e) {
+            // Swallow any logging errors to avoid interfering with failure handling
+        }
 
         $history = $this->findLatestHistory($jobUuid);
 
