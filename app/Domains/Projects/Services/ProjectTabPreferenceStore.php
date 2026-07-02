@@ -119,6 +119,26 @@ class ProjectTabPreferenceStore
                 $uniqueBy,
                 ['sort_order', 'is_hidden', 'updated_at'],
             );
+
+            // Read back the persisted rows for debugging to confirm the DB state.
+            $tabKeys = array_values(array_unique(array_map(fn($r) => $r['tab_key'], $rows)));
+            $persisted = ProjectTabUserPreference::query()
+                ->where('user_id', $user->id)
+                ->whereIn('tab_key', $tabKeys)
+                ->get()
+                ->map(fn($r) => [
+                    'tab_key' => $r->tab_key,
+                    'sort_order' => $r->sort_order,
+                    'is_hidden' => $r->is_hidden,
+                    'project_id' => $r->project_id ?? null,
+                ])
+                ->all();
+
+            \Illuminate\Support\Facades\Log::debug('Persisted project tab user preferences', [
+                'user_id' => $user->id,
+                'project_id' => $project?->id ?? null,
+                'persisted' => $persisted,
+            ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Failed to persist project tab user preferences', [
                 'user_id' => $user->id,
