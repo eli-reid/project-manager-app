@@ -50,7 +50,7 @@ class Show extends Component
         }
 
         $this->activeTab = $tab;
-    }
+    } 
 
     public function sortProjectTab(string $tabKey, int $position): void
     {

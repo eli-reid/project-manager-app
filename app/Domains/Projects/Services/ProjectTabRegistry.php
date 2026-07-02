@@ -183,14 +183,29 @@ class ProjectTabRegistry
 
         $preferences = $this->preferencesByTab($user, $accessibleTabs->keys()->all(), $project);
 
+        // If any user preferences exist for this user/project, treat those
+        // preferences as authoritative for ordering. Tabs without an explicit
+        // preference should be placed after the user-ordered tabs and then
+        // ordered by their configured sort value.
+        $hasPreferences = $preferences->isNotEmpty();
+
         $items = $accessibleTabs
-            ->map(function (ResolvedProjectTab $tab, string $tabKey) use ($preferences): ProjectTabViewItem {
+            ->map(function (ResolvedProjectTab $tab, string $tabKey) use ($preferences, $hasPreferences): ProjectTabViewItem {
                 /** @var ProjectTabUserPreference|null $preference */
                 $preference = $preferences->get($tabKey);
 
+                if ($preference !== null) {
+                    $sort = $preference->sort_order;
+                } elseif ($hasPreferences) {
+                    // Ensure non-preference tabs come after user-ordered tabs.
+                    $sort = 100000 + $tab->sort();
+                } else {
+                    $sort = $tab->sort();
+                }
+
                 return ProjectTabViewItem::fromResolvedTab(
                     $tab,
-                    sort: $preference?->sort_order ?? $tab->sort(),
+                    sort: $sort,
                     isHidden: $tabKey === 'overview' ? false : (bool) ($preference?->is_hidden ?? false),
                 );
             })
