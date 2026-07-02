@@ -50,7 +50,7 @@ class Show extends Component
         }
 
         $this->activeTab = $tab;
-    } 
+    }
 
     public function sortProjectTab(string $tabKey, int $position): void
     {
@@ -175,18 +175,7 @@ class Show extends Component
             ],
         );
 
-        \Illuminate\Support\Facades\Log::debug('Project show render', [
-            'project_id' => $this->project->id ?? null,
-            'user_id' => $user->id ?? null,
-            'activeTab' => $this->activeTab ?? null,
-            'tabs' => $tabs,
-            'visibleTabItems' => collect($visibleTabItems)->map(fn($i) => $i->key)->all(),
-            'tabPanels' => collect($tabPanels)->map(fn($p) => [
-                'tab' => $p['tab'] ?? null,
-                'component' => $p['component'] ?? null,
-                'key' => $p['key'] ?? null,
-            ])->all(),
-        ]);
+        // Debug logging removed in cleanup.
 
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $tabs,

@@ -13,6 +13,7 @@ use App\Domains\Projects\Support\ProjectTabViewItem;
 use App\Domains\Projects\Support\ResolvedProjectTab;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class ProjectTabRegistry
@@ -270,6 +271,7 @@ class ProjectTabRegistry
         foreach ($orderedVisibleKeys as $incomingKey) {
             if (in_array($incomingKey, $visibleKeys, true)) {
                 $normalizedOrdered[] = $incomingKey;
+
                 continue;
             }
 
@@ -295,14 +297,7 @@ class ProjectTabRegistry
         $remainingVisibleKeys = array_values(array_diff($visibleKeys, $orderedVisibleKeys));
 
         try {
-            \Illuminate\Support\Facades\Log::debug('Updating user tab order', [
-                'user_id' => $user->id,
-                'project_id' => $project->id,
-                'incoming_order' => $orderedVisibleKeys,
-                'current_visible' => $visibleKeys,
-                'remaining' => $remainingVisibleKeys,
-                'hidden' => $hiddenKeys,
-            ]);
+            // Debug logging removed in cleanup.
 
             $this->persistUserPreferences(
                 $user,
@@ -310,13 +305,8 @@ class ProjectTabRegistry
                 $hiddenKeys,
                 $project,
             );
-
-            \Illuminate\Support\Facades\Log::debug('User tab order updated successfully', [
-                'user_id' => $user->id,
-                'project_id' => $project->id,
-            ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Failed updating user tab order', [
+            Log::error('Failed updating user tab order', [
                 'user_id' => $user->id,
                 'project_id' => $project->id,
                 'error' => $e->getMessage(),
