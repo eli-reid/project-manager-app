@@ -427,7 +427,22 @@ class ProjectTabRegistry
             return $this->preferencesCache[$cacheKey];
         }
 
-        $this->preferencesCache[$cacheKey] = $this->preferenceStore->loadPreferences($user, $tabKeys, $project);
+        $prefs = $this->preferenceStore->loadPreferences($user, $tabKeys, $project);
+
+        // Log the loaded preferences for debugging ordering issues.
+        \Illuminate\Support\Facades\Log::debug('Loaded project tab preferences', [
+            'user_id' => $user->id,
+            'project_id' => $project->id ?? null,
+            'requested_keys' => $tabKeys,
+            'loaded' => $prefs->map(fn($p) => [
+                'tab_key' => $p->tab_key,
+                'sort_order' => $p->sort_order,
+                'is_hidden' => $p->is_hidden ?? null,
+                'project_id' => $p->project_id ?? null,
+            ])->all(),
+        ]);
+
+        $this->preferencesCache[$cacheKey] = $prefs;
 
         return $this->preferencesCache[$cacheKey];
     }
