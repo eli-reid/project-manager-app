@@ -189,7 +189,7 @@ class ProjectTabRegistry
         // ordered by their configured sort value.
         $hasPreferences = $preferences->isNotEmpty();
 
-        $items = $accessibleTabs
+        $itemsCollection = $accessibleTabs
             ->map(function (ResolvedProjectTab $tab, string $tabKey) use ($preferences, $hasPreferences): ProjectTabViewItem {
                 /** @var ProjectTabUserPreference|null $preference */
                 $preference = $preferences->get($tabKey);
@@ -209,6 +209,21 @@ class ProjectTabRegistry
                     isHidden: $tabKey === 'overview' ? false : (bool) ($preference?->is_hidden ?? false),
                 );
             })
+
+        // Log assigned sorts for debugging before applying the final sort.
+        \Illuminate\Support\Facades\Log::debug('Assigned tab sort values', [
+            'user_id' => $user->id,
+            'project_id' => $project->id ?? null,
+            'assigned' => $itemsCollection->map(fn(ProjectTabViewItem $i) => [
+                'key' => $i->key,
+                'label' => $i->label,
+                'assigned_sort' => $i->sort,
+                'default_sort' => $i->tab->sort(),
+                'is_hidden' => $i->isHidden,
+            ])->all(),
+        ]);
+
+        $items = $itemsCollection
             ->sortBy([
                 [static fn (ProjectTabViewItem $item): int => $item->sort, 'asc'],
                 [static fn (ProjectTabViewItem $item): string => $item->label, 'asc'],
