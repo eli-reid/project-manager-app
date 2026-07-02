@@ -223,13 +223,15 @@ class ProjectTabRegistry
             ])->all(),
         ]);
 
-        $items = $itemsCollection
-            ->sortBy([
-                [static fn (ProjectTabViewItem $item): int => $item->sort, 'asc'],
-                [static fn (ProjectTabViewItem $item): string => $item->label, 'asc'],
-            ])
-            ->values()
-            ->all();
+        $items = $itemsCollection->values()->all();
+
+        usort($items, static function (ProjectTabViewItem $a, ProjectTabViewItem $b): int {
+            if ($a->sort === $b->sort) {
+                return strcmp($a->label, $b->label);
+            }
+
+            return $a->sort <=> $b->sort;
+        });
 
         $this->tabItemsCache[$cacheKey] = $items;
 
