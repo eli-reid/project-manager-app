@@ -128,7 +128,7 @@
     @foreach ($tabPanels as $tabPanel)
         @if ($activeTab === $tabPanel['tab'] && in_array($tabPanel['tab'], $tabs, true))
             <div wire:key="project-tab-panel-{{ $tabPanel['key'] }}">
-                @livewire($tabPanel['component'], $tabPanel['props'], $tabPanel['key'])
+                @livewire($tabPanel['component'], $tabPanel['props'], md5($tabPanel['component'].'|'.$tabPanel['key']))
             </div>
         @endif
     @endforeach

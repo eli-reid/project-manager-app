@@ -113,11 +113,21 @@ class ProjectTabPreferenceStore
             $uniqueBy[] = 'project_id';
         }
 
-        ProjectTabUserPreference::query()->upsert(
-            $rows,
-            $uniqueBy,
-            ['sort_order', 'is_hidden', 'updated_at'],
-        );
+        try {
+            ProjectTabUserPreference::query()->upsert(
+                $rows,
+                $uniqueBy,
+                ['sort_order', 'is_hidden', 'updated_at'],
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to persist project tab user preferences', [
+                'user_id' => $user->id,
+                'project_id' => $project?->id ?? null,
+                'rows' => $rows,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
     private function tableExists(): bool

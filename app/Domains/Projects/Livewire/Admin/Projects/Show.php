@@ -62,6 +62,14 @@ class Show extends Component
             ->values()
             ->all();
 
+        \Illuminate\Support\Facades\Log::debug('Livewire sortProjectTab called', [
+            'user_id' => $user->id ?? null,
+            'project_id' => $this->project->id ?? null,
+            'incoming_tabKey' => $tabKey,
+            'position' => $position,
+            'visibleTabKeys' => $visibleTabKeys,
+        ]);
+
         if (! in_array($tabKey, $visibleTabKeys, true)) {
             return;
         }
@@ -172,6 +180,19 @@ class Show extends Component
                 'returnTo' => $tabReturnUrls,
             ],
         );
+
+        \Illuminate\Support\Facades\Log::debug('Project show render', [
+            'project_id' => $this->project->id ?? null,
+            'user_id' => $user->id ?? null,
+            'activeTab' => $this->activeTab ?? null,
+            'tabs' => $tabs,
+            'visibleTabItems' => collect($visibleTabItems)->map(fn($i) => $i->key)->all(),
+            'tabPanels' => collect($tabPanels)->map(fn($p) => [
+                'tab' => $p['tab'] ?? null,
+                'component' => $p['component'] ?? null,
+                'key' => $p['key'] ?? null,
+            ])->all(),
+        ]);
 
         return view('projects::livewire.admin.projects.show', [
             'tabs' => $tabs,
