@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Files\Services;
+namespace App\Core\Assets\Files\Services;
 
-use App\Core\Files\Contracts\FilePathNormalizerContract;
+use App\Core\Assets\Files\Contracts\FilePathNormalizerContract;
 
 class DefaultFilePathNormalizer implements FilePathNormalizerContract
 {

@@ -3,8 +3,8 @@
 use App\Domains\Assets\DTOs\AssetMeta;
 use App\Domains\Assets\Models\Asset;
 use App\Domains\Assets\Services\AssetService;
-use App\Core\Files\Contracts\FilePathNormalizerContract;
-use App\Core\Files\Contracts\FileStorageContract;
+use App\Core\Assets\Files\Contracts\FilePathNormalizerContract;
+use App\Core\Assets\Files\Contracts\FileStorageContract;
 use App\Core\Identity\Models\User;
 use Illuminate\Http\UploadedFile;
 use Mockery;

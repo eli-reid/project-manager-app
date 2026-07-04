@@ -2,8 +2,8 @@
 
 namespace App\Domains\Documents\Services;
 
-use App\Core\Files\Contracts\FilePathNormalizerContract;
-use App\Core\Files\Contracts\FileStorageContract;
+use App\Core\Assets\Files\Contracts\FilePathNormalizerContract;
+use App\Core\Assets\Files\Contracts\FileStorageContract;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;

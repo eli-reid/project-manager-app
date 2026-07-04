@@ -26,19 +26,19 @@
 
 ## High-Level Architecture
 
-### Core Files Domain
-Owns physical file concerns only.
+### Core Files (Assets) Infrastructure
+Physical file concerns are provided as an infrastructure sub-module of the `Assets` core domain.
 
 Contracts:
-- App\Core\Files\Contracts\FileStorageContract
-- App\Core\Files\Contracts\FilePathNormalizerContract
+- App\Core\Assets\Files\Contracts\FileStorageContract
+- App\Core\Assets\Files\Contracts\FilePathNormalizerContract
 
 Implementations:
-- App\Core\Files\Services\LaravelFileStorage
-- App\Core\Files\Services\DefaultFilePathNormalizer
+- App\Core\Assets\Files\Services\LaravelFileStorage
+- App\Core\Assets\Files\Services\DefaultFilePathNormalizer
 
 Provider:
-- App\Core\Files\Providers\FilesServiceProvider
+- App\Core\Assets\Providers\AssetsServiceProvider (binds the files implementations)
 
 Responsibilities:
 - Persist uploaded files to disk.

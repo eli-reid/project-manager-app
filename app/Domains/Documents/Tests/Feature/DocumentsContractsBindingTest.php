@@ -1,9 +1,9 @@
 <?php
 
-use App\Core\Files\Contracts\FilePathNormalizerContract;
-use App\Core\Files\Contracts\FileStorageContract;
-use App\Core\Files\Services\DefaultFilePathNormalizer;
-use App\Core\Files\Services\LaravelFileStorage;
+use App\Core\Assets\Files\Contracts\FilePathNormalizerContract;
+use App\Core\Assets\Files\Contracts\FileStorageContract;
+use App\Core\Assets\Files\Services\DefaultFilePathNormalizer;
+use App\Core\Assets\Files\Services\LaravelFileStorage;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
 use App\Domains\Documents\Contracts\DocumentSharingContract;
 use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;

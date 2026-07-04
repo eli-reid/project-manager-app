@@ -7,7 +7,6 @@ use App\Core\Auth\Permission\Providers\PermissionServiceProvider;
 use App\Core\Auth\Role\Providers\RoleServiceProvider;
 use App\Core\Auth\User\Providers\AuthUserServiceProvider;
 use App\Core\Dashboard\Providers\DashboardServiceProvider;
-use App\Core\Files\Providers\FilesServiceProvider;
 use App\Core\Identity\Providers\FortifyServiceProvider;
 use App\Core\Identity\Providers\UserServiceProvider;
 use App\Core\Notification\Providers\NotificationServiceProvider;
@@ -30,7 +29,6 @@ return [
     AuthUserServiceProvider::class,
     CpanelServiceProvider::class,
     DashboardServiceProvider::class,
-    FilesServiceProvider::class,
     AssetsServiceProvider::class,
     FortifyServiceProvider::class,
     UserServiceProvider::class,
