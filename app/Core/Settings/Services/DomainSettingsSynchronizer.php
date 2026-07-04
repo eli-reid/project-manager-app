@@ -192,7 +192,9 @@ class DomainSettingsSynchronizer
             'default_value' => $s->value,
             'display_name' => $s->display_name ?? '',
             'description' => $s->description ?? '',
-            'type' => $s->type->value,
+            // Store the form field type (text, select, number, etc.) in the DB 'type'
+            // because the settings editor UI expects that shape when rendering inputs.
+            'type' => $s->formFieldType->value,
             'group' => $s->group ?? '',
             'options' => $options,
             'order' => $s->order,

@@ -32,7 +32,7 @@
         @php($shouldRenderGenericForm = ! ($group === 'notifications' && empty($settingsMetadata)))
 
         @if ($shouldRenderGenericForm)
-        <form wire:submit="updateAllSettings" class="space-y-3">
+        <form wire:submit="updateAllSettings" class="space-y-3 max-w-xl">
             @forelse($settingsMetadata as $key => $meta)
                 <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -49,6 +49,7 @@
                         <flux:text class="mb-3 text-sm">{{ $meta['description'] }}</flux:text>
                     @endif
 
+                    <div class="max-w-xl">
                     @if ($meta['type'] === 'textarea')
                         <textarea
                             id="{{ $key }}"
@@ -135,6 +136,7 @@
                         >
                     @endif
 
+                    </div>
                     @if (isset($validationErrors[$key]))
                         <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $validationErrors[$key] }}</p>
                     @endif

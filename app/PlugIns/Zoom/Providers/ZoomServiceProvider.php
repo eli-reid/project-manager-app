@@ -2,7 +2,6 @@
 
 namespace App\PlugIns\Zoom\Providers;
 
-use App\Core\Notification\Contracts\SmsServiceContract;
 use App\PlugIns\Zoom\Data\ZoomConfig;
 use App\PlugIns\Zoom\Services\ZoomSmsConsentService;
 use App\PlugIns\Zoom\Services\ZoomSmsService;
@@ -17,7 +16,6 @@ class ZoomServiceProvider extends ServiceProvider
         $this->app->singleton(ZoomTokenService::class);
         $this->app->singleton(ZoomSmsConsentService::class);
         $this->app->singleton(ZoomSmsService::class);
-        $this->app->bind(SmsServiceContract::class, ZoomSmsService::class);
     }
 
     public function boot(): void

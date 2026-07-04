@@ -1,0 +1,40 @@
+flowchart LR
+  subgraph Notification_Layer
+    Notification["Laravel Notification\nimplements SmsNotification\nmethod: toSms(notifiable): SmsMessage"]
+  end
+
+  subgraph Contracts
+    SmsNotification["Contracts/SmsNotification\n+toSms(object): SmsMessage"]
+    SmsMessage["Contracts/SmsMessage\n+to(), body(), title(), from()? "]
+    SmsService["Contracts/SmsServiceContract\n+isConfigured(): bool\n+send(string $to, string $message): array"]
+  end
+
+  subgraph Channels
+    SmsChannel["Channels/SmsChannel\n-inject: SmsServiceContract\n-send(notifiable, notification)"]
+  end
+
+  subgraph Services
+    ZoomSms["Services/ZoomSmsService\n-implements SmsServiceContract\n-sends -> Zoom Phone API"]
+    NullSms["Services/NullSmsService\n-default no-op implementation"]
+  end
+
+  subgraph Providers
+    ZoomAPI["Zoom Phone API\n(POST /phone/sms/messages)"]
+    ProviderBinding["Providers/ZoomServiceProvider\nbind(SmsServiceContract -> ZoomSmsService)"]
+  end
+
+  subgraph Observability
+    Logs["Logging: warnings, errors, info"]
+    Tests["Tests: SmsChannelLoggingTest"]
+  end
+
+  Notification -->|"calls toSms(notifiable)"| SmsChannel
+  Notification -->|"implements"| SmsNotification
+  SmsChannel -->|"invokes toSms"| SmsNotification
+  SmsChannel -->|"requests isConfigured/send"| SmsService
+  SmsService -->|"bound to"| ZoomSms
+  ZoomSms -->|"HTTP POST"| ZoomAPI
+  SmsService -.->|"Null binding"| NullSms
+  SmsChannel -->|"logs warnings/errors"| Logs
+  Tests -->|"asserts behavior"| SmsChannel
+  ProviderBinding -->|"registers"| SmsService

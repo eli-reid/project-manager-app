@@ -7,8 +7,8 @@
     </div>
 
     <div class="grid gap-4">
-        <section class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-            <flux:heading size="lg">{{ __('Edit Settings') }}</flux:heading>
+        <section class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700 max-w-2xl">
+            
             <div class="mt-3">
                 <livewire:core.settings::settings-editor />
             </div>

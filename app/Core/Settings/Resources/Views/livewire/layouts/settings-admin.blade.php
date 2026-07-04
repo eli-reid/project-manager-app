@@ -4,6 +4,5 @@
                 <livewire:core.settings::settings-group-list :as-navbar="true" />
             @endif
     </x-slot:domainNavbar>
-
     {{ $slot }}
 </x-layouts::app>
