@@ -1,23 +1,23 @@
 <?php
 
 use App\Core\Announcement\Providers\AnnouncementServiceProvider;
+use App\Core\Assets\Providers\AssetsServiceProvider;
 use App\Core\Audit\Providers\AuditServiceProvider;
 use App\Core\Auth\Permission\Providers\PermissionServiceProvider;
 use App\Core\Auth\Role\Providers\RoleServiceProvider;
 use App\Core\Auth\User\Providers\AuthUserServiceProvider;
-use App\PlugIns\Cpanel\Providers\CpanelServiceProvider;
 use App\Core\Dashboard\Providers\DashboardServiceProvider;
 use App\Core\Files\Providers\FilesServiceProvider;
-use App\Core\Assets\Providers\AssetsServiceProvider;
 use App\Core\Identity\Providers\FortifyServiceProvider;
 use App\Core\Identity\Providers\UserServiceProvider;
 use App\Core\Notification\Providers\NotificationServiceProvider;
 use App\Core\Queue\Providers\QueueManagerServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
 use App\Core\Settings\Providers\SettingServiceProvider;
-use App\Core\WeatherApi\Providers\WeatherApiServiceProvider;
-use App\PlugIns\Zoom\Providers\ZoomServiceProvider;
 use App\Domains\Providers\DomainServiceProvider;
+use App\PlugIns\Cpanel\Providers\CpanelServiceProvider;
+use App\PlugIns\WeatherApi\Providers\WeatherApiServiceProvider;
+use App\PlugIns\Zoom\Providers\ZoomServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\TelescopeServiceProvider;
 use App\Providers\VoltServiceProvider;

@@ -2,10 +2,10 @@
 
 namespace App\Domains\Projects\Support\ProjectTabs;
 
-use App\Domains\Projects\Contracts\ProjectTabPanel;
+use App\Domains\Projects\Contracts\ProjectTabPanelInterface;
 use App\Domains\Projects\Models\Project;
 
-class LivewireComponentTabPanel implements ProjectTabPanel
+class LivewireComponentTabPanel implements ProjectTabPanelInterface
 {
     /**
      * @param  array<string, mixed>  $baseProps

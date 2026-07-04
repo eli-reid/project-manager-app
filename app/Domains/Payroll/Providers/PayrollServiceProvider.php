@@ -6,7 +6,6 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Identity\Services\UserRelationshipRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider;
 use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Models\Deduction;
@@ -14,6 +13,7 @@ use App\Domains\Payroll\Models\EmployeeDeduction;
 use App\Domains\Payroll\Models\PayRate;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
+use App\Domains\Payroll\Models\PayRun;
 use App\Domains\Payroll\Notifications\PayrollNotificationDefinitions;
 use App\Domains\Payroll\Observers\PayRateObserver;
 use App\Domains\Payroll\Observers\PayrollAuditObserver;
@@ -38,9 +38,8 @@ class PayrollServiceProvider extends ServiceProvider
         $this->app->bind(PayrollTimecardReadGateway::class, EloquentPayrollTimecardReadGateway::class);
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry): void
     {
-        $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerAuthorization();
@@ -69,11 +68,6 @@ class PayrollServiceProvider extends ServiceProvider
         $registry->register('approvedPayRuns', function ($user) {
             return $user->hasMany(PayRun::class, 'approved_by');
         });
-    }
-
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('payroll', __DIR__.'/../config/settings.php');
     }
 
     private function registerAuthorization(): void

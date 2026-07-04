@@ -13,13 +13,25 @@ class NotificationSettings implements SettingsRegistryContract
 {
     public const GROUP = 'notifications';
 
+    public static function allowedChannelsSettingKey(string $notificationKey): string
+    {
+        $normalizedNotificationKey = str($notificationKey)
+            ->lower()
+            ->replace(['\\', '/', ' '], '.')
+            ->replaceMatches('/[^a-z0-9._-]/', '')
+            ->trim('.')
+            ->value();
+
+        return 'notifications.allowed_channels'.($normalizedNotificationKey !== '' ? '.'.$normalizedNotificationKey : '.');
+    }
+
     public static function definitions(): array
     {
         return [
             new Setting(
                 key: 'notifications.enabled',
                 type: SettingType::BOOLEAN,
-                formFieldType: SettingFormFieldType::SELECT,
+                formFieldType: SettingFormFieldType::TOGGLE,
                 value: 'true',
                 display_name: 'Enable Notifications',
                 description: 'Master switch for notification delivery.',
@@ -31,21 +43,7 @@ class NotificationSettings implements SettingsRegistryContract
                 is_required: true,
                 encrypted: false
             ),
-            new Setting(
-                key: 'notifications.SMS.enabled',
-                type: SettingType::BOOLEAN,
-                formFieldType: SettingFormFieldType::TOGGLE,
-                value: 'true',
-                options: ['true' => 'Enabled', 'false' => 'Disabled'],
-                display_name: 'Enable SMS Notifications',
-                description: 'Master switch for SMS notification delivery.',
-                group: self::GROUP,
-                order: 2,
-                is_visible: true,
-                is_public: false,
-                is_required: true,
-                encrypted: false
-            ),
+
             new Setting(
                 key: 'notifications.email.enabled',
                 type: SettingType::BOOLEAN,
@@ -61,7 +59,6 @@ class NotificationSettings implements SettingsRegistryContract
                 is_required: true,
                 encrypted: false
             ),
-
             new Setting(
                 key: 'notifications.default_priority',
                 type: SettingType::STRING,

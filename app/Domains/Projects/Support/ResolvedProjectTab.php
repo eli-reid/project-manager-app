@@ -6,7 +6,7 @@ namespace App\Domains\Projects\Support;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Contracts\ProjectTabInterface;
-use App\Domains\Projects\Contracts\ProjectTabPanel;
+use App\Domains\Projects\Contracts\ProjectTabPanelInterface;
 use App\Domains\Projects\Models\Project;
 
 final class ResolvedProjectTab
@@ -72,7 +72,7 @@ final class ResolvedProjectTab
         return $this->detailQueryParam;
     }
 
-    public function panel(): ?ProjectTabPanel
+    public function panel(): ?ProjectTabPanelInterface
     {
         return $this->tab->panel();
     }

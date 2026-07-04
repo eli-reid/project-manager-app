@@ -3,13 +3,11 @@
 namespace App\Core\Notification\Providers;
 
 use App\Core\Notification\Channels\DatabaseChannelAdapter;
-use App\Core\Notification\Channels\MailChannelAdapter;
 use App\Core\Notification\Channels\RegistryBridgeChannel;
 use App\Core\Notification\Services\NotificationChannelRegistry;
 use App\Core\Notification\Services\NotificationDispatcher;
 use App\Core\Notification\Services\NotificationPreferenceService;
 use App\Core\Notification\Services\NotificationRegistry;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Psr\Log\LoggerInterface;
@@ -26,7 +24,6 @@ class NotificationServiceProvider extends ServiceProvider
 
             // Built-in adapters; plugins/domains can register more channels.
             $registry->register('database', DatabaseChannelAdapter::class);
-            $registry->register('mail', MailChannelAdapter::class);
 
             return $registry;
         });
@@ -51,7 +48,7 @@ class NotificationServiceProvider extends ServiceProvider
         });
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry): void
+    public function boot(): void
     {
         $this->registerInfrastructure();
     }

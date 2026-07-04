@@ -6,7 +6,7 @@ namespace App\Domains\Projects\Support;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Contracts\ProjectTabInterface;
-use App\Domains\Projects\Contracts\ProjectTabPanel;
+use App\Domains\Projects\Contracts\ProjectTabPanelInterface;
 use App\Domains\Projects\Models\Project;
 
 abstract class ProjectTab implements ProjectTabInterface
@@ -17,7 +17,7 @@ abstract class ProjectTab implements ProjectTabInterface
         private readonly int $sort = 100,
         private readonly ?string $modeParam = null,
         private readonly ?string $detailQueryParam = null,
-        private readonly ?ProjectTabPanel $panel = null,
+        private readonly ?ProjectTabPanelInterface $panel = null,
     ) {
         if ($key === '') {
             throw new \InvalidArgumentException('ProjectTab requires a non-empty key');
@@ -51,7 +51,7 @@ abstract class ProjectTab implements ProjectTabInterface
         return $this->detailQueryParam;
     }
 
-    public function panel(): ?ProjectTabPanel
+    public function panel(): ?ProjectTabPanelInterface
     {
         return $this->panel;
     }

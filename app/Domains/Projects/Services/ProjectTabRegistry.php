@@ -4,7 +4,7 @@ namespace App\Domains\Projects\Services;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Contracts\ProjectTabInterface;
-use App\Domains\Projects\Contracts\ProjectTabPanel;
+use App\Domains\Projects\Contracts\ProjectTabPanelInterface;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Models\ProjectTabDefinition;
 use App\Domains\Projects\Models\ProjectTabUserPreference;
@@ -121,7 +121,7 @@ class ProjectTabRegistry
                 $tab = $item->tab;
                 $panel = $tab->panel();
 
-                if (! $panel instanceof ProjectTabPanel) {
+                if (! $panel instanceof ProjectTabPanelInterface) {
                     return null;
                 }
 

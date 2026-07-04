@@ -4,7 +4,6 @@ namespace App\Domains\Tasks\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyMetrics;
@@ -33,9 +32,8 @@ class TasksServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
-        $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
@@ -116,11 +114,6 @@ class TasksServiceProvider extends ServiceProvider
                 'sort' => 40,
             ],
         ]);
-    }
-
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('tasks', __DIR__.'/../config/settings.php');
     }
 
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void

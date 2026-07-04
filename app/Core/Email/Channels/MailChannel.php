@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Email\Channels;
+namespace App\Core\Email\Channels;
 
 use App\Core\Notification\Contracts\NotificationChannel;
 use App\Core\Notification\DTO\ChannelMessage;

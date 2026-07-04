@@ -3,14 +3,13 @@
 namespace App\PlugIns\Cpanel\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Identity\Models\User;
 use App\PlugIns\Cpanel\Commands\EnsureLaravelCronJobs;
 use App\PlugIns\Cpanel\Commands\SyncEmailAccounts;
 use App\PlugIns\Cpanel\Data\CpanelConfig;
 use App\PlugIns\Cpanel\Permissions\CpanelPermissions;
 use App\PlugIns\Cpanel\Services\CpanelMailboxManager;
 use App\PlugIns\Cpanel\Services\CpanelService;
-use App\Core\Identity\Models\User;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -25,9 +24,8 @@ class CpanelServiceProvider extends ServiceProvider
         $this->app->singleton(CpanelMailboxManager::class);
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry, PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry): void
     {
-        $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -64,11 +62,6 @@ class CpanelServiceProvider extends ServiceProvider
             EnsureLaravelCronJobs::class,
             SyncEmailAccounts::class,
         ]);
-    }
-
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('cpanel', __DIR__.'/../config/settings.php');
     }
 
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void

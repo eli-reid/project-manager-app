@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Core\WeatherApi\Services;
+namespace App\PlugIns\WeatherApi\Services;
 
 use App\Core\Settings\Facades\Settings;
-use App\Core\WeatherApi\Contracts\WeatherApiContract;
+use App\PlugIns\WeatherApi\Contracts\WeatherApiContract;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Cache;

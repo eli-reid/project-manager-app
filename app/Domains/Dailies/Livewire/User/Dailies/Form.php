@@ -4,10 +4,10 @@ namespace App\Domains\Dailies\Livewire\User\Dailies;
 
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Services\DailyReportLifecycleService;
 use App\Domains\Projects\Models\Project;
+use App\PlugIns\WeatherApi\Contracts\WeatherApiContract;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;

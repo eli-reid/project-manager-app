@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\WeatherApi\Services\WeatherApiService;
+use App\PlugIns\WeatherApi\Services\WeatherApiService;
 use Carbon\Carbon;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;

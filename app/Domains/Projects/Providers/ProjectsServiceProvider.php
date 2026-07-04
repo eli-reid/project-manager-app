@@ -6,7 +6,6 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
@@ -35,11 +34,10 @@ class ProjectsServiceProvider extends ServiceProvider
         $this->app->singleton(ProjectTabRegistry::class);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('projects.', 'projects.mobile.');
 
-        $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
@@ -127,11 +125,6 @@ class ProjectsServiceProvider extends ServiceProvider
                 'sort' => 20,
             ],
         ]);
-    }
-
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('projects', __DIR__.'/../config/settings.php');
     }
 
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void

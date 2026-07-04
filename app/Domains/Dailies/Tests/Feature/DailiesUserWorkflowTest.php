@@ -5,11 +5,11 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
-use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Dailies\Livewire\User\Dailies\Form;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Projects\Models\Project;
+use App\PlugIns\WeatherApi\Contracts\WeatherApiContract;
 use Carbon\CarbonInterface;
 use Livewire\Livewire;
 

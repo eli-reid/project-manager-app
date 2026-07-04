@@ -17,7 +17,7 @@ interface ProjectTabInterface
 
     public function detailQueryParam(): ?string;
 
-    public function panel(): ?ProjectTabPanel;
+    public function panel(): ?ProjectTabPanelInterface;
 
     public function isVisible(User $user, Project $project): bool;
 

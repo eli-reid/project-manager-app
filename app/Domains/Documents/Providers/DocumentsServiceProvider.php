@@ -5,7 +5,6 @@ namespace App\Domains\Documents\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Console\MigrateDocumentsToAssets;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
@@ -37,12 +36,11 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->commands([MigrateDocumentsToAssets::class]);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileExactRouteMapping('documents.index', 'documents.mobile.global');
         $this->registerMobileExactRouteMapping('documents.global', 'documents.mobile.global');
 
-        $this->registerSettings($settingsRegistry);
         $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
         $this->registerProjectTabs($projectTabRegistry);
@@ -123,11 +121,6 @@ class DocumentsServiceProvider extends ServiceProvider
         $projectTabRegistry->registerDefinitions([
             DocumentsProjectTab::class,
         ]);
-    }
-
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('documents', __DIR__.'/../config/settings.php');
     }
 
     private function configureLivewireTemporaryUploadRules(): void

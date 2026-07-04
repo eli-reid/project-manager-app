@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\WeatherApi\Contracts;
+namespace App\PlugIns\WeatherApi\Contracts;
 
 use Carbon\CarbonInterface;
 

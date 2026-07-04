@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domains\Email\Providers;
+namespace App\Core\Email\Providers;
 
+use App\Core\Email\Channels\MailChannel;
 use App\Core\Notification\Services\NotificationChannelRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
-use App\Domains\Email\Channels\MailChannel;
 use Illuminate\Support\ServiceProvider;
 
 class EmailServiceProvider extends ServiceProvider

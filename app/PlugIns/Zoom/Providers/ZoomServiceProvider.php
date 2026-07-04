@@ -3,7 +3,6 @@
 namespace App\PlugIns\Zoom\Providers;
 
 use App\Core\Notification\Contracts\SmsServiceContract;
-use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\PlugIns\Zoom\Data\ZoomConfig;
 use App\PlugIns\Zoom\Services\ZoomSmsConsentService;
 use App\PlugIns\Zoom\Services\ZoomSmsService;
@@ -21,15 +20,9 @@ class ZoomServiceProvider extends ServiceProvider
         $this->app->bind(SmsServiceContract::class, ZoomSmsService::class);
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry): void
+    public function boot(): void
     {
-        $this->registerSettings($settingsRegistry);
-        self::registerInfrastructure();
-    }
-
-    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
-    {
-        $settingsRegistry->registerConfigFile('zoom', __DIR__.'/../config/settings.php');
+        $this->registerInfrastructure();
     }
 
     private function registerInfrastructure(): void
