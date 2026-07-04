@@ -19,6 +19,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Domains\Projects\Events\ProjectCreated;
+use App\Domains\Projects\Events\ProjectUpdated;
+use App\Domains\Projects\Events\ProjectDeleted;
 
 /**
  * @mixin IdeHelperProject
@@ -114,6 +117,18 @@ class Project extends Model
             if ($project->isBuiltInLeaveProject()) {
                 throw new DomainException('Built-in leave projects cannot be deleted.');
             }
+        });
+
+        static::created(function (Project $project): void {
+            ProjectCreated::dispatch($project);
+        });
+
+        static::updated(function (Project $project): void {
+            ProjectUpdated::dispatch($project);
+        });
+
+        static::deleted(function (Project $project): void {
+            ProjectDeleted::dispatch($project);
         });
     }
 
