@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Assets\Files\Services;
+namespace App\Core\Assets\Services;
 
-use App\Core\Assets\Files\Contracts\FileStorageContract;
+use App\Core\Assets\Contracts\FileStorageContract;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 

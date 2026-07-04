@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Core\Assets\Files\Contracts;
+declare(strict_types=1);
+
+namespace App\Core\Assets\Contracts;
 
 use Illuminate\Http\UploadedFile;
 
