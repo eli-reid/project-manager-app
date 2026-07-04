@@ -1,16 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Core\Assets\Providers;
 
 use App\Core\Assets\Contracts\AssetOrchestratorContract;
 use App\Core\Assets\Contracts\AssetSharingContract;
 use App\Core\Assets\Services\AssetService;
 use App\Core\Assets\Services\AssetShareService;
-use App\Core\Assets\Files\Contracts\FileStorageContract as FilesFileStorageContract;
-use App\Core\Assets\Files\Contracts\FilePathNormalizerContract as FilesFilePathNormalizerContract;
-use App\Core\Assets\Files\Services\LaravelFileStorage as FilesLaravelFileStorage;
-use App\Core\Assets\Files\Services\DefaultFilePathNormalizer as FilesDefaultFilePathNormalizer;
-
+use App\Core\Assets\Contracts\FileStorageContract ;
+use App\Core\Assets\Contracts\FilePathNormalizerContract;
+use App\Core\Assets\Services\LaravelFileStorage;
+use App\Core\Assets\Services\DefaultFilePathNormalizer;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use App\Core\Assets\Livewire\AssetUpload;
@@ -21,11 +22,8 @@ class AssetsServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AssetOrchestratorContract::class, AssetService::class);
         $this->app->singleton(AssetSharingContract::class, AssetShareService::class);
-
-        // Bind Files infrastructure into Assets domain so plugins and other domains
-        // that resolve these contracts will get the implementation registered here.
-        $this->app->singleton(FilesFileStorageContract::class, FilesLaravelFileStorage::class);
-        $this->app->singleton(FilesFilePathNormalizerContract::class, FilesDefaultFilePathNormalizer::class);
+        $this->app->singleton(FileStorageContract::class, LaravelFileStorage::class);
+        $this->app->singleton(FilePathNormalizerContract::class, DefaultFilePathNormalizer::class);
     }
 
     public function boot(): void
