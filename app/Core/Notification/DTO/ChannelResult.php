@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Core\Notification\DTO;
 
 use DateTimeImmutable;
@@ -56,6 +58,15 @@ final class ChannelResult
         $this->metadata = $metadata;
     }
 
+    /**
+     * Create a successful ChannelResult instance.
+     *
+     * @param string $channel
+     * @param string|null $externalId
+     * @param array<string,mixed> $opts
+     * @return self
+     */
+
     public static function success(string $channel, ?string $externalId = null, array $opts = []): self
     {
         return new self(
@@ -71,6 +82,14 @@ final class ChannelResult
         );
     }
 
+    /**
+     * Create a failed ChannelResult instance.
+     *
+     * @param string $channel
+     * @param string|null $externalId
+     * @param array<string,mixed> $opts
+     * @return self
+     */
     public static function failure(string $channel, ?string $externalId = null, array $opts = []): self
     {
         return new self(
@@ -100,6 +119,12 @@ final class ChannelResult
             'metadata' => $this->metadata,
         ];
     }
+    /**
+     * Create a ChannelResult instance from an array payload.
+     *
+     * @param array<string,mixed> $payload
+     * @return self
+     */
 
     public static function fromArray(array $payload): self
     {
@@ -120,6 +145,12 @@ final class ChannelResult
         );
     }
 
+    /**
+     * Check if the message was delivered to the given recipient.
+     *
+     * @param string $recipient
+     * @return bool
+     */
     public function wasDeliveredTo(string $recipient): bool
     {
         if (!isset($this->recipientStatus[$recipient])) {

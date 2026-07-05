@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 namespace App\Core\Notification\DTO;
 
 use DateTimeImmutable;
@@ -34,6 +35,11 @@ final class NotificationMessage
 
     public ?DateTimeImmutable $scheduledAt;
 
+    /**
+     * The time at which the message was delivered (if applicable).
+     */
+    public ?DateTimeImmutable $deliveredAt;
+
     public function __construct(
         string $type,
         ?string $title = null,
@@ -45,7 +51,8 @@ final class NotificationMessage
         array $metadata = [],
         ?string $id = null,
         ?DateTimeImmutable $createdAt = null,
-        ?DateTimeImmutable $scheduledAt = null
+        ?DateTimeImmutable $scheduledAt = null,
+        ?DateTimeImmutable $deliveredAt = null
     ) {
         $this->id = $id ?? uniqid('', true);
         $this->type = $type;
@@ -58,10 +65,14 @@ final class NotificationMessage
         $this->metadata = $metadata;
         $this->createdAt = $createdAt ?? new DateTimeImmutable();
         $this->scheduledAt = $scheduledAt;
+        $this->deliveredAt = $deliveredAt;
     }
 
     /**
      * Create from a plain array (useful when hydrating from storage or HTTP requests).
+     *
+     * @param array<string,mixed> $payload
+     * @return self
      */
     public static function fromArray(array $payload): self
     {
@@ -84,10 +95,18 @@ final class NotificationMessage
             $payload['metadata'] ?? [],
             $payload['id'] ?? null,
             $created,
-            $scheduled
+            $scheduled,
+            isset($payload['deliveredAt']) && $payload['deliveredAt'] instanceof DateTimeImmutable
+                ? $payload['deliveredAt']
+                : (isset($payload['deliveredAt']) ? new DateTimeImmutable((string) $payload['deliveredAt']) : null)
         );
     }
 
+    /**
+     * Convert the notification message to an array for serialization.
+     *      *
+     * @return array<string,mixed>
+     */
     public function toArray(): array
     {
         return [
@@ -102,11 +121,14 @@ final class NotificationMessage
             'metadata' => $this->metadata,
             'createdAt' => $this->createdAt,
             'scheduledAt' => $this->scheduledAt,
+            'deliveredAt' => $this->deliveredAt,
         ];
     }
 
     /**
      * Mutates in-place by adding a recipient.
+     * @param string $recipient
+     * @return void
      */
     public function addRecipient(string $recipient): void
     {
@@ -117,6 +139,9 @@ final class NotificationMessage
 
     /**
      * Returns a copy with an added recipient (immutable-style helper).
+     *
+     * @param string $recipient
+     * @return self
      */
     public function withAddedRecipient(string $recipient): self
     {
@@ -127,7 +152,10 @@ final class NotificationMessage
     }
 
     /**
-     * Set a metadata key.
+     * Set a metadata key (mutates in-place).
+     *
+     * @param string $key
+     * @param mixed $value
      */
     public function setMetadata(string $key, mixed $value): void
     {
@@ -135,7 +163,10 @@ final class NotificationMessage
     }
 
     /**
-     * Returns a copy with merged metadata.
+     * Returns a copy with merged metadata (immutable-style helper).
+     *
+     * @param array<string,mixed> $metadata
+     * @return self
      */
     public function withMergedMetadata(array $metadata): self
     {
