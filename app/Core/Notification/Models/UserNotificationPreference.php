@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Core\Notification\Models;
 
 use App\Core\Identity\Models\User;
