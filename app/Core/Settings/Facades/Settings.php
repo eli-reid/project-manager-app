@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Core\Settings\Facades;
 
 use App\Core\Settings\Services\SettingsSqliteService;
