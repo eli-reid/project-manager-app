@@ -15,7 +15,7 @@ class PushServiceProvider extends ServiceProvider
         // Intentionally left minimal. If EmailChannel requires constructor
         // dependencies, bind the implementation here so the container can
         // resolve it when the channel registry instantiates it.
-    }
+    } 
 
     public function boot(): void
     {

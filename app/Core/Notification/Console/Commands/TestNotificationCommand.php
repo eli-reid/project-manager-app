@@ -5,11 +5,12 @@ namespace App\Core\Notification\Console\Commands;
 use App\Core\Notification\DTO\NotificationMessage;
 use App\Core\Notification\Services\NotificationDispatcher;
 use App\Core\Notification\Services\NotificationChannelRegistry;
+use App\Core\Identity\Models\User;
 use Illuminate\Console\Command;
 
 final class TestNotificationCommand extends Command
 {
-    protected $signature = 'notification:test {type=generic} {--channels=} {--recipients=} {--title=} {--body=} {--data=} {--notifiable=} {--metadata=}';
+    protected $signature = 'notification:test {type=generic} {--channels=} {--recipients=} {--title=} {--body=} {--data=} {--notifiable=} {--metadata=} {--list-channels}';
 
     protected $description = 'Send a test notification through one or more channels';
 
@@ -30,6 +31,22 @@ final class TestNotificationCommand extends Command
 
         $channelsOpt = (string) ($this->option('channels') ?? '');
         $channels = $channelsOpt === '' ? [] : array_values(array_filter(array_map('trim', explode(',', $channelsOpt))));
+
+        // If --list-channels requested, print and exit
+        if ($this->option('list-channels')) {
+            $registered = $this->channelRegistry->all();
+            if (empty($registered)) {
+                $this->line('No channels registered.');
+                return 0;
+            }
+
+            $this->line('Registered channels:');
+            foreach ($registered as $ch) {
+                $this->line(' - '.$ch);
+            }
+
+            return 0;
+        }
 
         // If no channels specified, use all registered channels from the registry
         if (empty($channels)) {
@@ -96,7 +113,50 @@ final class TestNotificationCommand extends Command
             $metadata = array_merge($metadata, $decodedMeta);
         }
 
-        $message = new NotificationMessage($type, $title, $body, $data, $recipients);
+        // Resolve recipients like "user:1" into email:... strings and PushSubscription objects
+        $resolvedRecipients = [];
+        foreach ($recipients as $rec) {
+            if (! is_string($rec) || $rec === '') {
+                continue;
+            }
+
+            if (str_starts_with($rec, 'user:')) {
+                $userId = substr($rec, 5);
+                $user = User::find($userId);
+                if (! $user) {
+                    $this->warn(sprintf('User not found for recipient %s', $rec));
+                    continue;
+                }
+
+                // add email recipient if present
+                if (! empty($user->email)) {
+                    $resolvedRecipients[] = 'email:'.$user->email;
+                } else {
+                    $this->warn(sprintf('User %s has no email, skipping email recipient', $rec));
+                }
+
+                // add push subscription models if available
+                if (method_exists($user, 'pushSubscriptions')) {
+                    $subs = $user->pushSubscriptions()->get();
+                    foreach ($subs as $sub) {
+                        $resolvedRecipients[] = $sub;
+                    }
+                }
+
+                // also ensure metadata notifiable is set if missing
+                if (! isset($metadata['notifiable_type'])) {
+                    $metadata['notifiable_type'] = User::class;
+                    $metadata['notifiable_id'] = (string) $user->getKey();
+                }
+
+                continue;
+            }
+
+            // pass through other recipient formats (email:..., user:id etc.)
+            $resolvedRecipients[] = $rec;
+        }
+
+        $message = new NotificationMessage($type, $title, $body, $data, $resolvedRecipients);
 
         // attach metadata if present
         if (! empty($metadata)) {

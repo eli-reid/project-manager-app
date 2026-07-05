@@ -1,6 +1,14 @@
 <?php
+/**
+ * Mail channel implementation for the notification system.
+ *
+ * Converts notification messages into channel messages suitable for email
+ * delivery and sends them using Laravel's mail facilities.
+ */
 
-namespace App\Core\EmailNotification\Channels;
+declare(strict_types=1);
+
+namespace App\Core\Notification\Channels\EmailNotification\Channels;
 
 use App\Core\Notification\Contracts\NotificationChannel;
 use App\Core\Notification\DTO\ChannelMessage;
@@ -8,8 +16,23 @@ use App\Core\Notification\DTO\ChannelResult;
 use App\Core\Notification\DTO\NotificationMessage;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * Implementation of the mail channel for sending notifications via email.
+ * 
+ * This channel filters recipients for email addresses, formats the message, and sends it using Laravel's mail system.
+ * @final
+ * @implements NotificationChannel
+ * 
+ */
+
 final class MailChannel implements NotificationChannel
 {
+    /**
+     * Converts a notification message into a channel message suitable for the mail channel.
+     *
+     * @param NotificationMessage $message
+     * @return ChannelMessage
+     */
     public function convert(NotificationMessage $message): ChannelMessage
     {
         return new class(['id' => $message->id, 'title' => $message->title ?? 'Notification', 'body' => $message->body ?? '', 'data' => $message->data, 'recipients' => $message->recipients, 'metadata' => $message->metadata]) extends ChannelMessage
@@ -20,6 +43,13 @@ final class MailChannel implements NotificationChannel
             }
         };
     }
+
+    /**
+     * Sends a channel message via the mail channel.
+     *
+     * @param ChannelMessage $message
+     * @return ChannelResult
+     */
 
     public function send(ChannelMessage $message): ChannelResult
     {
