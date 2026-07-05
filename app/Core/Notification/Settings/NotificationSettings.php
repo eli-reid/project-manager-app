@@ -60,6 +60,21 @@ class NotificationSettings implements SettingsRegistryContract
                 encrypted: false
             ),
             new Setting(
+                key: 'notifications.push.enabled',
+                type: SettingType::BOOLEAN,
+                formFieldType: SettingFormFieldType::TOGGLE,
+                value: 'true',
+                options: ['true' => 'Enabled', 'false' => 'Disabled'],
+                display_name: 'Enable Push Notifications',
+                description: 'Master switch for push notification delivery (webpush/mobile).',
+                group: self::GROUP,
+                order: 3,
+                is_visible: true,
+                is_public: false,
+                is_required: false,
+                encrypted: false
+            ),
+            new Setting(
                 key: 'notifications.default_priority',
                 type: SettingType::STRING,
                 formFieldType: SettingFormFieldType::SELECT,
@@ -69,6 +84,21 @@ class NotificationSettings implements SettingsRegistryContract
                 group: self::GROUP,
                 options: ['low' => 'Low', 'normal' => 'Normal', 'high' => 'High'],
                 order: 3,
+                is_visible: true,
+                is_public: false,
+                is_required: true,
+                encrypted: false
+            ),
+            new Setting(
+                key: 'notifications.default_channels',
+                type: SettingType::ARRAY,
+                formFieldType: SettingFormFieldType::MULTISELECT,
+                value: json_encode(['mail', 'database']),
+                display_name: 'Default Notification Channels',
+                description: 'Default delivery channels used when a user has not set preferences.',
+                group: self::GROUP,
+                options: ['mail' => 'Email', 'database' => 'In-app', 'push' => 'Push', 'sms' => 'SMS'],
+                order: 4,
                 is_visible: true,
                 is_public: false,
                 is_required: true,

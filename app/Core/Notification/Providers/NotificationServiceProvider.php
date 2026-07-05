@@ -51,11 +51,23 @@ class NotificationServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerInfrastructure();
+        $this->registerCommands();
     }
 
     private function registerInfrastructure(): void
     {
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'core-notification');
         Livewire::addNamespace('core.notification', classNamespace: 'App\Core\Notification\Livewire');
+    }
+
+    private function registerCommands(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->commands([
+            \App\Core\Notification\Console\Commands\TestNotificationCommand::class,
+        ]);
     }
 }

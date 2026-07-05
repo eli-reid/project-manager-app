@@ -1,15 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "eli/project-manager",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "Construction Field Management app",
     "keywords": [
         "laravel",
         "framework"
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "barryvdh/laravel-dompdf": "^3.1",
         "laravel-notification-channels/webpush": "^11.0",
         "laravel/fortify": "^1.30",

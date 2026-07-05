@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Email\Providers;
+namespace App\Core\EmailNotification\Providers;
 
-use App\Core\Email\Channels\MailChannel;
+use App\Core\EmailNotification\Channels\MailChannel;
 use App\Core\Notification\Services\NotificationChannelRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use Illuminate\Support\ServiceProvider;

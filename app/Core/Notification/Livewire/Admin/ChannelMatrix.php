@@ -166,6 +166,10 @@ class ChannelMatrix extends Component
      */
     private function availableChannels(): array
     {
+        if (app()->bound(\App\Core\Notification\Services\NotificationPreferenceService::class)) {
+            return app(\App\Core\Notification\Services\NotificationPreferenceService::class)->availableChannels();
+        }
+
         return ['database', 'mail', 'sms', 'push'];
     }
 

@@ -39,6 +39,7 @@ final class NotificationRegistry
                 'key' => $key,
                 'label' => (string) ($definition['label'] ?? str($key)->replace(['.', '-', '_'], ' ')->headline()->value()),
                 'description' => (string) ($definition['description'] ?? ''),
+                'supported_channels' => $definition['supported_channels'] ?? [],
             ];
         }
     }

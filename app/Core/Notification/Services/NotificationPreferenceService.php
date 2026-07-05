@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use NotificationChannels\WebPush\WebPushChannel;
+use App\Core\Notification\Services\NotificationChannelRegistry;
 
 class NotificationPreferenceService
 {
@@ -200,7 +201,16 @@ class NotificationPreferenceService
      */
     public function availableChannels(): array
     {
-        return ['database', 'mail', 'sms', 'push'];
+        if (app()->bound(NotificationChannelRegistry::class)) {
+            $registered = app(NotificationChannelRegistry::class)->all();
+
+            // Return registered channels from the registry in its registration order.
+            // Do not assume any canonical channel names here; the registry is the
+            // single source of truth for available channels.
+            return array_values($registered);
+        }
+
+        return [];
     }
 
     public function channelLabel(string $channel): string
@@ -221,19 +231,6 @@ class NotificationPreferenceService
 
         if ($channel === WebPushChannel::class) {
             return 'push';
-        }
-
-        return $channel;
-    }
-
-    private function expandChannel(string $channel): string
-    {
-        if ($channel === 'sms') {
-            return SmsChannel::class;
-        }
-
-        if ($channel === 'push') {
-            return WebPushChannel::class;
         }
 
         return $channel;
