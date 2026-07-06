@@ -4,7 +4,10 @@ namespace App\Core\Auth\User\Actions\Admin;
 
 use App\Core\Identity\Models\User;
 use App\Core\Identity\Notifications\UserInvitationNotification;
+use App\Core\Zoom\Services\ZoomSmsConsentService;
+use App\Core\Zoom\Services\ZoomSmsService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CreateInvitedUser
@@ -42,6 +45,26 @@ class CreateInvitedUser
         });
 
         $user->notify(new UserInvitationNotification($temporaryPassword));
+
+        // If a phone number exists, attempt to send a Zoom SMS consent request.
+        try {
+            $phone = $user->phone ?? null;
+
+            if ($phone !== null && $phone !== '') {
+                /** @var ZoomSmsService $smsService */
+                $smsService = app(ZoomSmsService::class);
+
+                if ($smsService->isConfigured()) {
+                    /** @var ZoomSmsConsentService $consentService */
+                    $consentService = app(ZoomSmsConsentService::class);
+
+                    // This will send the consent-request message and mark the number pending.
+                    $consentService->requestConsent($phone, $smsService);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to request SMS consent for invited user', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+        }
 
         return $user;
     }
