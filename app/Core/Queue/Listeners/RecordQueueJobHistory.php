@@ -4,6 +4,7 @@ namespace App\Core\Queue\Listeners;
 
 use App\Core\Queue\Models\QueueJobHistory;
 use Carbon\CarbonInterface;
+use Throwable;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -74,7 +75,7 @@ class RecordQueueJobHistory
                 'exception' => $event->exception->getMessage(),
                 'trace' => $event->exception->getTraceAsString(),
             ]);
-        } catch (\\Throwable $e) {
+        } catch (Throwable $e) {
             // Swallow any logging errors to avoid interfering with failure handling
         }
 
