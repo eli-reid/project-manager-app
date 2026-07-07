@@ -32,7 +32,10 @@ class Widget extends Component
             $data = $weatherApi->getForecastWeather($this->location, $date);
 
             if ($data !== null) {
-                $items[] = $weatherApi->extractWeatherForDailyReport($data);
+                $dayData = $weatherApi->extractWeatherForDailyReport($data);
+                $dayData['flux_icon'] = $this->mapConditionToIcon($dayData['condition'] ?? null);
+
+                $items[] = $dayData;
             } else {
                 $items[] = [
                     'date' => $date->toDateString(),
@@ -51,4 +54,25 @@ class Widget extends Component
     {
         return view('weather::dashboard.widget');
     }
+    
+    protected function mapConditionToIcon(?string $condition): string
+    {
+        if ($condition === null) {
+            return 'sun';
+        }
+
+        $c = strtolower($condition);
+
+        return match (true) {
+            str_contains($c, 'sun') || str_contains($c, 'clear') => 'sun',
+            str_contains($c, 'partly') && str_contains($c, 'cloud') => 'cloud-sun',
+            str_contains($c, 'cloud') => 'cloud',
+            str_contains($c, 'rain') || str_contains($c, 'shower') || str_contains($c, 'drizzle') => 'cloud-rain',
+            str_contains($c, 'snow') => 'cloud-snow',
+            str_contains($c, 'thunder') || str_contains($c, 'storm') => 'bolt',
+            str_contains($c, 'fog') || str_contains($c, 'mist') || str_contains($c, 'haze') => 'cloud-fog',
+            default => 'sun',
+        };
+    }
+
 }
