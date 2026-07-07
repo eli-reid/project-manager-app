@@ -11,7 +11,7 @@
                         <div class="text-sm font-semibold text-gray-700 dark:text-gray-100">{{ $day['date'] ?? '-' }}</div>
                         @if(!empty($day['flux_icon']))
                             <div class="text-zinc-500 dark:text-zinc-300">
-                                <flux:icon :icon="'{{ $day['flux_icon'] }}'" class="size-4" />
+                                <flux:icon :icon="$day['flux_icon']" class="size-4" />
                             </div>
                         @endif
                     </div>
