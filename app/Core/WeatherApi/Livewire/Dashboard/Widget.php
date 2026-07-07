@@ -5,6 +5,7 @@ namespace App\Core\WeatherApi\Livewire\Dashboard;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Core\Settings\Facades\Settings;
 
 class Widget extends Component
 {
@@ -15,7 +16,7 @@ class Widget extends Component
 
     public function mount(WeatherApiContract $weatherApi): void
     {
-        $this->location = config('weatherapi.default_location') ?: config('services.weatherapi.default_location', '');
+        $this->location = Settings::get('weatherapi.default_location');
 
         if ($this->location === '') {
             $this->forecast = [];

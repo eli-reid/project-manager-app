@@ -31,7 +31,7 @@ return [
     ],
     [
         'key' => 'weatherapi.default_location',
-        'default_value' => env('WEATHERAPI_DEFAULT_LOCATION', ''),
+        'default_value' => env('WEATHERAPI_DEFAULT_LOCATION', '02766'),
         'display_name' => 'Weather Default Address',
         'description' => 'Fallback address/location for weather lookups when a project address is unavailable.',
         'type' => 'text',
