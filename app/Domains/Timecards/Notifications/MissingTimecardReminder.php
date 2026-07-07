@@ -109,7 +109,7 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
 
     private function getPreviousWeekStarting(): CarbonInterface
     {
-        return $this->weekStarting->copy()->startOfWeek()->subWeek();
+        return $this->weekStarting->copy()->startOfWeek();
     }
 
     private function notificationKey(): string
