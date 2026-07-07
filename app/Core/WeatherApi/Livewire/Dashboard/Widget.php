@@ -16,9 +16,9 @@ class Widget extends Component
 
     public function mount(WeatherApiContract $weatherApi): void
     {
-        $this->location = Settings::get('weatherapi.default_location');
+        $this->location = (string) Settings::get('weatherapi.default_location')->toNullableString() ?? '';
 
-        if ($this->location === '') {
+        if ($this->location === null || $this->location === '') {
             $this->forecast = [];
 
             return;
