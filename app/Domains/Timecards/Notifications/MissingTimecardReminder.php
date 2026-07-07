@@ -41,12 +41,13 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $weekEnding = $this->weekStarting->copy()->addDays(6);
+        $weekStarting = $this->getPreviousWeekStarting();
+        $weekEnding = $weekStarting->copy()->addDays(6);
 
         return (new MailMessage)
             ->subject('Missing Timecard - Action Required')
             ->markdown('timecards::emails.notifications.missing-timecard-reminder', [
-                'weekStarting' => $this->weekStarting,
+                'weekStarting' => $weekStarting,
                 'weekEnding' => $weekEnding,
                 'createUrl' => route('timecards.create'),
             ]);
@@ -57,11 +58,12 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $weekEnding = $this->weekStarting->copy()->addDays(6);
+        $weekStarting = $this->getPreviousWeekStarting();
+        $weekEnding = $weekStarting->copy()->addDays(6);
 
         return [
             'key' => $this->notificationKey(),
-            'week_starting' => $this->weekStarting->toDateString(),
+            'week_starting' => $weekStarting->toDateString(),
             'week_ending' => $weekEnding->toDateString(),
             'url' => route('timecards.create'),
         ];
@@ -78,15 +80,18 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
             return null;
         }
 
+        $weekStarting = $this->getPreviousWeekStarting();
+
         return [
             'to' => $phone,
-            'message' => 'Reminder: You have not submitted a timecard for '.$this->weekStarting->toFormattedDateString().' week. Please submit your timecard.',
+            'message' => 'Reminder: You have not submitted a timecard for '.$weekStarting->toFormattedDateString().' week. Please submit your timecard.',
         ];
     }
 
     public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
     {
-        $weekEnding = $this->weekStarting->copy()->addDays(6);
+        $weekStarting = $this->getPreviousWeekStarting();
+        $weekEnding = $weekStarting->copy()->addDays(6);
 
         return (new WebPushMessage)
             ->title('Missing timecard')
@@ -97,9 +102,14 @@ class MissingTimecardReminder extends Notification implements ShouldQueue
             ->data([
                 'url' => route('timecards.create'),
                 'key' => $this->notificationKey(),
-                'week_starting' => $this->weekStarting->toDateString(),
+                'week_starting' => $weekStarting->toDateString(),
                 'week_ending' => $weekEnding->toDateString(),
             ]);
+    }
+
+    private function getPreviousWeekStarting(): CarbonInterface
+    {
+        return $this->weekStarting->copy()->startOfWeek()->subWeek();
     }
 
     private function notificationKey(): string
