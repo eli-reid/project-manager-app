@@ -11,7 +11,25 @@
                         <div class="text-sm font-semibold text-gray-700 dark:text-gray-100">{{ $day['date'] ?? '-' }}</div>
                         @if(!empty($day['flux_icon']))
                             <div class="text-zinc-500 dark:text-zinc-300">
-                                <flux:icon :icon="$day['flux_icon']" class="size-4" />
+                                @php
+                                    use Illuminate\Support\Facades\View;
+                                    $iconName = $day['flux_icon'];
+                                @endphp
+
+                                @if(View::exists('flux.icons.' . $iconName))
+                                    {!! view('flux.icons.' . $iconName)->render() !!}
+                                @else
+                                    @php
+                                        $base = explode('-', $iconName)[0] ?? $iconName;
+                                        $emoji = match ($base) {
+                                            'cloud', 'rain', 'snow' => '☁️',
+                                            'bolt', 'lightning' => '⚡️',
+                                            'sun', 'clear' => '☀️',
+                                            default => '🌤️',
+                                        };
+                                    @endphp
+                                    <span aria-hidden="true">{{ $emoji }}</span>
+                                @endif
                             </div>
                         @endif
                     </div>
