@@ -26,7 +26,6 @@
                             }
                         @endphp
                         <div class="text-xs font-semibold text-gray-700 dark:text-gray-100">{{ $displayDate }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-300 truncate text-right" style="max-width:50%">{{ $day['location_name'] ?? '' }}</div>
                     </div>
 
                     <div class="flex flex-col items-center gap-2">
