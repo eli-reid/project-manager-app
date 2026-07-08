@@ -40,11 +40,18 @@ class WeatherApiService implements WeatherApiContract
             $formattedDate = $date->toDateString();
 
             return $this->remember($this->cacheKeyForecast($location, $formattedDate), function () use ($location, $formattedDate): ?array {
-                return $this->makeApiRequest('forecast.json', [
+                $payload = $this->makeApiRequest('forecast.json', [
                     'q' => $location,
-                    'dt' => $formattedDate,
-                    'days' => 1,
+                    'days' => 5,
                 ]);
+
+                if (is_array($payload)) {
+                    // Include the originally requested date so downstream extractors
+                    // can select the proper day from the multi-day forecast.
+                    $payload['requested_date'] = $formattedDate;
+                }
+
+                return $payload;
             });
         }
 
@@ -101,16 +108,37 @@ class WeatherApiService implements WeatherApiContract
             $result['location_name'] = trim($locationName.($suffix !== '' ? ', '.$suffix : ''));
         }
 
-        if (isset($weatherData['forecast']['forecastday'][0]['day']) && is_array($weatherData['forecast']['forecastday'][0]['day'])) {
-            $day = $weatherData['forecast']['forecastday'][0]['day'];
+        if (isset($weatherData['forecast']['forecastday']) && is_array($weatherData['forecast']['forecastday'])) {
+            $forecastDays = $weatherData['forecast']['forecastday'];
 
-            $result['condition'] = $day['condition']['text'] ?? null;
-            $result['temperature'] = $day['avgtemp_f'] ?? null;
-            $result['wind_speed'] = $day['maxwind_mph'] ?? null;
-            $result['precipitation'] = $day['totalprecip_in'] ?? null;
-            $result['humidity'] = $day['avghumidity'] ?? null;
-            $result['weather_icon'] = $day['condition']['icon'] ?? null;
-            $result['date'] = $weatherData['forecast']['forecastday'][0]['date'] ?? null;
+            // Try to locate the requested date if provided (multi-day forecast payload)
+            $targetDate = $weatherData['requested_date'] ?? null;
+            $day = null;
+
+            if ($targetDate !== null) {
+                foreach ($forecastDays as $fd) {
+                    if (isset($fd['date']) && $fd['date'] === $targetDate) {
+                        $day = $fd['day'] ?? null;
+                        $result['date'] = $fd['date'];
+                        break;
+                    }
+                }
+            }
+
+            // Fallback: use the first forecast day
+            if ($day === null && isset($forecastDays[0]['day']) && is_array($forecastDays[0]['day'])) {
+                $day = $forecastDays[0]['day'];
+                $result['date'] = $forecastDays[0]['date'] ?? $result['date'];
+            }
+
+            if (is_array($day)) {
+                $result['condition'] = $day['condition']['text'] ?? null;
+                $result['temperature'] = $day['avgtemp_f'] ?? null;
+                $result['wind_speed'] = $day['maxwind_mph'] ?? null;
+                $result['precipitation'] = $day['totalprecip_in'] ?? null;
+                $result['humidity'] = $day['avghumidity'] ?? null;
+                $result['weather_icon'] = $day['condition']['icon'] ?? null;
+            }
         }
 
         if (isset($weatherData['current']) && is_array($weatherData['current'])) {
