@@ -33,6 +33,9 @@ class Widget extends Component
 
             if ($data !== null) {
                 $dayData = $weatherApi->extractWeatherForDailyReport($data);
+                // Ensure the date reflects the requested day (avoid API responses
+                // that include current/localtime which can overwrite forecast dates).
+                $dayData['date'] = $date->toDateString();
                 $dayData['flux_icon'] = $this->mapConditionToIcon($dayData['condition'] ?? null);
 
                 $items[] = $dayData;
