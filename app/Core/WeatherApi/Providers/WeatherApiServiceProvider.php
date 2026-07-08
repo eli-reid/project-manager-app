@@ -36,7 +36,7 @@ class WeatherApiServiceProvider extends ServiceProvider
             new WidgetDefinition(
                 key: 'weather.forecast',
                 component: 'weather::dashboard.widget',
-                section: 'general',
+                section: 'personal',
                 sort: 10,
                 span: 'third',
                 ability: '',
