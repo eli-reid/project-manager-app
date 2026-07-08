@@ -141,16 +141,22 @@ class WeatherApiService implements WeatherApiContract
             }
         }
 
-        if (isset($weatherData['current']) && is_array($weatherData['current'])) {
+        // Only use the `current` block when the requested date is today, or when
+        // no forecast day data was available. This prevents the `current` data
+        // (which reflects now) from overwriting multi-day forecast entries.
+        $targetDate = $weatherData['requested_date'] ?? null;
+        $isRequestedToday = $targetDate !== null && $targetDate === Carbon::today()->toDateString();
+
+        if (isset($weatherData['current']) && is_array($weatherData['current']) && ($isRequestedToday || $result['condition'] === null)) {
             $current = $weatherData['current'];
 
-            $result['condition'] = $current['condition']['text'] ?? null;
-            $result['temperature'] = $current['temp_f'] ?? null;
-            $result['wind_speed'] = $current['wind_mph'] ?? null;
-            $result['wind_direction'] = $current['wind_dir'] ?? null;
-            $result['precipitation'] = $current['precip_in'] ?? null;
-            $result['humidity'] = $current['humidity'] ?? null;
-            $result['weather_icon'] = $current['condition']['icon'] ?? null;
+            $result['condition'] = $current['condition']['text'] ?? $result['condition'];
+            $result['temperature'] = $current['temp_f'] ?? $result['temperature'];
+            $result['wind_speed'] = $current['wind_mph'] ?? $result['wind_speed'];
+            $result['wind_direction'] = $current['wind_dir'] ?? $result['wind_direction'];
+            $result['precipitation'] = $current['precip_in'] ?? $result['precipitation'];
+            $result['humidity'] = $current['humidity'] ?? $result['humidity'];
+            $result['weather_icon'] = $current['condition']['icon'] ?? $result['weather_icon'];
 
             if (isset($weatherData['location']['localtime']) && is_string($weatherData['location']['localtime'])) {
                 try {
