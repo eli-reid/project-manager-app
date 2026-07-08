@@ -12,12 +12,11 @@
                         @if(!empty($day['flux_icon']))
                             <div class="text-zinc-500 dark:text-zinc-300">
                                 @php
-                                    use Illuminate\Support\Facades\View;
-                                    $iconName = $day['flux_icon'];
+                                        $iconName = $day['flux_icon'];
                                 @endphp
 
-                                @if(View::exists('flux.icons.' . $iconName))
-                                    {!! view('flux.icons.' . $iconName)->render() !!}
+                                @if(\Illuminate\Support\Facades\View::exists('flux.icons.' . $iconName))
+                                    {!! view('flux.icons.' . $iconName, ['attributes' => new \Illuminate\View\ComponentAttributeBag([])])->render() !!}
                                 @else
                                     @php
                                         $base = explode('-', $iconName)[0] ?? $iconName;

@@ -10,6 +10,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Skip this migration on SQLite (in-memory test DB) because it uses
+        // MySQL-specific ALTER/INFORMATION_SCHEMA operations that SQLite
+        // does not support and which break the test environment.
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
         // Prevent repeated runs from failing: if the temp table exists, stop with guidance
         if (Schema::hasTable('assets_new')) {
             throw new \RuntimeException("Temporary table 'assets_new' already exists. Either rollback the previous migration or drop the 'assets_new' table before re-running this migration.");
