@@ -6,6 +6,8 @@ use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use Carbon\Carbon;
 use Livewire\Component;
 use App\Core\Settings\Facades\Settings;
+use Illuminate\Support\Facades\View;
+use Illuminate\View\ComponentAttributeBag;
 
 class Widget extends Component
 {
@@ -33,24 +35,64 @@ class Widget extends Component
 
             if ($data !== null) {
                 $dayData = $weatherApi->extractWeatherForDailyReport($data);
-                // Ensure the date reflects the requested day (avoid API responses
-                // that include current/localtime which can overwrite forecast dates).
                 $dayData['date'] = $date->toDateString();
                 $dayData['flux_icon'] = $this->mapConditionToIcon($dayData['condition'] ?? null);
-
-                $items[] = $dayData;
             } else {
-                $items[] = [
+                $dayData = [
                     'date' => $date->toDateString(),
                     'temperature' => null,
                     'condition' => null,
                     'location_name' => null,
                     'full_data' => null,
+                    'flux_icon' => null,
                 ];
             }
+
+            // Prepare display-friendly fields to keep Blade minimal
+            $displayDate = $this->formatDisplayDate($dayData['date'] ?? null);
+            $iconHtml = $this->renderIconHtml($dayData['flux_icon'] ?? null);
+
+            $items[] = array_merge($dayData, [
+                'display_date' => $displayDate,
+                'icon_html' => $iconHtml,
+            ]);
         }
 
         $this->forecast = $items;
+    }
+
+    protected function formatDisplayDate(?string $date): string
+    {
+        if (empty($date)) {
+            return '-';
+        }
+
+        try {
+            return Carbon::parse($date)->format('M j');
+        } catch (\Throwable) {
+            return $date;
+        }
+    }
+
+    protected function renderIconHtml(?string $iconName): string
+    {
+        if (empty($iconName)) {
+            return '';
+        }
+
+        if (View::exists('flux.icons.' . $iconName)) {
+            return view('flux.icons.' . $iconName, ['attributes' => new ComponentAttributeBag([])])->render();
+        }
+
+        $base = explode('-', $iconName)[0] ?? $iconName;
+        $emoji = match ($base) {
+            'cloud', 'rain', 'snow' => '☁️',
+            'bolt', 'lightning' => '⚡️',
+            'sun', 'clear' => '☀️',
+            default => '🌤️',
+        };
+
+        return '<span aria-hidden="true">'.$emoji.'</span>';
     }
 
     public function render()
