@@ -40,6 +40,7 @@ return [
     SettingServiceProvider::class,
     WeatherApiServiceProvider::class,
     ZoomServiceProvider::class,
+    \App\Providers\FilamentNavigationServiceProvider::class,
     DomainServiceProvider::class,
     AppServiceProvider::class,
     TelescopeServiceProvider::class,
