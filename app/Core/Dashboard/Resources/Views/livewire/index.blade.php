@@ -6,18 +6,26 @@
                     {{ $sectionLabels[$sectionKey] ?? ucfirst($sectionKey) }}
                 </h2>
             @endif
-            <div class="grid gap-4 lg:grid-cols-6">
+            <div class="grid gap-4 lg:grid-cols-6" style="grid-auto-rows: 8rem;">
                 @php
                     $isSingleWidgetSection = count($widgets) === 1;
                 @endphp
                 @foreach($widgets as $widget)
-                    <div class="{{ $isSingleWidgetSection
-                        ? 'lg:col-span-6'
-                        : match($widget['span']) {
-                            'full' => 'lg:col-span-6',
-                            'half' => 'lg:col-span-3',
-                            default => 'lg:col-span-2',
-                        } }}">
+                    @php
+                        // Determine effective width/height (columns/rows). Fall back to
+                        // legacy span mapping when width isn't provided.
+                        $w = $widget['width'] ?? (
+                            $widget['span'] === 'full' ? 6 : ($widget['span'] === 'half' ? 3 : 2)
+                        );
+                        $h = $widget['height'] ?? 1;
+
+                        // If the section only contains a single widget always span full width.
+                        if ($isSingleWidgetSection) {
+                            $w = 6;
+                        }
+                    @endphp
+
+                    <div style="grid-column: span {{ $w }}; grid-row: span {{ $h }};">
                         @livewire($widget['component'], [], $widget['key'])
                     </div>
                 @endforeach
