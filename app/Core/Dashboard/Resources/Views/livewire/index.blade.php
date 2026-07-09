@@ -6,7 +6,7 @@
                     {{ $sectionLabels[$sectionKey] ?? ucfirst($sectionKey) }}
                 </h2>
             @endif
-            <div class="grid gap-4 lg:grid-cols-6" style="grid-auto-rows: 8rem;">
+            <div class="grid gap-4 lg:grid-cols-6 items-start" style="grid-auto-rows: minmax(8rem, auto); grid-auto-flow: dense;">
                 @php
                     $isSingleWidgetSection = count($widgets) === 1;
                 @endphp
@@ -25,8 +25,10 @@
                         }
                     @endphp
 
-                    <div style="grid-column: span {{ $w }}; grid-row: span {{ $h }};">
-                        @livewire($widget['component'], [], $widget['key'])
+                    <div class="min-h-0 h-full overflow-hidden" style="grid-column: span {{ $w }}; grid-row: span {{ $h }};">
+                        <div class="h-full min-h-0 overflow-hidden">
+                            @livewire($widget['component'], [], $widget['key'])
+                        </div>
                     </div>
                 @endforeach
             </div>
