@@ -36,9 +36,15 @@ class WeatherApiServiceProvider extends ServiceProvider
             new WidgetDefinition(
                 key: 'weather.forecast',
                 component: 'weather::dashboard.widget',
-                section: 'personal',
-                sort: 10,
-                span: 'third',
+                // Place the weather widget in the primary (general) section so it
+                // appears near Company Announcements and give it the same half
+                // width so it lines up underneath the announcements widget.
+                section: 'primary',
+                // Sort just after announcements (announcements uses 10) so the
+                // weather widget renders immediately after it and will pack
+                // underneath when the grid lays out.
+                sort: 11,
+                span: 'half',
                 ability: '',
                 abilityModel: '',
                 title: '5 Day Forecast',
