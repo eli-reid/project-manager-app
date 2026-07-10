@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use NotificationChannels\WebPush\HasPushSubscriptions;
@@ -32,7 +34,7 @@ use Throwable;
  *
  * @mixin IdeHelperUser
  */
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     public ?string $mailboxProvisioningPassword = null;
 
@@ -211,6 +213,20 @@ class User extends Authenticatable
         $this->authorizationSnapshot = null;
 
         app(UserAuthorizationSnapshotService::class)->flush($this);
+    }
+
+    /**
+     * Determine if the user can access the given Filament panel.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Allow only active administrators to access Filament panels by default.
+        // Modify this logic to check specific panel IDs, roles, or permissions as needed.
+        if (! $this->is_active) {
+            return false;
+        }
+
+        return $this->isAdmin();
     }
 
     public static function bumpPermissionCacheVersion(): void
