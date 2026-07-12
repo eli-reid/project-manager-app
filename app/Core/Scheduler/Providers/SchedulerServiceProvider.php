@@ -3,8 +3,6 @@
 namespace App\Core\Scheduler\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Dashboard\Data\WidgetDefinition;
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Scheduler\Commands\DeployUpgradeCommand;
 use App\Core\Scheduler\Commands\SyncSchedulerTasksCommand;
 use App\Core\Scheduler\Models\ScheduledTask;
@@ -15,6 +13,8 @@ use App\Core\Scheduler\Services\ScheduledTaskService;
 use App\Core\Scheduler\Services\SchedulerService;
 use App\Core\Scheduler\Services\TaskDefinitionSyncService;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Core\UI\Dashboard\Data\WidgetDefinition;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;

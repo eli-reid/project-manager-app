@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Navigation\Livewire;
+namespace App\Core\UI\Navigation\Livewire;
 
-use App\Core\Navigation\Services\NavigationManager;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use Illuminate\Support\Facades\Route;
 use Livewire\Component;
 

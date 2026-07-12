@@ -21,7 +21,7 @@
                                 <ul class="mt-1 space-y-1">
                                                     @foreach($group['items'] as $item)
                                                         <li>
-                                                            @livewire(App\Core\Navigation\Livewire\NavItem::class, ['item' => $item])
+                                                            @livewire(App\Core\UI\Navigation\Livewire\NavItem::class, ['item' => $item])
                                                         </li>
                                                     @endforeach
                                 </ul>
@@ -34,7 +34,7 @@
                     <ul class="mt-2 space-y-1">
                         @foreach($section['items'] as $item)
                             <li>
-                                @livewire(App\Core\Navigation\Livewire\NavItem::class, ['item' => $item])
+                                @livewire(App\Core\UI\Navigation\Livewire\NavItem::class, ['item' => $item])
                             </li>
                         @endforeach
                     </ul>

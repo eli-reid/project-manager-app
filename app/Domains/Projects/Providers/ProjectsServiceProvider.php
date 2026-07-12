@@ -3,9 +3,9 @@
 namespace App\Domains\Projects\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Dashboard\Data\WidgetDefinition;
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
+use App\Core\UI\Dashboard\Data\WidgetDefinition;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;

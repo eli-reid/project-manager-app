@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\Dashboard\Data;
+namespace App\Core\UI\Dashboard\Data;
 
 class WidgetDefinition
 {

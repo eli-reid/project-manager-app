@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Navigation\Livewire;
+namespace App\Core\UI\Navigation\Livewire;
 
 use Livewire\Component;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Navigation\Services;
+namespace App\Core\UI\Navigation\Services;
 
-use App\Core\Navigation\DTO\NavGroup;
-use App\Core\Navigation\DTO\NavItem;
+use App\Core\UI\Navigation\DTO\NavGroup;
+use App\Core\UI\Navigation\DTO\NavItem;
 use Illuminate\Support\Facades\Auth;
 
 class NavigationManager

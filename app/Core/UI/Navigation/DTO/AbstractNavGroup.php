@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Navigation\DTO;
+namespace App\Core\UI\Navigation\DTO;
 
-use App\Core\Navigation\Contracts\NavGroupInterface;
+use App\Core\UI\Navigation\Contracts\NavGroupInterface;
 use Illuminate\Support\Facades\Auth;
 
 abstract class AbstractNavGroup implements NavGroupInterface
@@ -33,10 +33,10 @@ abstract class AbstractNavGroup implements NavGroupInterface
         $userAllowedItems = [];
         foreach ($this->items as $item) {
             if (Auth::user()->can('view', $item)) {
-                // You can perform any validation or processing on each item here if needed.
                 $userAllowedItems[] = $item;
             }
         }
+
         return $userAllowedItems;
     }
 }

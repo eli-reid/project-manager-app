@@ -3,12 +3,12 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Identity\Models\User;
 use App\Core\Scheduler\Livewire\Dashboard\Widget as SchedulerWidget;
 use App\Core\Scheduler\Models\AvailableTask;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Core\Settings\Facades\Settings;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use App\Domains\Dailies\Livewire\Dashboard\Widget as DailyReportWidget;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Projects\Enums\ProjectStatusEnum;

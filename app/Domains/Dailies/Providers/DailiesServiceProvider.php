@@ -3,8 +3,8 @@
 namespace App\Domains\Dailies\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
-use App\Core\Dashboard\Data\WidgetDefinition;
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Dashboard\Data\WidgetDefinition;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;

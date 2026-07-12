@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Navigation\DTO;
+namespace App\Core\UI\Navigation\DTO;
 
 enum NavSectionEnum: string
 {

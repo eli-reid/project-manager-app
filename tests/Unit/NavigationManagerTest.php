@@ -1,8 +1,8 @@
 <?php
 
-use App\Core\Navigation\DTO\NavItem;
-use App\Core\Navigation\DTO\NavSectionEnum;
-use App\Core\Navigation\Services\NavigationManager;
+use App\Core\UI\Navigation\DTO\NavItem;
+use App\Core\UI\Navigation\DTO\NavSectionEnum;
+use App\Core\UI\Navigation\Services\NavigationManager;
 
 it('can register a section and item and resolve it', function () {
     $manager = new NavigationManager;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Navigation\Contracts;
+namespace App\Core\UI\Navigation\Contracts;
 
-use App\Core\Navigation\DTO\NavItem;
+use App\Core\UI\Navigation\DTO\NavItem;
 
 interface NavGroupInterface
 {

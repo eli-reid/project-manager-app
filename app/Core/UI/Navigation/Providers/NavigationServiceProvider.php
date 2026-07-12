@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Navigation\Providers;
+namespace App\Core\UI\Navigation\Providers;
 
-use App\Core\Navigation\Services\NavigationManager;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use Illuminate\Support\ServiceProvider;
 
 class NavigationServiceProvider extends ServiceProvider

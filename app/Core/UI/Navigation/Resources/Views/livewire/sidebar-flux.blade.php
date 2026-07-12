@@ -4,7 +4,7 @@
     @foreach($sections as $section)
         @if(! empty($section['groups']))
             @foreach($section['groups'] as $group)
-                @livewire(App\Core\Navigation\Livewire\NavGroup::class, ['group' => $group])
+                @livewire(App\Core\UI\Navigation\Livewire\NavGroup::class, ['group' => $group])
             @endforeach
         @endif
 
@@ -12,7 +12,7 @@
             <flux:sidebar.group>
                 <flux:menu>
                     @foreach($section['items'] as $item)
-                        @livewire(App\Core\Navigation\Livewire\NavItem::class, ['item' => $item])
+                        @livewire(App\Core\UI\Navigation\Livewire\NavItem::class, ['item' => $item])
                     @endforeach
                 </flux:menu>
             </flux:sidebar.group>
