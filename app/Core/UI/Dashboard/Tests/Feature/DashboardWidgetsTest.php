@@ -143,6 +143,9 @@ it('renders dashboard widgets with consistent span classes', function (): void {
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
+        ->assertSee('Dashboard Workspace')
+        ->assertSee('data-test="dashboard-panel-overview-link"', false)
+        ->assertSee('placeholder="Search panels"', false)
         ->assertSee('lg:grid-cols-6', false)
         ->assertSee('lg:col-span-3', false)
         ->assertSee('lg:col-span-6', false);
