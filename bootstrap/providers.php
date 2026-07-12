@@ -9,9 +9,10 @@ use App\Core\Auth\User\Providers\AuthUserServiceProvider;
 use App\Core\Dashboard\Providers\DashboardServiceProvider;
 use App\Core\Identity\Providers\FortifyServiceProvider;
 use App\Core\Identity\Providers\UserServiceProvider;
-use App\Core\Notification\Providers\NotificationServiceProvider;
+use App\Core\Navigation\Providers\NavigationServiceProvider;
 use App\Core\Notification\Channels\EmailNotification\Providers\EmailServiceProvider;
 use App\Core\Notification\Channels\PushNotification\Providers\PushServiceProvider;
+use App\Core\Notification\Providers\NotificationServiceProvider;
 use App\Core\Queue\Providers\QueueManagerServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
 use App\Core\Settings\Providers\SettingServiceProvider;
@@ -34,6 +35,7 @@ return [
     AssetsServiceProvider::class,
     FortifyServiceProvider::class,
     UserServiceProvider::class,
+    NavigationServiceProvider::class,
     NotificationServiceProvider::class,
     EmailServiceProvider::class,
     PushServiceProvider::class,
