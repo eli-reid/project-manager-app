@@ -100,7 +100,6 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Always use `search-docs` before making code changes. Do not skip this step. It returns version-specific docs based on installed packages automatically.
 - Pass a `packages` array to scope results when you know which packages are relevant.
 - Use multiple broad, topic-based queries: `['rate limiting', 'routing rate limiting', 'routing']`. Expect the most relevant results first.
-- Do not add package names to queries because package info is already shared. Use `test resource table`, not `filament 4 test resource table`.
 - If `search-docs` returns no relevant results after 2-3 query variations, proceed using the listed package versions and note that docs were not found.
 
 ### Search Syntax

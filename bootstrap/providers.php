@@ -20,8 +20,6 @@ return [
     App\Core\Zoom\Providers\ZoomServiceProvider::class,
     App\Domains\Providers\DomainServiceProvider::class,
     App\Providers\AppServiceProvider::class,
-    App\Providers\FilamentNavigationServiceProvider::class,
-    App\Providers\Filament\AdminDashboardPanelProvider::class,
     App\Providers\TelescopeServiceProvider::class,
     App\Providers\VoltServiceProvider::class,
 ];
