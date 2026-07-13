@@ -79,11 +79,6 @@ class SettingServiceProvider extends ServiceProvider
         // Sync settings after all providers have had a chance to register their definitions.
         $this->app->booted(function () use ($domainSettingsSynchronizer): void {
             $this->syncDomainSettings($domainSettingsSynchronizer);
-        if ($this->app->runningInConsole()) {
-            return;
-        }
-
-        $this->app->make(SettingsSqliteService::class)->preloadAllSettings();
         });
     }
 
