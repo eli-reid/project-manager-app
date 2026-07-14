@@ -2,12 +2,13 @@
 
 namespace App\Core\WeatherApi\Livewire\Dashboard;
 
-use App\Core\WeatherApi\Contracts\WeatherApiContract;
-use Carbon\Carbon;
-use Livewire\Component;
 use App\Core\Settings\Facades\Settings;
+use App\Core\WeatherApi\Contracts\WeatherApiContract;
+use App\Support\Diagnostics\MemoryProbe;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\ComponentAttributeBag;
+use Livewire\Component;
 
 class Widget extends Component
 {
@@ -18,10 +19,22 @@ class Widget extends Component
 
     public function mount(WeatherApiContract $weatherApi): void
     {
+        $baseline = MemoryProbe::enabled() ? MemoryProbe::snapshot('widget.weather.forecast.mount.start') : null;
+
         $this->location = (string) Settings::get('weatherapi.default_location')->toNullableString() ?? '';
 
-        if ($this->location === null || $this->location === '') {
+        if ($this->location === '') {
             $this->forecast = [];
+
+            if ($baseline !== null) {
+                MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'mounted', [
+                    'widget' => 'weather.forecast',
+                    'phase' => 'mount',
+                    'location' => $this->location,
+                    'forecast_days' => 0,
+                    'payload' => MemoryProbe::inspect($this->forecast, 'forecast'),
+                ]);
+            }
 
             return;
         }
@@ -30,7 +43,6 @@ class Widget extends Component
 
         for ($i = 0; $i < 5; $i++) {
             $date = Carbon::today()->addDays($i);
-
             $data = $weatherApi->getForecastWeather($this->location, $date);
 
             if ($data !== null) {
@@ -48,8 +60,6 @@ class Widget extends Component
                 ];
             }
 
-            // Prepare display-friendly fields to keep Blade minimal
-                use App\Support\Diagnostics\MemoryProbe;
             $displayDate = $this->formatDisplayDate($dayData['date'] ?? null);
             $iconHtml = $this->renderIconHtml($dayData['flux_icon'] ?? null);
 
@@ -60,6 +70,17 @@ class Widget extends Component
         }
 
         $this->forecast = $items;
+
+        if ($baseline !== null) {
+            MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'mounted', [
+                'widget' => 'weather.forecast',
+                'phase' => 'mount',
+                'location' => $this->location,
+                'forecast_days' => count($this->forecast),
+                'payload' => MemoryProbe::inspect($this->forecast, 'forecast'),
+                'largest_items' => MemoryProbe::largestItems($this->forecast, 5),
+            ]);
+        }
     }
 
     protected function formatDisplayDate(?string $date): string
@@ -81,8 +102,8 @@ class Widget extends Component
             return '';
         }
 
-        if (View::exists('flux.icons.' . $iconName)) {
-            return view('flux.icons.' . $iconName, ['attributes' => new ComponentAttributeBag([])])->render();
+        if (View::exists('flux.icons.'.$iconName)) {
+            return view('flux.icons.'.$iconName, ['attributes' => new ComponentAttributeBag([])])->render();
         }
 
         $base = explode('-', $iconName)[0] ?? $iconName;
@@ -92,40 +113,18 @@ class Widget extends Component
             'sun', 'clear' => '☀️',
             default => '🌤️',
         };
-            $baseline = MemoryProbe::enabled() ? MemoryProbe::snapshot('widget.weather.forecast.mount.start') : null;
 
         return '<span aria-hidden="true">'.$emoji.'</span>';
     }
 
-
-                if ($baseline !== null) {
-                    MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'mounted', [
-                        'widget' => 'weather.forecast',
-                        'phase' => 'mount',
-                        'location' => $this->location,
-                        'forecast_days' => 0,
-                        'payload' => MemoryProbe::inspect($this->forecast, 'forecast'),
-                    ]);
-                }
     public function render()
     {
         return view('weather::dashboard.widget');
-
-        if ($baseline !== null) {
-            MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'mounted', [
-                'widget' => 'weather.forecast',
-                'phase' => 'mount',
-                'location' => $this->location,
-                'forecast_days' => \count($this->forecast),
-                'payload' => MemoryProbe::inspect($this->forecast, 'forecast'),
-                'largest_items' => MemoryProbe::largestItems($this->forecast, 5),
-            ]);
-        }
     }
-    
+
     protected function mapConditionToIcon(?string $condition): string
     {
-
+        if ($condition === null) {
             return 'sun';
         }
 
@@ -142,5 +141,4 @@ class Widget extends Component
             default => 'sun',
         };
     }
-
 }
