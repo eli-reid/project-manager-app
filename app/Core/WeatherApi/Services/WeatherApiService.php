@@ -75,7 +75,7 @@ class WeatherApiService implements WeatherApiContract
 
             $storedPayload = $this->storedWeatherService->findForecastPayload($location, $date);
 
-            if ($storedPayload !== null) {
+            if ($storedPayload !== null && $this->hasCompleteForecast($storedPayload, $date)) {
                 return $storedPayload;
             }
 
@@ -296,6 +296,30 @@ class WeatherApiService implements WeatherApiContract
     public function warmStoredWeatherForLocation(string $location): void
     {
         $this->bootstrapLocationWeatherIfMissing($location);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function hasCompleteForecast(array $payload, CarbonInterface $date): bool
+    {
+        $forecastDays = $payload['forecast']['forecastday'] ?? null;
+
+        if (! is_array($forecastDays)) {
+            return false;
+        }
+
+        $availableDates = collect($forecastDays)
+            ->pluck('date')
+            ->filter(fn (mixed $forecastDate): bool => is_string($forecastDate) && $forecastDate !== '');
+
+        for ($offset = 0; $offset < 5; $offset++) {
+            if (! $availableDates->contains($date->copy()->addDays($offset)->toDateString())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

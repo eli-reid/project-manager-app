@@ -72,6 +72,7 @@ it('renders five day forecast using the weather api', function () {
     expect(count($forecast))->toBe(5);
     $component->assertSee('5 Day Forecast');
     $component->assertSee('Test City');
+    $component->assertSee(now()->format('M j D'));
     $component->assertSee('H 75°');
     $component->assertSee('L 65°');
 });

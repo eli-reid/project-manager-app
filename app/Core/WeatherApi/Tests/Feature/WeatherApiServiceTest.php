@@ -150,27 +150,70 @@ it('returns forecast payload from stored weather records without calling the api
     $service = app(WeatherApiService::class);
     $today = Carbon::today();
 
-    DB::table('weather_records')->insert([
-        [
+    $records = [[
+        'location_key' => '02766',
+        'source_location' => '02766',
+        'location_name' => 'Norton, MA',
+        'record_type' => 'current',
+        'weather_date' => $today->toDateString(),
+        'temperature' => 74.5,
+        'temperature_high' => null,
+        'temperature_low' => null,
+        'temperature_unit' => 'F',
+        'wind_speed' => 7.5,
+        'wind_direction' => 'NW',
+        'precipitation' => 0.0,
+        'humidity' => 40,
+        'condition_text' => 'Sunny',
+        'weather_icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png',
+        'synced_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]];
+
+    foreach (range(0, 4) as $offset) {
+        $records[] = [
             'location_key' => '02766',
             'source_location' => '02766',
             'location_name' => 'Norton, MA',
-            'record_type' => 'current',
-            'weather_date' => $today->toDateString(),
-            'temperature' => 74.5,
-            'temperature_high' => null,
-            'temperature_low' => null,
+            'record_type' => 'forecast',
+            'weather_date' => $today->copy()->addDays($offset)->toDateString(),
+            'temperature' => 72.0 - $offset,
+            'temperature_high' => 78.0 - $offset,
+            'temperature_low' => 65.0 - $offset,
             'temperature_unit' => 'F',
-            'wind_speed' => 7.5,
-            'wind_direction' => 'NW',
-            'precipitation' => 0.0,
-            'humidity' => 40,
-            'condition_text' => 'Sunny',
-            'weather_icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png',
+            'wind_speed' => 10.0 - $offset,
+            'wind_direction' => null,
+            'precipitation' => 0.1,
+            'humidity' => 48,
+            'condition_text' => $offset === 1 ? 'Cloudy' : 'Sunny',
+            'weather_icon' => $offset === 1 ? '//cdn.weatherapi.com/weather/64x64/day/119.png' : '//cdn.weatherapi.com/weather/64x64/day/113.png',
             'synced_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
-        ],
+        ];
+    }
+
+    DB::table('weather_records')->insert($records);
+
+    Http::fake();
+
+    $result = $service->getForecastWeather('02766', $today);
+
+    expect($result)->toBeArray()
+        ->and($result['location']['name'])->toBe('Norton, MA')
+        ->and($result['current']['temp_f'])->toBe(74.5)
+        ->and($result['forecast']['forecastday'][0]['day']['maxtemp_f'])->toBe(78.0)
+        ->and($result['forecast']['forecastday'][1]['day']['condition']['text'])->toBe('Cloudy');
+
+    Http::assertNothingSent();
+});
+
+it('refreshes forecast data when stored forecast rows are incomplete', function (): void {
+    $service = app(WeatherApiService::class);
+    $today = Carbon::today();
+
+    DB::table('weather_records')->insert([
         [
             'location_key' => '02766',
             'source_location' => '02766',
@@ -211,19 +254,68 @@ it('returns forecast payload from stored weather records without calling the api
             'created_at' => now(),
             'updated_at' => now(),
         ],
+        [
+            'location_key' => '02766',
+            'source_location' => '02766',
+            'location_name' => 'Norton, MA',
+            'record_type' => 'forecast',
+            'weather_date' => $today->copy()->addDays(2)->toDateString(),
+            'temperature' => 68.0,
+            'temperature_high' => 74.0,
+            'temperature_low' => 61.0,
+            'temperature_unit' => 'F',
+            'wind_speed' => 7.0,
+            'wind_direction' => null,
+            'precipitation' => 0.0,
+            'humidity' => 43,
+            'condition_text' => 'Rain',
+            'weather_icon' => '//cdn.weatherapi.com/weather/64x64/day/296.png',
+            'synced_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ],
     ]);
 
-    Http::fake();
+    Http::fake([
+        'https://api.weatherapi.com/v1/forecast.json*' => Http::response([
+            'location' => [
+                'name' => 'Norton',
+                'region' => 'Massachusetts',
+                'country' => 'United States',
+                'localtime' => now()->format('Y-m-d H:i'),
+            ],
+            'current' => [
+                'temp_f' => 74.5,
+                'wind_mph' => 7.5,
+                'wind_dir' => 'NW',
+                'precip_in' => 0.0,
+                'humidity' => 40,
+                'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+            ],
+            'forecast' => [
+                'forecastday' => collect(range(0, 4))->map(fn (int $offset): array => [
+                    'date' => Carbon::today()->addDays($offset)->toDateString(),
+                    'day' => [
+                        'avgtemp_f' => 72 - $offset,
+                        'maxtemp_f' => 78 - $offset,
+                        'mintemp_f' => 65 - $offset,
+                        'maxwind_mph' => 10 - $offset,
+                        'totalprecip_in' => 0.1,
+                        'avghumidity' => 45,
+                        'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+                    ],
+                ])->all(),
+            ],
+        ], 200),
+    ]);
 
     $result = $service->getForecastWeather('02766', $today);
 
     expect($result)->toBeArray()
-        ->and($result['location']['name'])->toBe('Norton, MA')
-        ->and($result['current']['temp_f'])->toBe(74.5)
-        ->and($result['forecast']['forecastday'][0]['day']['maxtemp_f'])->toBe(78.0)
-        ->and($result['forecast']['forecastday'][1]['day']['condition']['text'])->toBe('Cloudy');
+        ->and(count($result['forecast']['forecastday']))->toBe(5)
+        ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'forecast')->count())->toBe(5);
 
-    Http::assertNothingSent();
+    Http::assertSentCount(1);
 });
 
 it('syncs default location weather into storage and prunes expired rows', function (): void {

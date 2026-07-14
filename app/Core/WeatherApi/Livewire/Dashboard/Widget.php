@@ -88,7 +88,7 @@ class Widget extends Component
         }
 
         try {
-            return Carbon::parse($date)->format('M j');
+            return Carbon::parse($date)->format('M j D');
         } catch (\Throwable) {
             return $date;
         }
