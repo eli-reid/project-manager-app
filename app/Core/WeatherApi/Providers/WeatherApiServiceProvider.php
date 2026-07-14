@@ -2,11 +2,12 @@
 
 namespace App\Core\WeatherApi\Providers;
 
-use App\Core\Settings\Contracts\SettingsRegistryContract;
-use App\Core\WeatherApi\Contracts\WeatherApiContract;
-use App\Core\WeatherApi\Services\WeatherApiService;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Core\WeatherApi\Console\Commands\SyncStoredWeatherData;
+use App\Core\WeatherApi\Contracts\WeatherApiContract;
+use App\Core\WeatherApi\Services\WeatherApiService;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -17,10 +18,14 @@ class WeatherApiServiceProvider extends ServiceProvider
         $this->app->singleton(WeatherApiContract::class, WeatherApiService::class);
     }
 
-    public function boot(SettingsRegistryContract $settingsRegistry, \App\Core\Dashboard\Services\DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry): void
     {
         $settingsRegistry->registerConfigFile('weather', __DIR__.'/../config/settings.php');
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'weather');
+        $this->commands([
+            SyncStoredWeatherData::class,
+        ]);
         $this->registerUIComponents();
         $this->registerDashboardWidgets($widgetRegistry);
     }

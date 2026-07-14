@@ -47,4 +47,13 @@ return [
         'group' => 'weather',
         'order' => 40,
     ],
+    [
+        'key' => 'weatherapi.retention_days',
+        'default_value' => env('WEATHERAPI_RETENTION_DAYS', 30),
+        'display_name' => 'Weather Retention Days',
+        'description' => 'How many days of stored weather records to retain before pruning older rows.',
+        'type' => 'number',
+        'group' => 'weather',
+        'order' => 50,
+    ],
 ];

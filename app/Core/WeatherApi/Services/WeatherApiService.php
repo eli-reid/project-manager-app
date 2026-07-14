@@ -13,12 +13,26 @@ use Throwable;
 
 class WeatherApiService implements WeatherApiContract
 {
+    public function __construct(protected StoredWeatherService $storedWeatherService) {}
+
     public function getCurrentWeather(string $location): ?array
     {
+        $storedPayload = $this->storedWeatherService->findCurrentPayload($location, $this->cacheDurationMinutes());
+
+        if ($storedPayload !== null) {
+            return $storedPayload;
+        }
+
         return $this->remember($this->cacheKeyCurrent($location), function () use ($location): ?array {
-            return $this->makeApiRequest('current.json', [
+            $payload = $this->makeApiRequest('current.json', [
                 'q' => $location,
             ]);
+
+            if (is_array($payload)) {
+                $this->storedWeatherService->storeCurrentPayload($location, $payload);
+            }
+
+            return $payload;
         });
     }
 
@@ -26,11 +40,23 @@ class WeatherApiService implements WeatherApiContract
     {
         $formattedDate = $date->toDateString();
 
+        $storedPayload = $this->storedWeatherService->findHistoricalPayload($location, $date);
+
+        if ($storedPayload !== null) {
+            return $storedPayload;
+        }
+
         return $this->remember($this->cacheKeyHistory($location, $formattedDate), function () use ($location, $formattedDate): ?array {
-            return $this->makeApiRequest('history.json', [
+            $payload = $this->makeApiRequest('history.json', [
                 'q' => $location,
                 'dt' => $formattedDate,
             ]);
+
+            if (is_array($payload)) {
+                $this->storedWeatherService->storeHistoricalPayload($location, Carbon::parse($formattedDate), $payload);
+            }
+
+            return $payload;
         });
     }
 
@@ -39,6 +65,12 @@ class WeatherApiService implements WeatherApiContract
         if ($date->isToday() || $date->isFuture()) {
             $formattedDate = $date->toDateString();
 
+            $storedPayload = $this->storedWeatherService->findForecastPayload($location, $date);
+
+            if ($storedPayload !== null) {
+                return $storedPayload;
+            }
+
             return $this->remember($this->cacheKeyForecast($location, $formattedDate), function () use ($location, $formattedDate): ?array {
                 $payload = $this->makeApiRequest('forecast.json', [
                     'q' => $location,
@@ -46,6 +78,8 @@ class WeatherApiService implements WeatherApiContract
                 ]);
 
                 if (is_array($payload)) {
+                    $this->storedWeatherService->storeForecastPayload($location, $payload);
+
                     // Include the originally requested date so downstream extractors
                     // can select the proper day from the multi-day forecast.
                     $payload['requested_date'] = $formattedDate;
@@ -176,17 +210,50 @@ class WeatherApiService implements WeatherApiContract
 
     public function hasStoredWeatherData(string $location, CarbonInterface $date, string $type = 'forecast'): bool
     {
-        $formattedDate = $date->toDateString();
+        return $this->storedWeatherService->hasRecord($location, $date, $type);
+    }
 
-        $cacheKey = match ($type) {
-            'current' => $this->cacheKeyCurrent($location),
-            'history' => $this->cacheKeyHistory($location, $formattedDate),
-            'forecast' => $this->cacheKeyForecast($location, $formattedDate),
-            'ip' => $this->cacheKeyIp($location),
-            default => $this->cacheKeyForecast($location, $formattedDate),
-        };
+    /**
+     * @return array{location:string, synced_records:int, pruned_records:int}
+     */
+    public function syncStoredWeather(): array
+    {
+        $location = $this->defaultLocation();
+        $prunedRecords = $this->pruneStoredWeather();
 
-        return Cache::has($cacheKey);
+        if ($location === '') {
+            return [
+                'location' => '',
+                'synced_records' => 0,
+                'pruned_records' => $prunedRecords,
+            ];
+        }
+
+        $payload = $this->makeApiRequest('forecast.json', [
+            'q' => $location,
+            'days' => 5,
+        ]);
+
+        if (! is_array($payload)) {
+            return [
+                'location' => $location,
+                'synced_records' => 0,
+                'pruned_records' => $prunedRecords,
+            ];
+        }
+
+        $syncedRecords = $this->storedWeatherService->storeForecastPayload($location, $payload);
+
+        return [
+            'location' => $location,
+            'synced_records' => $syncedRecords,
+            'pruned_records' => $prunedRecords,
+        ];
+    }
+
+    public function pruneStoredWeather(): int
+    {
+        return $this->storedWeatherService->pruneExpiredRecords($this->retentionDays());
     }
 
     /**
@@ -263,6 +330,16 @@ class WeatherApiService implements WeatherApiContract
     protected function timeoutSeconds(): int
     {
         return $this->positiveIntSetting('weatherapi.timeout', 'services.weatherapi.timeout', 10);
+    }
+
+    protected function retentionDays(): int
+    {
+        return $this->positiveIntSetting('weatherapi.retention_days', 'services.weatherapi.retention_days', 30);
+    }
+
+    protected function defaultLocation(): string
+    {
+        return $this->stringSetting('weatherapi.default_location', 'services.weatherapi.default_location', '');
     }
 
     protected function stringSetting(string $settingKey, string $configKey, string $default): string
