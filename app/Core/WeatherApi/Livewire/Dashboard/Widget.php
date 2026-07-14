@@ -63,10 +63,7 @@ class Widget extends Component
             $displayDate = $this->formatDisplayDate($dayData['date'] ?? null);
             $iconHtml = $this->renderIconHtml($dayData['flux_icon'] ?? null);
 
-            $items[] = array_merge($dayData, [
-                'display_date' => $displayDate,
-                'icon_html' => $iconHtml,
-            ]);
+            $items[] = $this->buildForecastItem($dayData, $displayDate, $iconHtml);
         }
 
         $this->forecast = $items;
@@ -94,6 +91,24 @@ class Widget extends Component
         } catch (\Throwable) {
             return $date;
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $dayData
+     * @return array<string, mixed>
+     */
+    protected function buildForecastItem(array $dayData, string $displayDate, string $iconHtml): array
+    {
+        return [
+            'date' => $dayData['date'] ?? null,
+            'display_date' => $displayDate,
+            'icon_html' => $iconHtml,
+            'condition' => $dayData['condition'] ?? null,
+            'location_name' => $dayData['location_name'] ?? null,
+            'temperature' => $dayData['temperature'] ?? null,
+            'temperature_high' => $dayData['temperature_high'] ?? null,
+            'temperature_low' => $dayData['temperature_low'] ?? null,
+        ];
     }
 
     protected function renderIconHtml(?string $iconName): string

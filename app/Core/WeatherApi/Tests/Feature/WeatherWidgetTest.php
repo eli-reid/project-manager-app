@@ -15,6 +15,8 @@ it('renders five day forecast using the weather api', function () {
                         'date' => now()->toDateString(),
                         'day' => [
                             'avgtemp_f' => 70,
+                            'maxtemp_f' => 75,
+                            'mintemp_f' => 65,
                             'condition' => ['text' => 'Sunny', 'icon' => ''],
                         ],
                     ],
@@ -28,6 +30,8 @@ it('renders five day forecast using the weather api', function () {
             return [
                 'date' => $data['forecast']['forecastday'][0]['date'] ?? now()->toDateString(),
                 'temperature' => $data['forecast']['forecastday'][0]['day']['avgtemp_f'] ?? null,
+                'temperature_high' => $data['forecast']['forecastday'][0]['day']['maxtemp_f'] ?? null,
+                'temperature_low' => $data['forecast']['forecastday'][0]['day']['mintemp_f'] ?? null,
                 'condition' => $data['forecast']['forecastday'][0]['day']['condition']['text'] ?? null,
                 'location_name' => $data['location']['name'] ?? null,
             ];
@@ -41,4 +45,6 @@ it('renders five day forecast using the weather api', function () {
     expect(count($forecast))->toBe(5);
     $component->assertSee('5 Day Forecast');
     $component->assertSee('Test City');
+    $component->assertSee('H 75°');
+    $component->assertSee('L 65°');
 });

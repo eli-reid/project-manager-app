@@ -89,6 +89,8 @@ class WeatherApiService implements WeatherApiContract
         $result = [
             'condition' => null,
             'temperature' => null,
+            'temperature_high' => null,
+            'temperature_low' => null,
             'temperature_unit' => 'F',
             'wind_speed' => null,
             'wind_direction' => null,
@@ -134,6 +136,8 @@ class WeatherApiService implements WeatherApiContract
             if (is_array($day)) {
                 $result['condition'] = $day['condition']['text'] ?? null;
                 $result['temperature'] = $day['avgtemp_f'] ?? null;
+                $result['temperature_high'] = $day['maxtemp_f'] ?? null;
+                $result['temperature_low'] = $day['mintemp_f'] ?? null;
                 $result['wind_speed'] = $day['maxwind_mph'] ?? null;
                 $result['precipitation'] = $day['totalprecip_in'] ?? null;
                 $result['humidity'] = $day['avghumidity'] ?? null;

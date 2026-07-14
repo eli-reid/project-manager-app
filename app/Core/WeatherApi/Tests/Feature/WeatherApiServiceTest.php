@@ -116,6 +116,8 @@ it('extracts daily report weather fields from current payload', function (): voi
 
     expect($result['condition'])->toBe('Partly cloudy')
         ->and($result['temperature'])->toBe(62.7)
+        ->and($result['temperature_high'])->toBeNull()
+        ->and($result['temperature_low'])->toBeNull()
         ->and($result['wind_direction'])->toBe('NW')
         ->and($result['location_name'])->toBe('Denver, Colorado')
         ->and($result['date'])->toBe('2026-03-08');

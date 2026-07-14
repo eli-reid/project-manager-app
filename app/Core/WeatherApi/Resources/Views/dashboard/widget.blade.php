@@ -22,6 +22,11 @@
                         <div class="w-12 h-12 text-zinc-500 dark:text-zinc-300 flex items-center justify-center">{!! $day['icon_html'] ?? '' !!}</div>
 
                         <div class="text-3xl font-extrabold text-gray-900 dark:text-white">{{ isset($day['temperature']) ? round($day['temperature']).'°F' : '—' }}</div>
+                        <div class="text-xs font-medium text-gray-500 dark:text-gray-300">
+                            H {{ isset($day['temperature_high']) ? round($day['temperature_high']).'°' : '—' }}
+                            /
+                            L {{ isset($day['temperature_low']) ? round($day['temperature_low']).'°' : '—' }}
+                        </div>
                         <div class="text-sm text-gray-600 dark:text-gray-300">{{ $day['condition'] ?? 'N/A' }}</div>
                     </div>
 
