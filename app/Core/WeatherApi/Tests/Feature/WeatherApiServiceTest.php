@@ -254,26 +254,6 @@ it('refreshes forecast data when stored forecast rows are incomplete', function 
             'created_at' => now(),
             'updated_at' => now(),
         ],
-        [
-            'location_key' => '02766',
-            'source_location' => '02766',
-            'location_name' => 'Norton, MA',
-            'record_type' => 'forecast',
-            'weather_date' => $today->copy()->addDay()->toDateString(),
-            'temperature' => 70.0,
-            'temperature_high' => 76.0,
-            'temperature_low' => 63.0,
-            'temperature_unit' => 'F',
-            'wind_speed' => 8.0,
-            'wind_direction' => null,
-            'precipitation' => 0.0,
-            'humidity' => 45,
-            'condition_text' => 'Cloudy',
-            'weather_icon' => '//cdn.weatherapi.com/weather/64x64/day/119.png',
-            'synced_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ],
     ]);
 
     Http::fake([
@@ -293,7 +273,7 @@ it('refreshes forecast data when stored forecast rows are incomplete', function 
                 'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
             ],
             'forecast' => [
-                'forecastday' => collect(range(0, 1))->map(fn (int $offset): array => [
+                'forecastday' => collect(range(0, 2))->map(fn (int $offset): array => [
                     'date' => Carbon::today()->addDays($offset)->toDateString(),
                     'day' => [
                         'avgtemp_f' => 72 - $offset,
@@ -331,7 +311,7 @@ it('refreshes forecast data when a cached forecast payload is incomplete', funct
                 'country' => 'United States',
             ],
             'forecast' => [
-                'forecastday' => collect(range(0, 2))->map(fn (int $offset): array => [
+                'forecastday' => collect(range(0, 1))->map(fn (int $offset): array => [
                     'date' => Carbon::today()->addDays($offset)->toDateString(),
                     'day' => [
                         'avgtemp_f' => 72 - $offset,
