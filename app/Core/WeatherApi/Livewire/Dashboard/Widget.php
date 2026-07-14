@@ -6,6 +6,7 @@ use App\Core\Settings\Facades\Settings;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use App\Support\Diagnostics\MemoryProbe;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\ComponentAttributeBag;
 use Livewire\Component;
@@ -39,32 +40,8 @@ class Widget extends Component
             return;
         }
 
-        $items = [];
-
-        for ($i = 0; $i < 5; $i++) {
-            $date = Carbon::today()->addDays($i);
-            $data = $weatherApi->getForecastWeather($this->location, $date);
-
-            if ($data !== null) {
-                $dayData = $weatherApi->extractWeatherForDailyReport($data);
-                $dayData['date'] = $date->toDateString();
-                $dayData['flux_icon'] = $this->mapConditionToIcon($dayData['condition'] ?? null);
-            } else {
-                $dayData = [
-                    'date' => $date->toDateString(),
-                    'temperature' => null,
-                    'condition' => null,
-                    'location_name' => null,
-                    'full_data' => null,
-                    'flux_icon' => null,
-                ];
-            }
-
-            $displayDate = $this->formatDisplayDate($dayData['date'] ?? null);
-            $iconHtml = $this->renderIconHtml($dayData['flux_icon'] ?? null);
-
-            $items[] = $this->buildForecastItem($dayData, $displayDate, $iconHtml);
-        }
+        $payload = $weatherApi->getForecastWeather($this->location, Carbon::today());
+        $items = $this->buildForecastItems($payload);
 
         $this->forecast = $items;
 
@@ -78,6 +55,30 @@ class Widget extends Component
                 'largest_items' => MemoryProbe::largestItems($this->forecast, 5),
             ]);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildForecastItems(?array $payload): array
+    {
+        $items = [];
+        $locationName = $this->extractLocationName($payload);
+        $forecastDays = $this->indexForecastDaysByDate($payload);
+
+        for ($i = 0; $i < 5; $i++) {
+            $date = Carbon::today()->addDays($i);
+            $dayData = $this->buildForecastDayData($forecastDays[$date->toDateString()] ?? null, $date, $locationName);
+
+            $items[] = $this->buildForecastItem(
+                $dayData,
+                $this->formatDisplayDate($dayData['date'] ?? null),
+                $this->renderIconHtml($dayData['flux_icon'] ?? null),
+            );
+        }
+
+        return $items;
     }
 
     protected function formatDisplayDate(?string $date): string
@@ -108,6 +109,74 @@ class Widget extends Component
             'temperature' => $dayData['temperature'] ?? null,
             'temperature_high' => $dayData['temperature_high'] ?? null,
             'temperature_low' => $dayData['temperature_low'] ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     */
+    protected function extractLocationName(?array $payload): ?string
+    {
+        if (! is_array($payload['location'] ?? null)) {
+            return null;
+        }
+
+        $locationName = (string) ($payload['location']['name'] ?? '');
+        $region = (string) ($payload['location']['region'] ?? '');
+        $country = (string) ($payload['location']['country'] ?? '');
+        $suffix = $region !== '' ? $region : $country;
+
+        return trim($locationName.($suffix !== '' ? ', '.$suffix : '')) ?: null;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     * @return array<string, array<string, mixed>>
+     */
+    protected function indexForecastDaysByDate(?array $payload): array
+    {
+        $forecastDays = $payload['forecast']['forecastday'] ?? null;
+
+        if (! is_array($forecastDays)) {
+            return [];
+        }
+
+        $indexedForecastDays = [];
+
+        foreach ($forecastDays as $forecastDay) {
+            if (! is_array($forecastDay)) {
+                continue;
+            }
+
+            $date = $forecastDay['date'] ?? null;
+
+            if (! is_string($date) || $date === '') {
+                continue;
+            }
+
+            $indexedForecastDays[$date] = $forecastDay;
+        }
+
+        return $indexedForecastDays;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $forecastDay
+     * @return array<string, mixed>
+     */
+    protected function buildForecastDayData(?array $forecastDay, CarbonInterface $date, ?string $locationName): array
+    {
+        $day = is_array($forecastDay['day'] ?? null) ? $forecastDay['day'] : [];
+        $condition = is_array($day['condition'] ?? null) ? $day['condition'] : [];
+
+        return [
+            'date' => $date->toDateString(),
+            'condition' => $condition['text'] ?? null,
+            'location_name' => $locationName,
+            'temperature' => $day['avgtemp_f'] ?? null,
+            'temperature_high' => $day['maxtemp_f'] ?? null,
+            'temperature_low' => $day['mintemp_f'] ?? null,
+            'flux_icon' => $this->mapConditionToIcon($condition['text'] ?? null),
         ];
     }
 

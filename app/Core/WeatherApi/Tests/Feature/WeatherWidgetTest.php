@@ -3,6 +3,7 @@
 namespace App\Core\WeatherApi\Tests\Feature;
 
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
+use App\Core\WeatherApi\Livewire\Dashboard\Widget;
 use Livewire\Livewire;
 
 it('renders five day forecast using the weather api', function () {
@@ -20,25 +21,51 @@ it('renders five day forecast using the weather api', function () {
                             'condition' => ['text' => 'Sunny', 'icon' => ''],
                         ],
                     ],
+                    [
+                        'date' => now()->addDay()->toDateString(),
+                        'day' => [
+                            'avgtemp_f' => 68,
+                            'maxtemp_f' => 73,
+                            'mintemp_f' => 63,
+                            'condition' => ['text' => 'Cloudy', 'icon' => ''],
+                        ],
+                    ],
+                    [
+                        'date' => now()->addDays(2)->toDateString(),
+                        'day' => [
+                            'avgtemp_f' => 66,
+                            'maxtemp_f' => 71,
+                            'mintemp_f' => 61,
+                            'condition' => ['text' => 'Rain', 'icon' => ''],
+                        ],
+                    ],
+                    [
+                        'date' => now()->addDays(3)->toDateString(),
+                        'day' => [
+                            'avgtemp_f' => 64,
+                            'maxtemp_f' => 69,
+                            'mintemp_f' => 59,
+                            'condition' => ['text' => 'Mist', 'icon' => ''],
+                        ],
+                    ],
+                    [
+                        'date' => now()->addDays(4)->toDateString(),
+                        'day' => [
+                            'avgtemp_f' => 62,
+                            'maxtemp_f' => 67,
+                            'mintemp_f' => 57,
+                            'condition' => ['text' => 'Partly cloudy', 'icon' => ''],
+                        ],
+                    ],
                 ],
             ],
             'current' => [],
         ];
 
-        $mock->shouldReceive('getForecastWeather')->andReturn($sample);
-        $mock->shouldReceive('extractWeatherForDailyReport')->andReturnUsing(function ($data) {
-            return [
-                'date' => $data['forecast']['forecastday'][0]['date'] ?? now()->toDateString(),
-                'temperature' => $data['forecast']['forecastday'][0]['day']['avgtemp_f'] ?? null,
-                'temperature_high' => $data['forecast']['forecastday'][0]['day']['maxtemp_f'] ?? null,
-                'temperature_low' => $data['forecast']['forecastday'][0]['day']['mintemp_f'] ?? null,
-                'condition' => $data['forecast']['forecastday'][0]['day']['condition']['text'] ?? null,
-                'location_name' => $data['location']['name'] ?? null,
-            ];
-        });
+        $mock->shouldReceive('getForecastWeather')->once()->andReturn($sample);
     });
 
-    $component = Livewire::test(\App\Core\WeatherApi\Livewire\Dashboard\Widget::class);
+    $component = Livewire::test(Widget::class);
 
     $forecast = $component->get('forecast');
 
