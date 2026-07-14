@@ -3,11 +3,9 @@
 namespace App\Core\Announcement\Livewire\Dashboard;
 
 use App\Core\Announcement\Models\Announcement;
+use App\Support\Diagnostics\MemoryProbe;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-
-
-
 
 class Widget extends Component
 {
