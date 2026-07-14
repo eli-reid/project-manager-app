@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\DB;
 
 class StoredWeatherService
 {
+    public function hasAnyRecordsForLocation(string $location): bool
+    {
+        return DB::table('weather_records')
+            ->where('location_key', $this->normalizeLocationKey($location))
+            ->exists();
+    }
+
     public function findCurrentPayload(string $location, int $freshForMinutes): ?array
     {
         $record = $this->baseQuery($location, 'current')

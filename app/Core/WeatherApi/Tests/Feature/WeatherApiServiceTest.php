@@ -20,6 +20,27 @@ beforeEach(function (): void {
 it('caches current weather by location', function (): void {
     $service = app(WeatherApiService::class);
 
+    DB::table('weather_records')->insert([
+        'location_key' => 'denver,co',
+        'source_location' => 'denver,co',
+        'location_name' => 'Denver, CO',
+        'record_type' => 'history',
+        'weather_date' => Carbon::yesterday()->toDateString(),
+        'temperature' => 65.0,
+        'temperature_high' => 70.0,
+        'temperature_low' => 60.0,
+        'temperature_unit' => 'F',
+        'wind_speed' => 5.0,
+        'wind_direction' => null,
+        'precipitation' => 0.0,
+        'humidity' => 40,
+        'condition_text' => 'Sunny',
+        'weather_icon' => null,
+        'synced_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     Http::fake([
         'https://api.weatherapi.com/v1/current.json*' => Http::response([
             'location' => ['name' => 'Denver'],
@@ -263,14 +284,116 @@ it('syncs default location weather into storage and prunes expired rows', functi
                 ])->all(),
             ],
         ], 200),
+        'https://api.weatherapi.com/v1/history.json*' => function (Request $request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
+            $date = $query['dt'] ?? Carbon::yesterday()->toDateString();
+
+            return Http::response([
+                'location' => [
+                    'name' => 'Norton',
+                    'region' => 'Massachusetts',
+                    'country' => 'United States',
+                ],
+                'forecast' => [
+                    'forecastday' => [[
+                        'date' => $date,
+                        'day' => [
+                            'avgtemp_f' => 66,
+                            'maxtemp_f' => 70,
+                            'mintemp_f' => 61,
+                            'maxwind_mph' => 8,
+                            'totalprecip_in' => 0.0,
+                            'avghumidity' => 47,
+                            'condition' => ['text' => 'Clear', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+                        ],
+                    ]],
+                ],
+            ], 200);
+        },
     ]);
 
     $result = $service->syncStoredWeather();
 
     expect($result['location'])->toBe('02766')
-        ->and($result['synced_records'])->toBe(6)
+        ->and($result['synced_records'])->toBe(8)
         ->and($result['pruned_records'])->toBe(1)
         ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'forecast')->count())->toBe(5)
         ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'current')->count())->toBe(1)
+        ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'history')->count())->toBe(2)
         ->and(DB::table('weather_records')->whereDate('weather_date', '<', Carbon::today()->subDays(2)->toDateString())->count())->toBe(0);
+});
+
+it('bootstraps a location with historical weather when current weather is requested and no records exist', function (): void {
+    $service = app(WeatherApiService::class);
+
+    Settings::set('weatherapi.retention_days', 3);
+
+    Http::fake([
+        'https://api.weatherapi.com/v1/forecast.json*' => Http::response([
+            'location' => [
+                'name' => 'Taunton',
+                'region' => 'Massachusetts',
+                'country' => 'United States',
+                'localtime' => now()->format('Y-m-d H:i'),
+            ],
+            'current' => [
+                'temp_f' => 71.5,
+                'wind_mph' => 6.0,
+                'wind_dir' => 'SW',
+                'precip_in' => 0.0,
+                'humidity' => 42,
+                'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+            ],
+            'forecast' => [
+                'forecastday' => collect(range(0, 4))->map(fn (int $offset): array => [
+                    'date' => Carbon::today()->addDays($offset)->toDateString(),
+                    'day' => [
+                        'avgtemp_f' => 71 - $offset,
+                        'maxtemp_f' => 76 - $offset,
+                        'mintemp_f' => 64 - $offset,
+                        'maxwind_mph' => 9 - $offset,
+                        'totalprecip_in' => 0.0,
+                        'avghumidity' => 44,
+                        'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+                    ],
+                ])->all(),
+            ],
+        ], 200),
+        'https://api.weatherapi.com/v1/history.json*' => function (Request $request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
+            $date = $query['dt'] ?? Carbon::yesterday()->toDateString();
+
+            return Http::response([
+                'location' => [
+                    'name' => 'Taunton',
+                    'region' => 'Massachusetts',
+                    'country' => 'United States',
+                ],
+                'forecast' => [
+                    'forecastday' => [[
+                        'date' => $date,
+                        'day' => [
+                            'avgtemp_f' => 65,
+                            'maxtemp_f' => 69,
+                            'mintemp_f' => 60,
+                            'maxwind_mph' => 7,
+                            'totalprecip_in' => 0.0,
+                            'avghumidity' => 48,
+                            'condition' => ['text' => 'Cloudy', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/119.png'],
+                        ],
+                    ]],
+                ],
+            ], 200);
+        },
+    ]);
+
+    $result = $service->getCurrentWeather('02780');
+
+    expect($result)->toBeArray()
+        ->and($result['current']['temp_f'])->toBe(71.5)
+        ->and(DB::table('weather_records')->where('location_key', '02780')->where('record_type', 'current')->count())->toBe(1)
+        ->and(DB::table('weather_records')->where('location_key', '02780')->where('record_type', 'forecast')->count())->toBe(5)
+        ->and(DB::table('weather_records')->where('location_key', '02780')->where('record_type', 'history')->count())->toBe(3);
+
+    Http::assertSentCount(4);
 });

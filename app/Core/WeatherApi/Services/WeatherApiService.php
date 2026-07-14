@@ -23,6 +23,14 @@ class WeatherApiService implements WeatherApiContract
             return $storedPayload;
         }
 
+        $this->bootstrapLocationWeatherIfMissing($location);
+
+        $storedPayload = $this->storedWeatherService->findCurrentPayload($location, $this->cacheDurationMinutes());
+
+        if ($storedPayload !== null) {
+            return $storedPayload;
+        }
+
         return $this->remember($this->cacheKeyCurrent($location), function () use ($location): ?array {
             $payload = $this->makeApiRequest('current.json', [
                 'q' => $location,
@@ -229,26 +237,55 @@ class WeatherApiService implements WeatherApiContract
             ];
         }
 
-        $payload = $this->makeApiRequest('forecast.json', [
-            'q' => $location,
-            'days' => 5,
-        ]);
-
-        if (! is_array($payload)) {
-            return [
-                'location' => $location,
-                'synced_records' => 0,
-                'pruned_records' => $prunedRecords,
-            ];
-        }
-
-        $syncedRecords = $this->storedWeatherService->storeForecastPayload($location, $payload);
+        $syncedRecords = $this->syncLocationWeatherBackfill($location);
 
         return [
             'location' => $location,
             'synced_records' => $syncedRecords,
             'pruned_records' => $prunedRecords,
         ];
+    }
+
+    protected function bootstrapLocationWeatherIfMissing(string $location): void
+    {
+        if ($this->storedWeatherService->hasAnyRecordsForLocation($location)) {
+            return;
+        }
+
+        $this->syncLocationWeatherBackfill($location);
+    }
+
+    protected function syncLocationWeatherBackfill(string $location): int
+    {
+        $forecastPayload = $this->makeApiRequest('forecast.json', [
+            'q' => $location,
+            'days' => 5,
+        ]);
+
+        $syncedRecords = 0;
+
+        if (is_array($forecastPayload)) {
+            $syncedRecords += $this->storedWeatherService->storeForecastPayload($location, $forecastPayload);
+        }
+
+        $historyDaysToSync = max(1, $this->retentionDays());
+
+        for ($offset = 1; $offset <= $historyDaysToSync; $offset++) {
+            $historyDate = Carbon::today()->subDays($offset);
+            $historyPayload = $this->makeApiRequest('history.json', [
+                'q' => $location,
+                'dt' => $historyDate->toDateString(),
+            ]);
+
+            if (! is_array($historyPayload)) {
+                continue;
+            }
+
+            $this->storedWeatherService->storeHistoricalPayload($location, $historyDate, $historyPayload);
+            $syncedRecords++;
+        }
+
+        return $syncedRecords;
     }
 
     public function pruneStoredWeather(): int
