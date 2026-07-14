@@ -3,6 +3,7 @@
 namespace App\Domains\Documents\Livewire\Dashboard;
 
 use App\Core\Identity\Models\User;
+use App\Support\Diagnostics\MemoryProbe;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Contracts\View\View;
@@ -14,6 +15,7 @@ class Widget extends Component
 {
     public function render(): View
     {
+        $baseline = MemoryProbe::enabled() ? MemoryProbe::snapshot('widget.documents.project-documents.render.start') : null;
         $user = Auth::user();
         abort_unless($user instanceof User, 401);
 
@@ -38,6 +40,16 @@ class Widget extends Component
             ->get();
 
         $total = (clone $documentsQuery)->count();
+        if ($baseline !== null) {
+            MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'rendered', [
+                'widget' => 'documents.project-documents',
+                'phase' => 'render',
+                'documents_count' => $documents->count(),
+                'total' => $total,
+                'user_project_ids_count' => \count($userProjectIds),
+                'documents_payload' => MemoryProbe::inspect($documents, 'documents'),
+            ]);
+        }
 
         return view('documents::livewire.dashboard.widget', [
             'documents' => $documents,

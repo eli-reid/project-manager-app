@@ -141,10 +141,9 @@ trait ResolvesDashboardSections
      */
     protected function logDashboardMemoryProbe(string $viewName, string $phase, array $baseline, array $context): void
     {
-        Log::debug('Dashboard memory probe.', [
+        MemoryProbe::logDelta('Dashboard memory probe.', $baseline, $phase, [
             'view' => $viewName,
             'phase' => $phase,
-            ...MemoryProbe::delta($baseline, $phase),
             ...$context,
         ]);
     }

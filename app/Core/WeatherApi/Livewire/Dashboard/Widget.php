@@ -49,6 +49,7 @@ class Widget extends Component
             }
 
             // Prepare display-friendly fields to keep Blade minimal
+                use App\Support\Diagnostics\MemoryProbe;
             $displayDate = $this->formatDisplayDate($dayData['date'] ?? null);
             $iconHtml = $this->renderIconHtml($dayData['flux_icon'] ?? null);
 
@@ -91,18 +92,40 @@ class Widget extends Component
             'sun', 'clear' => '☀️',
             default => '🌤️',
         };
+            $baseline = MemoryProbe::enabled() ? MemoryProbe::snapshot('widget.weather.forecast.mount.start') : null;
 
         return '<span aria-hidden="true">'.$emoji.'</span>';
     }
 
+
+                if ($baseline !== null) {
+                    MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'mounted', [
+                        'widget' => 'weather.forecast',
+                        'phase' => 'mount',
+                        'location' => $this->location,
+                        'forecast_days' => 0,
+                        'payload' => MemoryProbe::inspect($this->forecast, 'forecast'),
+                    ]);
+                }
     public function render()
     {
         return view('weather::dashboard.widget');
+
+        if ($baseline !== null) {
+            MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'mounted', [
+                'widget' => 'weather.forecast',
+                'phase' => 'mount',
+                'location' => $this->location,
+                'forecast_days' => \count($this->forecast),
+                'payload' => MemoryProbe::inspect($this->forecast, 'forecast'),
+                'largest_items' => MemoryProbe::largestItems($this->forecast, 5),
+            ]);
+        }
     }
     
     protected function mapConditionToIcon(?string $condition): string
     {
-        if ($condition === null) {
+
             return 'sun';
         }
 

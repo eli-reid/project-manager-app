@@ -4,10 +4,16 @@ namespace App\Support\Diagnostics;
 
 use Countable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 final class MemoryProbe
 {
+    public static function enabled(): bool
+    {
+        return (bool) \config('app.debug', false);
+    }
+
     /**
      * Capture the current process memory snapshot.
      *
@@ -48,6 +54,51 @@ final class MemoryProbe
         $current['delta_peak_mb'] = self::toMegabytes($current['delta_peak_bytes']);
 
         return $current;
+    }
+
+    /**
+     * Calculate a readable memory delta summary for logs.
+     *
+     * @param  array{label:string|null,current_bytes:int,current_mb:float,real_bytes:int,real_mb:float,peak_bytes:int,peak_mb:float}  $baseline
+     * @return array{label:string|null,current_bytes:int,current_mb:string,real_bytes:int,real_mb:string,peak_bytes:int,peak_mb:string,delta_current_bytes:int,delta_current_mb:string,delta_real_bytes:int,delta_real_mb:string,delta_peak_bytes:int,delta_peak_mb:string}
+     */
+    public static function compactDelta(array $baseline, ?string $label = null): array
+    {
+        $delta = self::delta($baseline, $label);
+
+        return [
+            'label' => $delta['label'],
+            'current_bytes' => $delta['current_bytes'],
+            'current_mb' => self::formatMegabytes($delta['current_bytes']),
+            'real_bytes' => $delta['real_bytes'],
+            'real_mb' => self::formatMegabytes($delta['real_bytes']),
+            'peak_bytes' => $delta['peak_bytes'],
+            'peak_mb' => self::formatMegabytes($delta['peak_bytes']),
+            'delta_current_bytes' => $delta['delta_current_bytes'],
+            'delta_current_mb' => self::formatMegabytes($delta['delta_current_bytes']),
+            'delta_real_bytes' => $delta['delta_real_bytes'],
+            'delta_real_mb' => self::formatMegabytes($delta['delta_real_bytes']),
+            'delta_peak_bytes' => $delta['delta_peak_bytes'],
+            'delta_peak_mb' => self::formatMegabytes($delta['delta_peak_bytes']),
+        ];
+    }
+
+    /**
+     * Log a readable debug memory probe entry when debug mode is enabled.
+     *
+     * @param  array{label:string|null,current_bytes:int,current_mb:float,real_bytes:int,real_mb:float,peak_bytes:int,peak_mb:float}  $baseline
+     * @param  array<string, mixed>  $context
+     */
+    public static function logDelta(string $message, array $baseline, ?string $label = null, array $context = []): void
+    {
+        if (! self::enabled()) {
+            return;
+        }
+
+        Log::debug($message, [
+            ...self::compactDelta($baseline, $label),
+            ...$context,
+        ]);
     }
 
     /**
@@ -136,5 +187,10 @@ final class MemoryProbe
     private static function toMegabytes(int $bytes): float
     {
         return \round($bytes / 1024 / 1024, 2);
+    }
+
+    private static function formatMegabytes(int $bytes): string
+    {
+        return \number_format($bytes / 1024 / 1024, 2, '.', '');
     }
 }
