@@ -9,6 +9,7 @@ use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
+use App\Domains\Projects\Observers\ProjectObserver;
 use App\Domains\Projects\Permissions\ProjectPermissions;
 use App\Domains\Projects\Policies\ProjectPolicy;
 use App\Domains\Projects\Services\ProjectTabCatalog;
@@ -60,6 +61,7 @@ class ProjectsServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'projects');
+        Project::observe(ProjectObserver::class);
     }
 
     private function registerUIComponents(): void

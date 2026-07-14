@@ -7,7 +7,10 @@ use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\WeatherApi\Console\Commands\SyncStoredWeatherData;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
+use App\Core\WeatherApi\Listeners\WarmProjectWeatherLocation;
 use App\Core\WeatherApi\Services\WeatherApiService;
+use App\Domains\Projects\Events\ProjectAddressChanged;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -26,6 +29,7 @@ class WeatherApiServiceProvider extends ServiceProvider
         $this->commands([
             SyncStoredWeatherData::class,
         ]);
+        Event::listen(ProjectAddressChanged::class, WarmProjectWeatherLocation::class);
         $this->registerUIComponents();
         $this->registerDashboardWidgets($widgetRegistry);
     }

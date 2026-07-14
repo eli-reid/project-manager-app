@@ -293,6 +293,11 @@ class WeatherApiService implements WeatherApiContract
         return $this->storedWeatherService->pruneExpiredRecords($this->retentionDays());
     }
 
+    public function warmStoredWeatherForLocation(string $location): void
+    {
+        $this->bootstrapLocationWeatherIfMissing($location);
+    }
+
     /**
      * @param  array<string, mixed>  $params
      * @return array<string, mixed>|null
