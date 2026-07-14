@@ -171,7 +171,7 @@ it('returns forecast payload from stored weather records without calling the api
         'updated_at' => now(),
     ]];
 
-    foreach (range(0, 4) as $offset) {
+    foreach (range(0, 2) as $offset) {
         $records[] = [
             'location_key' => '02766',
             'source_location' => '02766',
@@ -293,7 +293,7 @@ it('refreshes forecast data when stored forecast rows are incomplete', function 
                 'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
             ],
             'forecast' => [
-                'forecastday' => collect(range(0, 4))->map(fn (int $offset): array => [
+                'forecastday' => collect(range(0, 2))->map(fn (int $offset): array => [
                     'date' => Carbon::today()->addDays($offset)->toDateString(),
                     'day' => [
                         'avgtemp_f' => 72 - $offset,
@@ -312,8 +312,8 @@ it('refreshes forecast data when stored forecast rows are incomplete', function 
     $result = $service->getForecastWeather('02766', $today);
 
     expect($result)->toBeArray()
-        ->and(count($result['forecast']['forecastday']))->toBe(5)
-        ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'forecast')->count())->toBe(5);
+        ->and(count($result['forecast']['forecastday']))->toBe(3)
+        ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'forecast')->count())->toBe(3);
 
     Http::assertSentCount(1);
 });
@@ -366,7 +366,7 @@ it('refreshes forecast data when a cached forecast payload is incomplete', funct
                 'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
             ],
             'forecast' => [
-                'forecastday' => collect(range(0, 4))->map(fn (int $offset): array => [
+                'forecastday' => collect(range(0, 2))->map(fn (int $offset): array => [
                     'date' => Carbon::today()->addDays($offset)->toDateString(),
                     'day' => [
                         'avgtemp_f' => 72 - $offset,
@@ -385,8 +385,8 @@ it('refreshes forecast data when a cached forecast payload is incomplete', funct
     $result = $service->getForecastWeather('02766', $today);
 
     expect($result)->toBeArray()
-        ->and(count($result['forecast']['forecastday']))->toBe(5)
-        ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'forecast')->count())->toBe(5);
+        ->and(count($result['forecast']['forecastday']))->toBe(3)
+        ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'forecast')->count())->toBe(3);
 
     Http::assertSentCount(1);
 });

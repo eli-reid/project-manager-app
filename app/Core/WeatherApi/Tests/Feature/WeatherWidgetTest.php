@@ -6,7 +6,7 @@ use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use App\Core\WeatherApi\Livewire\Dashboard\Widget;
 use Livewire\Livewire;
 
-it('renders five day forecast using the weather api', function () {
+it('renders three day forecast using the weather api', function () {
     $this->mock(WeatherApiContract::class, function ($mock) {
         $sample = [
             'location' => ['name' => 'Test City', 'region' => '', 'country' => 'Testland'],
@@ -39,24 +39,6 @@ it('renders five day forecast using the weather api', function () {
                             'condition' => ['text' => 'Rain', 'icon' => ''],
                         ],
                     ],
-                    [
-                        'date' => now()->addDays(3)->toDateString(),
-                        'day' => [
-                            'avgtemp_f' => 64,
-                            'maxtemp_f' => 69,
-                            'mintemp_f' => 59,
-                            'condition' => ['text' => 'Mist', 'icon' => ''],
-                        ],
-                    ],
-                    [
-                        'date' => now()->addDays(4)->toDateString(),
-                        'day' => [
-                            'avgtemp_f' => 62,
-                            'maxtemp_f' => 67,
-                            'mintemp_f' => 57,
-                            'condition' => ['text' => 'Partly cloudy', 'icon' => ''],
-                        ],
-                    ],
                 ],
             ],
             'current' => [],
@@ -69,8 +51,8 @@ it('renders five day forecast using the weather api', function () {
 
     $forecast = $component->get('forecast');
 
-    expect(count($forecast))->toBe(5);
-    $component->assertSee('5 Day Forecast');
+    expect(count($forecast))->toBe(3);
+    $component->assertSee('3 Day Forecast');
     $component->assertSee('Test City');
     $component->assertSee(now()->format('M j D'));
     $component->assertSee('H 75°');

@@ -67,7 +67,7 @@ class Widget extends Component
         $locationName = $this->extractLocationName($payload);
         $forecastDays = $this->indexForecastDaysByDate($payload);
 
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < $this->forecastDays(); $i++) {
             $date = Carbon::today()->addDays($i);
             $dayData = $this->buildForecastDayData($forecastDays[$date->toDateString()] ?? null, $date, $locationName);
 
@@ -204,6 +204,11 @@ class Widget extends Component
     public function render()
     {
         return view('weather::dashboard.widget');
+    }
+
+    protected function forecastDays(): int
+    {
+        return 3;
     }
 
     protected function mapConditionToIcon(?string $condition): string

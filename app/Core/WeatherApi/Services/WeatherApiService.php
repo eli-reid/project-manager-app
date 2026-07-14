@@ -87,7 +87,7 @@ class WeatherApiService implements WeatherApiContract
             $payload = $this->remember($cacheKey, function () use ($location, $formattedDate): ?array {
                 $payload = $this->makeApiRequest('forecast.json', [
                     'q' => $location,
-                    'days' => 5,
+                    'days' => $this->forecastDays(),
                 ]);
 
                 if (is_array($payload)) {
@@ -272,7 +272,7 @@ class WeatherApiService implements WeatherApiContract
     {
         $forecastPayload = $this->makeApiRequest('forecast.json', [
             'q' => $location,
-            'days' => 10,
+            'days' => $this->forecastDays(),
         ]);
 
         $syncedRecords = 0;
@@ -326,7 +326,7 @@ class WeatherApiService implements WeatherApiContract
             ->pluck('date')
             ->filter(fn (mixed $forecastDate): bool => is_string($forecastDate) && $forecastDate !== '');
 
-        for ($offset = 0; $offset < 5; $offset++) {
+        for ($offset = 0; $offset < $this->forecastDays(); $offset++) {
             if (! $availableDates->contains($date->copy()->addDays($offset)->toDateString())) {
                 return false;
             }
@@ -342,7 +342,7 @@ class WeatherApiService implements WeatherApiContract
     {
         $payload = $this->makeApiRequest('forecast.json', [
             'q' => $location,
-            'days' => 5,
+            'days' => $this->forecastDays(),
         ]);
 
         if (is_array($payload)) {
@@ -428,6 +428,11 @@ class WeatherApiService implements WeatherApiContract
     protected function timeoutSeconds(): int
     {
         return $this->positiveIntSetting('weatherapi.timeout', 'services.weatherapi.timeout', 10);
+    }
+
+    protected function forecastDays(): int
+    {
+        return 3;
     }
 
     protected function retentionDays(): int

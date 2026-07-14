@@ -1,5 +1,5 @@
 <div class="bg-white dark:bg-slate-800 shadow rounded p-4">
-    <h3 class="text-lg font-medium text-gray-900 dark:text-white">5 Day Forecast
+    <h3 class="text-lg font-medium text-gray-900 dark:text-white">3 Day Forecast
         @if(!empty($forecast) && isset($forecast[0]['location_name']) && trim($forecast[0]['location_name']) !== '')
             - {{ $forecast[0]['location_name'] }}
         @elseif(!empty($location))
@@ -11,7 +11,7 @@
         <p class="text-sm text-gray-500 dark:text-gray-300">No forecast available. Configure a default location in settings.</p>
     @else
         <div class="mt-3 overflow-x-auto">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 min-w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 min-w-full">
             @foreach($forecast as $day)
                 <div class="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded p-3 text-center flex flex-col justify-between items-center h-48">
                     <div class="w-full flex items-start justify-between">
