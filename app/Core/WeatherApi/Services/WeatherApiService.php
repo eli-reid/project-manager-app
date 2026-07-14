@@ -259,7 +259,7 @@ class WeatherApiService implements WeatherApiContract
     {
         $forecastPayload = $this->makeApiRequest('forecast.json', [
             'q' => $location,
-            'days' => 5,
+            'days' => 10,
         ]);
 
         $syncedRecords = 0;
