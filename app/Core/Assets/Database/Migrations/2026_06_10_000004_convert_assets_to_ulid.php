@@ -16,9 +16,10 @@ return new class extends Migration
         if (Schema::getConnection()->getDriverName() === 'sqlite') {
             return;
         }
-        // Prevent repeated runs from failing: if the temp table exists, stop with guidance
+        // If a previous attempt left the temp table behind, skip this migration so
+        // the rest of the migration batch can continue.
         if (Schema::hasTable('assets_new')) {
-            throw new \RuntimeException("Temporary table 'assets_new' already exists. Either rollback the previous migration or drop the 'assets_new' table before re-running this migration.");
+            return;
         }
 
         // Create a new table with ULID primary key to copy data into
