@@ -72,6 +72,7 @@ class WeatherApiService implements WeatherApiContract
     {
         if ($date->isToday() || $date->isFuture()) {
             $formattedDate = $date->toDateString();
+            $cacheKey = $this->cacheKeyForecast($location, $formattedDate);
 
             $storedPayload = $this->storedWeatherService->findForecastPayload($location, $date);
 
@@ -79,7 +80,11 @@ class WeatherApiService implements WeatherApiContract
                 return $storedPayload;
             }
 
-            return $this->remember($this->cacheKeyForecast($location, $formattedDate), function () use ($location, $formattedDate): ?array {
+            if ($storedPayload !== null) {
+                Cache::forget($cacheKey);
+            }
+
+            $payload = $this->remember($cacheKey, function () use ($location, $formattedDate): ?array {
                 $payload = $this->makeApiRequest('forecast.json', [
                     'q' => $location,
                     'days' => 5,
@@ -95,6 +100,14 @@ class WeatherApiService implements WeatherApiContract
 
                 return $payload;
             });
+
+            if (is_array($payload) && ! $this->hasCompleteForecast($payload, $date)) {
+                Cache::forget($cacheKey);
+
+                return $this->fetchAndStoreForecastPayload($location, $formattedDate);
+            }
+
+            return $payload;
         }
 
         return $this->getHistoricalWeather($location, $date);
@@ -320,6 +333,25 @@ class WeatherApiService implements WeatherApiContract
         }
 
         return true;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    protected function fetchAndStoreForecastPayload(string $location, string $formattedDate): ?array
+    {
+        $payload = $this->makeApiRequest('forecast.json', [
+            'q' => $location,
+            'days' => 5,
+        ]);
+
+        if (is_array($payload)) {
+            $this->storedWeatherService->storeForecastPayload($location, $payload);
+
+            $payload['requested_date'] = $formattedDate;
+        }
+
+        return $payload;
     }
 
     /**

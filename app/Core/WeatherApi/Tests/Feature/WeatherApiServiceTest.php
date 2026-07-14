@@ -318,6 +318,79 @@ it('refreshes forecast data when stored forecast rows are incomplete', function 
     Http::assertSentCount(1);
 });
 
+it('refreshes forecast data when a cached forecast payload is incomplete', function (): void {
+    $service = app(WeatherApiService::class);
+    $today = Carbon::today();
+
+    Cache::put(
+        sprintf('weather_forecast_%s_%s', '02766', $today->toDateString()),
+        [
+            'location' => [
+                'name' => 'Norton',
+                'region' => 'Massachusetts',
+                'country' => 'United States',
+            ],
+            'forecast' => [
+                'forecastday' => collect(range(0, 2))->map(fn (int $offset): array => [
+                    'date' => Carbon::today()->addDays($offset)->toDateString(),
+                    'day' => [
+                        'avgtemp_f' => 72 - $offset,
+                        'maxtemp_f' => 78 - $offset,
+                        'mintemp_f' => 65 - $offset,
+                        'maxwind_mph' => 10 - $offset,
+                        'totalprecip_in' => 0.1,
+                        'avghumidity' => 45,
+                        'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+                    ],
+                ])->all(),
+            ],
+            'requested_date' => $today->toDateString(),
+        ],
+        now()->addHour(),
+    );
+
+    Http::fake([
+        'https://api.weatherapi.com/v1/forecast.json*' => Http::response([
+            'location' => [
+                'name' => 'Norton',
+                'region' => 'Massachusetts',
+                'country' => 'United States',
+                'localtime' => now()->format('Y-m-d H:i'),
+            ],
+            'current' => [
+                'temp_f' => 74.5,
+                'wind_mph' => 7.5,
+                'wind_dir' => 'NW',
+                'precip_in' => 0.0,
+                'humidity' => 40,
+                'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+            ],
+            'forecast' => [
+                'forecastday' => collect(range(0, 4))->map(fn (int $offset): array => [
+                    'date' => Carbon::today()->addDays($offset)->toDateString(),
+                    'day' => [
+                        'avgtemp_f' => 72 - $offset,
+                        'maxtemp_f' => 78 - $offset,
+                        'mintemp_f' => 65 - $offset,
+                        'maxwind_mph' => 10 - $offset,
+                        'totalprecip_in' => 0.1,
+                        'avghumidity' => 45,
+                        'condition' => ['text' => 'Sunny', 'icon' => '//cdn.weatherapi.com/weather/64x64/day/113.png'],
+                    ],
+                ])->all(),
+            ],
+        ], 200),
+    ]);
+
+    $result = $service->getForecastWeather('02766', $today);
+
+    expect($result)->toBeArray()
+        ->and(count($result['forecast']['forecastday']))->toBe(5)
+        ->and(DB::table('weather_records')->where('location_key', '02766')->where('record_type', 'forecast')->count())->toBe(5);
+
+    Http::assertSentCount(1);
+});
+
 it('syncs default location weather into storage and prunes expired rows', function (): void {
     $service = app(WeatherApiService::class);
 
