@@ -62,6 +62,10 @@ class TaskHierarchyWidget extends Component
 
     public ?string $inlineCategoryParentId = null;
 
+    public int $inlineCategoryBatchCount = 1;
+
+    public int $inlineCategoryBatchStartNumber = 1;
+
     public string $inlineTaskTitle = '';
 
     public string $inlineTaskDescription = '';
@@ -601,7 +605,7 @@ class TaskHierarchyWidget extends Component
 
     public function cancelInlineCategoryForm(): void
     {
-        $this->reset('inlineCategoryName', 'inlineCategoryDescription', 'inlineCategoryParentId');
+        $this->reset('inlineCategoryName', 'inlineCategoryDescription', 'inlineCategoryParentId', 'inlineCategoryBatchCount', 'inlineCategoryBatchStartNumber');
         $this->showInlineCategoryForm = false;
     }
 
@@ -616,23 +620,40 @@ class TaskHierarchyWidget extends Component
                 'nullable',
                 Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
             ],
+            'inlineCategoryBatchCount' => ['integer', 'min:1', 'max:100'],
+            'inlineCategoryBatchStartNumber' => ['integer', 'min:0', 'max:999999'],
         ]);
 
-        TaskCategory::query()->create([
-            'project_id' => $this->project->id,
-            'parent_id' => $validated['inlineCategoryParentId'] ?: null,
-            'name' => $validated['inlineCategoryName'],
-            'description' => $validated['inlineCategoryDescription'] ?: null,
-            'sort_order' => 0,
-            'is_active' => true,
-        ]);
+        $names = app(TaskBatchTitleGenerator::class)->generate(
+            $validated['inlineCategoryName'],
+            (int) $validated['inlineCategoryBatchCount'],
+            (int) $validated['inlineCategoryBatchStartNumber'],
+        );
+
+        DB::transaction(function () use ($names, $validated): void {
+            foreach ($names as $name) {
+                TaskCategory::query()->create([
+                    'project_id' => $this->project->id,
+                    'parent_id' => $validated['inlineCategoryParentId'] ?: null,
+                    'name' => $name,
+                    'description' => $validated['inlineCategoryDescription'] ?: null,
+                    'sort_order' => 0,
+                    'is_active' => true,
+                ]);
+            }
+        });
 
         $this->cancelInlineCategoryForm();
 
         app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
 
         $this->dispatchProjectTasksUpdated();
-        session()->flash('success', 'Category created successfully.');
+        session()->flash(
+            'success',
+            count($names) === 1
+                ? 'Category created successfully.'
+                : sprintf('%d categories created successfully.', count($names))
+        );
     }
 
     public function startInlineTaskForm(?string $categoryId = null): void

@@ -6,6 +6,9 @@
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</label>
                 <input type="text" wire:model="inlineCategoryName" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                 @error('inlineCategoryName') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    Existing numbers are incremented automatically. If the name has no number, the starting number is appended.
+                </p>
             </div>
             <div>
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Parent</label>
@@ -16,6 +19,16 @@
                     @endforeach
                 </select>
                 @error('inlineCategoryParentId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Category Count</label>
+                <input type="number" min="1" max="100" wire:model="inlineCategoryBatchCount" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                @error('inlineCategoryBatchCount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Starting Number</label>
+                <input type="number" min="0" max="999999" wire:model="inlineCategoryBatchStartNumber" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                @error('inlineCategoryBatchStartNumber') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <div class="md:col-span-3">
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
