@@ -6,6 +6,9 @@
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</label>
                 <input type="text" wire:model="inlineTaskTitle" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                 @error('inlineTaskTitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    Existing numbers are incremented automatically. If the title has no number, the starting number is appended.
+                </p>
             </div>
             <div>
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Category</label>
@@ -16,6 +19,16 @@
                     @endforeach
                 </select>
                 @error('inlineTaskCategoryId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Task Count</label>
+                <input type="number" min="1" max="100" wire:model="inlineTaskBatchCount" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                @error('inlineTaskBatchCount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Starting Number</label>
+                <input type="number" min="0" max="999999" wire:model="inlineTaskBatchStartNumber" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                @error('inlineTaskBatchStartNumber') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
             <div class="md:col-span-2">
                 <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>

@@ -8,6 +8,7 @@ use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
 use App\Domains\Tasks\Services\ProjectTaskHierarchyViewDataService;
 use App\Domains\Tasks\Services\TaskTreeService;
+use App\Domains\Tasks\Support\TaskBatchTitleGenerator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -68,6 +69,10 @@ class TaskHierarchyWidget extends Component
     public ?string $inlineTaskCategoryId = null;
 
     public ?string $inlineTaskAssignedTo = null;
+
+    public int $inlineTaskBatchCount = 1;
+
+    public int $inlineTaskBatchStartNumber = 1;
 
     public ?string $editingTaskStatus = null;
 
@@ -640,7 +645,7 @@ class TaskHierarchyWidget extends Component
 
     public function cancelInlineTaskForm(): void
     {
-        $this->reset('inlineTaskTitle', 'inlineTaskDescription', 'inlineTaskCategoryId', 'inlineTaskAssignedTo');
+        $this->reset('inlineTaskTitle', 'inlineTaskDescription', 'inlineTaskCategoryId', 'inlineTaskAssignedTo', 'inlineTaskBatchCount', 'inlineTaskBatchStartNumber');
         $this->showInlineTaskForm = false;
     }
 
@@ -656,26 +661,43 @@ class TaskHierarchyWidget extends Component
                 Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
             ],
             'inlineTaskAssignedTo' => ['nullable', 'exists:users,id'],
+            'inlineTaskBatchCount' => ['integer', 'min:1', 'max:100'],
+            'inlineTaskBatchStartNumber' => ['integer', 'min:0', 'max:999999'],
         ]);
 
-        Task::query()->create([
-            'project_id' => $this->project->id,
-            'task_category_id' => $validated['inlineTaskCategoryId'],
-            'parent_task_id' => null,
-            'title' => $validated['inlineTaskTitle'],
-            'description' => $validated['inlineTaskDescription'] ?: null,
-            'status' => Task::STATUS_TODO,
-            'priority' => Task::PRIORITY_MEDIUM,
-            'completion_percentage' => 0,
-            'assigned_to' => $validated['inlineTaskAssignedTo'] ?: null,
-            'is_billable' => false,
-            'sort_order' => 0,
-        ]);
+        $titles = app(TaskBatchTitleGenerator::class)->generate(
+            $validated['inlineTaskTitle'],
+            (int) $validated['inlineTaskBatchCount'],
+            (int) $validated['inlineTaskBatchStartNumber'],
+        );
+
+        DB::transaction(function () use ($titles, $validated): void {
+            foreach ($titles as $title) {
+                Task::query()->create([
+                    'project_id' => $this->project->id,
+                    'task_category_id' => $validated['inlineTaskCategoryId'],
+                    'parent_task_id' => null,
+                    'title' => $title,
+                    'description' => $validated['inlineTaskDescription'] ?: null,
+                    'status' => Task::STATUS_TODO,
+                    'priority' => Task::PRIORITY_MEDIUM,
+                    'completion_percentage' => 0,
+                    'assigned_to' => $validated['inlineTaskAssignedTo'] ?: null,
+                    'is_billable' => false,
+                    'sort_order' => 0,
+                ]);
+            }
+        });
 
         $this->cancelInlineTaskForm();
 
         $this->dispatchProjectTasksUpdated();
-        session()->flash('success', 'Task created successfully.');
+        session()->flash(
+            'success',
+            count($titles) === 1
+                ? 'Task created successfully.'
+                : sprintf('%d tasks created successfully.', count($titles))
+        );
     }
 
     public function startEditTaskTitle(?string $taskId): void
