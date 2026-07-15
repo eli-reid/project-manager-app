@@ -8,8 +8,10 @@
 
 <tr
     @class([
-        'cursor-pointer bg-zinc-50/70 transition-colors dark:bg-zinc-800/50',
-        'bg-amber-200/80 dark:bg-amber-800/45' => in_array($categoryId, $selectedCategoryIds, true),
+        'cursor-pointer transition-colors',
+        in_array($categoryId, $selectedCategoryIds, true)
+            ? 'bg-amber-200/80 dark:bg-amber-800/45'
+            : 'bg-zinc-50/70 dark:bg-zinc-800/50',
     ])
     x-show="{{ $summary['ancestorVisibilityCondition'] }}"
     x-cloak
