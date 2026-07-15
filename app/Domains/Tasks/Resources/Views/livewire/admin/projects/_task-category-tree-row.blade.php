@@ -9,12 +9,12 @@
 <tr
     @class([
         'cursor-pointer bg-zinc-50/70 transition-colors dark:bg-zinc-800/50',
-        'bg-amber-50 ring-1 ring-amber-300 dark:bg-amber-950/30 dark:ring-amber-700' => in_array($categoryId, $selectedCategoryIds, true),
+        'bg-amber-200/80 dark:bg-amber-800/45' => in_array($categoryId, $selectedCategoryIds, true),
     ])
     x-show="{{ $summary['ancestorVisibilityCondition'] }}"
     x-cloak
     wire:key="category-row-{{ $categoryId }}"
-    wire:click="toggleCategorySelection('{{ $categoryId }}')"
+    @click="if ($event.ctrlKey || $event.metaKey) { $wire.toggleCategorySelection('{{ $categoryId }}') } else { $wire.selectOnlyCategory('{{ $categoryId }}') }"
     @contextmenu.prevent.stop="openContextMenu($event, {
         type: 'category',
         id: '{{ $categoryId }}',

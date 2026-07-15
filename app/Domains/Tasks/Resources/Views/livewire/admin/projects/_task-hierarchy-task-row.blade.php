@@ -10,14 +10,14 @@
 <tr
     @class([
         'cursor-pointer transition-colors',
-        'bg-emerald-50 ring-1 ring-emerald-300 dark:bg-emerald-950/25 dark:ring-emerald-700' => in_array($taskId, $selectedTaskIds, true),
+        'bg-emerald-200/75 dark:bg-emerald-800/40' => in_array($taskId, $selectedTaskIds, true),
     ])
     @if (is_string($visibilityCondition) && $visibilityCondition !== '')
         x-show="{{ $visibilityCondition }}"
         x-cloak
     @endif
     wire:key="{{ $keyPrefix }}-{{ $taskId }}"
-    wire:click="toggleTaskSelection('{{ $taskId }}')"
+    @click="if ($event.ctrlKey || $event.metaKey) { $wire.toggleTaskSelection('{{ $taskId }}') } else { $wire.selectOnlyTask('{{ $taskId }}') }"
     @contextmenu.prevent.stop="openContextMenu($event, {
         type: 'task',
         id: '{{ $taskId }}',
