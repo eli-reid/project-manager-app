@@ -12,6 +12,7 @@
     contextMenuCanDelete: false,
     contextMenuCanCreateTask: false,
     contextMenuCanCreateTemplate: false,
+    contextMenuCanUpdateStatus: false,
     openContextMenu(event, payload) {
         this.contextMenuOpen = true;
         this.contextMenuX = event.clientX;
@@ -22,6 +23,7 @@
         this.contextMenuCanDelete = !!payload.canDelete;
         this.contextMenuCanCreateTask = !!payload.canCreateTask;
         this.contextMenuCanCreateTemplate = !!payload.canCreateTemplate;
+        this.contextMenuCanUpdateStatus = !!payload.canUpdateStatus;
     },
     closeContextMenu() {
         this.contextMenuOpen = false;

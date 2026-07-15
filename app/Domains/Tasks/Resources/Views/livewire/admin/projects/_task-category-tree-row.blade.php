@@ -7,7 +7,10 @@
 @endphp
 
 <tr
-    class="bg-zinc-50/70 dark:bg-zinc-800/50"
+    @class([
+        'bg-zinc-50/70 dark:bg-zinc-800/50',
+        'ring-1 ring-zinc-300 dark:ring-zinc-600' => in_array($categoryId, $selectedCategoryIds, true),
+    ])
     x-show="{{ $summary['ancestorVisibilityCondition'] }}"
     x-cloak
     wire:key="category-row-{{ $categoryId }}"
@@ -18,8 +21,12 @@
         canDelete: @js($canDeleteTaskCategory),
         canCreateTask: @js($canCreateTask),
         canCreateTemplate: @js($canCreateTaskTemplate),
+        canUpdateStatus: false,
     })"
 >
+    <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200">
+        <input type="checkbox" wire:model.live="selectedCategoryIds" value="{{ $categoryId }}" @click.stop class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900" aria-label="Select category {{ $category->name }}" />
+    </td>
     <td class="px-3 py-2 align-top text-sm font-semibold text-zinc-900 dark:text-zinc-100" @style(["padding-left: {$categoryIndent}px"] )>
         <div class="inline-flex items-center gap-2">
             <button type="button" @click="toggleCategory('{{ $categoryId }}')" class="inline-flex items-center justify-center rounded-md p-1 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70" aria-label="Toggle category">

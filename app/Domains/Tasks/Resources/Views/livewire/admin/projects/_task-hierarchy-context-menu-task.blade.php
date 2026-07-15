@@ -33,6 +33,14 @@
     </button>
     <button
         type="button"
+        x-show="contextMenuCanUpdateStatus"
+        @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.markTaskComplete(id); }"
+        class="block w-full px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/30"
+    >
+        Mark Complete
+    </button>
+    <button
+        type="button"
         x-show="contextMenuCanDelete"
         @click="const id = contextMenuId; if (id && confirm('Delete this task?')) { closeContextMenu(); $wire.deleteTask(id); }"
         class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30"

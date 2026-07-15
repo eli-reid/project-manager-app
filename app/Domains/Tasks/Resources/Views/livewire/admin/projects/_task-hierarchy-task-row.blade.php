@@ -8,6 +8,9 @@
 @endphp
 
 <tr
+    @class([
+        'ring-1 ring-zinc-300 dark:ring-zinc-600' => in_array($taskId, $selectedTaskIds, true),
+    ])
     @if (is_string($visibilityCondition) && $visibilityCondition !== '')
         x-show="{{ $visibilityCondition }}"
         x-cloak
@@ -19,8 +22,12 @@
         canUpdate: @js($canUpdateTask),
         canDelete: @js($canDeleteTask),
         canCreateTask: @js($canCreateTask),
+        canUpdateStatus: @js($canUpdateTaskStatus),
     })"
 >
+    <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200">
+        <input type="checkbox" wire:model.live="selectedTaskIds" value="{{ $taskId }}" @click.stop class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900" aria-label="Select task {{ $taskRow['displayTitle'] }}" />
+    </td>
     <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200" @style(["padding-left: {$indent}px"] )>
         @if ($editingTaskTitle === $taskId && $canUpdateTask)
             <form wire:submit="saveTaskTitle" class="flex items-center gap-1">
@@ -82,6 +89,9 @@
                 @endif
                 @if ($canCreateTask)
                     <button type="button" @click="open = false" wire:click="copyTaskFrom('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Task</button>
+                @endif
+                @if ($canUpdateTaskStatus)
+                    <button type="button" @click="open = false" wire:click="markTaskComplete('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/30">Mark Complete</button>
                 @endif
                 @if ($canDeleteTask)
                     <button type="button" @click="open = false" wire:click="deleteTask('{{ $taskId }}')" wire:confirm="Delete this task?" class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30">Delete Task</button>

@@ -7,6 +7,7 @@ use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
 use App\Domains\Tasks\Services\ProjectTaskHierarchyViewDataService;
+use App\Domains\Tasks\Services\TaskHierarchyBulkActionService;
 use App\Domains\Tasks\Services\TaskTreeService;
 use App\Domains\Tasks\Support\TaskBatchTitleGenerator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -93,6 +94,16 @@ class TaskHierarchyWidget extends Component
     public ?string $editingCategoryName = null;
 
     public string $editingCategoryNameValue = '';
+
+    /**
+     * @var array<int, string>
+     */
+    public array $selectedTaskIds = [];
+
+    /**
+     * @var array<int, string>
+     */
+    public array $selectedCategoryIds = [];
 
     public function mount(Project $project): void
     {
@@ -297,6 +308,126 @@ class TaskHierarchyWidget extends Component
 
         $this->dispatchProjectTasksUpdated();
         session()->flash('success', "Deleted category branch for {$categoryName}.");
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedTaskIds = [];
+        $this->selectedCategoryIds = [];
+    }
+
+    public function bulkCopySelected(): void
+    {
+        if ($this->selectedTaskIds === [] && $this->selectedCategoryIds === []) {
+            session()->flash('error', 'Select at least one task or category to copy.');
+
+            return;
+        }
+
+        if ($this->selectedTaskIds !== []) {
+            $this->authorize('create', Task::class);
+        }
+
+        if ($this->selectedCategoryIds !== []) {
+            $this->authorize('create', TaskCategory::class);
+            $this->authorize('create', Task::class);
+        }
+
+        $result = app(TaskHierarchyBulkActionService::class)->copySelected(
+            $this->project,
+            $this->selectedTaskIds,
+            $this->selectedCategoryIds,
+        );
+
+        $this->clearSelection();
+
+        if ($result['copiedCategories'] > 0) {
+            app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
+        }
+
+        $this->dispatchProjectTasksUpdated();
+        session()->flash('success', sprintf(
+            'Copied %d %s and %d %s.',
+            $result['copiedCategories'],
+            $result['copiedCategories'] === 1 ? 'category' : 'categories',
+            $result['copiedTasks'],
+            $result['copiedTasks'] === 1 ? 'task' : 'tasks',
+        ));
+    }
+
+    public function bulkDeleteSelected(): void
+    {
+        if ($this->selectedTaskIds === [] && $this->selectedCategoryIds === []) {
+            session()->flash('error', 'Select at least one task or category to delete.');
+
+            return;
+        }
+
+        if ($this->selectedTaskIds !== []) {
+            Task::query()
+                ->where('project_id', $this->project->id)
+                ->whereIn('id', $this->selectedTaskIds)
+                ->get()
+                ->each(fn (Task $task) => $this->authorize('delete', $task));
+        }
+
+        if ($this->selectedCategoryIds !== []) {
+            TaskCategory::query()
+                ->where('project_id', $this->project->id)
+                ->whereIn('id', $this->selectedCategoryIds)
+                ->get()
+                ->each(fn (TaskCategory $category) => $this->authorize('delete', $category));
+        }
+
+        $result = app(TaskHierarchyBulkActionService::class)->deleteSelected(
+            $this->project,
+            $this->selectedTaskIds,
+            $this->selectedCategoryIds,
+        );
+
+        $this->clearSelection();
+
+        if ($result['deletedCategories'] > 0) {
+            app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
+        }
+
+        $this->dispatchProjectTasksUpdated();
+
+        $message = sprintf(
+            'Deleted %d %s and %d %s.',
+            $result['deletedCategories'],
+            $result['deletedCategories'] === 1 ? 'category' : 'categories',
+            $result['deletedTasks'],
+            $result['deletedTasks'] === 1 ? 'task' : 'tasks',
+        );
+
+        if ($result['skippedTasks'] > 0) {
+            $message .= sprintf(' Skipped %d %s that still had subtasks.', $result['skippedTasks'], $result['skippedTasks'] === 1 ? 'task' : 'tasks');
+        }
+
+        session()->flash('success', $message);
+    }
+
+    public function bulkMarkSelectedTasksComplete(): void
+    {
+        if ($this->selectedTaskIds === []) {
+            session()->flash('error', 'Select at least one task to mark complete.');
+
+            return;
+        }
+
+        Task::query()
+            ->where('project_id', $this->project->id)
+            ->whereIn('id', $this->selectedTaskIds)
+            ->get()
+            ->each(fn (Task $task) => $this->authorize('updateStatus', $task));
+
+        $updatedCount = app(TaskHierarchyBulkActionService::class)->markTasksComplete($this->project, $this->selectedTaskIds);
+
+        $this->selectedTaskIds = [];
+
+        $this->dispatchProjectTasksUpdated();
+        session()->flash('success', sprintf('Marked %d %s complete.', $updatedCount, $updatedCount === 1 ? 'task' : 'tasks'));
     }
 
     public function copyTaskFrom(?string $taskId): void
@@ -721,6 +852,28 @@ class TaskHierarchyWidget extends Component
         );
     }
 
+    public function markTaskComplete(?string $taskId): void
+    {
+        if (! $taskId) {
+            return;
+        }
+
+        $task = Task::query()
+            ->where('project_id', $this->project->id)
+            ->findOrFail($taskId);
+
+        $this->authorize('updateStatus', $task);
+
+        $updatedCount = app(TaskHierarchyBulkActionService::class)->markTasksComplete($this->project, [$taskId]);
+
+        if ($updatedCount === 0) {
+            return;
+        }
+
+        $this->dispatchProjectTasksUpdated();
+        session()->flash('success', "Marked task {$task->title} complete.");
+    }
+
     public function startEditTaskTitle(?string $taskId): void
     {
         if (! $taskId) {
@@ -804,6 +957,9 @@ class TaskHierarchyWidget extends Component
         return view('tasks::livewire.admin.projects.task-hierarchy-widget', [
             'project' => $this->project,
             ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project),
+            'selectedItemCount' => count($this->selectedTaskIds) + count($this->selectedCategoryIds),
+            'selectedTaskCount' => count($this->selectedTaskIds),
+            'selectedCategoryCount' => count($this->selectedCategoryIds),
         ]);
     }
 
