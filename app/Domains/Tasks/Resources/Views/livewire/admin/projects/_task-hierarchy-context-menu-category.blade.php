@@ -9,6 +9,14 @@
     </button>
     <button
         type="button"
+        x-show="contextMenuCanCreateCategory"
+        @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.startInlineCategoryForm(id); }"
+        class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+    >
+        Quick Add Subcategory
+    </button>
+    <button
+        type="button"
         x-show="contextMenuCanUpdate"
         @click="const id = contextMenuId; closeContextMenu(); if (id) { $wire.startEditCategoryName(id); }"
         class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"

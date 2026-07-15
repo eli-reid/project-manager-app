@@ -9,13 +9,15 @@
 
 <tr
     @class([
-        'ring-1 ring-zinc-300 dark:ring-zinc-600' => in_array($taskId, $selectedTaskIds, true),
+        'cursor-pointer transition-colors',
+        'bg-emerald-50 ring-1 ring-emerald-300 dark:bg-emerald-950/25 dark:ring-emerald-700' => in_array($taskId, $selectedTaskIds, true),
     ])
     @if (is_string($visibilityCondition) && $visibilityCondition !== '')
         x-show="{{ $visibilityCondition }}"
         x-cloak
     @endif
     wire:key="{{ $keyPrefix }}-{{ $taskId }}"
+    wire:click="toggleTaskSelection('{{ $taskId }}')"
     @contextmenu.prevent.stop="openContextMenu($event, {
         type: 'task',
         id: '{{ $taskId }}',
@@ -25,12 +27,9 @@
         canUpdateStatus: @js($canUpdateTaskStatus),
     })"
 >
-    <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200">
-        <input type="checkbox" wire:model.live="selectedTaskIds" value="{{ $taskId }}" @click.stop class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900" aria-label="Select task {{ $taskRow['displayTitle'] }}" />
-    </td>
     <td class="px-3 py-2 align-top text-sm text-zinc-800 dark:text-zinc-200" @style(["padding-left: {$indent}px"] )>
         @if ($editingTaskTitle === $taskId && $canUpdateTask)
-            <form wire:submit="saveTaskTitle" class="flex items-center gap-1">
+            <form wire:submit="saveTaskTitle" @click.stop class="flex items-center gap-1">
                 <input
                     type="text"
                     wire:model="editingTaskTitleValue"
@@ -48,53 +47,53 @@
     <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ $taskRow['typeLabel'] }}</td>
     <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">
         @if (($taskRow['supportsInlineStatusEditing'] ?? false) && $editingTaskStatus === $taskId && $canUpdateTaskStatus)
-            <select wire:model.live="editingTaskStatusValue" wire:change="saveTaskStatus" class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+            <select wire:model.live="editingTaskStatusValue" wire:change="saveTaskStatus" wire:click.stop class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                 @foreach (Task::statuses() as $status)
                     <option value="{{ $status }}">{{ str($status)->replace('_', ' ')->headline() }}</option>
                 @endforeach
             </select>
         @else
-            <span class="rounded px-1 {{ ($taskRow['supportsInlineStatusEditing'] ?? false) && $canUpdateTaskStatus ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800' : '' }}" @if(($taskRow['supportsInlineStatusEditing'] ?? false) && $canUpdateTaskStatus) wire:click="startEditTaskStatus('{{ $taskId }}')" @endif>
+            <span class="rounded px-1 {{ ($taskRow['supportsInlineStatusEditing'] ?? false) && $canUpdateTaskStatus ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800' : '' }}" @if(($taskRow['supportsInlineStatusEditing'] ?? false) && $canUpdateTaskStatus) wire:click.stop="startEditTaskStatus('{{ $taskId }}')" @endif>
                 {{ $taskRow['statusLabel'] }}
             </span>
         @endif
     </td>
     <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">
         @if (($taskRow['supportsInlinePriorityEditing'] ?? false) && $editingTaskPriority === $taskId && $canUpdateTaskPriority)
-            <select wire:model.live="editingTaskPriorityValue" wire:change="saveTaskPriority" class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+            <select wire:model.live="editingTaskPriorityValue" wire:change="saveTaskPriority" wire:click.stop class="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                 @foreach (Task::priorities() as $priority)
                     <option value="{{ $priority }}">{{ ucfirst($priority) }}</option>
                 @endforeach
             </select>
         @else
-            <span class="rounded px-1 {{ ($taskRow['supportsInlinePriorityEditing'] ?? false) && $canUpdateTaskPriority ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800' : '' }}" @if(($taskRow['supportsInlinePriorityEditing'] ?? false) && $canUpdateTaskPriority) wire:click="startEditTaskPriority('{{ $taskId }}')" @endif>
+            <span class="rounded px-1 {{ ($taskRow['supportsInlinePriorityEditing'] ?? false) && $canUpdateTaskPriority ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800' : '' }}" @if(($taskRow['supportsInlinePriorityEditing'] ?? false) && $canUpdateTaskPriority) wire:click.stop="startEditTaskPriority('{{ $taskId }}')" @endif>
                 {{ $taskRow['priorityLabel'] }}
             </span>
         @endif
     </td>
     <td class="px-3 py-2 align-top text-sm text-zinc-600 dark:text-zinc-300">{{ $taskRow['assignedLabel'] }}</td>
     <td class="px-3 py-2 align-top text-right">
-        <div class="relative inline-block text-left" x-data="buildMenuState(120)" @click.away="closeMenu()">
-            <button type="button" @click="toggleMenu($event)" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-300 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Task actions">
+        <div class="relative inline-block text-left" x-data="buildMenuState(120)" @click.stop @click.away="closeMenu()">
+            <button type="button" @click.stop="toggleMenu($event)" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-300 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Task actions">
                 <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <circle cx="4" cy="10" r="1.5" />
                     <circle cx="10" cy="10" r="1.5" />
                     <circle cx="16" cy="10" r="1.5" />
                 </svg>
             </button>
-            <div x-show="open" x-cloak class="fixed z-30 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
+            <div x-show="open" x-cloak @click.stop class="fixed z-30 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900" :style="menuStyle">
                 @if ($canUpdateTask)
                     <a href="{{ route('admin.tasks.edit', $task) }}" wire:navigate class="block px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Edit Task</a>
-                    <button type="button" @click="open = false" wire:click="startEditTaskTitle('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Rename Task</button>
+                    <button type="button" @click.stop="open = false" wire:click="startEditTaskTitle('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Rename Task</button>
                 @endif
                 @if ($canCreateTask)
-                    <button type="button" @click="open = false" wire:click="copyTaskFrom('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Task</button>
+                    <button type="button" @click.stop="open = false" wire:click="copyTaskFrom('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">Copy Task</button>
                 @endif
                 @if ($canUpdateTaskStatus)
-                    <button type="button" @click="open = false" wire:click="markTaskComplete('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/30">Mark Complete</button>
+                    <button type="button" @click.stop="open = false" wire:click="markTaskComplete('{{ $taskId }}')" class="block w-full px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/30">Mark Complete</button>
                 @endif
                 @if ($canDeleteTask)
-                    <button type="button" @click="open = false" wire:click="deleteTask('{{ $taskId }}')" wire:confirm="Delete this task?" class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30">Delete Task</button>
+                    <button type="button" @click.stop="open = false" wire:click="deleteTask('{{ $taskId }}')" wire:confirm="Delete this task?" class="block w-full px-3 py-2 text-left text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/30">Delete Task</button>
                 @endif
             </div>
         </div>

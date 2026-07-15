@@ -62,7 +62,6 @@
     <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
         <thead class="bg-zinc-50 dark:bg-zinc-800/50">
             <tr>
-                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Select</th>
                 <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</th>
                 <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Type</th>
                 <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
@@ -82,7 +81,7 @@
                 @endforeach
             @else
                 <tr>
-                    <td colspan="7" class="px-3 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No tasks found for this project.</td>
+                    <td colspan="6" class="px-3 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No tasks found for this project.</td>
                 </tr>
             @endif
         </tbody>

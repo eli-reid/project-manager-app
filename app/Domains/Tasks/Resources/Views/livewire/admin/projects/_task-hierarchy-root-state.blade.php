@@ -11,6 +11,7 @@
     contextMenuCanUpdate: false,
     contextMenuCanDelete: false,
     contextMenuCanCreateTask: false,
+    contextMenuCanCreateCategory: false,
     contextMenuCanCreateTemplate: false,
     contextMenuCanUpdateStatus: false,
     openContextMenu(event, payload) {
@@ -22,6 +23,7 @@
         this.contextMenuCanUpdate = !!payload.canUpdate;
         this.contextMenuCanDelete = !!payload.canDelete;
         this.contextMenuCanCreateTask = !!payload.canCreateTask;
+        this.contextMenuCanCreateCategory = !!payload.canCreateCategory;
         this.contextMenuCanCreateTemplate = !!payload.canCreateTemplate;
         this.contextMenuCanUpdateStatus = !!payload.canUpdateStatus;
     },

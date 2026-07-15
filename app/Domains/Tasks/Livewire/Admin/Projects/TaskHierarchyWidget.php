@@ -316,6 +316,44 @@ class TaskHierarchyWidget extends Component
         $this->selectedCategoryIds = [];
     }
 
+    public function toggleTaskSelection(string $taskId): void
+    {
+        if ($taskId === '') {
+            return;
+        }
+
+        if (in_array($taskId, $this->selectedTaskIds, true)) {
+            $this->selectedTaskIds = array_values(array_filter(
+                $this->selectedTaskIds,
+                fn (string $selectedTaskId): bool => $selectedTaskId !== $taskId,
+            ));
+
+            return;
+        }
+
+        $this->selectedTaskIds[] = $taskId;
+        $this->selectedTaskIds = array_values(array_unique($this->selectedTaskIds));
+    }
+
+    public function toggleCategorySelection(string $categoryId): void
+    {
+        if ($categoryId === '') {
+            return;
+        }
+
+        if (in_array($categoryId, $this->selectedCategoryIds, true)) {
+            $this->selectedCategoryIds = array_values(array_filter(
+                $this->selectedCategoryIds,
+                fn (string $selectedCategoryId): bool => $selectedCategoryId !== $categoryId,
+            ));
+
+            return;
+        }
+
+        $this->selectedCategoryIds[] = $categoryId;
+        $this->selectedCategoryIds = array_values(array_unique($this->selectedCategoryIds));
+    }
+
     public function bulkCopySelected(): void
     {
         if ($this->selectedTaskIds === [] && $this->selectedCategoryIds === []) {
