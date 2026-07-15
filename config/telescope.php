@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\Middleware\PreventAuthPageCaching;
 use Laravel\Telescope\Http\Middleware\Authorize;
 use Laravel\Telescope\Watchers;
 
@@ -94,6 +95,7 @@ return [
 
     'middleware' => [
         'web',
+        PreventAuthPageCaching::class,
         Authorize::class,
     ],
 

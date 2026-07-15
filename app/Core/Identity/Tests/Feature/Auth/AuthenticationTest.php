@@ -43,6 +43,21 @@ test('login screen responses are not cached', function () {
         ->toContain('max-age=0');
 });
 
+test('home route guest login screen responses are not cached', function () {
+    $response = $this->get(route('home'));
+    $cacheControlHeader = (string) $response->headers->get('Cache-Control');
+
+    $response
+        ->assertOk()
+        ->assertHeader('Pragma', 'no-cache');
+
+    expect($cacheControlHeader)
+        ->toContain('no-store')
+        ->toContain('no-cache')
+        ->toContain('must-revalidate')
+        ->toContain('max-age=0');
+});
+
 test('users can authenticate using email on the login screen', function () {
     $user = User::factory()->create();
 
