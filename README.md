@@ -206,14 +206,3 @@ MIT License — see `LICENSE` for details.
 - Multi‑tenant support
 - Role‑based workflow automation
 ```
-
----
-
-If you want, I can also generate:
-
-- A **shorter README** for Packagist  
-- A **developer‑focused README**  
-- A **marketing‑style README** for GitHub  
-- A **logo/header** for the top of the README  
-
-Just tell me the style you want.
