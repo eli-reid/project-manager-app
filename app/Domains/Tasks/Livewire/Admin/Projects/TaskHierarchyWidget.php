@@ -120,8 +120,6 @@ class TaskHierarchyWidget extends Component
         if ($this->expandedCategoryIds === null) {
             $this->expandedCategoryIds = [];
         }
-
-        $this->pruneExpandedCategoryIds();
     }
 
     public function toggleCategoryExpansion(string $categoryId): void
@@ -1040,20 +1038,22 @@ class TaskHierarchyWidget extends Component
 
     public function render()
     {
-        $this->pruneExpandedCategoryIds();
+        $categories = app(TaskTreeService::class)->getCachedCategoryTree($this->project->id);
+
+        $this->pruneExpandedCategoryIds($categories);
 
         return view('tasks::livewire.admin.projects.task-hierarchy-widget', [
             'project' => $this->project,
-            ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project, $this->expandedCategoryIds),
+            ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project, $this->expandedCategoryIds, $categories),
             'selectedItemCount' => count($this->selectedTaskIds) + count($this->selectedCategoryIds),
             'selectedTaskCount' => count($this->selectedTaskIds),
             'selectedCategoryCount' => count($this->selectedCategoryIds),
         ]);
     }
 
-    protected function pruneExpandedCategoryIds(): void
+    protected function pruneExpandedCategoryIds(iterable $categories): void
     {
-        $validCategoryIdLookup = $this->currentProjectCategoryIdLookup();
+        $validCategoryIdLookup = $this->currentProjectCategoryIdLookup($categories);
 
         $normalizedExpandedCategoryIds = collect($this->expandedCategoryIds ?? [])
             ->map(fn (mixed $categoryId): string => (string) $categoryId)
@@ -1070,11 +1070,11 @@ class TaskHierarchyWidget extends Component
     /**
      * @return array<string, bool>
      */
-    protected function currentProjectCategoryIdLookup(): array
+    protected function currentProjectCategoryIdLookup(iterable $categories): array
     {
         $categoryIdLookup = [];
 
-        foreach (app(TaskTreeService::class)->getCachedCategoryTree($this->project->id) as $category) {
+        foreach ($categories as $category) {
             $this->appendCategoryIdLookup($categoryIdLookup, $category);
         }
 

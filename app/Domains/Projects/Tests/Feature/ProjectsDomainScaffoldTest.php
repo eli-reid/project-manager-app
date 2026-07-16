@@ -24,7 +24,9 @@ use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
+use App\Domains\Tasks\Services\TaskTreeService;
 use App\Domains\Timecards\Models\TimecardEntry;
+use Illuminate\Support\Collection;
 use Livewire\Livewire;
 
 it('redirects guests from domain admin routes', function (): void {
@@ -1435,6 +1437,47 @@ it('prunes moved expanded hierarchy IDs from the session on project show', funct
 
     Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->assertSet('expandedCategoryIds', [(string) $root->id]);
+});
+
+it('reads the cached category tree once per project hierarchy render', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Single Read Root Category',
+    ]);
+
+    $categories = app(TaskTreeService::class)->getCachedCategoryTree($project->id);
+
+    $countingTreeService = new class($categories) extends TaskTreeService
+    {
+        public int $getCachedCategoryTreeCalls = 0;
+
+        public function __construct(private readonly Collection $categories) {}
+
+        public function getCachedCategoryTree(?string $projectId = null): Collection
+        {
+            $this->getCachedCategoryTreeCalls++;
+
+            return $this->categories;
+        }
+
+        public function clearCategoryTreeCache(?string $projectId = null): void {}
+    };
+
+    app()->instance(TaskTreeService::class, $countingTreeService);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSee('Single Read Root Category');
+
+    expect($countingTreeService->getCachedCategoryTreeCalls)->toBe(1);
 });
 
 it('copies a category multiple times with unit-style names', function (): void {

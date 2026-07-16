@@ -15,7 +15,7 @@ class ProjectTaskHierarchyViewDataService
     /**
      * @return array<string, mixed>
      */
-    public function forProject(Project $project, array $expandedCategoryIds = []): array
+    public function forProject(Project $project, array $expandedCategoryIds = [], ?Collection $categories = null): array
     {
         $expandedCategoryLookup = array_fill_keys($expandedCategoryIds, true);
 
@@ -49,7 +49,7 @@ class ProjectTaskHierarchyViewDataService
         $tasksByCategory = $rootTasks->groupBy(fn (Task $task) => (string) $task->task_category_id);
 
         /** @var Collection<int, mixed> $categories */
-        $categories = app(TaskTreeService::class)->getCachedCategoryTree($project->id);
+        $categories ??= app(TaskTreeService::class)->getCachedCategoryTree($project->id);
         $user = Auth::user();
 
         $canCreateTask = $user?->hasPermission('tasks.create') ?? false;
