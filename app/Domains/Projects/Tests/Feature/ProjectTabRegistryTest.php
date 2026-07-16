@@ -238,6 +238,29 @@ it('passes return urls to dailies detail panels through view state', function ()
         ->and($dailiesPanel['props']['returnTo'] ?? null)->toBe('/admin/projects/test?tab=dailies');
 });
 
+it('resolves only the active project tab panel when requested', function (): void {
+    $project = Project::factory()->create();
+    $registry = app(ProjectTabRegistry::class);
+
+    $user = userWithProjectTabPermissions([
+        'projects.view',
+        'dailies.view-all',
+        'tasks.view',
+        'invoices.view',
+    ]);
+
+    $tabPanels = $registry->tabPanels(
+        $project,
+        $user,
+        [],
+        [],
+        'tasks',
+    );
+
+    expect($tabPanels)->toHaveCount(1)
+        ->and($tabPanels[0]['tab'] ?? null)->toBe('tasks');
+});
+
 it('preloads badge count attributes for visible project tabs', function (): void {
     $project = Project::factory()->create();
     $registry = app(ProjectTabRegistry::class);

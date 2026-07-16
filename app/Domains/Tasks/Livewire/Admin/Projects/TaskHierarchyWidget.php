@@ -117,15 +117,11 @@ class TaskHierarchyWidget extends Component
         $this->authorize('view', $project);
         $this->project = $project;
 
-        if ($this->expandedCategoryIds !== null) {
-            return;
+        if ($this->expandedCategoryIds === null) {
+            $this->expandedCategoryIds = [];
         }
 
-        $this->expandedCategoryIds = app(TaskTreeService::class)
-            ->getCachedCategoryTree($project->id)
-            ->map(fn ($category): string => (string) $category->id)
-            ->values()
-            ->all();
+        $this->pruneExpandedCategoryIds();
     }
 
     public function toggleCategoryExpansion(string $categoryId): void
@@ -1044,6 +1040,8 @@ class TaskHierarchyWidget extends Component
 
     public function render()
     {
+        $this->pruneExpandedCategoryIds();
+
         return view('tasks::livewire.admin.projects.task-hierarchy-widget', [
             'project' => $this->project,
             ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project, $this->expandedCategoryIds),
@@ -1051,6 +1049,48 @@ class TaskHierarchyWidget extends Component
             'selectedTaskCount' => count($this->selectedTaskIds),
             'selectedCategoryCount' => count($this->selectedCategoryIds),
         ]);
+    }
+
+    protected function pruneExpandedCategoryIds(): void
+    {
+        $validCategoryIdLookup = $this->currentProjectCategoryIdLookup();
+
+        $normalizedExpandedCategoryIds = collect($this->expandedCategoryIds ?? [])
+            ->map(fn (mixed $categoryId): string => (string) $categoryId)
+            ->filter(fn (string $categoryId): bool => isset($validCategoryIdLookup[$categoryId]))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($normalizedExpandedCategoryIds !== ($this->expandedCategoryIds ?? [])) {
+            $this->expandedCategoryIds = $normalizedExpandedCategoryIds;
+        }
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    protected function currentProjectCategoryIdLookup(): array
+    {
+        $categoryIdLookup = [];
+
+        foreach (app(TaskTreeService::class)->getCachedCategoryTree($this->project->id) as $category) {
+            $this->appendCategoryIdLookup($categoryIdLookup, $category);
+        }
+
+        return $categoryIdLookup;
+    }
+
+    /**
+     * @param  array<string, bool>  $categoryIdLookup
+     */
+    protected function appendCategoryIdLookup(array &$categoryIdLookup, mixed $category): void
+    {
+        $categoryIdLookup[(string) $category->id] = true;
+
+        foreach ($category->childrenRecursive ?? collect() as $childCategory) {
+            $this->appendCategoryIdLookup($categoryIdLookup, $childCategory);
+        }
     }
 
     /**

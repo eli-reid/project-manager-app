@@ -114,9 +114,13 @@ class ProjectTabRegistry
      * @param  array<string, mixed>  $viewState
      * @return array<int, array{tab:string,component:string,props:array<string, mixed>,key:string}>
      */
-    public function tabPanels(Project $project, ?User $user, array $tabContext = [], array $viewState = []): array
+    public function tabPanels(Project $project, ?User $user, array $tabContext = [], array $viewState = [], ?string $activeTab = null): array
     {
         return collect($this->visibleTabItems($project, $user))
+            ->when(
+                is_string($activeTab) && $activeTab !== '',
+                static fn ($items) => $items->where('key', $activeTab)->values(),
+            )
             ->map(function (ProjectTabViewItem $item) use ($project, $tabContext, $viewState): ?array {
                 $tabKey = $item->key;
                 $tab = $item->tab;

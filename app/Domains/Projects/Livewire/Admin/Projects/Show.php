@@ -175,6 +175,7 @@ class Show extends Component
                 'taskWidgetVersion' => $this->taskWidgetVersion,
                 'returnTo' => $tabReturnUrls,
             ],
+            $this->activeTab,
         );
 
         // Debug logging removed in cleanup.

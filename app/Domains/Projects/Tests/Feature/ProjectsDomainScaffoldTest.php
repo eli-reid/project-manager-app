@@ -1303,10 +1303,14 @@ it('renders only expanded hierarchy branches on project show', function (): void
 
     Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
         ->assertSee('Root Category')
-        ->assertSee('Child Category')
-        ->assertSee('Visible Root Task')
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"')
+        ->assertDontSee('Visible Root Task')
         ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
         ->assertDontSeeHtml('wire:key="task-row-'.Task::query()->where('project_id', $project->id)->where('title', 'Hidden Child Branch Task')->value('id').'"')
+        ->call('toggleCategoryExpansion', $root->id)
+        ->assertSeeHtml('wire:key="category-row-'.$child->id.'"')
+        ->assertSee('Visible Root Task')
+        ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
         ->call('toggleCategoryExpansion', $child->id)
         ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
         ->assertSee('Hidden Child Branch Task');
@@ -1345,14 +1349,92 @@ it('persists expanded hierarchy branches across reloads on project show', functi
     $this->actingAs($user);
 
     Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"')
         ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->call('toggleCategoryExpansion', $root->id)
+        ->assertSeeHtml('wire:key="category-row-'.$child->id.'"')
         ->call('toggleCategoryExpansion', $child->id)
         ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
         ->assertSee('Persistent Child Branch Task');
 
     Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSeeHtml('wire:key="category-row-'.$child->id.'"')
         ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
         ->assertSee('Persistent Child Branch Task');
+});
+
+it('prunes deleted expanded hierarchy IDs from the session on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Delete Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Delete Child Category',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->call('toggleCategoryExpansion', $root->id)
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSet('expandedCategoryIds', [(string) $root->id, (string) $child->id]);
+
+    $child->delete();
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id])
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"');
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id]);
+});
+
+it('prunes moved expanded hierarchy IDs from the session on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $otherProject = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Move Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Move Child Category',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->call('toggleCategoryExpansion', $root->id)
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSet('expandedCategoryIds', [(string) $root->id, (string) $child->id]);
+
+    $child->update([
+        'project_id' => $otherProject->id,
+        'parent_id' => null,
+    ]);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id])
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"');
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id]);
 });
 
 it('copies a category multiple times with unit-style names', function (): void {
