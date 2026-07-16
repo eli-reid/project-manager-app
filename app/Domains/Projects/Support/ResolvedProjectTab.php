@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Projects\Support;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Projects\Contracts\ProjectTab As ProjectTabInterface;
+use App\Domains\Projects\Contracts\ProjectTab as ProjectTabInterface;
 use App\Domains\Projects\Contracts\ProjectTabPanel;
 use App\Domains\Projects\Models\Project;
 
@@ -85,6 +85,14 @@ final class ResolvedProjectTab
     public function isVisible(User $user, Project $project): bool
     {
         return $this->tab->isVisible($user, $project);
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return $this->tab->badgeCountRelations($user, $project);
     }
 
     public function badgeCount(User $user, Project $project): ?int

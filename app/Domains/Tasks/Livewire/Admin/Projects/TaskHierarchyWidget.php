@@ -15,6 +15,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Session;
 use Livewire\Component;
 
 class TaskHierarchyWidget extends Component
@@ -108,12 +109,18 @@ class TaskHierarchyWidget extends Component
     /**
      * @var array<int, string>
      */
-    public array $expandedCategoryIds = [];
+    #[Session(key: 'task-hierarchy-expanded-{project.id}')]
+    public ?array $expandedCategoryIds = null;
 
     public function mount(Project $project): void
     {
         $this->authorize('view', $project);
         $this->project = $project;
+
+        if ($this->expandedCategoryIds !== null) {
+            return;
+        }
+
         $this->expandedCategoryIds = app(TaskTreeService::class)
             ->getCachedCategoryTree($project->id)
             ->map(fn ($category): string => (string) $category->id)

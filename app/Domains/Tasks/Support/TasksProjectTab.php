@@ -6,7 +6,6 @@ use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Support\ProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
-use App\Domains\Tasks\Models\Task;
 
 final class TasksProjectTab extends ProjectTab
 {
@@ -30,10 +29,17 @@ final class TasksProjectTab extends ProjectTab
             || $user->hasPermission('task-categories.view');
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['tasks'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return Task::query()
-            ->where('project_id', $project->id)
-            ->count();
+        $count = $project->getAttribute('tasks_count');
+
+        return is_numeric($count)
+            ? (int) $count
+            : $project->tasks()->count();
     }
 }

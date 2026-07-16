@@ -4,8 +4,6 @@ namespace App\Domains\Projects\Support;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
-use App\Domains\Projects\Models\ProjectRoleAccess;
-use App\Domains\Projects\Models\ProjectUserAccess;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 
 final class AccessProjectTab extends ProjectTab
@@ -30,12 +28,20 @@ final class AccessProjectTab extends ProjectTab
             || $user->hasPermission('project-access.manage');
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['userAccesses', 'roleAccesses'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return ProjectUserAccess::query()
-            ->where('project_id', $project->id)
-            ->count() + ProjectRoleAccess::query()
-            ->where('project_id', $project->id)
-            ->count();
+        $userAccessCount = $project->getAttribute('user_accesses_count');
+        $roleAccessCount = $project->getAttribute('role_accesses_count');
+
+        if (is_numeric($userAccessCount) && is_numeric($roleAccessCount)) {
+            return (int) $userAccessCount + (int) $roleAccessCount;
+        }
+
+        return $project->userAccesses()->count() + $project->roleAccesses()->count();
     }
 }

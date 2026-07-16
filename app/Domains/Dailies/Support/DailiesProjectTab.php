@@ -38,8 +38,17 @@ final class DailiesProjectTab extends ProjectTab
         return $user->can('viewAll', DailyReport::class);
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['dailyReports'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return $project->dailyReports()->count();
+        $count = $project->getAttribute('daily_reports_count');
+
+        return is_numeric($count)
+            ? (int) $count
+            : $project->dailyReports()->count();
     }
 }

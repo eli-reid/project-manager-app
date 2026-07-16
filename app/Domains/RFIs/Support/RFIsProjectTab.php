@@ -6,7 +6,6 @@ use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Support\ProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
-use App\Domains\RFIs\Models\RFI;
 
 final class RFIsProjectTab extends ProjectTab
 {
@@ -34,10 +33,17 @@ final class RFIsProjectTab extends ProjectTab
             || $user->hasPermission('rfis.create');
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['rfis'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return RFI::query()
-            ->where('project_id', $project->id)
-            ->count();
+        $count = $project->getAttribute('rfis_count');
+
+        return is_numeric($count)
+            ? (int) $count
+            : $project->rfis()->count();
     }
 }

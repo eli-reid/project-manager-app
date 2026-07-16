@@ -9,9 +9,15 @@ use App\Domains\Addresses\Models\Address;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Database\Factories\ProjectFactory;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
+use App\Domains\RFIs\Models\RFI;
+use App\Domains\Stock\Models\StockOrder;
+use App\Domains\Submittals\Models\Submittal;
+use App\Domains\Tasks\Models\Task;
+use App\Domains\Timecards\Models\TimecardEntry;
 use DomainException;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -189,6 +195,36 @@ class Project extends Model
     public function dailyReports(): HasMany
     {
         return $this->hasMany(DailyReport::class);
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function stockOrders(): HasMany
+    {
+        return $this->hasMany(StockOrder::class);
+    }
+
+    public function submittals(): HasMany
+    {
+        return $this->hasMany(Submittal::class);
+    }
+
+    public function rfis(): HasMany
+    {
+        return $this->hasMany(RFI::class);
+    }
+
+    public function timecardEntries(): HasMany
+    {
+        return $this->hasMany(TimecardEntry::class);
     }
 
     public function isLeaveProject(): bool

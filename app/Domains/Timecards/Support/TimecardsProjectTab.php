@@ -7,7 +7,6 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Support\ProjectTab;
 use App\Domains\Projects\Support\ProjectTabs\LivewireComponentTabPanel;
 use App\Domains\Timecards\Models\Timecard;
-use App\Domains\Timecards\Services\ProjectTimecardMetricsService;
 
 final class TimecardsProjectTab extends ProjectTab
 {
@@ -28,9 +27,17 @@ final class TimecardsProjectTab extends ProjectTab
         return $user->can('viewAny', Timecard::class);
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['timecardEntries'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return app(ProjectTimecardMetricsService::class)
-            ->summaryForProject((string) $project->id)['time_entry_count'] ?? 0;
+        $count = $project->getAttribute('timecard_entries_count');
+
+        return is_numeric($count)
+            ? (int) $count
+            : $project->timecardEntries()->count();
     }
 }

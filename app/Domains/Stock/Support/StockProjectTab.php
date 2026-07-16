@@ -29,10 +29,17 @@ final class StockProjectTab extends ProjectTab
         return $user->can('viewAny', StockOrder::class);
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['stockOrders'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return StockOrder::query()
-            ->where('project_id', $project->id)
-            ->count();
+        $count = $project->getAttribute('stock_orders_count');
+
+        return is_numeric($count)
+            ? (int) $count
+            : $project->stockOrders()->count();
     }
 }

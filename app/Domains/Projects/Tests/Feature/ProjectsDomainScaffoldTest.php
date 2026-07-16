@@ -1312,6 +1312,49 @@ it('renders only expanded hierarchy branches on project show', function (): void
         ->assertSee('Hidden Child Branch Task');
 });
 
+it('persists expanded hierarchy branches across reloads on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Persistent Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Persistent Child Category',
+    ]);
+    $grandchild = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $child->id,
+        'name' => 'Persistent Grandchild Category',
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $child->id,
+        'parent_task_id' => null,
+        'title' => 'Persistent Child Branch Task',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertSee('Persistent Child Branch Task');
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertSee('Persistent Child Branch Task');
+});
+
 it('copies a category multiple times with unit-style names', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',

@@ -21,5 +21,10 @@ interface ProjectTab
 
     public function isVisible(User $user, Project $project): bool;
 
+    /**
+     * @return array<int|string, mixed>
+     */
+    public function badgeCountRelations(User $user, Project $project): array;
+
     public function badgeCount(User $user, Project $project): ?int;
 }

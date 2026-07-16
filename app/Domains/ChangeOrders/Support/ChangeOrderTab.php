@@ -32,10 +32,17 @@ final class ChangeOrderTab extends ProjectTab
         return $user->can('viewAny', ChangeOrder::class);
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['changeOrders'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return ChangeOrder::query()
-            ->where('project_id', $project->id)
-            ->count();
+        $count = $project->getAttribute('change_orders_count');
+
+        return is_numeric($count)
+            ? (int) $count
+            : $project->changeOrders()->count();
     }
 }

@@ -153,6 +153,43 @@ class ProjectTabRegistry
             ->all();
     }
 
+    public function loadBadgeCounts(Project $project, ?User $user): Project
+    {
+        if (! $user instanceof User) {
+            return $project;
+        }
+
+        $relations = [];
+        $tabs = $this->tabs();
+
+        foreach ($this->visibleTabs($project, $user) as $tabKey) {
+            $tab = $tabs[$tabKey] ?? null;
+            if (! $tab instanceof ResolvedProjectTab) {
+                continue;
+            }
+
+            foreach ($tab->badgeCountRelations($user, $project) as $relationKey => $relationDefinition) {
+                if (is_int($relationKey) && is_string($relationDefinition)) {
+                    $relations[$relationDefinition] = $relationDefinition;
+
+                    continue;
+                }
+
+                if (is_string($relationKey)) {
+                    $relations[$relationKey] = $relationDefinition;
+                }
+            }
+        }
+
+        if ($relations === []) {
+            return $project;
+        }
+
+        $project->loadCount(array_values($relations));
+
+        return $project;
+    }
+
     /**
      * @return array<int, ProjectTabViewItem>
      */

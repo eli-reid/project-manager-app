@@ -132,6 +132,8 @@ class Show extends Component
             $this->activeTab = $tabs[0] ?? 'overview';
         }
 
+        $this->projectTabRegistry->loadBadgeCounts($this->project, $user instanceof User ? $user : null);
+
         $visibleTabItems = $this->projectTabRegistry->visibleTabItems($this->project, $user);
         $hiddenTabItems = $this->projectTabRegistry->hiddenTabItems($this->project, $user);
         $tabBadges = $this->projectTabRegistry->tabBadges($this->project, $user instanceof User ? $user : null);

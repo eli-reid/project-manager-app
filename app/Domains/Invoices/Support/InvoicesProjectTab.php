@@ -30,10 +30,17 @@ final class InvoicesProjectTab extends ProjectTab
         return $user->can('viewAny', Invoice::class);
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return ['invoices'];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
-        return Invoice::query()
-            ->where('project_id', $project->id)
-            ->count();
+        $count = $project->getAttribute('invoices_count');
+
+        return is_numeric($count)
+            ? (int) $count
+            : $project->invoices()->count();
     }
 }

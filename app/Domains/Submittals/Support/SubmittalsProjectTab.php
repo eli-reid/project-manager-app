@@ -33,10 +33,19 @@ final class SubmittalsProjectTab extends ProjectTab
             || $user->can('create', Submittal::class);
     }
 
+    public function badgeCountRelations(User $user, Project $project): array
+    {
+        return $user->can('viewAny', Submittal::class)
+            ? ['submittals']
+            : [];
+    }
+
     public function badgeCount(User $user, Project $project): ?int
     {
         return $user->can('viewAny', Submittal::class)
-            ? Submittal::query()->where('project_id', $project->id)->count()
+            ? (is_numeric($project->getAttribute('submittals_count'))
+                ? (int) $project->getAttribute('submittals_count')
+                : $project->submittals()->count())
             : 0;
     }
 }
