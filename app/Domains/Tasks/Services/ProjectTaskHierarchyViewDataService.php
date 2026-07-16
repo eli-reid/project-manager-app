@@ -38,7 +38,6 @@ class ProjectTaskHierarchyViewDataService
                 'assignedTo:id,first_name,last_name',
                 'subTasks' => fn ($query) => $query
                     ->with(['assignedTo:id,first_name,last_name'])
-                    ->orderBy('sort_order')
                     ->orderBy('title'),
             ])
             ->orderBy('sort_order')
