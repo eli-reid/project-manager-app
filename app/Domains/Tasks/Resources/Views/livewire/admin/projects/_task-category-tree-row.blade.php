@@ -13,8 +13,6 @@
             ? 'bg-amber-200/80 dark:bg-amber-800/45'
             : 'bg-zinc-50/70 dark:bg-zinc-800/50',
     ])
-    x-show="{{ $summary['ancestorVisibilityCondition'] }}"
-    x-cloak
     wire:key="category-row-{{ $categoryId }}"
     @click="if ($event.ctrlKey || $event.metaKey) { $wire.toggleCategorySelection('{{ $categoryId }}') } else { $wire.selectOnlyCategory('{{ $categoryId }}') }"
     @contextmenu.prevent.stop="openContextMenu($event, {
@@ -30,8 +28,8 @@
 >
     <td class="px-3 py-2 align-top text-sm font-semibold text-zinc-900 dark:text-zinc-100" @style(["padding-left: {$categoryIndent}px"] )>
         <div class="inline-flex items-center gap-2">
-            <button type="button" @click.stop="toggleCategory('{{ $categoryId }}')" class="inline-flex items-center justify-center rounded-md p-1 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70" aria-label="Toggle category">
-                <svg class="h-3.5 w-3.5 text-zinc-500 transition-transform" :class="isCollapsed('{{ $categoryId }}') ? '' : 'rotate-90'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <button type="button" wire:click.stop="toggleCategoryExpansion('{{ $categoryId }}')" class="inline-flex items-center justify-center rounded-md p-1 hover:bg-zinc-200/70 dark:hover:bg-zinc-700/70" aria-label="Toggle category">
+                <svg @class(['h-3.5 w-3.5 text-zinc-500 transition-transform', 'rotate-90' => in_array($categoryId, $expandedCategoryIds, true)]) viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 0 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
                 </svg>
             </button>

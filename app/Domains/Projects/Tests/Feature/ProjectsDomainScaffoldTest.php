@@ -1263,6 +1263,55 @@ it('renders nested category copy options as breadcrumbs', function (): void {
         ->assertSee('Building A -> Level 2 -> Unit 201');
 });
 
+it('renders only expanded hierarchy branches on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Child Category',
+    ]);
+    $grandchild = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $child->id,
+        'name' => 'Grandchild Category',
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $root->id,
+        'parent_task_id' => null,
+        'title' => 'Visible Root Task',
+    ]);
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $child->id,
+        'parent_task_id' => null,
+        'title' => 'Hidden Child Branch Task',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSee('Root Category')
+        ->assertSee('Child Category')
+        ->assertSee('Visible Root Task')
+        ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertDontSeeHtml('wire:key="task-row-'.Task::query()->where('project_id', $project->id)->where('title', 'Hidden Child Branch Task')->value('id').'"')
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertSee('Hidden Child Branch Task');
+});
+
 it('copies a category multiple times with unit-style names', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',

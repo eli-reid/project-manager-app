@@ -105,10 +105,35 @@ class TaskHierarchyWidget extends Component
      */
     public array $selectedCategoryIds = [];
 
+    /**
+     * @var array<int, string>
+     */
+    public array $expandedCategoryIds = [];
+
     public function mount(Project $project): void
     {
         $this->authorize('view', $project);
         $this->project = $project;
+        $this->expandedCategoryIds = app(TaskTreeService::class)
+            ->getCachedCategoryTree($project->id)
+            ->map(fn ($category): string => (string) $category->id)
+            ->values()
+            ->all();
+    }
+
+    public function toggleCategoryExpansion(string $categoryId): void
+    {
+        if (in_array($categoryId, $this->expandedCategoryIds, true)) {
+            $this->expandedCategoryIds = array_values(array_filter(
+                $this->expandedCategoryIds,
+                fn (string $expandedCategoryId): bool => $expandedCategoryId !== $categoryId,
+            ));
+
+            return;
+        }
+
+        $this->expandedCategoryIds[] = $categoryId;
+        $this->expandedCategoryIds = array_values(array_unique($this->expandedCategoryIds));
     }
 
     public function copyCategoryTasks(): void
@@ -1014,7 +1039,7 @@ class TaskHierarchyWidget extends Component
     {
         return view('tasks::livewire.admin.projects.task-hierarchy-widget', [
             'project' => $this->project,
-            ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project),
+            ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project, $this->expandedCategoryIds),
             'selectedItemCount' => count($this->selectedTaskIds) + count($this->selectedCategoryIds),
             'selectedTaskCount' => count($this->selectedTaskIds),
             'selectedCategoryCount' => count($this->selectedCategoryIds),

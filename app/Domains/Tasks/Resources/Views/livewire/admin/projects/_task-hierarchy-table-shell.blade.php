@@ -1,47 +1,4 @@
-<div
-    class="overflow-x-auto"
-    x-data="{
-        collapsedCategories: [],
-        defaultCollapsedCategories: @js($collapsedCategoryIds),
-        storageKey: 'project-task-tree-collapsed-{{ $project->id }}',
-        init() {
-            this.loadCollapsedState();
-        },
-        loadCollapsedState() {
-            try {
-                const saved = window.localStorage.getItem(this.storageKey);
-                const parsed = saved ? JSON.parse(saved) : null;
-
-                if (Array.isArray(parsed)) {
-                    this.collapsedCategories = parsed;
-
-                    return;
-                }
-            } catch (error) {
-                // Fall back to server defaults if localStorage is unavailable.
-            }
-
-            this.collapsedCategories = [...this.defaultCollapsedCategories];
-        },
-        persistCollapsedState() {
-            try {
-                window.localStorage.setItem(this.storageKey, JSON.stringify(this.collapsedCategories));
-            } catch (error) {
-                // Ignore storage failures (private mode, quota, etc.).
-            }
-        },
-        isCollapsed(id) {
-            return this.collapsedCategories.includes(id);
-        },
-        toggleCategory(id) {
-            this.collapsedCategories = this.isCollapsed(id)
-                ? this.collapsedCategories.filter(item => item !== id)
-                : [...this.collapsedCategories, id];
-
-            this.persistCollapsedState();
-        }
-    }"
->
+<div class="overflow-x-auto">
     @if ($selectedItemCount > 0)
         <div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/40">
             <div class="text-sm text-zinc-700 dark:text-zinc-200">

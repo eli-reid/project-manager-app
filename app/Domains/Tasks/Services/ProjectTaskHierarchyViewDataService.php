@@ -15,8 +15,10 @@ class ProjectTaskHierarchyViewDataService
     /**
      * @return array<string, mixed>
      */
-    public function forProject(Project $project): array
+    public function forProject(Project $project, array $expandedCategoryIds = []): array
     {
+        $expandedCategoryLookup = array_fill_keys($expandedCategoryIds, true);
+
         $taskMetrics = Task::query()
             ->where('project_id', $project->id)
             ->selectRaw('COUNT(*) as task_count')
@@ -77,10 +79,9 @@ class ProjectTaskHierarchyViewDataService
             : collect();
 
         $categorySummaries = $this->categorySummaries($categories, $tasksByCategory);
-        $flatCategories = $this->flatCategories($categories, $tasksByCategory, $categorySummaries);
+        $flatCategories = $this->flatCategories($categories, $tasksByCategory, $categorySummaries, $expandedCategoryLookup);
         $uncategorizedTaskRows = $this->taskRows(
             $tasksByCategory->get('', collect()),
-            null,
             0,
             null,
             'uncategorized-task-row',
@@ -120,7 +121,6 @@ class ProjectTaskHierarchyViewDataService
             ],
             'categories' => $categories,
             'flatCategories' => $flatCategories,
-            'collapsedCategoryIds' => $this->defaultCollapsedCategoryIds($categories),
             'copyCategoryOptions' => $this->categoryOptions($categories),
             'assignableUsers' => User::query()
                 ->orderBy('first_name')
@@ -211,14 +211,15 @@ class ProjectTaskHierarchyViewDataService
      * @param  Collection<int, mixed>  $categories
      * @param  Collection<string, EloquentCollection<int, Task>>  $tasksByCategory
      * @param  array<string, array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}>  $categorySummaries
+     * @param  array<string, bool>  $expandedCategoryLookup
      * @return array<int, array{category: mixed, depth: int, categoryId: string, summary: array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}, categoryIndent: int, progressWidth: string, taskRows: array<int, array<string, mixed>>}>
      */
-    protected function flatCategories(Collection $categories, Collection $tasksByCategory, array $categorySummaries): array
+    protected function flatCategories(Collection $categories, Collection $tasksByCategory, array $categorySummaries, array $expandedCategoryLookup): array
     {
         $rows = [];
 
         foreach ($categories as $category) {
-            $this->appendFlatCategoryRow($rows, $category, 0, $tasksByCategory, $categorySummaries);
+            $this->appendFlatCategoryRow($rows, $category, 0, $tasksByCategory, $categorySummaries, $expandedCategoryLookup);
         }
 
         return $rows;
@@ -228,8 +229,9 @@ class ProjectTaskHierarchyViewDataService
      * @param  array<int, array{category: mixed, depth: int, categoryId: string, summary: array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}, categoryIndent: int, progressWidth: string, taskRows: array<int, array<string, mixed>>}>  $rows
      * @param  Collection<string, EloquentCollection<int, Task>>  $tasksByCategory
      * @param  array<string, array{taskCount: int, completedTaskCount: int, progressPercent: int, ancestorVisibilityCondition: string, childrenVisibilityCondition: string}>  $categorySummaries
+     * @param  array<string, bool>  $expandedCategoryLookup
      */
-    protected function appendFlatCategoryRow(array &$rows, mixed $category, int $depth, Collection $tasksByCategory, array $categorySummaries): void
+    protected function appendFlatCategoryRow(array &$rows, mixed $category, int $depth, Collection $tasksByCategory, array $categorySummaries, array $expandedCategoryLookup): void
     {
         $categoryId = (string) $category->id;
         $summary = $categorySummaries[$categoryId] ?? [
@@ -241,6 +243,7 @@ class ProjectTaskHierarchyViewDataService
         ];
         $taskIndent = (($depth + 1) * 18) + 20;
         $subTaskIndent = (($depth + 2) * 18) + 28;
+        $isExpanded = $expandedCategoryLookup[$categoryId] ?? false;
 
         $rows[] = [
             'category' => $category,
@@ -249,17 +252,22 @@ class ProjectTaskHierarchyViewDataService
             'summary' => $summary,
             'categoryIndent' => ($depth * 18) + 12,
             'progressWidth' => $summary['progressPercent'].'%',
-            'taskRows' => $this->taskRows(
-                $tasksByCategory->get($categoryId, collect()),
-                $summary['childrenVisibilityCondition'],
-                $taskIndent,
-                $subTaskIndent,
-            ),
+            'taskRows' => $isExpanded
+                ? $this->taskRows(
+                    $tasksByCategory->get($categoryId, collect()),
+                    $taskIndent,
+                    $subTaskIndent,
+                )
+                : [],
         ];
+
+        if (! $isExpanded) {
+            return;
+        }
 
         $children = $category->childrenRecursive ?? collect();
         foreach ($children as $child) {
-            $this->appendFlatCategoryRow($rows, $child, $depth + 1, $tasksByCategory, $categorySummaries);
+            $this->appendFlatCategoryRow($rows, $child, $depth + 1, $tasksByCategory, $categorySummaries, $expandedCategoryLookup);
         }
     }
 
@@ -269,7 +277,6 @@ class ProjectTaskHierarchyViewDataService
      */
     protected function taskRows(
         Collection|EloquentCollection $tasks,
-        ?string $visibilityCondition,
         ?int $indent,
         ?int $subTaskIndent,
         string $keyPrefix = 'task-row',
@@ -280,11 +287,10 @@ class ProjectTaskHierarchyViewDataService
         bool $includeSubTasks = true,
     ): array {
         return $tasks
-            ->map(function (Task $task) use ($visibilityCondition, $indent, $subTaskIndent, $keyPrefix, $typeLabel, $titlePrefix, $supportsInlineStatusEditing, $supportsInlinePriorityEditing, $includeSubTasks): array {
+            ->map(function (Task $task) use ($indent, $subTaskIndent, $keyPrefix, $typeLabel, $titlePrefix, $supportsInlineStatusEditing, $supportsInlinePriorityEditing, $includeSubTasks): array {
                 return [
                     'task' => $task,
                     'taskId' => (string) $task->id,
-                    'visibilityCondition' => $visibilityCondition,
                     'indent' => $indent,
                     'keyPrefix' => $keyPrefix,
                     'typeLabel' => $typeLabel,
@@ -299,7 +305,6 @@ class ProjectTaskHierarchyViewDataService
                     'subTaskRows' => $includeSubTasks && $subTaskIndent !== null
                         ? $this->taskRows(
                             $task->subTasks,
-                            $visibilityCondition,
                             $subTaskIndent,
                             null,
                             'subtask-row',
@@ -335,37 +340,6 @@ class ProjectTaskHierarchyViewDataService
         $fullName = trim($task->assignedTo->first_name.' '.$task->assignedTo->last_name);
 
         return $fullName !== '' ? $fullName : '—';
-    }
-
-    /**
-     * @param  Collection<int, mixed>  $categories
-     * @return array<int, string>
-     */
-    protected function defaultCollapsedCategoryIds(Collection $categories): array
-    {
-        $collapsed = [];
-
-        foreach ($categories as $category) {
-            $collapsed = array_merge($collapsed, $this->descendantCategoryIds($category));
-        }
-
-        return array_values(array_unique($collapsed));
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected function descendantCategoryIds(mixed $category): array
-    {
-        $descendantIds = [];
-        $children = $category->childrenRecursive ?? collect();
-
-        foreach ($children as $child) {
-            $descendantIds[] = (string) $child->id;
-            $descendantIds = array_merge($descendantIds, $this->descendantCategoryIds($child));
-        }
-
-        return $descendantIds;
     }
 
     /**
