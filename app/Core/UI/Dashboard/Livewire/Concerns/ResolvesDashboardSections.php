@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Dashboard\Livewire\Concerns;
+namespace App\Core\UI\Dashboard\Livewire\Concerns;
 
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Throwable;

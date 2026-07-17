@@ -3,7 +3,7 @@
 use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Identity\Models\User;
 use App\Core\Scheduler\Livewire\Dashboard\Widget as SchedulerWidget;
 use App\Core\Scheduler\Models\AvailableTask;

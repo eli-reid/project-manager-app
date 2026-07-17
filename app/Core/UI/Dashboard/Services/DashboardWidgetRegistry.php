@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Dashboard\Services;
+namespace App\Core\UI\Dashboard\Services;
 
-use App\Core\Dashboard\Data\WidgetDefinition;
+use App\Core\UI\Dashboard\Data\WidgetDefinition;
 use Illuminate\Support\Facades\Log;
 
 class DashboardWidgetRegistry

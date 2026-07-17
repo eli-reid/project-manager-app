@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Core\Dashboard\Livewire;
+namespace App\Core\UI\Dashboard\Livewire;
 
-use App\Core\Dashboard\Livewire\Concerns\ResolvesDashboardSections;
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Dashboard\Livewire\Concerns\ResolvesDashboardSections;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;

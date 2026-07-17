@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Dashboard\Providers;
+namespace App\Core\UI\Dashboard\Providers;
 
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -32,6 +32,6 @@ class DashboardServiceProvider extends ServiceProvider
 
     private function registerUIComponents(): void
     {
-        Livewire::addNamespace('dashboard', classNamespace: 'App\Core\Dashboard\Livewire');
+        Livewire::addNamespace('dashboard', classNamespace: 'App\Core\UI\Dashboard\Livewire');
     }
 }

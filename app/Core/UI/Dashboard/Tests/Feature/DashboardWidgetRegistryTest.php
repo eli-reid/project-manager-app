@@ -1,7 +1,7 @@
 <?php
 
-use App\Core\Dashboard\Data\WidgetDefinition;
-use App\Core\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Dashboard\Data\WidgetDefinition;
+use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use Illuminate\Support\Facades\Log;
 
 beforeEach(function (): void {
