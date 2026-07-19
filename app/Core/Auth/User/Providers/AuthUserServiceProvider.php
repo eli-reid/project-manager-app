@@ -5,10 +5,13 @@ namespace App\Core\Auth\User\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Auth\User\Observers\UserObserver;
 use App\Core\Auth\User\Policies\UserPolicy;
+use App\Core\Identity\Livewire\Layouts\AccessAdmin;
 use App\Core\Identity\Models\User;
 use App\Core\Identity\Permissions\UserPermissions;
 use App\Core\UI\Dashboard\Data\PanelDefinition;
+use App\Core\UI\Dashboard\Data\PanelTabGroupDefinition;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
+use App\Core\UI\Dashboard\Services\DashboardPanelTabGroupRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -16,12 +19,16 @@ use Livewire\Livewire;
 
 class AuthUserServiceProvider extends ServiceProvider
 {
-    public function boot(PermissionRegistryContract $permissionRegistry, DashboardPanelRegistry $panelRegistry): void
-    {
+    public function boot(
+        PermissionRegistryContract $permissionRegistry,
+        DashboardPanelRegistry $panelRegistry,
+        DashboardPanelTabGroupRegistry $panelTabGroupRegistry,
+    ): void {
         $this->registerInfrastructure();
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerDashboardPanels($panelRegistry);
+        $this->registerDashboardPanelTabGroups($panelTabGroupRegistry);
         $this->registerObservers();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -71,6 +78,17 @@ class AuthUserServiceProvider extends ServiceProvider
                 navigationSectionKey: 'administration',
                 navigationSectionLabel: 'Administration',
                 navigationSectionOrder: 30,
+            ),
+        ]);
+    }
+
+    private function registerDashboardPanelTabGroups(DashboardPanelTabGroupRegistry $panelTabGroupRegistry): void
+    {
+        $panelTabGroupRegistry->registerDefinitions([
+            new PanelTabGroupDefinition(
+                key: 'access-management',
+                panelKeys: ['access-users', 'access-roles', 'access-email-management'],
+                navbarProvider: AccessAdmin::class,
             ),
         ]);
     }

@@ -2,10 +2,9 @@
 
 namespace App\Core\UI\Dashboard\Providers;
 
-namespace App\Core\UI\Dashboard\Providers;
-
 use App\Core\UI\Dashboard\Data\PanelDefinition;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
+use App\Core\UI\Dashboard\Services\DashboardPanelTabGroupRegistry;
 use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\UI\Navigation\DTO\NavItem;
 use App\Core\UI\Navigation\DTO\NavSectionEnum;
@@ -19,6 +18,7 @@ class DashboardServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(DashboardPanelRegistry::class);
+        $this->app->singleton(DashboardPanelTabGroupRegistry::class);
         $this->app->singleton(DashboardWidgetRegistry::class);
     }
 
@@ -38,12 +38,12 @@ class DashboardServiceProvider extends ServiceProvider
                 key: 'overview',
                 component: 'dashboard::panels.overview',
                 icon: 'squares-2x2',
-                sort: 10,
-                label: 'Overview',
-                description: 'Operational snapshot across all registered dashboard widgets.',
-                navigationSectionKey: 'workspace',
-                navigationSectionLabel: 'Workspace',
-                navigationSectionOrder: 10,
+                sort: 0,
+                label: 'Dashboard',
+                description: '',
+                navigationSectionKey: '',
+                navigationSectionLabel: '',
+                navigationSectionOrder: 0,
             ),
         ]);
     }

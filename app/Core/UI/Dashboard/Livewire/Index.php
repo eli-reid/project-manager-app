@@ -2,9 +2,9 @@
 
 namespace App\Core\UI\Dashboard\Livewire;
 
-use App\Core\Identity\Livewire\Layouts\AccessAdmin;
 use App\Core\Settings\Facades\Settings;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
+use App\Core\UI\Dashboard\Services\DashboardPanelTabGroupRegistry;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
@@ -22,10 +22,15 @@ class Index extends Component
      */
     public array $panels = [];
 
+    /**
+     * @var array<int, array{label: string, href: string, current: bool, visible?: bool}>
+     */
+    public array $currentPanelNavbarItems = [];
+
     #[Url(as: 'panel')]
     public string $activePanel = 'overview';
 
-    public function mount(DashboardPanelRegistry $panelRegistry): void
+    public function mount(DashboardPanelRegistry $panelRegistry, DashboardPanelTabGroupRegistry $panelTabGroupRegistry): void
     {
         $this->panels = $this->resolvePanels($panelRegistry);
 
@@ -36,6 +41,8 @@ class Index extends Component
         if (! collect($this->panels)->contains(fn (array $panel): bool => $panel['key'] === $this->activePanel)) {
             $this->activePanel = $this->panels[0]['key'];
         }
+
+        $this->currentPanelNavbarItems = $this->resolveCurrentPanelNavbarItems($panelTabGroupRegistry);
     }
 
     public function render()
@@ -54,7 +61,7 @@ class Index extends Component
             'panels' => $this->panels,
             'activePanel' => $this->activePanel,
             'currentPanel' => $currentPanel,
-            'currentPanelNavbarItems' => $this->resolveCurrentPanelNavbarItems(),
+            'currentPanelNavbarItems' => $this->currentPanelNavbarItems,
             'displayName' => $displayName,
             'displayInitials' => $initials !== '' ? $initials : 'DU',
             'siteName' => $siteName,
@@ -64,13 +71,17 @@ class Index extends Component
     /**
      * @return array<int, array{label: string, href: string, current: bool, visible?: bool}>
      */
-    private function resolveCurrentPanelNavbarItems(): array
+    private function resolveCurrentPanelNavbarItems(DashboardPanelTabGroupRegistry $panelTabGroupRegistry): array
     {
-        if (! in_array($this->activePanel, ['access-users', 'access-roles', 'access-email-management'], true)) {
+        $group = $panelTabGroupRegistry->findByPanelKey($this->activePanel);
+
+        if ($group === null) {
             return [];
         }
 
-        return AccessAdmin::navbarItems();
+        $navbarProvider = $group['navbar_provider'];
+
+        return $navbarProvider::navbarItems();
     }
 
     /**

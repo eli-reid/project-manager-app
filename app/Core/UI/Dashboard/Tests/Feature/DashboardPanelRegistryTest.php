@@ -2,6 +2,7 @@
 
 use App\Core\UI\Dashboard\Data\PanelDefinition;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
+use App\Core\UI\Dashboard\Services\DashboardPanelTabGroupRegistry;
 use App\Core\UI\Navigation\Services\NavigationManager;
 use Illuminate\Support\Facades\Log;
 
@@ -45,7 +46,7 @@ it('registers the built-in overview panel in the container registry', function (
 
     expect($panel)->not->toBeNull()
         ->and($panel['component'])->toBe('dashboard::panels.overview')
-        ->and($panel['label'])->toBe('Overview');
+        ->and($panel['label'])->toBe('Dashboard');
 });
 
 it('registers access management panels for users, roles, and email management', function (): void {
@@ -59,17 +60,29 @@ it('registers access management panels for users, roles, and email management', 
         ->toContain('access-email-management');
 });
 
+it('registers access management panel tab groups', function (): void {
+    $registry = app(DashboardPanelTabGroupRegistry::class);
+
+    $group = $registry->findByPanelKey('access-roles');
+
+    expect($group)->not->toBeNull()
+        ->and($group['key'])->toBe('access-management')
+        ->and($group['panel_keys'])->toBe(['access-users', 'access-roles', 'access-email-management']);
+});
+
 it('projects dashboard panels into the navigation domain after boot', function (): void {
     $navigationManager = app(NavigationManager::class);
 
-    $workspaceSection = collect($navigationManager->resolve())
-        ->firstWhere('key', 'workspace');
+    $resolvedSections = collect($navigationManager->resolve());
 
-    $administrationSection = collect($navigationManager->resolve())
+    $overviewItem = $resolvedSections
+        ->flatMap(fn (array $section): array => $section['items'])
+        ->firstWhere('id', 'dashboard-panel-overview');
+
+    $administrationSection = $resolvedSections
         ->firstWhere('key', 'admin');
 
-    expect($workspaceSection)->not->toBeNull()
-        ->and(collect($workspaceSection['items'])->pluck('id')->all())->toContain('dashboard-panel-overview')
+    expect($overviewItem)->not->toBeNull()
         ->and($administrationSection)->not->toBeNull()
         ->and(collect($administrationSection['items'])->pluck('id')->all())->toContain('dashboard-panel-access-users')
         ->and(collect($administrationSection['items'])->pluck('id')->all())->not->toContain('dashboard-panel-access-roles')
