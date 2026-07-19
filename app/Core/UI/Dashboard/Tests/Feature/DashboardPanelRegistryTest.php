@@ -2,6 +2,7 @@
 
 use App\Core\UI\Dashboard\Data\PanelDefinition;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use Illuminate\Support\Facades\Log;
 
 it('registers dashboard panels in sort order', function (): void {
@@ -45,4 +46,14 @@ it('registers the built-in overview panel in the container registry', function (
     expect($panel)->not->toBeNull()
         ->and($panel['component'])->toBe('dashboard::panels.overview')
         ->and($panel['label'])->toBe('Overview');
+});
+
+it('projects dashboard panels into the navigation domain after boot', function (): void {
+    $navigationManager = app(NavigationManager::class);
+
+    $workspaceSection = collect($navigationManager->resolve())
+        ->firstWhere('key', 'workspace');
+
+    expect($workspaceSection)->not->toBeNull()
+        ->and(collect($workspaceSection['items'])->pluck('id')->all())->toContain('dashboard-panel-overview');
 });

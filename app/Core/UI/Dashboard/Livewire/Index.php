@@ -2,6 +2,7 @@
 
 namespace App\Core\UI\Dashboard\Livewire;
 
+use App\Core\Settings\Facades\Settings;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -46,6 +47,7 @@ class Index extends Component
             ->map(fn (string $part): string => strtoupper(substr($part, 0, 1)))
             ->take(2)
             ->implode('');
+        $siteName = Settings::get('site_name', config('app.name'));
 
         return view('dashboard::livewire.index', [
             'panels' => $this->panels,
@@ -53,6 +55,7 @@ class Index extends Component
             'currentPanel' => $currentPanel,
             'displayName' => $displayName,
             'displayInitials' => $initials !== '' ? $initials : 'DU',
+            'siteName' => $siteName,
         ]);
     }
 

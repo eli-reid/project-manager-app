@@ -2,8 +2,10 @@
 
 namespace App\Core\Identity\Providers;
 
+use App\Core\Identity\Contracts\PluginUserResolver;
 use App\Core\Identity\Livewire\Auth\User\DesktopUserMenu;
 use App\Core\Identity\Livewire\Auth\User\MobileUserMenu;
+use App\Core\Identity\Services\PluginUserResolverService;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -12,6 +14,11 @@ use Livewire\Livewire;
 class UserServiceProvider extends ServiceProvider
 {
     use RegistersMobileRedirectMappings;
+
+    public function register(): void
+    {
+        $this->app->singleton(PluginUserResolver::class, PluginUserResolverService::class);
+    }
 
     public function boot(): void
     {

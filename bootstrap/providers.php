@@ -18,6 +18,7 @@ use App\Core\UI\Dashboard\Providers\DashboardServiceProvider;
 use App\Core\UI\Navigation\Providers\NavigationServiceProvider;
 use App\Domains\Providers\DomainServiceProvider;
 use App\PlugIns\Cpanel\Providers\CpanelServiceProvider;
+use App\PlugIns\Providers\PluginRuntimeServiceProvider;
 use App\PlugIns\WeatherApi\Providers\WeatherApiServiceProvider;
 use App\PlugIns\Zoom\Providers\ZoomServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -30,6 +31,7 @@ return [
     PermissionServiceProvider::class,
     RoleServiceProvider::class,
     AuthUserServiceProvider::class,
+    PluginRuntimeServiceProvider::class,
     CpanelServiceProvider::class,
     DashboardServiceProvider::class,
     AssetsServiceProvider::class,

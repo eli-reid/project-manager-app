@@ -16,6 +16,10 @@ class PanelDefinition
         string $label = '',
         public readonly string $description = '',
         public readonly string $badge = '',
+        public readonly string $navigationSectionKey = 'workspace',
+        public readonly string $navigationSectionLabel = 'Workspace',
+        public readonly int $navigationSectionOrder = 10,
+        public readonly ?string $navigationGroup = null,
     ) {
         $this->label = $label !== ''
             ? $label
@@ -23,7 +27,7 @@ class PanelDefinition
     }
 
     /**
-     * @return array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string}
+     * @return array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string, navigation_section_key: string, navigation_section_label: string, navigation_section_order: int, navigation_group: ?string}
      */
     public function toArray(): array
     {
@@ -37,6 +41,10 @@ class PanelDefinition
             'label' => $this->label,
             'description' => $this->description,
             'badge' => $this->badge,
+            'navigation_section_key' => $this->navigationSectionKey,
+            'navigation_section_label' => $this->navigationSectionLabel,
+            'navigation_section_order' => $this->navigationSectionOrder,
+            'navigation_group' => $this->navigationGroup,
         ];
     }
 }

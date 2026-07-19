@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class DashboardPanelRegistry
 {
     /**
-     * @var array<string, array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string}>
+     * @var array<string, array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string, navigation_section_key: string, navigation_section_label: string, navigation_section_order: int, navigation_group: ?string}>
      */
     private array $definitions = [];
 
@@ -40,7 +40,7 @@ class DashboardPanelRegistry
     }
 
     /**
-     * @return array<int, array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string}>
+     * @return array<int, array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string, navigation_section_key: string, navigation_section_label: string, navigation_section_order: int, navigation_group: ?string}>
      */
     public function all(): array
     {

@@ -12,8 +12,11 @@ final class NavMenu extends Component
 {
     public array $sections = [];
 
-    public function mount(NavigationManager $navigationManager)
+    public string $variant = 'default';
+
+    public function mount(NavigationManager $navigationManager, string $variant = 'default'): void
     {
+        $this->variant = $variant;
         $this->sections = $navigationManager->resolve();
 
         // compute active states and render icon blades for Flux icons
@@ -84,32 +87,61 @@ final class NavMenu extends Component
     {
         if (! empty($item['route']) && $currentRoute !== null) {
             if ($item['route'] === $currentRoute) {
-                return true;
+                return $this->matchesActiveQuery($item);
             }
 
             if (str_starts_with($currentRoute, (string) $item['route'])) {
-                return true;
+                return $this->matchesActiveQuery($item);
             }
         }
 
         if (! empty($item['url'])) {
             $itemUrl = (string) $item['url'];
             if ($itemUrl === $currentUrl) {
-                return true;
+                return $this->matchesActiveQuery($item);
             }
 
             $path = parse_url($itemUrl, PHP_URL_PATH) ?: '';
             $currentPath = parse_url($currentUrl, PHP_URL_PATH) ?: '';
             if ($path !== '' && str_starts_with($currentPath, $path)) {
-                return true;
+                return $this->matchesActiveQuery($item);
             }
         }
 
         return false;
     }
 
+    private function matchesActiveQuery(array $item): bool
+    {
+        $activeQuery = $item['meta']['active_query'] ?? null;
+
+        if (! is_array($activeQuery) || $activeQuery === []) {
+            return true;
+        }
+
+        $defaultQuery = $item['meta']['default_query'] ?? [];
+
+        foreach ($activeQuery as $key => $expectedValue) {
+            $actualValue = request()->query($key);
+
+            if (($actualValue === null || $actualValue === '') && array_key_exists($key, $defaultQuery)) {
+                $actualValue = $defaultQuery[$key];
+            }
+
+            if ((string) $actualValue !== (string) $expectedValue) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function render()
     {
+        if ($this->variant === 'dashboard' && view()->exists('core-navigation::livewire.dashboard-sidebar-flux')) {
+            return view('core-navigation::livewire.dashboard-sidebar-flux', ['sections' => $this->sections]);
+        }
+
         // prefer Flux-based sidebar in core resources, otherwise fall back to simple menu
         if (view()->exists('core-navigation::livewire.sidebar-flux')) {
             return view('core-navigation::livewire.sidebar-flux', ['sections' => $this->sections]);
