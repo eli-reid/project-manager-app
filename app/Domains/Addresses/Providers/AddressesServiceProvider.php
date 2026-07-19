@@ -3,9 +3,11 @@
 namespace App\Domains\Addresses\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Addresses\Permissions\AddressPermissions;
 use App\Domains\Addresses\Policies\AddressPolicy;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -13,14 +15,17 @@ use Livewire\Livewire;
 
 class AddressesServiceProvider extends ServiceProvider
 {
+    use RegistersNavigationItems;
+
     public function register(): void
     {
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NavigationManager $navigationManager): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -54,5 +59,10 @@ class AddressesServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(AddressPermissions::all());
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $this->registerAdminNavigationItem($navigationManager, 'admin-addresses', 'Addresses', 'admin.addresses.index', 'map-pin', 25, [$this->policyPermission('viewAny', Address::class)]);
     }
 }

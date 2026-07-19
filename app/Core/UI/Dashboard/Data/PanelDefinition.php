@@ -20,6 +20,7 @@ class PanelDefinition
         public readonly string $navigationSectionLabel = 'Workspace',
         public readonly int $navigationSectionOrder = 10,
         public readonly ?string $navigationGroup = null,
+        public readonly bool $registerInNavigation = true,
     ) {
         $this->label = $label !== ''
             ? $label
@@ -27,7 +28,7 @@ class PanelDefinition
     }
 
     /**
-     * @return array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string, navigation_section_key: string, navigation_section_label: string, navigation_section_order: int, navigation_group: ?string}
+     * @return array{key: string, component: string, icon: string, sort: int, ability: string, ability_model: string, label: string, description: string, badge: string, navigation_section_key: string, navigation_section_label: string, navigation_section_order: int, navigation_group: ?string, register_in_navigation: bool}
      */
     public function toArray(): array
     {
@@ -45,6 +46,7 @@ class PanelDefinition
             'navigation_section_label' => $this->navigationSectionLabel,
             'navigation_section_order' => $this->navigationSectionOrder,
             'navigation_group' => $this->navigationGroup,
+            'register_in_navigation' => $this->registerInNavigation,
         ];
     }
 }

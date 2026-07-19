@@ -3,6 +3,7 @@
 namespace App\Livewire\Nav;
 
 use App\Core\Announcement\Models\Announcement;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Scheduler\Models\ScheduledTask;
 use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Addresses\Models\Address;
@@ -14,9 +15,9 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Stock\Models\StockOrderTemplate;
 use App\Domains\Timecards\Models\Timecard;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
 
 class SidebarAdminNav extends Component
 {
@@ -34,6 +35,14 @@ class SidebarAdminNav extends Component
 
         $canManageAnnouncements = $user?->can('viewAny', Announcement::class) ?? false;
         $canManageUsers = $user?->can('admin') ?? false;
+        $canViewRoles = $user?->can('viewAny', Role::class) ?? false;
+        $canManageEmailAccounts = $user?->can('manage-email-accounts') ?? false;
+        $showAccessManagement = $canManageUsers || $canViewRoles || $canManageEmailAccounts;
+        $accessManagementHref = match (true) {
+            $canManageUsers => route('dashboard', ['panel' => 'access-users']),
+            $canViewRoles => route('dashboard', ['panel' => 'access-roles']),
+            default => route('dashboard', ['panel' => 'access-email-management']),
+        };
         $canViewAdminClients = $user?->can('viewAny', Client::class) ?? false;
         $canViewAdminAddresses = $user?->can('viewAny', Address::class) ?? false;
         $showClientManagement = $canViewAdminClients || $canViewAdminAddresses;
@@ -53,10 +62,13 @@ class SidebarAdminNav extends Component
             || $canPayrollRates
             || ($user?->can('payroll-runs.preview') ?? false);
         $payrollHref = match (true) {
-            $canPayrollTimecards => route('admin.timecards.index'),
+            $canPayrollTimecards => route('admin.payroll.timecards.review'),
             $canPayrollRates => route('admin.payroll.rates.index'),
             default => route('admin.payroll.runs.index'),
         };
+        $timeManagementHref = $canViewAdminTimecards
+            ? route('admin.timecards.index')
+            : route('admin.dailies.index');
         $canViewReports = ($user?->can('reports.financial.view') ?? false)
             || ($user?->can('reports.operational.view') ?? false);
         $canManageSettings = $user?->can('admin') ?? false;
@@ -67,6 +79,8 @@ class SidebarAdminNav extends Component
         return [
             'canManageAnnouncements' => $canManageAnnouncements,
             'canManageUsers' => $canManageUsers,
+            'showAccessManagement' => $showAccessManagement,
+            'accessManagementHref' => $accessManagementHref,
             'canViewAdminClients' => $canViewAdminClients,
             'canViewAdminAddresses' => $canViewAdminAddresses,
             'showClientManagement' => $showClientManagement,
@@ -79,6 +93,7 @@ class SidebarAdminNav extends Component
             'canViewAdminDailies' => $canViewAdminDailies,
             'canViewAdminTimecards' => $canViewAdminTimecards,
             'showTimeManagement' => $showTimeManagement,
+            'timeManagementHref' => $timeManagementHref,
             'canViewAdminDocuments' => $canViewAdminDocuments,
             'canManagePayroll' => $canManagePayroll,
             'payrollHref' => $payrollHref,

@@ -7,6 +7,7 @@ use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
 use App\Core\UI\Dashboard\Data\WidgetDefinition;
 use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Timecards\Models\Timecard;
@@ -20,6 +21,7 @@ use App\Domains\Timecards\Reports\TimecardReportDefinitions;
 use App\Domains\Timecards\Support\TimecardsProjectTab;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -29,13 +31,14 @@ use Livewire\Livewire;
 class TimecardsServiceProvider extends ServiceProvider
 {
     use RegistersMobileRedirectMappings;
+    use RegistersNavigationItems;
 
     public function register(): void
     {
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry, NavigationManager $navigationManager): void
     {
         $this->registerMobileRoutePrefixMapping('timecards.', 'timecards.mobile.');
 
@@ -43,6 +46,7 @@ class TimecardsServiceProvider extends ServiceProvider
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
         $this->registerProjectTabs($projectTabRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerSchedulerTasks($taskTypeRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -118,6 +122,16 @@ class TimecardsServiceProvider extends ServiceProvider
     private function registerReports(ReportRegistry $reportRegistry): void
     {
         $reportRegistry->registerDefinitions(TimecardReportDefinitions::all());
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $adminPermissions = [$this->policyPermission('viewAll', Timecard::class)];
+        $userPermissions = [$this->policyPermission('viewAny', Timecard::class)];
+
+        $this->registerAdminNavigationItem($navigationManager, 'admin-timecards', 'Timecards', 'admin.timecards.index', 'clock', 30, $adminPermissions);
+        $this->registerAdminNavigationItem($navigationManager, 'admin-timecards-required-users', 'Required Users', 'admin.timecards.required-users', 'users', 31, $adminPermissions);
+        $this->registerUserNavigationItem($navigationManager, 'timecards', 'My Timecards', 'timecards.index', 'clock', 20, $userPermissions);
     }
 
     private function registerSchedulerTasks(TaskTypeRegistry $taskTypeRegistry): void

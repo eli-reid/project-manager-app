@@ -19,8 +19,8 @@
                             <span class="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl {{ $item['active'] ? 'bg-amber-400/20 text-amber-300' : 'bg-white/5 text-zinc-500 group-hover:text-zinc-300' }}">
                                 @if(! empty($item['icon_html']))
                                     {!! $item['icon_html'] !!}
-                                @elseif(! empty($item['icon']) && view()->exists("flux.icon.{$item['icon']}"))
-                                    {!! view("flux.icon.{$item['icon']}", ['variant' => 'micro'])->render() !!}
+                                @elseif(! empty($item['icon']))
+                                    <flux:icon :icon="$item['icon']" variant="micro" />
                                 @else
                                     {{ strtoupper(substr($item['label'], 0, 1)) }}
                                 @endif
@@ -56,8 +56,8 @@
                                     <span class="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl {{ $item['active'] ? 'bg-amber-400/20 text-amber-300' : 'bg-white/5 text-zinc-500 group-hover:text-zinc-300' }}">
                                         @if(! empty($item['icon_html']))
                                             {!! $item['icon_html'] !!}
-                                        @elseif(! empty($item['icon']) && view()->exists("flux.icon.{$item['icon']}"))
-                                            {!! view("flux.icon.{$item['icon']}", ['variant' => 'micro'])->render() !!}
+                                        @elseif(! empty($item['icon']))
+                                            <flux:icon :icon="$item['icon']" variant="micro" />
                                         @else
                                             {{ strtoupper(substr($item['label'], 0, 1)) }}
                                         @endif

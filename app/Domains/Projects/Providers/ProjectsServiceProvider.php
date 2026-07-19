@@ -6,6 +6,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\UI\Dashboard\Data\WidgetDefinition;
 use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Notifications\ProjectNotificationDefinitions;
 use App\Domains\Projects\Permissions\ProjectPermissions;
@@ -18,6 +19,7 @@ use App\Domains\Projects\Support\FinancialsProjectTab;
 use App\Domains\Projects\Support\OverviewProjectTab;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +28,7 @@ use Livewire\Livewire;
 class ProjectsServiceProvider extends ServiceProvider
 {
     use RegistersMobileRedirectMappings;
+    use RegistersNavigationItems;
 
     public function register(): void
     {
@@ -34,7 +37,7 @@ class ProjectsServiceProvider extends ServiceProvider
         $this->app->singleton(ProjectTabRegistry::class);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry, NavigationManager $navigationManager): void
     {
         $this->registerMobileRoutePrefixMapping('projects.', 'projects.mobile.');
 
@@ -42,6 +45,7 @@ class ProjectsServiceProvider extends ServiceProvider
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
         $this->registerProjectTabs($projectTabRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -125,6 +129,14 @@ class ProjectsServiceProvider extends ServiceProvider
                 'sort' => 20,
             ],
         ]);
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $permissions = [$this->policyPermission('viewAny', Project::class)];
+
+        $this->registerAdminNavigationItem($navigationManager, 'admin-projects', 'Projects', 'admin.projects.index', 'drafting-compass', 10, $permissions);
+        $this->registerUserNavigationItem($navigationManager, 'projects', 'My Projects', 'projects.index', 'briefcase', 10, $permissions);
     }
 
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void

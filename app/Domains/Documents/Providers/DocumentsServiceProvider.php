@@ -6,6 +6,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Facades\Settings;
 use App\Core\UI\Dashboard\Data\WidgetDefinition;
 use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Documents\Console\MigrateDocumentsToAssets;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
 use App\Domains\Documents\Contracts\DocumentSharingContract;
@@ -19,6 +20,7 @@ use App\Domains\Documents\Services\ProjectDocumentLibrary;
 use App\Domains\Documents\Support\DocumentsProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +29,7 @@ use Livewire\Livewire;
 class DocumentsServiceProvider extends ServiceProvider
 {
     use RegistersMobileRedirectMappings;
+    use RegistersNavigationItems;
 
     public function register(): void
     {
@@ -36,7 +39,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->commands([MigrateDocumentsToAssets::class]);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry, NavigationManager $navigationManager): void
     {
         $this->registerMobileExactRouteMapping('documents.index', 'documents.mobile.global');
         $this->registerMobileExactRouteMapping('documents.global', 'documents.mobile.global');
@@ -44,6 +47,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
         $this->registerProjectTabs($projectTabRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -121,6 +125,29 @@ class DocumentsServiceProvider extends ServiceProvider
         $projectTabRegistry->registerDefinitions([
             DocumentsProjectTab::class,
         ]);
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $this->registerAdminNavigationItem(
+            $navigationManager,
+            'admin-documents',
+            'Documents',
+            'admin.documents.index',
+            'folder',
+            60,
+            [$this->policyPermission('deleteAny', Document::class)],
+        );
+
+        $this->registerUserNavigationItem(
+            $navigationManager,
+            'documents',
+            'Documents',
+            'documents.index',
+            'folder',
+            50,
+            [$this->policyPermission('viewAny', Document::class)],
+        );
     }
 
     private function configureLivewireTemporaryUploadRules(): void

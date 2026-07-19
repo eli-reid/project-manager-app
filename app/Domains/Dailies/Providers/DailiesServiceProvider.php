@@ -5,6 +5,7 @@ namespace App\Domains\Dailies\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\UI\Dashboard\Data\WidgetDefinition;
 use App\Core\UI\Dashboard\Services\DashboardWidgetRegistry;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Permissions\DailyPermissions;
 use App\Domains\Dailies\Policies\DailyReportPolicy;
@@ -12,6 +13,7 @@ use App\Domains\Dailies\Support\DailiesProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -20,19 +22,21 @@ use Livewire\Livewire;
 class DailiesServiceProvider extends ServiceProvider
 {
     use RegistersMobileRedirectMappings;
+    use RegistersNavigationItems;
 
     public function register(): void
     {
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry, NavigationManager $navigationManager): void
     {
         $this->registerMobileRoutePrefixMapping('dailies.', 'dailies.mobile.');
 
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
         $this->registerProjectTabs($projectTabRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerDashboardWidgets($widgetRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -111,6 +115,15 @@ class DailiesServiceProvider extends ServiceProvider
                 'sort' => 10,
             ],
         ]);
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $adminPermissions = [$this->policyPermission('viewAll', DailyReport::class)];
+        $userPermissions = [$this->policyPermission('viewAny', DailyReport::class)];
+
+        $this->registerAdminNavigationItem($navigationManager, 'admin-dailies', 'Dailies', 'admin.dailies.index', 'clipboard-document-list', 35, $adminPermissions);
+        $this->registerUserNavigationItem($navigationManager, 'dailies', 'My Dailies', 'dailies.index', 'clipboard-document-list', 30, $userPermissions);
     }
 
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void

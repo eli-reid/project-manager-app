@@ -48,12 +48,31 @@ it('registers the built-in overview panel in the container registry', function (
         ->and($panel['label'])->toBe('Overview');
 });
 
+it('registers access management panels for users, roles, and email management', function (): void {
+    $registry = app(DashboardPanelRegistry::class);
+
+    $panelKeys = collect($registry->all())->pluck('key')->all();
+
+    expect($panelKeys)
+        ->toContain('access-users')
+        ->toContain('access-roles')
+        ->toContain('access-email-management');
+});
+
 it('projects dashboard panels into the navigation domain after boot', function (): void {
     $navigationManager = app(NavigationManager::class);
 
     $workspaceSection = collect($navigationManager->resolve())
         ->firstWhere('key', 'workspace');
 
+    $administrationSection = collect($navigationManager->resolve())
+        ->firstWhere('key', 'admin');
+
     expect($workspaceSection)->not->toBeNull()
-        ->and(collect($workspaceSection['items'])->pluck('id')->all())->toContain('dashboard-panel-overview');
+        ->and(collect($workspaceSection['items'])->pluck('id')->all())->toContain('dashboard-panel-overview')
+        ->and($administrationSection)->not->toBeNull()
+        ->and(collect($administrationSection['items'])->pluck('id')->all())->toContain('dashboard-panel-access-users')
+        ->and(collect($administrationSection['items'])->pluck('id')->all())->not->toContain('dashboard-panel-access-roles')
+        ->and(collect($administrationSection['items'])->pluck('id')->all())->not->toContain('dashboard-panel-access-email-management')
+        ->and(collect($administrationSection['items'])->pluck('label')->all())->toContain('User Management');
 });

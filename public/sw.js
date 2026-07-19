@@ -14,6 +14,10 @@ const STATIC_PATTERNS = [
     /\/livewire\/livewire\.js$/,
 ];
 
+function offlineAssetResponse() {
+    return Response.error();
+}
+
 function offlineFallbackResponse() {
     return caches.match(OFFLINE_URL).then((offlineResponse) => {
         if (offlineResponse) {
@@ -79,7 +83,7 @@ self.addEventListener('fetch', (event) => {
 
                     return response;
                 })
-                .catch(() => cached ?? offlineFallbackResponse());
+                .catch(() => cached ?? offlineAssetResponse());
         })
     );
 });
@@ -117,6 +121,12 @@ self.addEventListener('push', (event) => {
             ...payload.data,
         },
     };
+
+    if (Notification.permission !== 'granted') {
+        event.waitUntil(Promise.resolve());
+
+        return;
+    }
 
     event.waitUntil(self.registration.showNotification(title, options));
 });

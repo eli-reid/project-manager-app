@@ -4,6 +4,8 @@ namespace App\PlugIns\Cpanel\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Identity\Models\User;
+use App\Core\UI\Dashboard\Data\PanelDefinition;
+use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
 use App\PlugIns\Cpanel\Commands\EnsureLaravelCronJobs;
 use App\PlugIns\Cpanel\Commands\SyncEmailAccounts;
 use App\PlugIns\Cpanel\Data\CpanelConfig;
@@ -24,10 +26,11 @@ class CpanelServiceProvider extends ServiceProvider
         $this->app->singleton(CpanelMailboxManager::class);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, DashboardPanelRegistry $panelRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
+        $this->registerDashboardPanels($panelRegistry);
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -74,5 +77,24 @@ class CpanelServiceProvider extends ServiceProvider
         Gate::define('manage-email-accounts', function (User $user): bool {
             return $user->isAdmin() || $user->hasPermission('cpanel.manage-email-accounts');
         });
+    }
+
+    private function registerDashboardPanels(DashboardPanelRegistry $panelRegistry): void
+    {
+        $panelRegistry->registerDefinitions([
+            new PanelDefinition(
+                key: 'access-email-management',
+                component: 'cpanel::admin.email-management.dashboard',
+                icon: 'envelope',
+                sort: 112,
+                ability: 'manage-email-accounts',
+                label: 'Email Management',
+                description: 'Manage company mailboxes, sync status, and forwarders.',
+                navigationSectionKey: 'administration',
+                navigationSectionLabel: 'Administration',
+                navigationSectionOrder: 30,
+                registerInNavigation: false,
+            ),
+        ]);
     }
 }

@@ -7,6 +7,8 @@ use App\Core\Auth\User\Observers\UserObserver;
 use App\Core\Auth\User\Policies\UserPolicy;
 use App\Core\Identity\Models\User;
 use App\Core\Identity\Permissions\UserPermissions;
+use App\Core\UI\Dashboard\Data\PanelDefinition;
+use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -14,11 +16,12 @@ use Livewire\Livewire;
 
 class AuthUserServiceProvider extends ServiceProvider
 {
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, DashboardPanelRegistry $panelRegistry): void
     {
         $this->registerInfrastructure();
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
+        $this->registerDashboardPanels($panelRegistry);
         $this->registerObservers();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -51,6 +54,25 @@ class AuthUserServiceProvider extends ServiceProvider
     private function registerUIComponents(): void
     {
         Livewire::addNamespace('users', classNamespace: 'App\Core\Auth\User\Livewire');
+    }
+
+    private function registerDashboardPanels(DashboardPanelRegistry $panelRegistry): void
+    {
+        $panelRegistry->registerDefinitions([
+            new PanelDefinition(
+                key: 'access-users',
+                component: 'users::admin.users.index',
+                icon: 'users',
+                sort: 25,
+                ability: 'viewAny',
+                abilityModel: User::class,
+                label: 'User Management',
+                description: 'Manage users, roles, and email administration from one panel.',
+                navigationSectionKey: 'administration',
+                navigationSectionLabel: 'Administration',
+                navigationSectionOrder: 30,
+            ),
+        ]);
     }
 
     private function registerRoutes(): void

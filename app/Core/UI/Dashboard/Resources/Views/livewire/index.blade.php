@@ -24,6 +24,12 @@
 
     <main class="left-80 min-w-0 px-4 pb-4 pt-28 sm:px-8 lg:px-8 xl:pl-80">
         <div class="mx-auto flex w-full max-w-7xl flex-col gap-6">
+            @if ($currentPanelNavbarItems !== [])
+                <section class="rounded-4xl border border-zinc-200/70 bg-white/72 p-4 shadow-xl shadow-slate-200/60 backdrop-blur sm:p-6 dark:border-white/10 dark:bg-zinc-950/45 dark:shadow-black/20">
+                    <livewire:layouts.domain-navbar :items="$currentPanelNavbarItems" />
+                </section>
+            @endif
+
             <section class="rounded-4xl border border-zinc-200/70 bg-white/72 p-4 shadow-xl shadow-slate-200/60 backdrop-blur sm:p-6 dark:border-white/10 dark:bg-zinc-950/45 dark:shadow-black/20">
                 @if ($currentPanel)
                     @livewire($currentPanel['component'], [], 'dashboard-panel-'.$currentPanel['key'])

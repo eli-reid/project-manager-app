@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Core\UI\Dashboard\Livewire;
-namespace App\Core\UI\Dashboard\Livewire;
 
+use App\Core\Identity\Livewire\Layouts\AccessAdmin;
 use App\Core\Settings\Facades\Settings;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
 use Illuminate\Support\Facades\Auth;
@@ -54,10 +54,23 @@ class Index extends Component
             'panels' => $this->panels,
             'activePanel' => $this->activePanel,
             'currentPanel' => $currentPanel,
+            'currentPanelNavbarItems' => $this->resolveCurrentPanelNavbarItems(),
             'displayName' => $displayName,
             'displayInitials' => $initials !== '' ? $initials : 'DU',
             'siteName' => $siteName,
         ]);
+    }
+
+    /**
+     * @return array<int, array{label: string, href: string, current: bool, visible?: bool}>
+     */
+    private function resolveCurrentPanelNavbarItems(): array
+    {
+        if (! in_array($this->activePanel, ['access-users', 'access-roles', 'access-email-management'], true)) {
+            return [];
+        }
+
+        return AccessAdmin::navbarItems();
     }
 
     /**

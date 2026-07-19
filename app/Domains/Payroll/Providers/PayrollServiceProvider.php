@@ -6,6 +6,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Identity\Services\UserRelationshipRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Payroll\Contracts\ApprovedTimecardEntryProvider;
 use App\Domains\Payroll\Contracts\PayrollTimecardReadGateway;
 use App\Domains\Payroll\Models\Deduction;
@@ -25,6 +26,7 @@ use App\Domains\Payroll\Tasks\PayrollDigestValidationTask;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Timecards\Services\EloquentApprovedTimecardEntryProvider;
 use App\Domains\Timecards\Services\EloquentPayrollTimecardReadGateway;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -32,18 +34,21 @@ use Livewire\Livewire;
 
 class PayrollServiceProvider extends ServiceProvider
 {
+    use RegistersNavigationItems;
+
     public function register(): void
     {
         $this->app->bind(ApprovedTimecardEntryProvider::class, EloquentApprovedTimecardEntryProvider::class);
         $this->app->bind(PayrollTimecardReadGateway::class, EloquentPayrollTimecardReadGateway::class);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, NavigationManager $navigationManager): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerAuthorization();
         $this->registerReports($reportRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerSchedulerTasks($taskTypeRegistry);
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -139,6 +144,16 @@ class PayrollServiceProvider extends ServiceProvider
     private function registerNotifications(NotificationRegistry $notificationRegistry): void
     {
         $notificationRegistry->registerDefinitions(PayrollNotificationDefinitions::definitions());
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $this->registerAdminNavigationItem($navigationManager, 'admin-payroll-timecard-review', 'Timecard Review', 'admin.payroll.timecards.review', 'receipt-percent', 70, [$this->gatePermission('payroll-timecards.view')]);
+        $this->registerAdminNavigationItem($navigationManager, 'admin-payroll-weekly-employee-hours', 'Weekly Employee Hours', 'admin.payroll.reports.weekly-employee-hours', 'chart-bar-square', 71, [$this->gatePermission('payroll-runs.preview')]);
+        $this->registerAdminNavigationItem($navigationManager, 'admin-payroll-weekly-hour-adjustments', 'Weekly Hour Adjustments', 'admin.payroll.reports.weekly-hour-adjustments', 'adjustments-horizontal', 72, [$this->gatePermission('payroll-runs.preview')]);
+        $this->registerAdminNavigationItem($navigationManager, 'admin-payroll-rates', 'Rates', 'admin.payroll.rates.index', 'currency-dollar', 73, [$this->gatePermission('payroll-rates.view')]);
+        $this->registerAdminNavigationItem($navigationManager, 'admin-payroll-rate-types', 'Rate Types', 'admin.payroll.rate-types.index', 'swatch', 74, [$this->gatePermission('payroll-rates.view')]);
+        $this->registerAdminNavigationItem($navigationManager, 'admin-payroll-runs', 'Runs', 'admin.payroll.runs.index', 'banknotes', 75, [$this->gatePermission('payroll-runs.preview')]);
     }
 
     private function registerSchedulerTasks(TaskTypeRegistry $taskTypeRegistry): void

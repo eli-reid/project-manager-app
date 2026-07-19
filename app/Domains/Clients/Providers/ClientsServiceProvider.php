@@ -3,9 +3,11 @@
 namespace App\Domains\Clients\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Clients\Permissions\ClientPermissions;
 use App\Domains\Clients\Policies\ClientPolicy;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -13,14 +15,17 @@ use Livewire\Livewire;
 
 class ClientsServiceProvider extends ServiceProvider
 {
+    use RegistersNavigationItems;
+
     public function register(): void
     {
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NavigationManager $navigationManager): void
     {
         $this->registerPermissions($permissionRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -54,5 +59,10 @@ class ClientsServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(ClientPermissions::all());
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $this->registerAdminNavigationItem($navigationManager, 'admin-clients', 'Clients', 'admin.clients.index', 'building-2', 20, [$this->policyPermission('viewAny', Client::class)]);
     }
 }

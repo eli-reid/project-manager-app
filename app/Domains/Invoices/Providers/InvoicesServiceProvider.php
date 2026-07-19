@@ -3,12 +3,14 @@
 namespace App\Domains\Invoices\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Permissions\InvoicePermissions;
 use App\Domains\Invoices\Policies\InvoicePolicy;
 use App\Domains\Invoices\Support\InvoicesProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -16,16 +18,19 @@ use Livewire\Livewire;
 
 class InvoicesServiceProvider extends ServiceProvider
 {
+    use RegistersNavigationItems;
+
     public function register(): void
     {
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry, NavigationManager $navigationManager): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
         $this->registerProjectTabs($projectTabRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -93,5 +98,10 @@ class InvoicesServiceProvider extends ServiceProvider
                 'sort' => 10,
             ],
         ]);
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $this->registerAdminNavigationItem($navigationManager, 'admin-invoices', 'Invoices', 'admin.invoices.index', 'document-text', 50, [$this->policyPermission('viewAny', Invoice::class)]);
     }
 }

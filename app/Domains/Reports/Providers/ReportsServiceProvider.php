@@ -3,9 +3,11 @@
 namespace App\Domains\Reports\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Reports\Permissions\ReportPermissions;
 use App\Domains\Reports\Policies\ReportPolicy;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -13,15 +15,18 @@ use Livewire\Livewire;
 
 class ReportsServiceProvider extends ServiceProvider
 {
+    use RegistersNavigationItems;
+
     public function register(): void
     {
         $this->app->singleton(ReportRegistry::class, fn (): ReportRegistry => new ReportRegistry);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NavigationManager $navigationManager): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
+        $this->registerNavigation($navigationManager);
         $this->registerInfrastructure();
         $this->registerUIComponents();
         $this->registerRoutes();
@@ -70,5 +75,18 @@ class ReportsServiceProvider extends ServiceProvider
             ->name('api.')
             ->middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/api.php');
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $this->registerAdminNavigationItem(
+            $navigationManager,
+            'admin-reports',
+            'Reports',
+            'admin.reports.index',
+            'chart-bar',
+            80,
+            ['reports.financial.view', 'reports.operational.view'],
+        );
     }
 }

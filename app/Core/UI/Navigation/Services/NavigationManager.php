@@ -128,7 +128,7 @@ class NavigationManager
 
         foreach ($item->permissions as $ability) {
             try {
-                if (Auth::user()?->can($ability)) {
+                if ($this->canAccess($ability)) {
                     return true;
                 }
             } catch (\Throwable $e) {
@@ -137,5 +137,46 @@ class NavigationManager
         }
 
         return false;
+    }
+
+    private function canAccess(string|array $permission): bool
+    {
+        $user = Auth::user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        if (is_string($permission)) {
+            return $user->can($permission);
+        }
+
+        $ability = $permission['ability'] ?? null;
+
+        if (! is_string($ability) || $ability === '') {
+            return false;
+        }
+
+        $arguments = [];
+
+        if (isset($permission['model']) && is_string($permission['model'])) {
+            $arguments[] = $permission['model'];
+        }
+
+        if (array_key_exists('arguments', $permission)) {
+            $rawArguments = $permission['arguments'];
+
+            if (is_array($rawArguments)) {
+                $arguments = [...$arguments, ...$rawArguments];
+            } elseif ($rawArguments !== null) {
+                $arguments[] = $rawArguments;
+            }
+        }
+
+        if ($arguments === []) {
+            return $user->can($ability);
+        }
+
+        return $user->can($ability, count($arguments) === 1 ? $arguments[0] : $arguments);
     }
 }

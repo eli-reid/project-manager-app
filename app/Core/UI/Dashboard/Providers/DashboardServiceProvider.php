@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Core\UI\Dashboard\Providers;
+
 namespace App\Core\UI\Dashboard\Providers;
 
 use App\Core\UI\Dashboard\Data\PanelDefinition;
@@ -50,7 +51,11 @@ class DashboardServiceProvider extends ServiceProvider
     private function syncPanelNavigation(DashboardPanelRegistry $panelRegistry, NavigationManager $navigationManager): bool
     {
         foreach ($panelRegistry->all() as $panel) {
-            $sectionKey = (string) ($panel['navigation_section_key'] ?? 'workspace');
+            if (($panel['register_in_navigation'] ?? true) !== true) {
+                continue;
+            }
+
+            $sectionKey = $this->normalizeSectionKey((string) ($panel['navigation_section_key'] ?? 'workspace'));
 
             $navigationManager->registerSection(
                 $sectionKey,
@@ -82,6 +87,14 @@ class DashboardServiceProvider extends ServiceProvider
         }
 
         return true;
+    }
+
+    private function normalizeSectionKey(string $sectionKey): string
+    {
+        return match ($sectionKey) {
+            'administration' => NavSectionEnum::ADMIN->value,
+            default => $sectionKey,
+        };
     }
 
     private function registerRoutes(): void

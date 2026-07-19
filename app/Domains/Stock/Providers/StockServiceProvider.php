@@ -3,6 +3,7 @@
 namespace App\Domains\Stock\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\UI\Navigation\Services\NavigationManager;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Stock\Models\StockOrder;
@@ -13,6 +14,7 @@ use App\Domains\Stock\Policies\StockOrderPolicy;
 use App\Domains\Stock\Policies\StockOrderTemplatePolicy;
 use App\Domains\Stock\Support\StockProjectTab;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
+use App\Providers\Concerns\RegistersNavigationItems;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -21,19 +23,21 @@ use Livewire\Livewire;
 class StockServiceProvider extends ServiceProvider
 {
     use RegistersMobileRedirectMappings;
+    use RegistersNavigationItems;
 
     public function register(): void
     {
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry, NavigationManager $navigationManager): void
     {
         $this->registerMobileRoutePrefixMapping('stock-orders.', 'stock-orders.mobile.');
 
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
         $this->registerProjectTabs($projectTabRegistry);
+        $this->registerNavigation($navigationManager);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -107,5 +111,15 @@ class StockServiceProvider extends ServiceProvider
         $projectTabRegistry->registerDefinitions([
             StockProjectTab::class,
         ]);
+    }
+
+    private function registerNavigation(NavigationManager $navigationManager): void
+    {
+        $orderPermissions = [$this->policyPermission('viewAny', StockOrder::class)];
+        $templatePermissions = [$this->policyPermission('viewAny', StockOrderTemplate::class)];
+
+        $this->registerAdminNavigationItem($navigationManager, 'admin-stock-orders', 'Stock Orders', 'admin.stock-orders.index', 'archive-box', 40, $orderPermissions);
+        $this->registerAdminNavigationItem($navigationManager, 'admin-stock-order-templates', 'Templates', 'admin.stock-order-templates.index', 'square-3-stack-3d', 41, $templatePermissions);
+        $this->registerUserNavigationItem($navigationManager, 'stock-orders', 'My Stock Orders', 'stock-orders.index', 'archive-box', 40, $orderPermissions);
     }
 }

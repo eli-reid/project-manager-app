@@ -24,8 +24,14 @@
         </flux:sidebar.item>
     @endif
 
-    @if ($canManageUsers)
-        <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
+    @if ($showAccessManagement)
+        <flux:sidebar.item
+            icon="shield-check"
+            :href="$accessManagementHref"
+            :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.cpanel.manage.*') || (request()->routeIs('dashboard') && in_array(request()->query('panel'), ['access-users', 'access-roles', 'access-email-management'], true))"
+            wire:navigate
+            data-test="admin-settings-sidebar-main-link"
+        >
             {{ __('User Management') }}
         </flux:sidebar.item>
     @endif
@@ -34,23 +40,11 @@
         <flux:sidebar.item
             icon="building-2"
             :href="$canViewAdminClients ? route('admin.clients.index') : route('admin.addresses.index')"
-            :current="request()->routeIs('admin.clients.*')"
+            :current="request()->routeIs('admin.clients.*') || request()->routeIs('admin.addresses.*')"
             wire:navigate
             data-test="admin-client-management-sidebar-main-link"
         >
             {{ __('Client Management') }}
-        </flux:sidebar.item>
-    @endif
-
-    @if ($canViewAdminAddresses)
-        <flux:sidebar.item
-            icon="map-pin"
-            :href="route('admin.addresses.index')"
-            :current="request()->routeIs('admin.addresses.*')"
-            wire:navigate
-            data-test="admin-addresses-sidebar-main-link"
-        >
-            {{ __('Addresses') }}
         </flux:sidebar.item>
     @endif
 
@@ -67,6 +61,18 @@
             data-test="admin-stock-invoices-sidebar-main-link"
         >
             {{ __('Stock & Invoices') }}
+        </flux:sidebar.item>
+    @endif
+
+    @if ($showTimeManagement)
+        <flux:sidebar.item
+            icon="clock"
+            :href="$timeManagementHref"
+            :current="request()->routeIs('admin.timecards.*') || request()->routeIs('admin.dailies.*')"
+            wire:navigate
+            data-test="admin-time-management-sidebar-main-link"
+        >
+            {{ __('Time Management') }}
         </flux:sidebar.item>
     @endif
 
