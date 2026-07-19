@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Core\UI\Dashboard\Providers;
+namespace App\Core\UI\Dashboard\Providers;
 
 use App\Core\UI\Dashboard\Data\PanelDefinition;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;

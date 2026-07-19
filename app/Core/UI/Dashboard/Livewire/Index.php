@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Core\UI\Dashboard\Livewire;
+namespace App\Core\UI\Dashboard\Livewire;
 
 use App\Core\Settings\Facades\Settings;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
