@@ -21,7 +21,7 @@
         "lightningcss-linux-x64-gnu": "^1.29.1"
     },
     "devDependencies": {
-        "@mermaid-js/mermaid-cli": "^11.15.0",
-        "puppeteer": "^24.43.1"
+        "@mermaid-js/mermaid-cli": "^11.16.0",
+        "puppeteer": "^25.3.0"
     }
 }
