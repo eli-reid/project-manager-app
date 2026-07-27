@@ -13,6 +13,7 @@ use App\Core\Notification\Channels\PushNotification\Providers\PushServiceProvide
 use App\Core\Notification\Providers\NotificationServiceProvider;
 use App\Core\PluginExternalApi\Providers\PluginExternalApiServiceProvider;
 use App\Core\PluginMarketplace\Providers\PluginMarketplaceServiceProvider;
+use App\Core\PluginSandbox\Providers\PluginSandboxServiceProvider;
 use App\Core\PluginSystem\Providers\PluginSystemServiceProvider;
 use App\Core\Queue\Providers\QueueManagerServiceProvider;
 use App\Core\Scheduler\Providers\SchedulerServiceProvider;
@@ -47,6 +48,7 @@ return [
     PluginSystemServiceProvider::class,
     PluginMarketplaceServiceProvider::class,
     PluginExternalApiServiceProvider::class,
+    PluginSandboxServiceProvider::class,
     QueueManagerServiceProvider::class,
     SchedulerServiceProvider::class,
     SettingServiceProvider::class,

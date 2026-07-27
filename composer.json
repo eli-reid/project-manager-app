@@ -41,6 +41,7 @@
             "App\\Core\\PluginSystem\\": "app/Core/Plugin/System/",
             "App\\Core\\PluginMarketplace\\": "app/Core/Plugin/Marketplace/",
             "App\\Core\\PluginExternalApi\\": "app/Core/Plugin/ExternalApi/",
+            "App\\Core\\PluginSandbox\\": "app/Core/Plugin/Sandbox/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
