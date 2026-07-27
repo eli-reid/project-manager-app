@@ -12,6 +12,7 @@ use App\Core\UI\Dashboard\Data\PanelDefinition;
 use App\Core\UI\Dashboard\Data\PanelTabGroupDefinition;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
 use App\Core\UI\Dashboard\Services\DashboardPanelTabGroupRegistry;
+use App\Core\UI\Navigation\DTO\NavSectionEnum;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -70,13 +71,13 @@ class AuthUserServiceProvider extends ServiceProvider
                 key: 'access-users',
                 component: 'users::admin.users.index',
                 icon: 'users',
-                sort: 25,
+                sort: 12,
                 ability: 'viewAny',
                 abilityModel: User::class,
                 label: 'User Management',
-                description: 'Manage users, roles, and email administration from one panel.',
-                navigationSectionKey: 'administration',
-                navigationSectionLabel: 'Administration',
+                description: '',
+                navigationSectionKey: NavSectionEnum::ADMIN,
+                navigationSectionLabel: NavSectionEnum::ADMIN->label(),
                 navigationSectionOrder: 30,
             ),
         ]);

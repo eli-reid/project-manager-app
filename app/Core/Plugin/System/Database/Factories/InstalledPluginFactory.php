@@ -25,6 +25,8 @@ class InstalledPluginFactory extends Factory
             'package_name' => 'vendor/'.$slug,
             'version' => $version,
             'source_type' => InstalledPlugin::SOURCE_MARKETPLACE,
+            'trust_level' => InstalledPlugin::TRUST_REVIEWED_THIRD_PARTY,
+            'execution_mode' => InstalledPlugin::EXECUTION_IN_PROCESS_LIMITED,
             'status' => InstalledPlugin::STATUS_STAGED,
             'security_status' => InstalledPlugin::SECURITY_PENDING_REVIEW,
             'manifest_checksum' => fake()->regexify('[a-f0-9]{64}'),

@@ -2,9 +2,13 @@
 
 namespace App\Core\UI\Dashboard\Data;
 
+use App\Core\UI\Navigation\DTO\NavSectionEnum;
+
 class PanelDefinition
 {
     public readonly string $label;
+
+    public readonly string|NavSectionEnum $navigationSectionKey;
 
     public function __construct(
         public readonly string $key,
@@ -16,7 +20,7 @@ class PanelDefinition
         string $label = '',
         public readonly string $description = '',
         public readonly string $badge = '',
-        public readonly string $navigationSectionKey = 'workspace',
+        string|NavSectionEnum $navigationSectionKey = 'workspace',
         public readonly string $navigationSectionLabel = 'Workspace',
         public readonly int $navigationSectionOrder = 10,
         public readonly ?string $navigationGroup = null,
@@ -25,6 +29,10 @@ class PanelDefinition
         $this->label = $label !== ''
             ? $label
             : str($key)->replace(['.', '-', '_'], ' ')->headline()->value();
+
+        $this->navigationSectionKey = $navigationSectionKey instanceof NavSectionEnum
+            ? $navigationSectionKey->value
+            : $navigationSectionKey;
     }
 
     /**

@@ -27,6 +27,8 @@ class PluginInstallService
                 'package_name' => $normalized['package_name'],
                 'version' => $normalized['version'],
                 'source_type' => InstalledPlugin::SOURCE_MARKETPLACE,
+                'trust_level' => InstalledPlugin::TRUST_REVIEWED_THIRD_PARTY,
+                'execution_mode' => InstalledPlugin::EXECUTION_IN_PROCESS_LIMITED,
                 'status' => $recommendedSecurityStatus === InstalledPlugin::SECURITY_BLOCKED
                     ? InstalledPlugin::STATUS_QUARANTINED
                     : InstalledPlugin::STATUS_STAGED,

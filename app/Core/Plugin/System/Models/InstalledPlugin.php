@@ -39,6 +39,14 @@ class InstalledPlugin extends Model
 
     public const SOURCE_BUNDLED = 'bundled';
 
+    public const TRUST_FIRST_PARTY = 'first_party';
+
+    public const TRUST_REVIEWED_THIRD_PARTY = 'reviewed_third_party';
+
+    public const EXECUTION_IN_PROCESS_FULL = 'in_process_full';
+
+    public const EXECUTION_IN_PROCESS_LIMITED = 'in_process_limited';
+
     protected $table = 'installed_plugins';
 
     protected $fillable = [
@@ -48,6 +56,8 @@ class InstalledPlugin extends Model
         'package_name',
         'version',
         'source_type',
+        'trust_level',
+        'execution_mode',
         'status',
         'security_status',
         'manifest_checksum',

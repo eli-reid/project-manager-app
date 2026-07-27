@@ -7,6 +7,7 @@ use App\Core\Identity\Models\User;
 use App\Core\PluginSystem\Models\InstalledPlugin;
 use App\Core\PluginSystem\Services\PluginDiscoveryService;
 use App\Core\PluginSystem\Services\PluginInstallService;
+use App\Core\PluginSystem\Services\SystemPluginCatalog;
 use Illuminate\Support\Str;
 
 it('registers the plugin system admin route', function (): void {
@@ -43,6 +44,19 @@ it('discovers bundled plugins registered in bootstrap providers', function (): v
 
     expect($plugins->pluck('slug')->all())
         ->toContain('cpanel', 'weather-api', 'zoom');
+
+    expect($plugins->firstWhere('slug', 'cpanel'))
+        ->toMatchArray([
+            'trust_level' => InstalledPlugin::TRUST_FIRST_PARTY,
+            'execution_mode' => InstalledPlugin::EXECUTION_IN_PROCESS_FULL,
+        ]);
+});
+
+it('exposes a first-party catalog for bundled system plugins', function (): void {
+    $plugins = app(SystemPluginCatalog::class)->all();
+
+    expect($plugins)->not->toBeEmpty()
+        ->and($plugins->every(fn (array $plugin): bool => $plugin['trust_level'] === InstalledPlugin::TRUST_FIRST_PARTY))->toBeTrue();
 });
 
 it('stages marketplace plugins behind a pending review security gate', function (): void {
@@ -64,6 +78,8 @@ it('stages marketplace plugins behind a pending review security gate', function 
     expect($plugin->status)->toBe(InstalledPlugin::STATUS_STAGED)
         ->and($plugin->security_status)->toBe(InstalledPlugin::SECURITY_PENDING_REVIEW)
         ->and($plugin->source_type)->toBe(InstalledPlugin::SOURCE_MARKETPLACE)
+        ->and($plugin->trust_level)->toBe(InstalledPlugin::TRUST_REVIEWED_THIRD_PARTY)
+        ->and($plugin->execution_mode)->toBe(InstalledPlugin::EXECUTION_IN_PROCESS_LIMITED)
         ->and($plugin->manifest_checksum)->toBe('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
 });
 

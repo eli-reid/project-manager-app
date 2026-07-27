@@ -43,6 +43,8 @@ class PluginDiscoveryService
                     'name' => Str::headline($module),
                     'provider_class' => $provider,
                     'source_type' => InstalledPlugin::SOURCE_BUNDLED,
+                    'trust_level' => $installedRecord?->trust_level ?? InstalledPlugin::TRUST_FIRST_PARTY,
+                    'execution_mode' => $installedRecord?->execution_mode ?? InstalledPlugin::EXECUTION_IN_PROCESS_FULL,
                     'status' => $installedRecord?->status ?? InstalledPlugin::STATUS_INSTALLED,
                     'security_status' => $installedRecord?->security_status ?? InstalledPlugin::SECURITY_APPROVED,
                     'record_id' => $installedRecord?->id,

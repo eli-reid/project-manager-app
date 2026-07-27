@@ -27,7 +27,7 @@ trait RegistersNavigationItems
         $this->registerNavigationItem(
             $navigationManager,
             sectionKey: NavSectionEnum::ADMIN->value,
-            sectionLabel: 'Administration',
+            sectionLabel: NavSectionEnum::ADMIN->label(),
             sectionOrder: 20,
             id: $id,
             label: $label,
@@ -57,7 +57,7 @@ trait RegistersNavigationItems
         $this->registerNavigationItem(
             $navigationManager,
             sectionKey: NavSectionEnum::USER->value,
-            sectionLabel: 'My Workspace',
+            sectionLabel: NavSectionEnum::USER->label(),
             sectionOrder: 10,
             id: $id,
             label: $label,

@@ -10,6 +10,7 @@ use App\Core\PluginSystem\Policies\InstalledPluginPolicy;
 use App\Core\PluginSystem\Services\PluginDiscoveryService;
 use App\Core\PluginSystem\Services\PluginInstallService;
 use App\Core\PluginSystem\Services\PluginSecurityReviewService;
+use App\Core\PluginSystem\Services\SystemPluginCatalog;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -20,6 +21,7 @@ class PluginSystemServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PluginDiscoveryService::class);
+        $this->app->singleton(SystemPluginCatalog::class);
         $this->app->singleton(PluginSecurityReviewService::class);
         $this->app->singleton(PluginInstallService::class);
     }

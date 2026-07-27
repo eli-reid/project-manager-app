@@ -38,6 +38,9 @@
             "App\\": "app/",
             "App\\Core\\Dashboard\\": "app/Core/UI/Dashboard/",
             "App\\Core\\Navigation\\": "app/Core/UI/Navigation/",
+            "App\\Core\\PluginSystem\\": "app/Core/Plugin/System/",
+            "App\\Core\\PluginMarketplace\\": "app/Core/Plugin/Marketplace/",
+            "App\\Core\\PluginExternalApi\\": "app/Core/Plugin/ExternalApi/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }

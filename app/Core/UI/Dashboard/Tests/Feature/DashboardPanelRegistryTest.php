@@ -3,6 +3,7 @@
 use App\Core\UI\Dashboard\Data\PanelDefinition;
 use App\Core\UI\Dashboard\Services\DashboardPanelRegistry;
 use App\Core\UI\Dashboard\Services\DashboardPanelTabGroupRegistry;
+use App\Core\UI\Navigation\DTO\NavSectionEnum;
 use App\Core\UI\Navigation\Services\NavigationManager;
 use Illuminate\Support\Facades\Log;
 
@@ -37,6 +38,21 @@ it('ignores duplicate dashboard panel keys and logs a warning', function (): voi
 
     expect($registry->all())->toHaveCount(1)
         ->and($registry->all()[0]['component'])->toBe('dashboard::panels.overview');
+});
+
+it('normalizes enum-backed navigation section keys in panel definitions', function (): void {
+    $definition = new PanelDefinition(
+        key: 'users',
+        component: 'users::admin.users.index',
+        navigationSectionKey: NavSectionEnum::ADMIN,
+        navigationSectionLabel: NavSectionEnum::ADMIN->label(),
+    );
+
+    expect($definition->toArray())
+        ->toMatchArray([
+            'navigation_section_key' => 'admin',
+            'navigation_section_label' => 'Administration',
+        ]);
 });
 
 it('registers the built-in overview panel in the container registry', function (): void {
@@ -84,6 +100,7 @@ it('projects dashboard panels into the navigation domain after boot', function (
 
     expect($overviewItem)->not->toBeNull()
         ->and($administrationSection)->not->toBeNull()
+        ->and($administrationSection['label'])->toBe('Administration')
         ->and(collect($administrationSection['items'])->pluck('id')->all())->toContain('dashboard-panel-access-users')
         ->and(collect($administrationSection['items'])->pluck('id')->all())->not->toContain('dashboard-panel-access-roles')
         ->and(collect($administrationSection['items'])->pluck('id')->all())->not->toContain('dashboard-panel-access-email-management')
