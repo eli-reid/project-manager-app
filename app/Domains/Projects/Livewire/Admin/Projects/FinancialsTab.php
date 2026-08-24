@@ -3,6 +3,7 @@
 namespace App\Domains\Projects\Livewire\Admin\Projects;
 
 use App\Core\Identity\Models\User;
+use App\Domains\PaymentReceipts\Models\PaymentReceipt;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectFinancialsService;
 use App\Domains\Timecards\Services\ProjectTimecardMetricsService;
@@ -27,8 +28,7 @@ class FinancialsTab extends Component
 
     public function render()
     {
-        $user = Auth::user();
-        abort_unless($user instanceof User, 401);
+        $user = $this->currentUser();
 
         $financialSummary = $this->financialsService->summary($this->project);
 
@@ -40,6 +40,15 @@ class FinancialsTab extends Component
         return view('projects::livewire.admin.projects.financials-tab', [
             'financialSummary' => $financialSummary,
             'timecardSummary' => $timecardSummary,
+            'canViewPaymentReceipts' => $user->can('viewAny', PaymentReceipt::class),
         ]);
+    }
+
+    private function currentUser(): User
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User, 401);
+
+        return $user;
     }
 }

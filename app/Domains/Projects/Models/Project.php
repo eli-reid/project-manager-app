@@ -10,6 +10,7 @@ use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\PaymentReceipts\Models\PaymentReceipt;
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Database\Factories\ProjectFactory;
 use App\Domains\Projects\Enums\ProjectStatusEnum;
@@ -205,6 +206,11 @@ class Project extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function paymentReceipts(): HasMany
+    {
+        return $this->hasMany(PaymentReceipt::class);
     }
 
     public function stockOrders(): HasMany

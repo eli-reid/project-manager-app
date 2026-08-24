@@ -46,6 +46,7 @@ it('includes the expected provider-registered project view tabs', function (): v
         'documents',
         'access',
         'time',
+        'payment-receipts',
         'financials',
     ]);
 });
@@ -69,6 +70,7 @@ it('returns visible tabs for the current project and user permissions', function
         'change-orders.view',
         'rfis.view-any',
         'timecards.view',
+        'payment-receipts.view',
         'project-access.view',
         'projects.view-financials',
     ]);
@@ -84,6 +86,7 @@ it('returns visible tabs for the current project and user permissions', function
         ->toContain('rfis')
         ->toContain('access')
         ->toContain('time')
+        ->toContain('payment-receipts')
         ->toContain('financials')
         ->not->toContain('documents')
         ->and($registry->isCreateMode('submittals', request()->duplicate(query: ['submittalMode' => 'create'])))->toBeTrue()

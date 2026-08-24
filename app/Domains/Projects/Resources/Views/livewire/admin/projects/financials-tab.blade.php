@@ -1,5 +1,5 @@
 <div class="space-y-4">
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
             <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Budget</p>
             <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
@@ -19,6 +19,14 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Estimated Labor Cost</p>
             <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 ${{ number_format($financialSummary['labor_cost'], 2) }}
+            </p>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Payments Received</p>
+            <p class="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                ${{ number_format($financialSummary['payments_received'], 2) }}
+                <span class="ml-1 text-xs text-zinc-400 dark:text-zinc-500">({{ $financialSummary['payment_receipt_count'] }} {{ Str::plural('receipt', $financialSummary['payment_receipt_count']) }})</span>
             </p>
         </div>
 
@@ -53,4 +61,19 @@
             </div>
         </div>
     @endif
+
+    @if ($canViewPaymentReceipts)
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">Pay Recs live in their own feature domain.</p>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Use the dedicated project tab to manage receipt entries while keeping financials focused on summary metrics.</p>
+                </div>
+                <a href="{{ app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($project, 'payment-receipts') }}" wire:navigate class="inline-flex items-center rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                    Open Pay Recs
+                </a>
+            </div>
+        </div>
+    @endif
+    </div>
 </div>

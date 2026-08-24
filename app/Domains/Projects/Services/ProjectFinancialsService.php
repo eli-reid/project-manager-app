@@ -3,6 +3,7 @@
 namespace App\Domains\Projects\Services;
 
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\PaymentReceipts\Models\PaymentReceipt;
 use App\Domains\Payroll\Services\PayrollReportingService;
 use App\Domains\Projects\Models\Project;
 
@@ -17,9 +18,11 @@ class ProjectFinancialsService
      *     budget: float|null,
      *     invoiced: float,
      *     labor_cost: float,
+     *     payments_received: float,
      *     remaining: float|null,
      *     variance_pct: float|null,
      *     invoice_count: int,
+     *     payment_receipt_count: int,
      * }
      */
     public function summary(Project $project): array
@@ -32,6 +35,14 @@ class ProjectFinancialsService
             ->where('project_id', $project->id)
             ->count();
 
+        $paymentsReceived = (float) PaymentReceipt::query()
+            ->where('project_id', $project->id)
+            ->sum('amount');
+
+        $paymentReceiptCount = PaymentReceipt::query()
+            ->where('project_id', $project->id)
+            ->count();
+
         $budget = $project->budget !== null ? (float) $project->budget : null;
 
         $laborCost = $this->payrollReportingService->estimatedLaborCostTotalForProject((string) $project->id);
@@ -39,16 +50,18 @@ class ProjectFinancialsService
         $remaining = $budget !== null ? $budget - $invoiced : null;
 
         $variancePct = ($budget !== null && $budget > 0)
-            ? round(($invoiced / $budget) * 100, 1)
+            ? \round(($invoiced / $budget) * 100, 1)
             : null;
 
         return [
             'budget' => $budget,
             'invoiced' => $invoiced,
             'labor_cost' => $laborCost,
+            'payments_received' => $paymentsReceived,
             'remaining' => $remaining,
             'variance_pct' => $variancePct,
             'invoice_count' => $invoiceCount,
+            'payment_receipt_count' => $paymentReceiptCount,
         ];
     }
 }
