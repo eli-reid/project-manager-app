@@ -149,6 +149,44 @@ it('bulk approves submitted and draft timecards, and skips ineligible rows', fun
         ->and($approved->fresh()->status)->toBe(Timecard::STATUS_APPROVED);
 });
 
+it('shows an approve action in the admin timecards index row menu when the reviewer can approve the timecard', function (): void {
+    $reviewer = userWithTimecardDomainPermissions(['timecards.view', 'timecards.view-all', 'timecards.approve']);
+    $employee = User::factory()->create(['first_name' => 'Casey', 'last_name' => 'Employee']);
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_SUBMITTED,
+    ]);
+
+    actingAs($reviewer);
+
+    Livewire::test(Index::class)
+        ->assertSee('Approve')
+        ->assertSeeHtml("wire:click=\"approveTimecard('{$timecard->id}')\"");
+});
+
+it('approves a submitted timecard from the admin timecards index row menu action', function (): void {
+    $reviewer = userWithTimecardDomainPermissions(['timecards.view', 'timecards.view-all', 'timecards.approve']);
+    $employee = User::factory()->create();
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $employee->id,
+        'status' => Timecard::STATUS_SUBMITTED,
+    ]);
+
+    actingAs($reviewer);
+
+    Livewire::test(Index::class)
+        ->call('approveTimecard', (string) $timecard->id)
+        ->assertHasNoErrors();
+
+    $fresh = $timecard->fresh();
+
+    expect($fresh->status)->toBe(Timecard::STATUS_APPROVED)
+        ->and($fresh->approved_by)->toBe($reviewer->id)
+        ->and($fresh->approved_at)->not->toBeNull();
+});
+
 it('bulk rejects submitted timecards with a rejection reason', function (): void {
     $reviewer = userWithTimecardDomainPermissions(['timecards.view', 'timecards.view-all', 'timecards.reject']);
     $employee = User::factory()->create();
