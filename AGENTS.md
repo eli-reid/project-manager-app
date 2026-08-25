@@ -43,7 +43,6 @@ This project has domain-specific skills available. You MUST activate the relevan
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
-- look for through existing documentation and code examples before writing new code. Use the `search-docs` tool to find relevant documentation and examples. you can find a complete list of documentation sources in the docs folder. the readme file in the docs folder contains a list of all documentation sources and their versions.
 
 ## Verification Scripts
 

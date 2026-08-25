@@ -113,7 +113,7 @@ class Form extends Component
             }
 
             session()->flash('success', 'Stock order updated successfully.');
-            $this->redirectToOrder($this->stockOrder);
+            $this->redirectRoute('stock-orders.show', ['stockOrder' => $this->stockOrder], navigate: true);
 
             return;
         }
@@ -134,12 +134,7 @@ class Form extends Component
         }
 
         session()->flash('success', 'Stock order submitted successfully.');
-        $this->redirectToOrder($order);
-    }
-
-    protected function redirectToOrder(StockOrder $stockOrder): void
-    {
-        $this->redirectRoute('stock-orders.show', ['stockOrder' => $stockOrder], navigate: true);
+        $this->redirectRoute('stock-orders.show', ['stockOrder' => $order], navigate: true);
     }
 
     public function render()
