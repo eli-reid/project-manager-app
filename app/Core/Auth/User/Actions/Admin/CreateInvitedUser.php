@@ -16,11 +16,11 @@ class CreateInvitedUser
      * @param  array{first_name: string, last_name: string, phone: string|null, username: string, email: string, is_active: bool}  $attributes
      * @param  array<int, string>  $roleIds
      */
-    public function handle(array $attributes, array $roleIds): User
+    public function handle(array $attributes, array $roleIds, ?\Closure $afterCreate = null): User
     {
         $temporaryPassword = Str::random(16);
 
-        $user = DB::transaction(function () use ($attributes, $roleIds, $temporaryPassword): User {
+        $user = DB::transaction(function () use ($afterCreate, $attributes, $roleIds, $temporaryPassword): User {
             $user = new User([
                 'first_name' => $attributes['first_name'],
                 'last_name' => $attributes['last_name'],
@@ -40,6 +40,10 @@ class CreateInvitedUser
             $user->roles()->sync($roleIds);
             $user->flushAuthorizationCache();
             User::bumpPermissionCacheVersion();
+
+            if ($afterCreate !== null) {
+                $afterCreate($user);
+            }
 
             return $user;
         });
