@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark h-full">
     <head>
-        <livewire:layouts.head :title="$title ?? null" />
+    @include('livewire.layouts.head', ['title' => $title ?? null])
     </head>
     <body class="min-h-safe-screen bg-zinc-950 text-zinc-50">
         <div class="min-h-safe-screen bg-zinc-950">
