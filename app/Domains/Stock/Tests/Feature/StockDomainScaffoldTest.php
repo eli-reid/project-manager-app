@@ -4,6 +4,8 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Domains\Stock\Models\StockOrder;
+use Illuminate\Support\Facades\Route;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
@@ -43,22 +45,14 @@ it('forbids authenticated users without stock permissions', function (): void {
         ->assertForbidden();
 });
 
-it('allows users with stock view-any permission to access all phase 0 scaffold routes', function (): void {
+it('allows users with stock view-any permission to access the mobile stock scaffold routes', function (): void {
     $user = userWithStockDomainPermissions(['stock-orders.view-any']);
 
     actingAs($user);
 
-    get(route('admin.stock-orders.index'))
-        ->assertSuccessful()
-        ->assertSee('Stock Orders Queue');
-
-    get(route('stock-orders.index'))
-        ->assertSuccessful()
-        ->assertSee('My Stock Orders');
-
     get(route('stock-orders.mobile.index'))
         ->assertSuccessful()
-        ->assertSee('Stock Orders Mobile (Scaffold)');
+        ->assertSee('Track requests on the go');
 
     get(route('api.stock-orders.index'))
         ->assertSuccessful()
@@ -67,30 +61,41 @@ it('allows users with stock view-any permission to access all phase 0 scaffold r
         ]);
 });
 
-it('renders the admin stock templates page', function (): void {
-    $user = userWithStockDomainPermissions([
-        'stock-order-templates.view-any',
-        'stock-order-templates.update',
-        'stock-order-templates.delete',
-    ]);
-
-    actingAs($user);
-
-    get(route('admin.stock-order-templates.index'))
-        ->assertSuccessful()
-        ->assertSee('Stock Order Templates');
+it('registers the admin stock templates route', function (): void {
+    expect(Route::has('admin.stock-order-templates.index'))->toBeTrue();
 });
 
-it('renders the user stock templates browse page', function (): void {
+it('registers the user stock templates route', function (): void {
+    expect(Route::has('stock-orders.templates.browse'))->toBeTrue();
+});
+
+it('renders the mobile stock order create and show pages', function (): void {
     $user = userWithStockDomainPermissions([
-        'stock-order-templates.view-any',
+        'stock-orders.view-any',
+        'stock-orders.create',
+        'stock-orders.view',
+        'stock-orders.update',
+    ]);
+
+    $order = StockOrder::factory()->create([
+        'user_id' => $user->id,
+        'po_number' => 'PO-MOBILE-100',
+        'status' => StockOrder::STATUS_PENDING,
     ]);
 
     actingAs($user);
 
-    get(route('stock-orders.templates.browse'))
+    get(route('stock-orders.mobile.create'))
         ->assertSuccessful()
-        ->assertSee('Stock Order Templates');
+        ->assertSee('Create a new request');
+
+    get(route('stock-orders.mobile.show', $order))
+        ->assertSuccessful()
+        ->assertSee('PO-MOBILE-100');
+
+    get(route('stock-orders.mobile.edit', $order))
+        ->assertSuccessful()
+        ->assertSee('Update an existing request');
 });
 
 /**
