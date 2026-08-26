@@ -8,6 +8,22 @@ import './pwa';
  * expiry, the @csrf token is stale → 419. Intercepting the navigate event and
  * redirecting via window.location ensures a fresh CSRF token is always rendered.
  */
+function clearBrowserAuthState() {
+    try {
+        sessionStorage.removeItem('livewire-component-recovery');
+    } catch {
+        // Ignore storage failures in privacy-restricted contexts.
+    }
+
+    try {
+        if ('caches' in window) {
+            caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
+        }
+    } catch {
+        // Ignore cache cleanup failures in unsupported contexts.
+    }
+}
+
 document.addEventListener('livewire:navigate', (event) => {
     const authPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/email/verify', '/confirm-password', '/two-factor-challenge'];
 
@@ -23,17 +39,36 @@ document.addEventListener('livewire:navigate', (event) => {
     }
 });
 
-// When a Livewire request fails with 419 (session expired), force a hard reload
-// so Laravel can render a fresh page with a valid CSRF token.
+// When a Livewire request fails with 419 (session expired), clear stale auth state
+// and force a hard reload so Laravel can render a fresh page with a valid CSRF token.
 document.addEventListener('livewire:init', () => {
     Livewire.hook('request', ({ fail }) => {
         fail(({ status, preventDefault }) => {
             if (status === 419) {
                 preventDefault();
+                clearBrowserAuthState();
                 window.location.reload();
             }
         });
     });
+});
+
+document.addEventListener('submit', (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement)) {
+        return;
+    }
+
+    try {
+        const url = new URL(form.action, window.location.origin);
+
+        if (url.pathname === '/logout' || url.pathname.endsWith('/logout')) {
+            clearBrowserAuthState();
+        }
+    } catch {
+        // Ignore invalid form actions.
+    }
 });
 
 // Recover from stale SPA state by forcing one full reload if Livewire cannot
