@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\Middleware\PreventAuthPageCaching;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -9,7 +10,7 @@ Route::get('/', function () {
     }
 
     return view('user::auth.login');
-})->name('home');
+})->middleware(PreventAuthPageCaching::class)->name('home');
 
 if (app()->environment('local')) {
 }

@@ -26,7 +26,7 @@ class DocumentPolicy
 
     public function view(User $user, Document $document): bool
     {
-        if (! $user->hasPermission('documents.view')) {
+        if (! $user->hasPermission('documents.view') && ! $user->hasPermission('projects.view-documents')) {
             return false;
         }
 
@@ -136,8 +136,13 @@ class DocumentPolicy
 
     public function manageProjectDocuments(User $user, Project $project): bool
     {
-        return $user->hasPermission('documents.manage-project')
-            && $user->hasPermission('documents.view')
+        $hasDocumentManage = $user->hasPermission('documents.manage-project');
+        $hasProjectUpload = $user->hasPermission('projects.upload-documents');
+
+        $canViewDocuments = $user->hasPermission('documents.view') || $user->hasPermission('projects.view-documents');
+
+        return ($hasDocumentManage || $hasProjectUpload)
+            && $canViewDocuments
             && $user->can('view', $project);
     }
 

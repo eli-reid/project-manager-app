@@ -4,6 +4,7 @@ namespace App\Livewire\Nav;
 
 use App\Core\Announcement\Models\Announcement;
 use App\Core\Scheduler\Models\ScheduledTask;
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
@@ -15,6 +16,7 @@ use App\Domains\Stock\Models\StockOrderTemplate;
 use App\Domains\Timecards\Models\Timecard;
 use Illuminate\View\View;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
 class SidebarAdminNav extends Component
 {
@@ -28,7 +30,7 @@ class SidebarAdminNav extends Component
      */
     private function getNavPermissions(): array
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $canManageAnnouncements = $user?->can('viewAny', Announcement::class) ?? false;
         $canManageUsers = $user?->can('admin') ?? false;
@@ -36,6 +38,7 @@ class SidebarAdminNav extends Component
         $canViewAdminAddresses = $user?->can('viewAny', Address::class) ?? false;
         $showClientManagement = $canViewAdminClients || $canViewAdminAddresses;
         $canViewAdminProjects = $user?->can('viewAny', Project::class) ?? false;
+        $canViewAdminAccountingCodes = $user?->can('viewAny', AccountingCode::class) ?? false;
         $canViewAdminStockOrders = $user?->can('viewAny', StockOrder::class) ?? false;
         $canViewAdminStockTemplates = $user?->can('viewAny', StockOrderTemplate::class) ?? false;
         $canViewAdminInvoices = $user?->can('viewAny', Invoice::class) ?? false;
@@ -68,6 +71,7 @@ class SidebarAdminNav extends Component
             'canViewAdminAddresses' => $canViewAdminAddresses,
             'showClientManagement' => $showClientManagement,
             'canViewAdminProjects' => $canViewAdminProjects,
+            'canViewAdminAccountingCodes' => $canViewAdminAccountingCodes,
             'canViewAdminStockOrders' => $canViewAdminStockOrders,
             'canViewAdminStockTemplates' => $canViewAdminStockTemplates,
             'canViewAdminInvoices' => $canViewAdminInvoices,

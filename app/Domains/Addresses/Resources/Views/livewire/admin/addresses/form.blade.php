@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $isEdit ? 'Edit Address' : 'Create Address' }}</h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">Save location details and tie them to a client when needed.</p>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Save reusable location details for projects and profiles.</p>
         </div>
 
         <a href="{{ route('admin.addresses.index') }}" class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Back</a>
@@ -44,17 +44,6 @@
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Country</label>
                 <input type="text" wire:model="country" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                 @error('country') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div class="md:col-span-2">
-                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Client</label>
-                <select wire:model="client_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-                    <option value="">Unassigned</option>
-                    @foreach ($clients as $client)
-                        <option value="{{ $client->id }}">{{ $client->company_name }}</option>
-                    @endforeach
-                </select>
-                @error('client_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
         </div>
 

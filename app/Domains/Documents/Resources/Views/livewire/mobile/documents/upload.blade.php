@@ -26,6 +26,15 @@
                 @enderror
             </div>
 
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-400">{{ __('Folder Path') }}</label>
+                <input type="text" wire:model="folderPath" maxlength="255" class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200" placeholder="{{ __('Submittals/Changes/RFI') }}" />
+                <p class="mt-1 text-[11px] text-zinc-500">{{ __('Use slashes to create subfolders.') }}</p>
+                @error('folderPath')
+                    <span class="mt-1 text-xs text-red-400">{{ $message }}</span>
+                @enderror
+            </div>
+
             <button type="submit" class="mt-2 rounded-lg bg-sky-800 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 active:bg-sky-900">{{ __('Upload') }}</button>
         </form>
 
