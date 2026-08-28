@@ -71,9 +71,6 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                             Employee Name
                         </th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            Employee ID
-                        </th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                             Source Hours
                         </th>
@@ -92,9 +89,6 @@
                         <tr>
                             <td class="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                 {{ $item['first_name'] }} {{ $item['last_name'] }}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ $item['user_id'] }}
                             </td>
                             <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ number_format($item['source_hours'], 2) }}
@@ -121,7 +115,7 @@
 
                         @if ($this->canAdjustHours && $editingUserId === $item['user_id'])
                             <tr class="bg-zinc-50 dark:bg-zinc-800/50">
-                                <td colspan="{{ $this->canAdjustHours ? 5 : 4 }}" class="px-4 py-4">
+                                <td colspan="{{ $this->canAdjustHours ? 4 : 3 }}" class="px-4 py-4">
                                     <div class="grid gap-3 md:grid-cols-2">
                                         <div>
                                             <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -171,7 +165,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="{{ $this->canAdjustHours ? 5 : 4 }}" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                            <td colspan="{{ $this->canAdjustHours ? 4 : 3 }}" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
                                 No approved timecards for this week.
                             </td>
                         </tr>
@@ -180,7 +174,7 @@
                 @if ($this->employeeHours->count() > 0)
                     <tfoot class="border-t-2 border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50">
                         <tr>
-                            <td colspan="3" class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                            <td colspan="2" class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                 Total Hours:
                             </td>
                             <td class="px-4 py-3 text-right text-sm font-bold text-zinc-900 dark:text-zinc-100">

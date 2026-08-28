@@ -2,12 +2,14 @@
 
 return [
     App\Core\Announcement\Providers\AnnouncementServiceProvider::class,
+    App\Core\Assets\Providers\AssetsServiceProvider::class,
     App\Core\Audit\Providers\AuditServiceProvider::class,
     App\Core\Auth\Permission\Providers\PermissionServiceProvider::class,
     App\Core\Auth\Role\Providers\RoleServiceProvider::class,
     App\Core\Auth\User\Providers\AuthUserServiceProvider::class,
     App\Core\Cpanel\Providers\CpanelServiceProvider::class,
     App\Core\Dashboard\Providers\DashboardServiceProvider::class,
+    App\Core\Files\Providers\FilesServiceProvider::class,
     App\Core\Identity\Providers\FortifyServiceProvider::class,
     App\Core\Identity\Providers\UserServiceProvider::class,
     App\Core\Notification\Providers\NotificationServiceProvider::class,

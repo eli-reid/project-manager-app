@@ -20,12 +20,44 @@ class Index extends Component
     #[Url(as: 'status')]
     public string $status = '';
 
+    #[Url(as: 'docRole')]
+    public string $documentRole = '';
+
+    #[Url(as: 'docStatus')]
+    public string $documentStatus = '';
+
+    #[Url(as: 'docDiscipline')]
+    public string $documentDiscipline = '';
+
+    #[Url(as: 'docRevision')]
+    public string $documentRevision = '';
+
     public function mount(): void
     {
         $this->authorize('viewAny', Submittal::class);
     }
 
     public function updatingStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDocumentRole(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDocumentStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDocumentDiscipline(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDocumentRevision(): void
     {
         $this->resetPage();
     }
@@ -40,6 +72,31 @@ class Index extends Component
             $query->where('status', $this->status);
         }
 
+        $hasMetadataFilter = $this->documentRole !== ''
+            || $this->documentStatus !== ''
+            || trim($this->documentDiscipline) !== ''
+            || trim($this->documentRevision) !== '';
+
+        if ($hasMetadataFilter) {
+            $query->whereHas('documents', function ($documentQuery): void {
+                if ($this->documentRole !== '') {
+                    $documentQuery->where('submittal_documents.document_role', $this->documentRole);
+                }
+
+                if ($this->documentStatus !== '') {
+                    $documentQuery->where('submittal_documents.document_status', $this->documentStatus);
+                }
+
+                if (trim($this->documentDiscipline) !== '') {
+                    $documentQuery->where('submittal_documents.discipline', 'like', '%'.trim($this->documentDiscipline).'%');
+                }
+
+                if (trim($this->documentRevision) !== '') {
+                    $documentQuery->where('submittal_documents.revision', 'like', '%'.trim($this->documentRevision).'%');
+                }
+            });
+        }
+
         return view('submittals::livewire.user.submittals.index', [
             'submittals' => $query->paginate(15),
             'statuses' => [
@@ -52,6 +109,17 @@ class Index extends Component
                 Submittal::STATUS_REVISE => 'Revise',
                 Submittal::STATUS_DISTRIBUTED => 'Distributed',
                 Submittal::STATUS_CANCELLED => 'Cancelled',
+            ],
+            'documentRoles' => [
+                Submittal::DOCUMENT_ROLE_REFERENCE => 'Reference',
+                Submittal::DOCUMENT_ROLE_PRIMARY => 'Primary',
+                Submittal::DOCUMENT_ROLE_SUPPORTING => 'Supporting',
+                Submittal::DOCUMENT_ROLE_COMPLIANCE => 'Compliance',
+            ],
+            'documentStatuses' => [
+                Submittal::DOCUMENT_STATUS_ACTIVE => 'Active',
+                Submittal::DOCUMENT_STATUS_DRAFT => 'Draft',
+                Submittal::DOCUMENT_STATUS_SUPERSEDED => 'Superseded',
             ],
         ]);
     }

@@ -212,6 +212,7 @@ it('supports project tab full crud for project-owned documents', function (): vo
     Livewire::test(DocumentsTab::class, ['project' => $project])
         ->set('title', 'Project Scope')
         ->set('description', 'Initial file')
+        ->set('folderPath', 'Submittals/Changes/RFI')
         ->set('file', UploadedFile::fake()->create('scope.pdf', 80, 'application/pdf'))
         ->call('save')
         ->assertHasNoErrors();
@@ -222,6 +223,9 @@ it('supports project tab full crud for project-owned documents', function (): vo
     expect($document?->owner_scope)->toBe(Document::OWNER_SCOPE_PROJECT);
     expect($document?->owner_id)->toBe($project->id);
     expect($document?->visibility)->toBe(Document::VISIBILITY_PROJECT);
+    expect($document?->folder_path)->toBe('Submittals/Changes/RFI');
+    expect($document?->storage_path)->toContain('Submittals/Changes/RFI');
+    expect(Storage::disk('local')->exists((string) $document?->storage_path))->toBeTrue();
 
     Livewire::test(DocumentsTab::class, ['project' => $project])
         ->call('edit', (string) $document?->id)
@@ -236,6 +240,29 @@ it('supports project tab full crud for project-owned documents', function (): vo
         ->assertHasNoErrors();
 
     expect(Document::query()->whereKey($document?->id)->exists())->toBeFalse();
+});
+
+it('stores mobile uploads inside a chosen folder path', function (): void {
+    Storage::fake('local');
+    Settings::set('documents.storage_disk', 'local');
+
+    $user = userWithDocumentDomainPermissions(['documents.view', 'documents.create']);
+
+    actingAs($user);
+
+    Livewire::test(MobileUpload::class)
+        ->set('description', 'Mobile upload')
+        ->set('folderPath', 'Submittals/Changes/RFI')
+        ->set('file', UploadedFile::fake()->create('mobile-scope.pdf', 64, 'application/pdf'))
+        ->call('upload')
+        ->assertHasNoErrors();
+
+    $document = Document::query()->where('original_name', 'mobile-scope.pdf')->first();
+
+    expect($document)->not->toBeNull();
+    expect($document?->folder_path)->toBe('Submittals/Changes/RFI');
+    expect($document?->storage_path)->toContain('Submittals/Changes/RFI');
+    expect(Storage::disk('local')->exists((string) $document?->storage_path))->toBeTrue();
 });
 
 it('shows project upload constraints in project documents tab ui', function (): void {

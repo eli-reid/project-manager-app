@@ -69,3 +69,27 @@ it('logs when sms notification is withheld by zoom consent flow', function (): v
             && ($context['to'] ?? null) === '2125551212';
     });
 });
+
+it('does not log warning when notification intentionally skips sms delivery', function (): void {
+    Log::spy();
+
+    $smsService = Mockery::mock(SmsServiceContract::class);
+    $smsService->shouldNotReceive('isConfigured');
+    $smsService->shouldNotReceive('send');
+
+    $channel = new SmsChannel($smsService);
+
+    $notification = new class extends Notification
+    {
+        public function toSms(object $notifiable): ?array
+        {
+            return null;
+        }
+    };
+
+    $channel->send((object) ['id' => 'user-1'], $notification);
+
+    Log::shouldNotHaveReceived('warning', function (string $message): bool {
+        return $message === 'SMS notification payload is missing required fields.';
+    });
+});

@@ -3,7 +3,6 @@
 namespace App\Domains\Timecards\Livewire\Mobile\Timecards;
 
 use App\Core\Identity\Models\User;
-use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\User\Timecards\Form as DesktopForm;
 use App\Domains\Timecards\Models\Timecard;
@@ -21,7 +20,7 @@ class Form extends DesktopForm
             return;
         }
 
-        $allowedPresets = ['06:00', '06:30', '07:00', '07:30', '08:00'];
+        $allowedPresets = ['06:00', '06:30', '07:00', '07:30'];
 
         if (! in_array($startTime, $allowedPresets, true)) {
             return;
@@ -37,7 +36,7 @@ class Form extends DesktopForm
             return;
         }
 
-        $allowedPresets = ['4.00', '6.00', '8.00', '10.00', '12.00'];
+        $allowedPresets = ['4.00', '6.00', '8.00', '10.00'];
 
         if (! in_array($hours, $allowedPresets, true)) {
             return;
@@ -102,11 +101,6 @@ class Form extends DesktopForm
             'leaveBalances' => $user instanceof User
                 ? app(LeaveBalanceService::class)->forUser($user)
                 : ['sick' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0], 'vacation' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0]],
-            'costCodesByProject' => CostCode::query()
-                ->where('is_active', true)
-                ->orderBy('code')
-                ->get(['id', 'project_id', 'code', 'description'])
-                ->groupBy('project_id'),
         ])->title($this->isEdit ? __('Edit Timecard') : __('Create Timecard'));
     }
 }

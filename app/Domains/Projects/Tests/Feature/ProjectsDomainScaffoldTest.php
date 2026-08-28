@@ -5,7 +5,9 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Addresses\Models\Address;
+use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\Clients\Models\Client;
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Invoices\Models\Invoice;
@@ -14,11 +16,17 @@ use App\Domains\Projects\Livewire\Admin\Projects\Form;
 use App\Domains\Projects\Livewire\Admin\Projects\Index as AdminProjectsIndex;
 use App\Domains\Projects\Livewire\User\Projects\Index as UserProjectsIndex;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
+use App\Domains\RFIs\Models\RFI;
+use App\Domains\Stock\Models\StockOrder;
+use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyWidget;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
+use App\Domains\Tasks\Services\TaskTreeService;
 use App\Domains\Timecards\Models\TimecardEntry;
+use Illuminate\Support\Collection;
 use Livewire\Livewire;
 
 it('redirects guests from domain admin routes', function (): void {
@@ -371,6 +379,35 @@ it('allows searching user projects by address fields', function (): void {
         ->assertDontSee('Project Not Matching Address Search');
 });
 
+it('allows searching user projects by accounting code', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Accounting Search Match',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+        'accounting_code' => 'BULK-STEEL-01',
+    ]);
+
+    Project::factory()->create([
+        'name' => 'Accounting Search Miss',
+        'project_manager_id' => $user->id,
+        'status' => 'in_progress',
+        'is_active' => true,
+        'accounting_code' => 'BULK-CONCRETE-01',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(UserProjectsIndex::class)
+        ->set('search', 'BULK-STEEL-01')
+        ->assertSee('Accounting Search Match')
+        ->assertDontSee('Accounting Search Miss');
+});
+
 it('allows users with domain view permissions to access scaffold routes', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
@@ -454,10 +491,40 @@ it('shows inline client and address widgets on project create form', function ()
     $this->actingAs($user)
         ->get(route('admin.projects.create'))
         ->assertSuccessful()
+        ->assertSee('Accounting Code')
         ->assertSee('Leave Tracking')
         ->assertSee('Default Pay Rate Type')
         ->assertSee('Quick Add Client')
         ->assertSee('Quick Add Address');
+});
+
+it('persists accounting code when creating a project', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'projects.create',
+    ]);
+
+    $accountingCode = AccountingCode::factory()->create([
+        'code' => 'BULK-LUMBER-01',
+        'name' => 'Bulk Lumber',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Form::class)
+        ->set('name', 'Project With Accounting Code')
+        ->set('status', 'pending')
+        ->set('budget', '150000.50')
+        ->set('accounting_code_id', (string) $accountingCode->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $project = Project::query()->where('name', 'Project With Accounting Code')->first();
+
+    expect($project)->not->toBeNull()
+        ->and($project?->accounting_code_id)->toBe($accountingCode->id)
+        ->and($project?->accounting_code)->toBe('BULK-LUMBER-01')
+        ->and((float) ($project?->budget ?? 0))->toBe(150000.5);
 });
 
 it('persists default pay rate type when creating a project', function (): void {
@@ -502,18 +569,28 @@ it('allows authorized users to edit and update a project', function (): void {
         ->assertSuccessful()
         ->assertSee('Edit Project');
 
+    $accountingCode = AccountingCode::factory()->create([
+        'code' => 'BULK-AGGREGATE-01',
+        'name' => 'Bulk Aggregate',
+    ]);
+
     $this->actingAs($user);
 
     Livewire::test(Form::class, ['project' => $project])
         ->set('name', 'Updated Project Name')
         ->set('project_number', 'PRJ-EDIT-1')
+        ->set('accounting_code_id', (string) $accountingCode->id)
         ->set('status', 'in_progress')
+        ->set('budget', '240000.00')
         ->set('leave_category', 'vacation')
         ->call('save')
         ->assertHasNoErrors();
 
     expect($project->fresh()->name)->toBe('Updated Project Name')
         ->and($project->fresh()->status?->value)->toBe('in_progress')
+        ->and($project->fresh()->accounting_code_id)->toBe($accountingCode->id)
+        ->and($project->fresh()->accounting_code)->toBe('BULK-AGGREGATE-01')
+        ->and((float) ($project->fresh()->budget ?? 0))->toBe(240000.0)
         ->and($project->fresh()->leave_category)->toBe('vacation');
 });
 
@@ -586,7 +663,7 @@ it('shows the livewire tabbed project page and supports tab query state', functi
         ->assertDontSee('setTab(\'templates\')', false);
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=tasks')
+        ->get(projectTabUrl($project, 'tasks'))
         ->assertSuccessful()
         ->assertSee('Project Work Breakdown')
         ->assertSee('Add Task')
@@ -618,7 +695,7 @@ it('shows invoices tab on project view when user can view invoices', function ()
         ->assertSee('Invoices');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=invoices')
+        ->get(projectTabUrl($project, 'invoices'))
         ->assertSuccessful()
         ->assertSee('Project Invoices')
         ->assertSee('Vendor On Project')
@@ -652,7 +729,7 @@ it('shows dailies tab on project view when user can view all dailies', function 
         ->assertSee('Dailies');
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=dailies')
+        ->get(projectTabUrl($project, 'dailies'))
         ->assertSuccessful()
         ->assertSee('Project Dailies')
         ->assertSee('Submitted')
@@ -684,11 +761,141 @@ it('shows employee names on project time tab recent entries', function (): void 
     ]);
 
     $this->actingAs($user)
-        ->get(route('admin.projects.show', $project).'?tab=time')
+        ->get(projectTabUrl($project, 'time'))
         ->assertSuccessful()
         ->assertSee('Recent Time Entries')
         ->assertSee('Taylor Foreman')
         ->assertDontSee('Unknown');
+});
+
+it('shows stock tab on project view with project scoped stock orders', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'stock-orders.view-any',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Stock Orders',
+        'project_number' => 'PRJ-STK-1',
+    ]);
+
+    StockOrder::factory()->forProject($project)->create([
+        'po_number' => 'PO-PROJECT-1',
+    ]);
+
+    StockOrder::factory()->forProject(Project::factory()->create())->create([
+        'po_number' => 'PO-OTHER-1',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Stock');
+
+    $this->actingAs($user)
+        ->get(projectTabUrl($project, 'stock'))
+        ->assertSuccessful()
+        ->assertSee('PO-PROJECT-1')
+        ->assertDontSee('PO-OTHER-1');
+});
+
+it('shows submittals tab on project view with project scoped submittals', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'submittals.view-any',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Submittals',
+        'project_number' => 'PRJ-SUB-1',
+    ]);
+
+    Submittal::factory()->create([
+        'project_id' => $project->id,
+        'vendor' => 'Project Vendor Inc',
+    ]);
+
+    Submittal::factory()->create([
+        'project_id' => Project::factory()->create()->id,
+        'vendor' => 'Other Vendor LLC',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Submittals');
+
+    $this->actingAs($user)
+        ->get(projectTabUrl($project, 'submittals'))
+        ->assertSuccessful()
+        ->assertSee('Project Vendor Inc')
+        ->assertDontSee('Other Vendor LLC');
+});
+
+it('shows change orders tab on project view with project scoped change orders', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'change-orders.view',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With Change Orders',
+        'project_number' => 'PRJ-CO-1',
+    ]);
+
+    ChangeOrder::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Project Change Order',
+    ]);
+
+    ChangeOrder::factory()->create([
+        'project_id' => Project::factory()->create()->id,
+        'title' => 'Other Change Order',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('Change Orders');
+
+    $this->actingAs($user)
+        ->get(projectTabUrl($project, 'change-orders'))
+        ->assertSuccessful()
+        ->assertSee('Project Change Order')
+        ->assertDontSee('Other Change Order');
+});
+
+it('shows rfis tab on project view with project scoped rfis', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'rfis.view-any',
+    ]);
+
+    $project = Project::factory()->create([
+        'name' => 'Project With RFIs',
+        'project_number' => 'PRJ-RFI-1',
+    ]);
+
+    RFI::factory()->submitted()->create([
+        'project_id' => $project->id,
+        'subject' => 'Project RFI Subject',
+    ]);
+
+    RFI::factory()->submitted()->create([
+        'project_id' => Project::factory()->create()->id,
+        'subject' => 'Other RFI Subject',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project))
+        ->assertSuccessful()
+        ->assertSee('RFIs');
+
+    $this->actingAs($user)
+        ->get(projectTabUrl($project, 'rfis'))
+        ->assertSuccessful()
+        ->assertSee('Project RFI Subject')
+        ->assertDontSee('Other RFI Subject');
 });
 
 it('auto generates project numbers with configured prefix when enabled', function (): void {
@@ -1058,6 +1265,221 @@ it('renders nested category copy options as breadcrumbs', function (): void {
         ->assertSee('Building A -> Level 2 -> Unit 201');
 });
 
+it('renders only expanded hierarchy branches on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Child Category',
+    ]);
+    $grandchild = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $child->id,
+        'name' => 'Grandchild Category',
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $root->id,
+        'parent_task_id' => null,
+        'title' => 'Visible Root Task',
+    ]);
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $child->id,
+        'parent_task_id' => null,
+        'title' => 'Hidden Child Branch Task',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSee('Root Category')
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"')
+        ->assertDontSee('Visible Root Task')
+        ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertDontSeeHtml('wire:key="task-row-'.Task::query()->where('project_id', $project->id)->where('title', 'Hidden Child Branch Task')->value('id').'"')
+        ->call('toggleCategoryExpansion', $root->id)
+        ->assertSeeHtml('wire:key="category-row-'.$child->id.'"')
+        ->assertSee('Visible Root Task')
+        ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertSee('Hidden Child Branch Task');
+});
+
+it('persists expanded hierarchy branches across reloads on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Persistent Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Persistent Child Category',
+    ]);
+    $grandchild = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $child->id,
+        'name' => 'Persistent Grandchild Category',
+    ]);
+
+    Task::factory()->create([
+        'project_id' => $project->id,
+        'task_category_id' => $child->id,
+        'parent_task_id' => null,
+        'title' => 'Persistent Child Branch Task',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"')
+        ->assertDontSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->call('toggleCategoryExpansion', $root->id)
+        ->assertSeeHtml('wire:key="category-row-'.$child->id.'"')
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertSee('Persistent Child Branch Task');
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSeeHtml('wire:key="category-row-'.$child->id.'"')
+        ->assertSeeHtml('wire:key="category-row-'.$grandchild->id.'"')
+        ->assertSee('Persistent Child Branch Task');
+});
+
+it('prunes deleted expanded hierarchy IDs from the session on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Delete Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Delete Child Category',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->call('toggleCategoryExpansion', $root->id)
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSet('expandedCategoryIds', [(string) $root->id, (string) $child->id]);
+
+    $child->delete();
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id])
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"');
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id]);
+});
+
+it('prunes moved expanded hierarchy IDs from the session on project show', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    $otherProject = Project::factory()->create();
+    $root = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Move Root Category',
+    ]);
+    $child = TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'parent_id' => $root->id,
+        'name' => 'Move Child Category',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->call('toggleCategoryExpansion', $root->id)
+        ->call('toggleCategoryExpansion', $child->id)
+        ->assertSet('expandedCategoryIds', [(string) $root->id, (string) $child->id]);
+
+    $child->update([
+        'project_id' => $otherProject->id,
+        'parent_id' => null,
+    ]);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id])
+        ->assertDontSeeHtml('wire:key="category-row-'.$child->id.'"');
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSet('expandedCategoryIds', [(string) $root->id]);
+});
+
+it('reads the cached category tree once per project hierarchy render', function (): void {
+    $user = userWithProjectDomainPermissions([
+        'projects.view',
+        'tasks.view',
+        'task-categories.view',
+    ]);
+
+    $project = Project::factory()->create();
+    TaskCategory::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Single Read Root Category',
+    ]);
+
+    $categories = app(TaskTreeService::class)->getCachedCategoryTree($project->id);
+
+    $countingTreeService = new class($categories) extends TaskTreeService
+    {
+        public int $getCachedCategoryTreeCalls = 0;
+
+        public function __construct(private readonly Collection $categories) {}
+
+        public function getCachedCategoryTree(?string $projectId = null): Collection
+        {
+            $this->getCachedCategoryTreeCalls++;
+
+            return $this->categories;
+        }
+
+        public function clearCategoryTreeCache(?string $projectId = null): void {}
+    };
+
+    app()->instance(TaskTreeService::class, $countingTreeService);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskHierarchyWidget::class, ['project' => $project])
+        ->assertSee('Single Read Root Category');
+
+    expect($countingTreeService->getCachedCategoryTreeCalls)->toBe(1);
+});
+
 it('copies a category multiple times with unit-style names', function (): void {
     $user = userWithProjectDomainPermissions([
         'projects.view',
@@ -1360,4 +1782,9 @@ function userWithProjectDomainPermissions(array $permissions): User
     $user->roles()->sync([$role->id]);
 
     return $user->fresh();
+}
+
+function projectTabUrl(Project $project, string $tab): string
+{
+    return app(ProjectTabLinkBuilder::class)->to($project, $tab);
 }

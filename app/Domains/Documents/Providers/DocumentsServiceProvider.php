@@ -7,9 +7,18 @@ use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Documents\Console\MigrateDocumentsToAssets;
+use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
+use App\Domains\Documents\Contracts\DocumentSharingContract;
+use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
+use App\Domains\Documents\Services\DocumentService;
+use App\Domains\Documents\Services\DocumentShareService;
+use App\Domains\Documents\Services\ProjectDocumentLibrary;
+use App\Domains\Documents\Support\DocumentsProjectTab;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -22,10 +31,13 @@ class DocumentsServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        //
+        $this->app->singleton(DocumentOrchestratorContract::class, DocumentService::class);
+        $this->app->singleton(DocumentSharingContract::class, DocumentShareService::class);
+        $this->app->singleton(ProjectDocumentLibraryContract::class, ProjectDocumentLibrary::class);
+        $this->commands([MigrateDocumentsToAssets::class]);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileExactRouteMapping('documents.index', 'documents.mobile.global');
         $this->registerMobileExactRouteMapping('documents.global', 'documents.mobile.global');
@@ -33,6 +45,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->registerSettings($settingsRegistry);
         $this->configureLivewireTemporaryUploadRules();
         $this->registerPermissions($permissionRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -103,6 +116,13 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(DocumentPermissions::all());
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            DocumentsProjectTab::class,
+        ]);
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void

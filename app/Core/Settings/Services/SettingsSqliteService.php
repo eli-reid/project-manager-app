@@ -57,6 +57,9 @@ class SettingsSqliteService
         if ($this->shouldUseEnvInDev()) {
             return new SettingValue($this->getFromEnv($key, $default));
         }
+        if (self::$settingsLoaded && self::$allSettings !== null) {
+            return new SettingValue(self::$allSettings->get($key, $default));
+    }
 
         try {
             // Use cache to fetch the setting

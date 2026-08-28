@@ -5,6 +5,7 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use App\Domains\Submittals\Models\Submittal;
 
 use function Pest\Laravel\actingAs;
@@ -95,7 +96,7 @@ it('shows an upload document action when the selected project can manage project
 it('prepopulates the selected project and preserves the project-tab return link on create', function (): void {
     $user = userWithSubmittalPermissions(['submittals.create']);
     $project = Project::factory()->create();
-    $returnTo = route('admin.projects.show', ['project' => $project, 'tab' => 'submittals'], false);
+    $returnTo = app(ProjectTabLinkBuilder::class)->to($project, 'submittals', absolute: false);
 
     actingAs($user);
 
@@ -109,25 +110,40 @@ it('prepopulates the selected project and preserves the project-tab return link 
 it('builds the new submittal link from the project submittals tab with project context', function (): void {
     $user = userWithSubmittalPermissions(['projects.view', 'submittals.view-any', 'submittals.create']);
     $project = Project::factory()->create();
+    $submittalsTabUrl = app(ProjectTabLinkBuilder::class)->to($project, 'submittals');
+    $submittalCreateUrl = app(ProjectTabLinkBuilder::class)->to($project, 'submittals', mode: 'create', absolute: false);
 
     actingAs($user);
 
-    get(route('admin.projects.show', ['project' => $project, 'tab' => 'submittals']))
+    get($submittalsTabUrl)
         ->assertSuccessful()
-        ->assertSee('/admin/projects/'.$project->id.'?tab=submittals&amp;submittalMode=create', escape: false);
+        ->assertSee(e($submittalCreateUrl), escape: false);
+});
+
+it('builds review links from the project submittals tab with project context', function (): void {
+    $user = userWithSubmittalPermissions(['projects.view', 'submittals.view-any']);
+    $project = Project::factory()->create();
+    $submittal = Submittal::factory()->create([
+        'project_id' => $project->id,
+    ]);
+    $submittalsTabUrl = app(ProjectTabLinkBuilder::class)->to($project, 'submittals');
+    $reviewUrl = app(ProjectTabLinkBuilder::class)->to($project, 'submittals', mode: 'review', detailId: (string) $submittal->id, absolute: false);
+
+    actingAs($user);
+
+    get($submittalsTabUrl)
+        ->assertSuccessful()
+        ->assertSee(e($reviewUrl), escape: false);
 });
 
 it('allows create-mode project submittals URL for users with create permission', function (): void {
     $user = userWithSubmittalPermissions(['projects.view', 'submittals.create']);
     $project = Project::factory()->create();
+    $submittalCreateUrl = app(ProjectTabLinkBuilder::class)->to($project, 'submittals', mode: 'create');
 
     actingAs($user);
 
-    get(route('admin.projects.show', [
-        'project' => $project,
-        'tab' => 'submittals',
-        'submittalMode' => 'create',
-    ]))
+    get($submittalCreateUrl)
         ->assertSuccessful();
 });
 

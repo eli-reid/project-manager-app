@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\Job as QueueContractJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 uses(RefreshDatabase::class);
 
@@ -148,4 +149,26 @@ it('queue manager service can clear history by status filter', function (): void
 
     expect($deletedAll)->toBe(2)
         ->and(QueueJobHistory::query()->count())->toBe(0);
+});
+
+it('logs failed job reasons', function (): void {
+    Log::spy();
+
+    $listener = app(RecordQueueJobHistory::class);
+
+    $fakePayload = ['uuid' => 'job-log-123', 'displayName' => 'App\\Jobs\\DemoJob'];
+    $fakeJob = Mockery::mock(QueueContractJob::class);
+    $fakeJob->shouldReceive('payload')->andReturn($fakePayload);
+    $fakeJob->shouldReceive('attempts')->andReturn(1);
+    $fakeJob->shouldReceive('getQueue')->andReturn('default');
+
+    $listener->onFailed(new \Illuminate\Queue\Events\JobFailed('database', $fakeJob, new \Exception('boom reason')));
+
+    Log::shouldHaveReceived('error')->withArgs(function ($message, $context) {
+        return is_string($message)
+            && isset($context['exception'])
+            && str_contains($context['exception'], 'boom reason')
+            && isset($context['job_class'])
+            && $context['job_class'] === 'App\\Jobs\\DemoJob';
+    })->once();
 });

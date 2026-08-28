@@ -6,7 +6,7 @@
     <div class="flex items-center gap-2">
         <span
             wire:dirty
-            wire:target="week_starting,notes,entries"
+            wire:target="entries"
             class="inline-flex h-8 items-center rounded-full border border-amber-700/60 bg-amber-900/40 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200"
         >
             {{ __('Unsaved') }}
@@ -54,32 +54,9 @@
     @endif
 
     <form id="mobile-timecard-form" wire:submit="save" class="flex flex-col gap-5">
-        {{-- Week Starting --}}
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4">
-            <label class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Week Starting') }}</label>
-            <input
-                type="date"
-                wire:model="week_starting"
-                class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
-            />
-            @error('week_starting')
-                <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
-
-        {{-- Notes --}}
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4">
-            <label class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Notes') }}</label>
-            <textarea
-                wire:model="notes"
-                rows="3"
-                placeholder="{{ __('Optional notes for this timecard…') }}"
-                class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
-            ></textarea>
-            @error('notes')
-                <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
+        @error('week_starting')
+            <p class="text-xs text-red-400">{{ $message }}</p>
+        @enderror
 
         {{-- Entries --}}
         <div class="flex flex-col gap-4">
@@ -143,7 +120,7 @@
                                 @enderror
 
                                 <div class="mt-2 flex flex-wrap gap-1.5">
-                                    @foreach ([['value' => '06:00', 'label' => '6:00 AM'], ['value' => '06:30', 'label' => '6:30 AM'], ['value' => '07:00', 'label' => '7:00 AM'], ['value' => '07:30', 'label' => '7:30 AM'], ['value' => '08:00', 'label' => '8:00 AM']] as $presetStart)
+                                    @foreach ([['value' => '06:00', 'label' => '6:00A'], ['value' => '06:30', 'label' => '6:30A'], ['value' => '07:00', 'label' => '7:00A'], ['value' => '07:30', 'label' => '7:30A']] as $presetStart)
                                         <button
                                             type="button"
                                             wire:click="applyStartTimePreset({{ $index }}, '{{ $presetStart['value'] }}')"
@@ -173,7 +150,7 @@
                                 @enderror
 
                                 <div class="mt-2 flex flex-wrap gap-1.5">
-                                    @foreach (['4.00', '6.00', '8.00', '10.00', '12.00'] as $presetHours)
+                                    @foreach (['4.00', '6.00', '8.00', '10.00'] as $presetHours)
                                         <button
                                             type="button"
                                             wire:click="applyHoursPreset({{ $index }}, '{{ $presetHours }}')"
@@ -203,30 +180,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Cost Code --}}
-                            @php
-                                $projectId = $entry['project_id'] ?? null;
-                                $costCodes = $projectId ? ($costCodesByProject[$projectId] ?? collect()) : collect();
-                            @endphp
-
-                            @if ($costCodes->isNotEmpty())
-                                <div class="col-span-2">
-                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Cost Code') }}</label>
-                                    <select
-                                        wire:model="entries.{{ $index }}.cost_code_id"
-                                        class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
-                                    >
-                                        <option value="">{{ __('No Cost Code') }}</option>
-                                        @foreach ($costCodes as $costCode)
-                                            <option value="{{ $costCode->id }}">{{ $costCode->code }} — {{ $costCode->description }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('entries.'.$index.'.cost_code_id')
-                                        <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            @endif
-
                             {{-- Custom Project Name --}}
                             <div class="col-span-2">
                                 <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Custom Project Name') }}</label>
@@ -241,19 +194,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Entry Notes --}}
-                            <div class="col-span-2">
-                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Entry Notes') }}</label>
-                                <input
-                                    type="text"
-                                    wire:model="entries.{{ $index }}.notes"
-                                    placeholder="{{ __('Optional') }}"
-                                    class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
-                                />
-                                @error('entries.'.$index.'.notes')
-                                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
                         </div>
                     </div>
                 @endif
