@@ -64,6 +64,11 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatedAccountingCodeFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function deleteInvoice(string $invoiceId): void
     {
         $invoice = Invoice::query()->findOrFail($invoiceId);
