@@ -7,6 +7,7 @@ use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Models\Timecard;
+use Illuminate\Http\Request;
 use Livewire\Livewire;
 
 it('allows admin users to access payroll admin pre-run screens', function (string $routeName): void {
@@ -86,6 +87,40 @@ it('shows submitted entries on the payroll timecard review screen', function ():
         ->assertSee('Payroll Timecard Review')
         ->assertSee('Riley Stone')
         ->assertSee('Review Project');
+});
+
+it('shows a direct timecard review link in the payroll layout', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.payroll.rates.index'))
+        ->assertSuccessful()
+        ->assertSee('Timecard Review')
+        ->assertSee(route('admin.payroll.timecards.review'), false);
+});
+
+it('shows a direct required users link in the payroll layout', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.payroll.rates.index'))
+        ->assertSuccessful()
+        ->assertSee('Required Users')
+        ->assertSee(route('admin.timecards.required-users'), false);
+});
+
+it('highlights required users without highlighting timecards on required users route', function (): void {
+    $request = Request::create(route('admin.timecards.required-users'), 'GET');
+    $route = app('router')->getRoutes()->match($request);
+    $request->setRouteResolver(static fn () => $route);
+    app()->instance('request', $request);
+
+    $timecardsCurrent = request()->routeIs('admin.timecards.*')
+        && ! request()->routeIs('admin.timecards.required-users*');
+    $requiredUsersCurrent = request()->routeIs('admin.timecards.required-users*');
+
+    expect($requiredUsersCurrent)->toBeTrue()
+        ->and($timecardsCurrent)->toBeFalse();
 });
 
 it('forbids non-admin users from payroll admin pre-run screens without explicit permissions', function (string $routeName): void {

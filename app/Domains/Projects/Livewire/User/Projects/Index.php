@@ -80,6 +80,7 @@ class Index extends Component
                 $query->where(function ($builder) use ($search): void {
                     $builder->where('name', 'like', $search)
                         ->orWhere('project_number', 'like', $search)
+                        ->orWhere('accounting_code', 'like', $search)
                         ->orWhereHas('address', function (Builder $addressQuery) use ($search): void {
                             $addressQuery->where('address1', 'like', $search)
                                 ->orWhere('address2', 'like', $search)

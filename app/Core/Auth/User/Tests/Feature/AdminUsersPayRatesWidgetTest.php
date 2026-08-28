@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Auth\User\Livewire\Admin\Users\Form as UserForm;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Services\SettingsSqliteService;
@@ -77,6 +78,94 @@ it('creates a payroll profile from the user edit widget', function (): void {
         'sick_hours_allowance' => 56.0,
         'vacation_hours_allowance' => 120.0,
     ])->exists())->toBeTrue();
+});
+
+it('creates a user and payroll profile in a single submission', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $role = Role::query()->create([
+        'name' => 'Payroll Test Role',
+        'description' => 'Role used for payroll user creation tests.',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 10,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class)
+        ->set('first_name', 'Jordan')
+        ->set('last_name', 'Payroll')
+        ->set('username', 'jordan.payroll')
+        ->set('email', 'jordan.payroll@example.test')
+        ->set('phone', '555-0101')
+        ->set('is_active', true)
+        ->set('selectedRoleIds', [(string) $role->id])
+        ->set('create_payroll_profile_on_save', true)
+        ->set('profile_employee_number', 'EMP-3001')
+        ->set('profile_job_classification', 'Foreman')
+        ->set('profile_ssn', '123-45-6789')
+        ->set('profile_date_of_birth', '1992-03-04')
+        ->set('profile_hire_date', '2026-05-01')
+        ->set('profile_status', 'active')
+        ->set('profile_pay_type', 'hourly')
+        ->set('profile_department', 'Field')
+        ->set('profile_union_code', 'UN-1')
+        ->set('profile_sick_hours_allowance', '40')
+        ->set('profile_vacation_hours_allowance', '80')
+        ->set('profile_direct_deposit_active', true)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $createdUser = User::query()->where('email', 'jordan.payroll@example.test')->first();
+
+    expect($createdUser)->not->toBeNull();
+
+    expect(PayrollEmployeeProfile::query()->where([
+        'user_id' => $createdUser->id,
+        'employee_number' => 'EMP-3001',
+        'job_classification' => 'Foreman',
+        'department' => 'Field',
+        'union_code' => 'UN-1',
+        'status' => 'active',
+        'pay_type' => 'hourly',
+        'sick_hours_allowance' => 40.0,
+        'vacation_hours_allowance' => 80.0,
+        'direct_deposit_active' => true,
+    ])->exists())->toBeTrue();
+});
+
+it('validates payroll profile fields during single-step creation', function (): void {
+    app(SettingsSqliteService::class)->set('payroll.employee_profile.ssn_required', 'true');
+
+    $admin = User::factory()->create(['is_admin' => true]);
+    $role = Role::query()->create([
+        'name' => 'Payroll Validation Role',
+        'description' => 'Role used for payroll validation tests.',
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 10,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class)
+        ->set('first_name', 'Jordan')
+        ->set('last_name', 'Payroll')
+        ->set('username', 'jordan.validation')
+        ->set('email', 'jordan.validation@example.test')
+        ->set('selectedRoleIds', [(string) $role->id])
+        ->set('create_payroll_profile_on_save', true)
+        ->set('profile_employee_number', '')
+        ->set('profile_job_classification', '')
+        ->set('profile_ssn', '')
+        ->set('profile_date_of_birth', '')
+        ->set('profile_hire_date', '')
+        ->call('save')
+        ->assertHasErrors([
+            'profile_employee_number',
+            'profile_job_classification',
+            'profile_ssn',
+            'profile_date_of_birth',
+            'profile_hire_date',
+        ]);
 });
 
 it('validates required fields when creating a payroll profile', function (): void {

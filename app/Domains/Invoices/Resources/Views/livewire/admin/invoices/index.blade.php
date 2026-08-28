@@ -1,15 +1,38 @@
 <div class="w-full space-y-6">
-    <div class="flex items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Invoices</h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">Track vendor invoices and costs across projects.</p>
+    @if ($embeddedProject)
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Project Invoices</h2>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                    {{ $invoices->total() }} {{ \Illuminate\Support\Str::plural('invoice', $invoices->total()) }} linked to this project.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                @can('create', \App\Domains\Invoices\Models\Invoice::class)
+                    <a href="{{ app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'invoices', mode: 'create') }}" wire:navigate class="inline-flex items-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                        Create Invoice
+                    </a>
+                @endcan
+
+                <a href="{{ route('admin.invoices.index', ['project' => $embeddedProject->id]) }}" wire:navigate class="inline-flex items-center rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                    Open Queue
+                </a>
+            </div>
         </div>
-        @can('create', \App\Domains\Invoices\Models\Invoice::class)
-            <a href="{{ route('admin.invoices.create') }}" wire:navigate class="inline-flex items-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
-                Create Invoice
-            </a>
-        @endcan
-    </div>
+    @else
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Invoices</h1>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">Track vendor invoices and costs across projects.</p>
+            </div>
+            @can('create', \App\Domains\Invoices\Models\Invoice::class)
+                <a href="{{ route('admin.invoices.create') }}" wire:navigate class="inline-flex items-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
+                    Create Invoice
+                </a>
+            @endcan
+        </div>
+    @endif
 
     @if (session('success'))
         <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{{ session('success') }}</div>
@@ -24,14 +47,25 @@
                 class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
         </div>
+        @unless ($embeddedProject)
+            <div>
+                <select wire:model.live="projectFilter" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">All Projects</option>
+                    @foreach ($projects as $project)
+                        <option value="{{ $project->id }}">{{ $project->name }}{{ $project->project_number ? ' ('.$project->project_number.')' : '' }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endunless
         <div>
-            <select wire:model.live="projectFilter" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-                <option value="">All Projects</option>
-                @foreach ($projects as $project)
-                    <option value="{{ $project->id }}">{{ $project->name }}{{ $project->project_number ? ' ('.$project->project_number.')' : '' }}</option>
+            <select wire:model.live="accountingCodeFilter" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                <option value="">All Accounting Codes</option>
+                @foreach ($accountingCodes as $accountingCode)
+                    <option value="{{ $accountingCode->id }}">{{ $accountingCode->code }}</option>
                 @endforeach
             </select>
         </div>
+
         <div>
             <select wire:model.live="statusFilter" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                 <option value="">All Statuses</option>
@@ -49,7 +83,10 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Vendor</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Invoice #</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project</th>
+                        @unless ($embeddedProject)
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project</th>
+                        @endunless
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Date</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Due</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Total</th>
@@ -61,13 +98,20 @@
                     @forelse ($invoices as $invoice)
                         <tr
                             wire:key="invoice-{{ $invoice->id }}"
-                            @click="if (! $event.target.closest('[data-prevent-row-nav]')) { window.Livewire?.navigate('{{ route('admin.invoices.show', $invoice) }}') ?? window.location.assign('{{ route('admin.invoices.show', $invoice) }}'); }"
-                            class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                            @if (! $embeddedProject)
+                                @click="if (! $event.target.closest('[data-prevent-row-nav]')) { window.Livewire?.navigate('{{ route('admin.invoices.show', $invoice) }}') ?? window.location.assign('{{ route('admin.invoices.show', $invoice) }}'); }"
+                                class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                            @else
+                                class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                            @endif
                         >
 
                             <td class="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->vendor_name }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-500 dark:text-zinc-400">{{ $invoice->invoice_number ?? '—' }}</td>
-                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->project?->name ?? '—' }}</td>
+                            @unless ($embeddedProject)
+                                <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->project?->name ?? '—' }}</td>
+                            @endunless
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->accountingCode?->code ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $invoice->invoice_date->format('M j, Y') }}</td>
                             <td class="px-4 py-3 align-top text-sm {{ $invoice->isOverdue() ? 'font-semibold text-red-600 dark:text-red-400' : 'text-zinc-700 dark:text-zinc-300' }}">
                                 {{ $invoice->due_date?->format('M j, Y') ?? '—' }}
@@ -97,7 +141,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No invoices found.</td>
+                            <td colspan="{{ $embeddedProject ? 8 : 9 }}" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No invoices found.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -5,7 +5,10 @@ namespace App\Domains\Tasks\Providers;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
+use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyMetrics;
+use App\Domains\Tasks\Livewire\Admin\Projects\TaskHierarchyTemplates;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
@@ -17,6 +20,7 @@ use App\Domains\Tasks\Permissions\TaskTemplatePermissions;
 use App\Domains\Tasks\Policies\TaskCategoryPolicy;
 use App\Domains\Tasks\Policies\TaskPolicy;
 use App\Domains\Tasks\Policies\TaskTemplatePolicy;
+use App\Domains\Tasks\Support\TasksProjectTab;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -29,12 +33,13 @@ class TasksServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, SettingsRegistryContract $settingsRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerSettings($settingsRegistry);
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -58,6 +63,8 @@ class TasksServiceProvider extends ServiceProvider
     private function registerUIComponents(): void
     {
         Livewire::addNamespace('tasks', classNamespace: 'App\Domains\Tasks\Livewire');
+        Livewire::component('tasks.admin.projects.task-hierarchy-metrics', TaskHierarchyMetrics::class);
+        Livewire::component('tasks.admin.projects.task-hierarchy-templates', TaskHierarchyTemplates::class);
     }
 
     private function registerRoutes(): void
@@ -114,5 +121,12 @@ class TasksServiceProvider extends ServiceProvider
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void
     {
         $settingsRegistry->registerConfigFile('tasks', __DIR__.'/../config/settings.php');
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            TasksProjectTab::class,
+        ]);
     }
 }

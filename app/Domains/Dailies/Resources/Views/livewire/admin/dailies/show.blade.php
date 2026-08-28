@@ -3,7 +3,7 @@
         <flux:heading size="xl" level="1">{{ __('Daily Report Details') }}</flux:heading>
 
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('admin.dailies.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Back') }}</a>
+            <a href="{{ $backUrl !== '' ? $backUrl : route('admin.dailies.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Back') }}</a>
             @can('update', $dailyReport)
                 <a href="{{ route('admin.dailies.edit', $dailyReport) }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">{{ __('Edit') }}</a>
             @endcan

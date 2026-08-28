@@ -50,3 +50,55 @@ function something()
 {
     // ..
 }
+
+/*
+|--------------------------------------------------------------------------
+| Shared Test Helpers
+|--------------------------------------------------------------------------
+|
+| Helpers used across multiple test files should live here to avoid duplicate
+| definitions that cause "Cannot redeclare function" errors when Pest loads
+| tests from multiple files.
+|
+*/
+
+if (! function_exists('userWithDailiesPermissions')) {
+    /**
+     * Create a non-admin user and assign the given dailies permissions via a
+     * freshly created role. Synchronizes domain permissions first.
+     *
+     * @param array<int,string> $permissions
+     */
+    function userWithDailiesPermissions(array $permissions)
+    {
+        app(\App\Core\Auth\Permission\Services\DomainPermissionSynchronizer::class)->sync();
+
+        $user = \App\Core\Identity\Models\User::factory()->create(['is_admin' => false]);
+
+        $role = \App\Core\Auth\Role\Models\Role::query()->create([
+            'name' => 'Dailies Shared Test Role '.str()->uuid(),
+            'description' => 'Role for dailies domain shared tests',
+            'is_active' => true,
+            'built_in' => false,
+            'access_level' => 20,
+        ]);
+
+        $permissionIds = collect($permissions)
+            ->map(function (string $permission): ?string {
+                [$resource, $action] = explode('.', $permission, 2);
+
+                return \App\Core\Auth\Permission\Models\Permission::query()
+                    ->where('resource', $resource)
+                    ->where('action', $action)
+                    ->value('id');
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        $role->permissions()->sync($permissionIds);
+        $user->roles()->sync([$role->id]);
+
+        return $user->fresh();
+    }
+}

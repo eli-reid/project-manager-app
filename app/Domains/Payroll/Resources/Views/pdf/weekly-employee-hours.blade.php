@@ -19,7 +19,6 @@
         <thead>
             <tr>
                 <th>Employee Name</th>
-                <th>Employee ID</th>
                 <th>Source Hours</th>
                 <th>Reported Hours</th>
                 <th>Adjusted</th>
@@ -30,7 +29,6 @@
             @foreach ($employeeHours as $item)
                 <tr>
                     <td>{{ $item['first_name'] }} {{ $item['last_name'] }}</td>
-                    <td>{{ $item['user_id'] }}</td>
                     <td>{{ number_format($item['source_hours'], 2) }}</td>
                     <td>{{ number_format($item['hours'], 2) }}</td>
                     <td>{{ $item['is_adjusted'] ? 'Yes' : 'No' }}</td>

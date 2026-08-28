@@ -19,6 +19,8 @@ class MobileUpload extends Component
 
     public $description = '';
 
+    public string $folderPath = '';
+
     public $success = false;
 
     protected function rules(): array
@@ -28,6 +30,7 @@ class MobileUpload extends Component
         return [
             'file' => ['required', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
             'description' => ['nullable', 'string', 'max:255'],
+            'folderPath' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -38,9 +41,10 @@ class MobileUpload extends Component
         $user = Auth::user();
         $documentService->uploadUserDocument($user, $this->file, [
             'description' => $this->description !== '' ? $this->description : null,
+            'folder_path' => $this->folderPath !== '' ? $this->folderPath : null,
         ]);
 
-        $this->reset(['file', 'description']);
+        $this->reset(['file', 'description', 'folderPath']);
         $this->success = true;
         session()->flash('success', __('Document uploaded successfully.'));
     }

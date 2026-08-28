@@ -68,6 +68,61 @@ it('requires parent task to belong to selected project', function (): void {
         ->assertHasErrors(['parent_task_id']);
 });
 
+it('creates multiple tasks and increments an existing number in the title', function (): void {
+    $user = userWithTaskDomainPermissions([
+        'tasks.create',
+    ]);
+
+    $project = Project::factory()->create();
+    $category = TaskCategory::factory()->create(['project_id' => $project->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskForm::class)
+        ->set('title', 'Unit 007')
+        ->set('project_id', $project->id)
+        ->set('task_category_id', $category->id)
+        ->set('batch_count', 3)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(
+        Task::query()
+            ->where('project_id', $project->id)
+            ->orderBy('title')
+            ->pluck('title')
+            ->all()
+    )->toBe(['Unit 007', 'Unit 008', 'Unit 009']);
+});
+
+it('creates multiple tasks and appends incremented numbers when the title has none', function (): void {
+    $user = userWithTaskDomainPermissions([
+        'tasks.create',
+    ]);
+
+    $project = Project::factory()->create();
+    $category = TaskCategory::factory()->create(['project_id' => $project->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test(TaskForm::class)
+        ->set('title', 'Punch List Item')
+        ->set('project_id', $project->id)
+        ->set('task_category_id', $category->id)
+        ->set('batch_count', 2)
+        ->set('batch_start_number', 5)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(
+        Task::query()
+            ->where('project_id', $project->id)
+            ->orderBy('title')
+            ->pluck('title')
+            ->all()
+    )->toBe(['Punch List Item 5', 'Punch List Item 6']);
+});
+
 it('allows global task templates to be created without project context', function (): void {
     $user = userWithTaskDomainPermissions([
         'task-templates.create',

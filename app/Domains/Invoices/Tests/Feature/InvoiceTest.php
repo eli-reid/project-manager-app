@@ -8,7 +8,6 @@ use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Form;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Index;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Show;
-use App\Domains\Invoices\Livewire\Admin\Projects\ProjectTab;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Models\InvoiceLineItem;
 use App\Domains\Projects\Models\Project;
@@ -211,6 +210,31 @@ it('deletes an invoice with the delete permission from the invoice index', funct
     $this->assertSoftDeleted('invoices', ['id' => $invoice->id]);
 });
 
+it('resets pagination after deleting the last invoice on the current page', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.delete']);
+    $project = Project::factory()->create();
+
+    Invoice::factory()->count(15)->for($project)->pending()->create([
+        'vendor_name' => 'First Page Invoice',
+        'invoice_date' => '2026-01-02',
+        'created_by' => $user->id,
+    ]);
+    $invoice = Invoice::factory()->for($project)->pending()->create([
+        'vendor_name' => 'Last Page Invoice',
+        'invoice_date' => '2026-01-01',
+        'created_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Index::class)
+        ->call('gotoPage', 2)
+        ->assertSee('Last Page Invoice')
+        ->call('deleteInvoice', $invoice->id)
+        ->assertSee('First Page Invoice');
+
+    $this->assertSoftDeleted('invoices', ['id' => $invoice->id]);
+});
+
 it('does not allow users without the edit permission to edit an invoice', function (): void {
     $user = userWithInvoicePermissions(['invoices.view']);
     $invoice = Invoice::factory()->for(Project::factory())->create([
@@ -222,7 +246,7 @@ it('does not allow users without the edit permission to edit an invoice', functi
         ->assertForbidden();
 });
 
-it('deletes an invoice from the project invoices tab', function (): void {
+it('deletes an invoice from the embedded project invoices tab', function (): void {
     $user = userWithInvoicePermissions(['invoices.view', 'invoices.delete']);
     $project = Project::factory()->create();
     $invoice = Invoice::factory()->for($project)->pending()->create([
@@ -230,14 +254,11 @@ it('deletes an invoice from the project invoices tab', function (): void {
     ]);
 
     Livewire::actingAs($user)
-        ->test(ProjectTab::class, [
+        ->test(Index::class, [
             'project' => $project,
-            'invoices' => collect([$invoice]),
-            'invoiceCount' => 1,
+            'embedded' => true,
         ])
-        ->call('deleteInvoice', $invoice->id)
-        ->assertSet('invoiceCount', 0)
-        ->assertDontSee($invoice->vendor_name);
+        ->call('deleteInvoice', $invoice->id);
 
     $this->assertSoftDeleted('invoices', ['id' => $invoice->id]);
 });
