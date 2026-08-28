@@ -160,7 +160,8 @@ class AdminAccessTest extends TestCase
 
         echo "Results by User:\n";
         foreach ($results['by_user'] as $userType => $stats) {
-            echo "  • {$userType}: {$stats['passed']}/{$stats['passed'] + $stats['failed']} passed\n";
+            $total = $stats['passed'] + $stats['failed'];
+            echo "  • {$userType}: {$stats['passed']}/{$total} passed\n";
         }
 
         echo "\nResults by Endpoint:\n";

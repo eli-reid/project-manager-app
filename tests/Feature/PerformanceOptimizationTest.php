@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
-use Tests\TestCase;
 
 /**
  * Performance & Optimization Test Suite
@@ -12,25 +10,13 @@ use Tests\TestCase;
  * Validates query efficiency, response times, memory usage, and caching effectiveness
  * Tests N+1 detection, eager loading, and resource optimization
  */
-class PerformanceOptimizationTest extends TestCase
-{
-    /**
-     * Enable query logging for all tests
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        DB::enableQueryLog();
-    }
+beforeEach(function () {
+    DB::enableQueryLog();
+});
 
-    /**
-     * Disable query logging after tests
-     */
-    protected function tearDown(): void
-    {
-        DB::disableQueryLog();
-        parent::tearDown();
-    }
+afterEach(function () {
+    DB::disableQueryLog();
+});
 
     // ============================================================================
     // CATEGORY 1: Database Query Optimization (N+1 Detection)
@@ -39,7 +25,7 @@ class PerformanceOptimizationTest extends TestCase
     describe('Database Query Optimization', function () {
         it('detects N+1 queries on basic model access', function () {
             // Create test data
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             // Clear query log and measure
             DB::flushQueryLog();
@@ -52,7 +38,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('detects N+1 queries when accessing relationships without eager loading', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             DB::flushQueryLog();
             
@@ -63,14 +49,14 @@ class PerformanceOptimizationTest extends TestCase
             
             // Accessing a relationship without eager loading
             DB::flushQueryLog();
-            _ = $user->getKey(); // Access primary key (no query)
+            $ignored = $user->getKey(); // Access primary key (no query)
             
             $finalQueries = count(DB::getQueryLog());
             expect($finalQueries)->toBeLessThanOrEqual($baselineQueries + 2);
         });
 
         it('verifies eager loading prevents N+1 on collections', function () {
-            $users = $this->createTestUsers(5);
+            $users = createTestUsers(5);
             
             DB::flushQueryLog();
             
@@ -82,7 +68,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('measures query efficiency for user authentication flow', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             DB::flushQueryLog();
             
@@ -100,7 +86,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('detects N+1 in model attribute access', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             DB::flushQueryLog();
             
@@ -120,7 +106,7 @@ class PerformanceOptimizationTest extends TestCase
 
     describe('Response Time Performance', function () {
         it('measures response time for dashboard endpoint', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             $startTime = microtime(true);
             $response = $this->actingAs($user)->get('/dashboard');
@@ -142,7 +128,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('measures response time for API endpoint', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             $startTime = microtime(true);
             $response = $this->actingAs($user)->get('/api/clients');
@@ -156,11 +142,11 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('measures response time degradation with data growth', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             // Measure with small dataset
             DB::table('users')->truncate();
-            $this->createTestUser();
+            createTestUser();
             
             $startTime1 = microtime(true);
             $response1 = $this->actingAs($user)->get('/dashboard');
@@ -182,14 +168,14 @@ class PerformanceOptimizationTest extends TestCase
             $startMem = memory_get_usage();
             
             // Create and iterate over collection
-            $users = $this->createTestUsers(10);
+            $users = createTestUsers(10);
             
             $memAfterCreate = memory_get_usage();
             
             // Operations on collection
             foreach ($users as $user) {
-                _ = $user->id;
-                _ = $user->email;
+                $ignored = $user->id;
+                $ignored = $user->email;
             }
             
             $endMem = memory_get_usage();
@@ -204,7 +190,7 @@ class PerformanceOptimizationTest extends TestCase
             $startMem = memory_get_usage();
             
             // Process in chunks (simulated)
-            $users = $this->createTestUsers(20);
+            $users = createTestUsers(20);
             
             $chunks = $users->chunk(5);
             
@@ -221,7 +207,7 @@ class PerformanceOptimizationTest extends TestCase
             // Create models
             $users = [];
             for ($i = 0; $i < 50; $i++) {
-                $users[] = $this->createTestUser();
+                $users[] = createTestUser();
             }
             
             $endMem = memory_get_usage();
@@ -239,7 +225,7 @@ class PerformanceOptimizationTest extends TestCase
 
     describe('Cache Effectiveness', function () {
         it('verifies cache hit rate on repeated requests', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             // First request (cache miss)
             $this->actingAs($user)->get('/dashboard');
@@ -252,14 +238,14 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('measures cache key generation efficiency', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             // Cache operations should be fast
             $startTime = microtime(true);
             
             for ($i = 0; $i < 100; $i++) {
                 $key = 'user.' . $user->id . '.profile';
-                _ = $key;
+                $ignored = $key;
             }
             
             $elapsed = (microtime(true) - $startTime) * 1000;
@@ -269,7 +255,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('checks cache invalidation on data changes', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             // Get initial value
             $original = $user->first_name;
@@ -284,7 +270,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('verifies session cache is utilized', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             $response = $this->actingAs($user)->get('/dashboard');
             
@@ -316,14 +302,14 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('measures query execution time with proper indexes', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             DB::flushQueryLog();
             
             $startTime = microtime(true);
             
             // Query by indexed column
-            $found = $this->getUserModelClass()::where('email', $user->email)->first();
+            $found = getUserModelClass()::where('email', $user->email)->first();
             
             $elapsed = (microtime(true) - $startTime) * 1000;
             
@@ -335,7 +321,7 @@ class PerformanceOptimizationTest extends TestCase
         it('detects missing indexes on large result sets', function () {
             // Create test data
             for ($i = 0; $i < 10; $i++) {
-                $this->createTestUser();
+                createTestUser();
             }
             
             DB::flushQueryLog();
@@ -343,7 +329,7 @@ class PerformanceOptimizationTest extends TestCase
             $startTime = microtime(true);
             
             // Unindexed query (but small dataset)
-            $users = $this->getUserModelClass()::all();
+            $users = getUserModelClass()::all();
             
             $elapsed = (microtime(true) - $startTime) * 1000;
             
@@ -358,12 +344,12 @@ class PerformanceOptimizationTest extends TestCase
 
     describe('Query Result Optimization', function () {
         it('verifies selective column queries reduce data transfer', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             DB::flushQueryLog();
             
             // Query only needed columns
-            $lean = $this->getUserModelClass()::where('id', $user->id)
+            $lean = getUserModelClass()::where('id', $user->id)
                 ->select('id', 'email')
                 ->first();
             
@@ -375,17 +361,17 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('measures impact of selecting all columns unnecessarily', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             DB::flushQueryLog();
             
             // Select all columns
-            $full = $this->getUserModelClass()::find($user->id);
+            $full = getUserModelClass()::find($user->id);
             
             DB::flushQueryLog();
             
             // Select specific columns
-            $partial = $this->getUserModelClass()::where('id', $user->id)
+            $partial = getUserModelClass()::where('id', $user->id)
                 ->select('id', 'email')
                 ->first();
             
@@ -395,12 +381,12 @@ class PerformanceOptimizationTest extends TestCase
 
         it('verifies count queries are optimized', function () {
             for ($i = 0; $i < 5; $i++) {
-                $this->createTestUser();
+                createTestUser();
             }
             
             DB::flushQueryLog();
             
-            $count = $this->getUserModelClass()::count();
+            $count = getUserModelClass()::count();
             
             $queries = DB::getQueryLog();
             
@@ -412,13 +398,13 @@ class PerformanceOptimizationTest extends TestCase
 
         it('verifies pagination reduces memory and query impact', function () {
             for ($i = 0; $i < 30; $i++) {
-                $this->createTestUser();
+                createTestUser();
             }
             
             $startMem = memory_get_usage();
             
             // Paginated query
-            $paginated = $this->getUserModelClass()::paginate(10);
+            $paginated = getUserModelClass()::paginate(10);
             
             $endMem = memory_get_usage();
             
@@ -433,7 +419,7 @@ class PerformanceOptimizationTest extends TestCase
 
     describe('Route & Controller Performance', function () {
         it('measures middleware execution time', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             $startTime = microtime(true);
             
@@ -458,7 +444,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('checks view rendering performance', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             $startTime = microtime(true);
             
@@ -478,7 +464,7 @@ class PerformanceOptimizationTest extends TestCase
 
     describe('Database Connection Efficiency', function () {
         it('verifies connection reuse across requests', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             // Multiple requests should reuse connection
             $response1 = $this->actingAs($user)->get('/dashboard');
@@ -489,7 +475,7 @@ class PerformanceOptimizationTest extends TestCase
         });
 
         it('checks query execution order efficiency', function () {
-            $user = $this->createTestUser();
+            $user = createTestUser();
             
             DB::flushQueryLog();
             
@@ -507,7 +493,7 @@ class PerformanceOptimizationTest extends TestCase
             
             DB::transaction(function () use (&$users) {
                 for ($i = 0; $i < 5; $i++) {
-                    $users[] = $this->createTestUser();
+                    $users[] = createTestUser();
                 }
             });
             
@@ -522,9 +508,9 @@ class PerformanceOptimizationTest extends TestCase
     /**
      * Create a test user
      */
-    private function createTestUser()
+    function createTestUser()
     {
-        $userClass = $this->getUserModelClass();
+        $userClass = getUserModelClass();
         return $userClass::create([
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
@@ -538,11 +524,11 @@ class PerformanceOptimizationTest extends TestCase
     /**
      * Create multiple test users
      */
-    private function createTestUsers(int $count)
+    function createTestUsers(int $count)
     {
         $users = [];
         for ($i = 0; $i < $count; $i++) {
-            $users[] = $this->createTestUser();
+            $users[] = createTestUser();
         }
         return collect($users);
     }
@@ -550,8 +536,7 @@ class PerformanceOptimizationTest extends TestCase
     /**
      * Get the user model class
      */
-    private function getUserModelClass()
+    function getUserModelClass()
     {
         return \App\Core\Identity\Models\User::class;
     }
-}
