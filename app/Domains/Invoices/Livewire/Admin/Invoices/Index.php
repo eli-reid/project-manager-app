@@ -48,6 +48,17 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function deleteInvoice(string $invoiceId): void
+    {
+        $invoice = Invoice::query()->findOrFail($invoiceId);
+
+        $this->authorize('delete', $invoice);
+
+        $invoice->delete();
+
+        session()->flash('success', 'Invoice deleted successfully.');
+    }
+
     public function render()
     {
         $search = $this->search;
