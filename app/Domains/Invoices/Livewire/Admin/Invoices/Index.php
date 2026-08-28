@@ -55,6 +55,7 @@ class Index extends Component
         $this->authorize('delete', $invoice);
 
         $invoice->delete();
+        $this->resetPage();
 
         session()->flash('success', 'Invoice deleted successfully.');
     }
