@@ -24,9 +24,9 @@ class ProjectTimecardMetricsService
 
         $aggregates = (clone $baseQuery)
             ->selectRaw('COALESCE(SUM(hours), 0) as total_hours')
-            ->selectRaw('COALESCE(SUM(regular_hours), 0) as regular_hours')
-            ->selectRaw('COALESCE(SUM(overtime_hours), 0) as overtime_hours')
-            ->selectRaw('COALESCE(SUM(double_time_hours), 0) as double_time_hours')
+            ->selectRaw('COALESCE(SUM(CASE WHEN regular_hours IS NOT NULL THEN regular_hours ELSE CASE WHEN (COALESCE(hours, 0) - COALESCE(overtime_hours, 0) - COALESCE(double_time_hours, 0)) < 0 THEN 0 ELSE (COALESCE(hours, 0) - COALESCE(overtime_hours, 0) - COALESCE(double_time_hours, 0)) END END), 0) as regular_hours')
+            ->selectRaw('COALESCE(SUM(COALESCE(overtime_hours, 0)), 0) as overtime_hours')
+            ->selectRaw('COALESCE(SUM(COALESCE(double_time_hours, 0)), 0) as double_time_hours')
             ->first();
 
         return [

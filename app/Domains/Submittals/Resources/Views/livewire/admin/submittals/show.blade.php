@@ -1,10 +1,14 @@
+@php
+    $backUrl = $returnTo !== '' ? $returnTo : route('admin.submittals.index');
+@endphp
+
 <div class="w-full space-y-4">
     <div class="flex items-start justify-between gap-3">
         <div>
             <flux:heading size="xl">Review: {{ $submittal->type }}</flux:heading>
             <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">Project: {{ $submittal->project?->name ?? '—' }}</flux:text>
         </div>
-        <a href="{{ route('admin.submittals.index') }}" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Back</a>
+        <a href="{{ $backUrl }}" wire:navigate class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Back</a>
     </div>
 
     <div class="grid gap-4 md:grid-cols-3">

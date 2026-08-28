@@ -3,6 +3,7 @@
 namespace App\Domains\Stock\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Stock\Models\StockOrderTemplate;
@@ -10,6 +11,7 @@ use App\Domains\Stock\Permissions\StockOrderPermissions;
 use App\Domains\Stock\Permissions\StockOrderTemplatePermissions;
 use App\Domains\Stock\Policies\StockOrderPolicy;
 use App\Domains\Stock\Policies\StockOrderTemplatePolicy;
+use App\Domains\Stock\Support\StockProjectTab;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -25,12 +27,13 @@ class StockServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('stock-orders.', 'stock-orders.mobile.');
 
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -96,6 +99,13 @@ class StockServiceProvider extends ServiceProvider
                 'badge_color' => 'green',
                 'sort' => 30,
             ],
+        ]);
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            StockProjectTab::class,
         ]);
     }
 }

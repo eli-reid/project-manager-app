@@ -3,17 +3,21 @@
 namespace App\Domains\ChangeOrders\Livewire\User\ChangeOrders;
 
 use App\Domains\ChangeOrders\Models\ChangeOrder;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 
 class Show extends Component
 {
+    use AuthorizesRequests;
+
     public ChangeOrder $changeOrder;
 
     /**
      * Mount the component.
      */
-    public function mount(ChangeOrder $changeOrder)
+    public function mount(ChangeOrder $changeOrder): void
     {
+        $this->authorize('view', $changeOrder);
         $this->changeOrder = $changeOrder;
     }
 
@@ -22,6 +26,6 @@ class Show extends Component
      */
     public function render()
     {
-        return view('livewire.user.change-orders.show');
+        return view('change-orders::livewire.user.change-orders.show');
     }
 }

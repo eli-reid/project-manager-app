@@ -24,6 +24,7 @@ class ProjectFactory extends Factory
         return [
             'name' => fake()->company().' Project',
             'project_number' => fake()->unique()->bothify('PRJ-####'),
+            'accounting_code' => fake()->optional()->bothify('ACCT-###'),
             'description' => fake()->optional()->sentence(),
             'status' => fake()->randomElement($statusOptions),
             'start_date' => fake()->optional()->dateTimeBetween('-30 days', 'now'),

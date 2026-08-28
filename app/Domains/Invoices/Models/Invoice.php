@@ -3,6 +3,7 @@
 namespace App\Domains\Invoices\Models;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Invoices\Database\Factories\InvoiceFactory;
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Projects\Models\Project;
@@ -22,6 +23,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'project_id',
+        'accounting_code_id',
         'vendor_name',
         'invoice_number',
         'invoice_date',
@@ -61,6 +63,11 @@ class Invoice extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function accountingCode(): BelongsTo
+    {
+        return $this->belongsTo(AccountingCode::class);
     }
 
     public function creator(): BelongsTo

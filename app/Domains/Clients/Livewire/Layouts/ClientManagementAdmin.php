@@ -2,12 +2,10 @@
 
 namespace App\Domains\Clients\Livewire\Layouts;
 
-use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
 use App\Support\Contracts\ProvidesDomainNavbar;
 use Illuminate\View\View;
 use Livewire\Component;
-
 
 class ClientManagementAdmin extends Component implements ProvidesDomainNavbar
 {
@@ -22,13 +20,6 @@ class ClientManagementAdmin extends Component implements ProvidesDomainNavbar
                     'label' => (string) __('Clients'),
                     'href' => route('admin.clients.index'),
                     'current' => request()->routeIs('admin.clients.*'),
-                ]
-                : null,
-            auth()->user()?->can('viewAny', Address::class)
-                ? [
-                    'label' => (string) __('Addresses'),
-                    'href' => route('admin.addresses.index'),
-                    'current' => request()->routeIs('admin.addresses.*'),
                 ]
                 : null,
         ]));

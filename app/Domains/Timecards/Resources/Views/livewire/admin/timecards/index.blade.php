@@ -118,7 +118,7 @@
                             <td class="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{{ str($timecard->status)->replace('-', ' ')->title() }}</td>
                             <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">{{ number_format((float) $timecard->total_hours, 2) }}</td>
                             <td class="px-4 py-3 text-right text-sm">
-                                <livewire:ui.row-actions-dropdown label="Timecard actions" width="w-40" :menu-height="140">
+                                <livewire:ui.row-actions-dropdown label="Timecard actions" width="w-40" :menu-height="180">
                                     <a
                                         href="{{ route('admin.timecards.show', $timecard) }}"
                                         class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
@@ -127,6 +127,17 @@
                                     >
                                         Review
                                     </a>
+
+                                    @can('approve', $timecard)
+                                        <button
+                                            type="button"
+                                            wire:click="approveTimecard('{{ $timecard->id }}')"
+                                            class="block w-full px-3 py-2 text-left text-sm text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/30"
+                                            @click="closeMenu()"
+                                        >
+                                            Approve
+                                        </button>
+                                    @endcan
 
                                     @can('update', $timecard)
                                         <a
