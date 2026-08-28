@@ -58,7 +58,7 @@ it('allows users with stock view-any permission to access all phase 0 scaffold r
 
     get(route('stock-orders.mobile.index'))
         ->assertSuccessful()
-        ->assertSee('Mobile stock order screens are being scaffolded.');
+        ->assertSee('Track requests and order status from the field.');
 
     get(route('api.stock-orders.index'))
         ->assertSuccessful()

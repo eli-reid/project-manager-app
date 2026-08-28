@@ -33,6 +33,8 @@ it('returns zero invoiced total when project has no invoices', function (): void
         ->and($summary['budget'])->toBeNull()
         ->and($summary['labor_cost'])->toBe(0.0)
         ->and($summary['payments_received'])->toBe(0.0)
+        ->and($summary['spent_total'])->toBe(0.0)
+        ->and($summary['payment_receipt_delta'])->toBe(0.0)
         ->and($summary['payment_receipt_count'])->toBe(0)
         ->and($summary['remaining'])->toBeNull()
         ->and($summary['variance_pct'])->toBeNull();
@@ -129,6 +131,27 @@ it('includes payment receipts in the financial summary', function (): void {
         ->and($summary['payment_receipt_count'])->toBe(2);
 });
 
+it('tracks total spent against payment receipts', function (): void {
+    $project = Project::factory()->create(['budget' => 1000.00]);
+
+    $payrollReportingService = Mockery::mock(PayrollReportingService::class);
+    $payrollReportingService
+        ->shouldReceive('estimatedLaborCostTotalForProject')
+        ->once()
+        ->with((string) $project->id)
+        ->andReturn(150.25);
+
+    $this->app->instance(PayrollReportingService::class, $payrollReportingService);
+
+    Invoice::factory()->for($project)->create(['total_amount' => 400.00]);
+    PaymentReceipt::factory()->for($project)->create(['amount' => 700.00]);
+
+    $summary = app(ProjectFinancialsService::class)->summary($project);
+
+    expect($summary['spent_total'])->toBe(550.25)
+        ->and($summary['payment_receipt_delta'])->toBe(149.75);
+});
+
 // ─── Tab Access Tests ─────────────────────────────────────────────────────────
 
 it('shows financials tab when user has projects.view-financials permission', function (): void {
@@ -186,6 +209,10 @@ it('shows payment receipt totals on the financials tab', function (): void {
     $project = Project::factory()->create();
     $user = projectUserWithPermissions(['projects.view', 'projects.view-financials', 'payment-receipts.view'], $project);
 
+    Invoice::factory()->for($project)->create([
+        'total_amount' => 1000.00,
+    ]);
+
     PaymentReceipt::factory()->for($project)->create([
         'amount' => 1250.00,
         'received_from' => 'Acme Client',
@@ -197,6 +224,9 @@ it('shows payment receipt totals on the financials tab', function (): void {
         ->assertSuccessful()
         ->assertSee('Payments Received')
         ->assertSee('1,250.00')
+        ->assertSee('Pay Recs +/-')
+        ->assertSee('+$250.00')
+        ->assertSee('Receipts exceed tracked spend.')
         ->assertSee('Open Pay Recs');
 });
 

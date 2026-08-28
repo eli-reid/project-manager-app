@@ -19,6 +19,8 @@ class ProjectFinancialsService
      *     invoiced: float,
      *     labor_cost: float,
      *     payments_received: float,
+     *     spent_total: float,
+     *     payment_receipt_delta: float,
      *     remaining: float|null,
      *     variance_pct: float|null,
      *     invoice_count: int,
@@ -46,6 +48,8 @@ class ProjectFinancialsService
         $budget = $project->budget !== null ? (float) $project->budget : null;
 
         $laborCost = $this->payrollReportingService->estimatedLaborCostTotalForProject((string) $project->id);
+        $spentTotal = \round($invoiced + $laborCost, 2);
+        $paymentReceiptDelta = \round($paymentsReceived - $spentTotal, 2);
 
         $remaining = $budget !== null ? $budget - $invoiced : null;
 
@@ -58,6 +62,8 @@ class ProjectFinancialsService
             'invoiced' => $invoiced,
             'labor_cost' => $laborCost,
             'payments_received' => $paymentsReceived,
+            'spent_total' => $spentTotal,
+            'payment_receipt_delta' => $paymentReceiptDelta,
             'remaining' => $remaining,
             'variance_pct' => $variancePct,
             'invoice_count' => $invoiceCount,
