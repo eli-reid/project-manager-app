@@ -24,7 +24,7 @@ class InvoicePolicy
 
     public function update(User $user, Invoice $invoice): bool
     {
-        return $user->hasPermission('invoices.edit') && ! $invoice->isPaid();
+        return $user->hasPermission('invoices.edit');
     }
 
     public function delete(User $user, Invoice $invoice): bool

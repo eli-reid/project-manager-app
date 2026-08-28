@@ -182,6 +182,26 @@ it('validates required fields on create', function (): void {
 });
 
 // ---------------------------------------------------------------------------
+// Edit (paid invoices)
+// ---------------------------------------------------------------------------
+
+it('allows editing a paid invoice', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.edit']);
+    $project = Project::factory()->create();
+    $invoice = Invoice::factory()->for($project)->paid()->create([
+        'vendor_name' => 'Paid Vendor',
+        'created_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['invoice' => $invoice])
+        ->set('vendor_name', 'Updated Paid Vendor')
+        ->call('save');
+
+    expect($invoice->fresh()->vendor_name)->toBe('Updated Paid Vendor');
+});
+
+// ---------------------------------------------------------------------------
 // Show
 // ---------------------------------------------------------------------------
 
