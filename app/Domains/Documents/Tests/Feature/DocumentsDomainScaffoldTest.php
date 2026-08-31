@@ -65,6 +65,23 @@ it('renders mobile upload form for users with create permission', function (): v
         ->assertSee('Upload');
 });
 
+it('uploads a document through the mobile upload component', function (): void {
+    Storage::fake('local');
+    Settings::set('documents.storage_disk', 'local');
+
+    $user = userWithDocumentDomainPermissions(['documents.view']);
+
+    Livewire::actingAs($user)
+        ->test(MobileUpload::class)
+        ->set('file', UploadedFile::fake()->create('receipt.pdf', 10, 'application/pdf'))
+        ->set('description', 'A receipt')
+        ->call('submitUpload')
+        ->assertHasNoErrors()
+        ->assertSet('success', true);
+
+    expect(Document::query()->where('description', 'A receipt')->exists())->toBeTrue();
+});
+
 it('allows users with documents view permission to access user-facing documents routes', function (): void {
     $user = userWithDocumentDomainPermissions(['documents.view']);
 

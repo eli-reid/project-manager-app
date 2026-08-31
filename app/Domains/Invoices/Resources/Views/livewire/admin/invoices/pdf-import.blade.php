@@ -10,7 +10,7 @@
     @if (! $uploaded)
         {{-- Upload step --}}
         <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <form wire:submit="upload" class="space-y-4">
+            <form wire:submit="startImport" class="space-y-4">
                 <div>
                     <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project <span class="text-red-500">*</span></label>
                     <select wire:model="project_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
@@ -26,13 +26,20 @@
                     x-data="{ dragging: false }"
                     x-on:dragover.prevent="dragging = true"
                     x-on:dragleave.prevent="dragging = false"
-                    x-on:drop.prevent="dragging = false"
+                    x-on:drop.prevent="
+                        dragging = false;
+                        if ($event.dataTransfer.files.length) {
+                            $refs.fileInput.files = $event.dataTransfer.files;
+                            $refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    "
                     :class="dragging ? 'border-zinc-500 bg-zinc-50 dark:bg-zinc-800' : 'border-zinc-300 dark:border-zinc-700'"
                     class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition"
                 >
                     <p class="mb-2 text-sm text-zinc-600 dark:text-zinc-300">Drag &amp; drop PDF files here, or click to browse</p>
                     <p class="mb-4 text-xs text-zinc-400">Up to {{ \App\Domains\Invoices\Livewire\Admin\Invoices\PdfImport::MAX_FILES }} files, 10 MB each</p>
-                    <input type="file" wire:model="files" multiple accept="application/pdf" class="text-sm" />
+                    <input type="file" x-ref="fileInput" wire:model="files" multiple accept="application/pdf" class="text-sm" />
+                    <div wire:loading wire:target="files" class="mt-2 text-xs text-zinc-500">Uploading&hellip;</div>
                     @error('files') <p class="mt-2 text-xs text-red-600">{{ $message }}</p> @enderror
                     @error('files.*') <p class="mt-2 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
@@ -56,7 +63,7 @@
             <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Processing PDFs&hellip;</h2>
             <ul class="space-y-2">
                 @foreach ($importIds as $importId)
-                    @php($import = \App\Domains\Invoices\Models\InvoicePdfImport::query()->find($importId))
+                    @php($import = $imports->get($importId))
                     @if ($import)
                         <li class="flex items-center justify-between rounded-lg border border-zinc-200 px-4 py-2 text-sm dark:border-zinc-700">
                             <span class="text-zinc-700 dark:text-zinc-300">{{ basename($import->file_path) }}</span>
@@ -100,6 +107,7 @@
                                 @endif
                             </label>
                             <input type="text" wire:model="reviewRows.{{ $index }}.vendor_name" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('reviewRows.'.$index.'.vendor_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
@@ -110,6 +118,7 @@
                                 @endif
                             </label>
                             <input type="text" wire:model="reviewRows.{{ $index }}.invoice_number" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('reviewRows.'.$index.'.invoice_number') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
@@ -120,6 +129,7 @@
                                 @endif
                             </label>
                             <input type="date" wire:model="reviewRows.{{ $index }}.invoice_date" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('reviewRows.'.$index.'.invoice_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
@@ -130,6 +140,7 @@
                                 @endif
                             </label>
                             <input type="date" wire:model="reviewRows.{{ $index }}.due_date" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('reviewRows.'.$index.'.due_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
@@ -140,6 +151,7 @@
                                 @endif
                             </label>
                             <input type="text" wire:model="reviewRows.{{ $index }}.subtotal" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('reviewRows.'.$index.'.subtotal') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
@@ -150,6 +162,7 @@
                                 @endif
                             </label>
                             <input type="text" wire:model="reviewRows.{{ $index }}.tax_amount" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('reviewRows.'.$index.'.tax_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
@@ -160,6 +173,7 @@
                                 @endif
                             </label>
                             <input type="text" wire:model="reviewRows.{{ $index }}.total_amount" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                            @error('reviewRows.'.$index.'.total_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
@@ -177,11 +191,23 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($row['line_items'] as $lineIndex => $item)
-                                        <tr>
-                                            <td class="px-2 py-1"><input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.description" class="w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" /></td>
-                                            <td class="px-2 py-1"><input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.quantity" class="w-20 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" /></td>
-                                            <td class="px-2 py-1"><input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.unit_price" class="w-24 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" /></td>
-                                            <td class="px-2 py-1"><input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.total" class="w-24 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" /></td>
+                                        <tr wire:key="review-row-{{ $row['import_id'] }}-line-{{ $lineIndex }}">
+                                            <td class="px-2 py-1">
+                                                <input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.description" class="w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                                @error('reviewRows.'.$index.'.line_items.'.$lineIndex.'.description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                            </td>
+                                            <td class="px-2 py-1">
+                                                <input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.quantity" class="w-20 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                                @error('reviewRows.'.$index.'.line_items.'.$lineIndex.'.quantity') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                            </td>
+                                            <td class="px-2 py-1">
+                                                <input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.unit_price" class="w-24 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                                @error('reviewRows.'.$index.'.line_items.'.$lineIndex.'.unit_price') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                            </td>
+                                            <td class="px-2 py-1">
+                                                <input type="text" wire:model="reviewRows.{{ $index }}.line_items.{{ $lineIndex }}.total" class="w-24 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-950" />
+                                                @error('reviewRows.'.$index.'.line_items.'.$lineIndex.'.total') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

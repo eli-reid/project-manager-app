@@ -3,12 +3,14 @@
 namespace App\Domains\Invoices\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Domains\Invoices\Console\Commands\PruneInvoicePdfImportsCommand;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Permissions\InvoicePermissions;
 use App\Domains\Invoices\Policies\InvoicePolicy;
 use App\Domains\Reports\Services\ReportRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -38,6 +40,18 @@ class InvoicesServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'invoices');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                PruneInvoicePdfImportsCommand::class,
+            ]);
+
+            $this->app->booted(function (): void {
+                Schedule::command(PruneInvoicePdfImportsCommand::class)
+                    ->daily()
+                    ->withoutOverlapping();
+            });
+        }
     }
 
     private function registerUIComponents(): void
