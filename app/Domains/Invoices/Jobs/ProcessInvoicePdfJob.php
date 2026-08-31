@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class ProcessInvoicePdfJob implements ShouldQueue
@@ -43,6 +44,12 @@ class ProcessInvoicePdfJob implements ShouldQueue
                 'status' => InvoicePdfImport::STATUS_FAILED,
                 'error_message' => $exception->getMessage(),
             ]);
+
+            // A failed parse can never be imported, so the staged upload is dead
+            // weight. Remove it immediately rather than waiting for the pruner.
+            if (Storage::disk('local')->exists($import->file_path)) {
+                Storage::disk('local')->delete($import->file_path);
+            }
         }
     }
 }

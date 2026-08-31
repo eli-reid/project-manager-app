@@ -112,14 +112,24 @@ class InvoicePdfParserService
 
         foreach ($formats as $format) {
             $date = \DateTime::createFromFormat($format, $raw);
+            $errors = \DateTime::getLastErrors();
 
-            if ($date !== false) {
+            $hasProblems = $errors !== false
+                && (($errors['warning_count'] ?? 0) > 0 || ($errors['error_count'] ?? 0) > 0);
+
+            if ($date !== false && ! $hasProblems) {
                 return $date->format('Y-m-d');
             }
         }
 
         try {
-            return (new \DateTime($raw))->format('Y-m-d');
+            $date = new \DateTime($raw);
+            $errors = \DateTime::getLastErrors();
+
+            $hasProblems = $errors !== false
+                && (($errors['warning_count'] ?? 0) > 0 || ($errors['error_count'] ?? 0) > 0);
+
+            return $hasProblems ? null : $date->format('Y-m-d');
         } catch (Throwable) {
             return null;
         }
@@ -133,10 +143,10 @@ class InvoicePdfParserService
     {
         $labelPattern = implode('|', array_map(fn (string $l) => preg_quote($l, '/'), $labels));
 
-        if (preg_match('/(?<![a-z\-])(?:'.$labelPattern.')\s*[:\-]?\s*\$?\s*([\d,]+\.\d{2})/i', $text, $matches)) {
+        if (preg_match('/(?<![a-z\-])(?:'.$labelPattern.')\s*[:\-]?\s*\$?\s*([\d,]+(?:\.\d{1,2})?)/i', $text, $matches)) {
             $confidence[$key] = 0.8;
 
-            return str_replace(',', '', $matches[1]);
+            return number_format((float) str_replace(',', '', $matches[1]), 2, '.', '');
         }
 
         $confidence[$key] = 0.0;

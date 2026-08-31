@@ -34,7 +34,7 @@ class MobileUpload extends Component
         ];
     }
 
-    public function upload(DocumentService $documentService): void
+    public function submitUpload(DocumentService $documentService): void
     {
         $this->validate();
 

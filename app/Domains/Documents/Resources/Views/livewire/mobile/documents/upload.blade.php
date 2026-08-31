@@ -9,7 +9,7 @@
             </div>
         @endif
 
-        <form wire:submit.prevent="upload" class="flex flex-col gap-4">
+        <form wire:submit.prevent="submitUpload" class="flex flex-col gap-4">
             <div>
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-400">{{ __('File') }}</label>
                 <input type="file" wire:model="file" class="block w-full text-sm text-zinc-200 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-800 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-zinc-200 hover:file:bg-zinc-700" />
