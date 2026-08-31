@@ -98,6 +98,42 @@
                         <button type="button" wire:click="removeReviewRow({{ $index }})" class="text-xs font-semibold uppercase tracking-wide text-red-600 hover:underline">Remove</button>
                     </div>
 
+                    <div
+                        x-data="{ showPreview: false }"
+                        class="mb-4 rounded-lg border border-zinc-200 dark:border-zinc-700"
+                    >
+                        <div class="flex items-center justify-between gap-3 px-4 py-2">
+                            <span class="truncate text-xs font-medium text-zinc-600 dark:text-zinc-300" title="{{ $row['file_name'] ?? '' }}">
+                                {{ $row['file_name'] ?? 'Source PDF' }}
+                            </span>
+                            <div class="flex shrink-0 items-center gap-3">
+                                <button
+                                    type="button"
+                                    x-on:click="showPreview = ! showPreview"
+                                    class="text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:underline dark:text-zinc-200"
+                                    x-text="showPreview ? 'Hide PDF' : 'View PDF'"
+                                >View PDF</button>
+                                <a
+                                    href="{{ route('admin.invoices.import.preview', $row['import_id']) }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:underline dark:text-zinc-400"
+                                >Open in new tab</a>
+                            </div>
+                        </div>
+
+                        {{-- Rendered only on demand so a large batch doesn't load every PDF at once. --}}
+                        <template x-if="showPreview">
+                            <div class="border-t border-zinc-200 p-3 dark:border-zinc-700">
+                                <iframe
+                                    src="{{ route('admin.invoices.import.preview', $row['import_id']) }}"
+                                    class="h-[32rem] w-full rounded-md border border-zinc-200 bg-white dark:border-zinc-700"
+                                    title="Preview of {{ $row['file_name'] ?? 'source PDF' }}"
+                                ></iframe>
+                            </div>
+                        </template>
+                    </div>
+
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
                             <label class="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
