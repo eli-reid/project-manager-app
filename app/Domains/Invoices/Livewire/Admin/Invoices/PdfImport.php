@@ -137,6 +137,7 @@ class PdfImport extends Component
 
             $rows[] = [
                 'import_id' => $import->id,
+                'file_name' => basename((string) $import->file_path),
                 'selected' => true,
                 'vendor_name' => $parsed['vendor_name'] ?? '',
                 'invoice_number' => $parsed['invoice_number'] ?? '',

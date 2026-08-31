@@ -7,6 +7,7 @@ use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Invoices\Data\InvoicePdfData;
 use App\Domains\Invoices\Jobs\ProcessInvoicePdfJob;
+use App\Domains\Invoices\Livewire\Admin\Invoices\Index as InvoicesIndex;
 use App\Domains\Invoices\Livewire\Admin\Invoices\PdfImport;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Models\InvoicePdfImport;
@@ -100,6 +101,23 @@ it('forbids access to the pdf import route without permission', function (): voi
 it('redirects guests from the pdf import route', function (): void {
     $this->get(route('admin.invoices.import'))
         ->assertRedirect(route('login'));
+});
+
+it('links to the pdf import page from the invoices index', function (): void {
+    $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
+
+    Livewire::actingAs($user)
+        ->test(InvoicesIndex::class)
+        ->assertSee('Import from PDF')
+        ->assertSee(route('admin.invoices.import'), escape: false);
+});
+
+it('hides the pdf import link from users without create permission', function (): void {
+    $user = userWithPdfImportPermissions(['invoices.view']);
+
+    Livewire::actingAs($user)
+        ->test(InvoicesIndex::class)
+        ->assertDontSee('Import from PDF');
 });
 
 it('accepts an uploaded pdf and dispatches a processing job', function (): void {
@@ -402,6 +420,87 @@ it('prunes stale imports and their staged files', function (): void {
 
     expect(InvoicePdfImport::query()->find($stale->id))->toBeNull()
         ->and(InvoicePdfImport::query()->find($fresh->id))->not->toBeNull();
+});
+
+// ---------------------------------------------------------------------------
+// Source PDF preview
+// ---------------------------------------------------------------------------
+
+it('streams the staged pdf to the uploader for review', function (): void {
+    Storage::fake('local');
+
+    $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
+    $project = Project::factory()->create();
+
+    Storage::disk('local')->put('invoice-imports/sample-invoice.pdf', '%PDF-1.4 fake');
+    $import = importFor($user, $project);
+
+    $this->actingAs($user)
+        ->get(route('admin.invoices.import.preview', $import->id))
+        ->assertSuccessful()
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+it('forbids previewing another users staged pdf', function (): void {
+    Storage::fake('local');
+
+    $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
+    $otherUser = User::factory()->create();
+    $project = Project::factory()->create();
+
+    Storage::disk('local')->put('invoice-imports/sample-invoice.pdf', '%PDF-1.4 fake');
+    $foreignImport = importFor($otherUser, $project);
+
+    $this->actingAs($user)
+        ->get(route('admin.invoices.import.preview', $foreignImport->id))
+        ->assertForbidden();
+});
+
+it('returns 404 when the staged pdf is missing', function (): void {
+    Storage::fake('local');
+
+    $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
+    $project = Project::factory()->create();
+
+    $import = importFor($user, $project);
+
+    $this->actingAs($user)
+        ->get(route('admin.invoices.import.preview', $import->id))
+        ->assertNotFound();
+});
+
+it('forbids previewing without invoice create permission', function (): void {
+    Storage::fake('local');
+
+    $user = userWithPdfImportPermissions(['invoices.view']);
+    $project = Project::factory()->create();
+
+    Storage::disk('local')->put('invoice-imports/sample-invoice.pdf', '%PDF-1.4 fake');
+    $import = importFor($user, $project);
+
+    $this->actingAs($user)
+        ->get(route('admin.invoices.import.preview', $import->id))
+        ->assertForbidden();
+});
+
+it('shows a pdf preview link for each review row', function (): void {
+    Storage::fake('local');
+
+    $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
+    $project = Project::factory()->create();
+
+    Storage::disk('local')->put('invoice-imports/sample-invoice.pdf', '%PDF-1.4 fake');
+    $import = importFor($user, $project);
+
+    Livewire::actingAs($user)
+        ->test(PdfImport::class)
+        ->set('project_id', $project->id)
+        ->set('uploaded', true)
+        ->set('importIds', [$import->id])
+        ->call('pollStatus')
+        ->assertSet('reviewRows.0.file_name', 'sample-invoice.pdf')
+        ->assertSee('View PDF')
+        ->assertSee(route('admin.invoices.import.preview', $import->id), escape: false);
 });
 
 // ---------------------------------------------------------------------------
