@@ -32,12 +32,12 @@ class Index extends Component
 
     public function mount(DashboardWidgetRegistry $widgetRegistry): void
     {
-        $this->sections = $this->resolveDashboardSections($widgetRegistry, 'dashboard::livewire.index');
+        $this->sections = $this->resolveDashboardSectionsWithMemoryProbe($widgetRegistry, 'dashboard::livewire.index');
     }
 
     public function render()
     {
-        $showLabels = count($this->sections) > 1;
+        $showLabels = \count($this->sections) > 1;
 
         return view('dashboard::livewire.index', [
             'sections' => $this->sections,

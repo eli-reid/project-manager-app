@@ -7,6 +7,8 @@ use App\Domains\Invoices\Console\Commands\PruneInvoicePdfImportsCommand;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Permissions\InvoicePermissions;
 use App\Domains\Invoices\Policies\InvoicePolicy;
+use App\Domains\Invoices\Support\InvoicesProjectTab;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -21,10 +23,11 @@ class InvoicesServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -81,6 +84,13 @@ class InvoicesServiceProvider extends ServiceProvider
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(InvoicePermissions::all());
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            InvoicesProjectTab::class,
+        ]);
     }
 
     private function registerReports(ReportRegistry $reportRegistry): void

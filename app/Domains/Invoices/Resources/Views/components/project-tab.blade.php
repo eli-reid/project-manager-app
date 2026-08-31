@@ -45,10 +45,22 @@
                                     {{ $invoice->status?->label() ?? 'Unknown' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-right">
-                                <a href="{{ route('admin.invoices.show', $invoice) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                                    View
-                                </a>
+                            <td class="px-4 py-3">
+                                <div class="flex justify-end gap-2">
+                                    <a href="{{ route('admin.invoices.show', $invoice) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                        View
+                                    </a>
+                                    @can('update', $invoice)
+                                        <a href="{{ route('admin.invoices.edit', $invoice) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                            Edit
+                                        </a>
+                                    @endcan
+                                    @can('delete', $invoice)
+                                        <button type="button" wire:click="deleteInvoice('{{ $invoice->id }}')" wire:confirm="Are you sure you want to delete this invoice? This cannot be undone." class="inline-flex items-center rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20">
+                                            Delete
+                                        </button>
+                                    @endcan
+                                </div>
                             </td>
                         </tr>
                     @empty

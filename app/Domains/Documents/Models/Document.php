@@ -41,6 +41,7 @@ class Document extends Model
     protected $fillable = [
         'title',
         'description',
+        'folder_path',
         'original_name',
         'stored_name',
         'extension',
@@ -48,6 +49,7 @@ class Document extends Model
         'file_size',
         'storage_disk',
         'storage_path',
+        'asset_id',
         'owner_scope',
         'owner_id',
         'visibility',
@@ -103,6 +105,11 @@ class Document extends Model
     public function internalShares(): HasMany
     {
         return $this->hasMany(DocumentInternalShare::class);
+    }
+
+    public function asset(): BelongsTo
+    {
+        return $this->belongsTo(\App\Core\Assets\Models\Asset::class, 'asset_id');
     }
 
     public function scopeUserOwned(Builder $query): Builder

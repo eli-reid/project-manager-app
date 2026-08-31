@@ -28,10 +28,10 @@ it('uses the shared livewire head component in all primary livewire layouts', fu
     $authSimpleLayout = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/auth/simple.blade.php');
     $authSplitLayout = file_get_contents(__DIR__.'/../../../../../resources/views/livewire/layouts/auth/split.blade.php');
 
-    expect($appLayout)->toContain("@include('livewire.layouts.head', ['title' => \$title ?? null])");
-    expect($mobileLayout)->toContain("@include('livewire.layouts.head', ['title' => \$title ?? null])");
-    expect($publicShareLayout)->toContain("@include('livewire.layouts.head', ['title' => \$title ?? null])");
-    expect($authCardLayout)->toContain("@include('livewire.layouts.head', ['title' => \$title ?? null])");
-    expect($authSimpleLayout)->toContain("@include('livewire.layouts.head', ['title' => \$title ?? null])");
-    expect($authSplitLayout)->toContain("@include('livewire.layouts.head', ['title' => \$title ?? null])");
+    expect($appLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
+    expect($mobileLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
+    expect($publicShareLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
+    expect($authCardLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
+    expect($authSimpleLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
+    expect($authSplitLayout)->toContain('<livewire:layouts.head :title="$title ?? null" />');
 });

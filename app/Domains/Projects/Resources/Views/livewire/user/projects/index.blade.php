@@ -11,7 +11,7 @@
     <div class="grid gap-3 md:grid-cols-[2fr_1fr]">
         <flux:field>
             <flux:label>{{ __('Search') }}</flux:label>
-            <flux:input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('Project name or number') }}" />
+            <flux:input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('Project name, number, or accounting code') }}" />
         </flux:field>
 
         <flux:field>
@@ -40,6 +40,7 @@
                             <td class="px-4 py-3 align-top">
                                 <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $project->name }}</div>
                                 <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $project->project_number ?? 'N/A' }}</div>
+                                <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ __('Accounting: :code', ['code' => $project->accounting_code ?? 'N/A']) }}</div>
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
                                 @if ($project->address)

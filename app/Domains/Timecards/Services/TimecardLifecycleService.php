@@ -4,6 +4,7 @@ namespace App\Domains\Timecards\Services;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Models\TimecardEntry;
 use App\Domains\Timecards\Notifications\TimecardApprovedNotification;
 use App\Domains\Timecards\Notifications\TimecardRejectedNotification;
 use App\Domains\Timecards\Notifications\TimecardSubmittedNotification;
@@ -18,6 +19,53 @@ class TimecardLifecycleService
         private readonly TimecardEntrySyncService $timecardEntrySyncService,
         private readonly TimecardNotificationRecipientService $timecardNotificationRecipientService,
     ) {}
+
+    /**
+     * Create a single project time entry for a user on a specific date.
+     * If a draft timecard for that week does not exist, one is created automatically.
+     */
+    public function addSingleProjectEntry(
+        User $user,
+        string $projectId,
+        Carbon|string $entryDate,
+        float $hours,
+        ?string $notes = null,
+    ): TimecardEntry {
+        if ($hours <= 0) {
+            throw ValidationException::withMessages([
+                'hours' => 'Hours must be greater than zero.',
+            ]);
+        }
+
+        $normalizedDate = Carbon::parse($entryDate)->toDateString();
+        $weekStart = $this->timecardWeekService->normalizeWeekStart($normalizedDate);
+
+        $existingTimecard = $this->timecardWeekService->existingTimecardForWeek((string) $user->id, $weekStart);
+
+        if ($existingTimecard !== null && $existingTimecard->status !== Timecard::STATUS_DRAFT) {
+            throw ValidationException::withMessages([
+                'date' => 'Hours can only be added to draft timecards. This week already has a non-draft timecard.',
+            ]);
+        }
+
+        $timecard = $existingTimecard ?? $this->createDraftForUser($user, $weekStart);
+
+        return DB::transaction(function () use ($timecard, $user, $projectId, $normalizedDate, $hours, $notes): TimecardEntry {
+            $entry = $timecard->entries()->create([
+                'user_id' => $user->id,
+                'project_id' => $projectId,
+                'custom_project_name' => null,
+                'date' => $normalizedDate,
+                'start_time' => null,
+                'hours' => $hours,
+                'notes' => $notes,
+            ]);
+
+            $this->timecardEntrySyncService->recalculateTotals($timecard);
+
+            return $entry->fresh();
+        });
+    }
 
     /**
      * @param  array{notes?:string|null}  $attributes

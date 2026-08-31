@@ -27,6 +27,18 @@
                 @error('project_number') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting Code</label>
+                <select wire:model="accounting_code_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                    <option value="">No accounting code</option>
+                    @foreach ($accountingCodes as $accountingCode)
+                        <option value="{{ $accountingCode->id }}">{{ $accountingCode->code }} - {{ $accountingCode->name }}</option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Select a shared code to group bulk material and cost reporting across related projects.</p>
+                @error('accounting_code_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             <div class="md:col-span-2">
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>
                 <textarea wire:model="description" rows="4" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>
@@ -41,6 +53,13 @@
                     @endforeach
                 </select>
                 @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Budget</label>
+                <input type="number" min="0" step="0.01" wire:model="budget" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" placeholder="0.00" />
+                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Optional total budget used in project financial reporting.</p>
+                @error('budget') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex items-center pt-8">
