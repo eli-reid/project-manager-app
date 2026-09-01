@@ -9,6 +9,8 @@ use App\Domains\Timecards\Livewire\User\Timecards\Form as DesktopForm;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Services\LeaveBalanceService;
 use App\Domains\Timecards\Services\TimecardLifecycleService;
+use App\Domains\Timecards\Services\TimecardWeekService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 
@@ -95,6 +97,18 @@ class Form extends DesktopForm
             ->keyBy('leave_category');
 
         $user = Auth::user();
+        $timecardWeekService = app(TimecardWeekService::class);
+        $weekStart = $timecardWeekService->normalizeWeekStart($this->week_starting);
+        $weekOptions = $user instanceof User
+            ? $timecardWeekService->futureWeekOptions((string) $user->id, includePreviousWeek: true)
+            : collect();
+
+        if ($weekOptions->doesntContain('start', $weekStart->toDateString())) {
+            $weekOptions->prepend([
+                'start' => $weekStart->toDateString(),
+                'label' => $weekStart->format('M j').' - '.$weekStart->copy()->addDays(6)->format('M j, Y'),
+            ]);
+        }
 
         return view('timecards::livewire.mobile.timecards.form', [
             'projects' => $projects,
@@ -107,6 +121,9 @@ class Form extends DesktopForm
                 ->orderBy('code')
                 ->get(['id', 'project_id', 'code', 'description'])
                 ->groupBy('project_id'),
+            'weekOptions' => $weekOptions,
+            'weekDays' => collect(range(0, 6))
+                ->map(fn (int $offset): Carbon => $weekStart->copy()->addDays($offset)),
         ])->title($this->isEdit ? __('Edit Timecard') : __('Create Timecard'));
     }
 }

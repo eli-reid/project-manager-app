@@ -4,6 +4,7 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Form as MobileForm;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Index as MobileIndex;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Show as MobileShow;
@@ -97,6 +98,18 @@ it('uses the mobile layout on the create form', function (): void {
         ->assertSee('Create Timecard');
 });
 
+it('shows only configured week-start dates in the mobile week picker', function (): void {
+    Settings::set('app.week_start_day', 'monday');
+    $user = mobileTimecardUser(['timecards.create']);
+
+    $component = Livewire::actingAs($user)->test(MobileForm::class);
+
+    preg_match_all('/<option value="(\d{4}-\d{2}-\d{2})">/', $component->html(), $matches);
+
+    expect($matches[1])->not->toBeEmpty();
+    expect(collect($matches[1])->every(fn (string $date): bool => Carbon::parse($date)->isMonday()))->toBeTrue();
+});
+
 it('renders the cancel link to the mobile timecard index on the create form', function (): void {
     $user = mobileTimecardUser(['timecards.create']);
 
@@ -114,8 +127,8 @@ it('renders a submit action on the mobile header button', function (): void {
 
     get(route('timecards.mobile.create'))
         ->assertOk()
-    ->assertSee('form="mobile-timecard-form"', false)
-    ->assertSee('type="submit"', false);
+        ->assertSee('form="mobile-timecard-form"', false)
+        ->assertSee('type="submit"', false);
 });
 
 it('creates a draft timecard via the mobile form and redirects to mobile show', function (): void {
@@ -190,6 +203,26 @@ it('applies a quick start time preset to a mobile entry row', function (): void 
         ->set('entries.0.start_time', '05:00')
         ->call('applyStartTimePreset', 0, '07:30')
         ->assertSet('entries.0.start_time', '07:30');
+});
+
+it('saves multiple entries for the same configured week day', function (): void {
+    Settings::set('app.week_start_day', 'monday');
+    $user = mobileTimecardUser(['timecards.create']);
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('week_starting', '2026-03-30')
+        ->set('entries.0.day_of_week', 1)
+        ->set('entries.0.hours', '4.00')
+        ->call('addEntry')
+        ->set('entries.1.day_of_week', 1)
+        ->set('entries.1.hours', '4.00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $timecard = Timecard::query()->where('user_id', $user->id)->latest()->firstOrFail();
+
+    expect($timecard->entries()->whereDate('date', '2026-03-30')->count())->toBe(2);
 });
 
 it('prevents unauthorized user from creating timecards via mobile form', function (): void {
