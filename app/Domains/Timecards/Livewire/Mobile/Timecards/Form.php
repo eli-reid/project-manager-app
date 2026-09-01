@@ -3,6 +3,7 @@
 namespace App\Domains\Timecards\Livewire\Mobile\Timecards;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\User\Timecards\Form as DesktopForm;
 use App\Domains\Timecards\Models\Timecard;
@@ -122,10 +123,17 @@ class Form extends DesktopForm
 
         return view('timecards::livewire.mobile.timecards.form', [
             'projects' => $projects,
+            'costCodesByProject' => CostCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'project_id', 'code', 'description'])
+                ->groupBy('project_id'),
             'leaveProjectsByCategory' => $leaveProjectsByCategory,
             'leaveBalances' => $user instanceof User
                 ? app(LeaveBalanceService::class)->forUser($user)
                 : ['sick' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0], 'vacation' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0]],
+            'weekDays' => collect(range(0, 6))
+                ->map(fn (int $offset): Carbon => $weekStart->copy()->addDays($offset)),
         ])->title($this->isEdit ? __('Edit Timecard') : __('Create Timecard'));
     }
 }

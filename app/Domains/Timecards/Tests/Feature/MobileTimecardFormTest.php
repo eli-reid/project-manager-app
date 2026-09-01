@@ -39,7 +39,9 @@ it('renders the mobile timecard create form', function (): void {
 
     get(route('timecards.mobile.create'))
         ->assertOk()
-        ->assertSeeLivewire(MobileForm::class);
+        ->assertSeeLivewire(MobileForm::class)
+        ->assertSee('Week Range')
+        ->assertSee('Tap a quick hour chip for faster entry.');
 });
 
 it('renders the mobile timecard index', function (): void {
