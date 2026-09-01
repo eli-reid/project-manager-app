@@ -54,11 +54,23 @@ class TimecardWeekService
             $offsets->prepend(-1);
         }
 
+        $weekStarts = $offsets
+            ->map(fn (int $offset): string => $currentWeekStart->copy()->addWeeks($offset)->toDateString());
+
+        $existingWeekStarts = Timecard::query()
+            ->where('user_id', $userId)
+            ->whereDate('week_starting', '>=', $weekStarts->min())
+            ->whereDate('week_starting', '<=', $weekStarts->max())
+            ->pluck('week_starting')
+            ->map(fn ($weekStart): string => Carbon::parse($weekStart)->toDateString())
+            ->intersect($weekStarts)
+            ->flip();
+
         return $offsets
-            ->map(function (int $offset) use ($currentWeekStart, $userId): ?array {
+            ->map(function (int $offset) use ($currentWeekStart, $existingWeekStarts): ?array {
                 $weekStart = $currentWeekStart->copy()->addWeeks($offset);
 
-                if ($this->hasExistingTimecardForWeek($userId, $weekStart)) {
+                if ($existingWeekStarts->has($weekStart->toDateString())) {
                     return null;
                 }
 

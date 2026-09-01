@@ -156,11 +156,24 @@ class Form extends Component
 
     public function updatedWeekStarting(string $value): void
     {
-        unset($value);
+        if (filled($value)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($value)->toDateString();
+        }
+    }
+
+    public function hydrate(): void
+    {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
     }
 
     public function save(): void
     {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
+
         $validated = $this->validate();
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 

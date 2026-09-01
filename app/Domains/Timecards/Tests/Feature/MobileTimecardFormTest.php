@@ -225,6 +225,24 @@ it('saves multiple entries for the same configured week day', function (): void 
     expect($timecard->entries()->whereDate('date', '2026-03-30')->count())->toBe(2);
 });
 
+it('normalizes the selected week before saving mobile entries', function (): void {
+    Settings::set('app.week_start_day', 'monday');
+    $user = mobileTimecardUser(['timecards.create']);
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('week_starting', '2026-03-29')
+        ->set('entries.0.day_of_week', 0)
+        ->set('entries.0.hours', '8.00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $timecard = Timecard::query()->where('user_id', $user->id)->latest()->firstOrFail();
+
+    expect($timecard->week_starting?->toDateString())->toBe('2026-03-23');
+    expect($timecard->entries()->whereDate('date', '2026-03-29')->count())->toBe(1);
+});
+
 it('prevents unauthorized user from creating timecards via mobile form', function (): void {
     $user = User::factory()->create(['is_admin' => false]);
 

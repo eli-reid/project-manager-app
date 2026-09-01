@@ -51,6 +51,10 @@ class Form extends DesktopForm
 
     public function save(): void
     {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
+
         $validated = $this->validate();
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
