@@ -268,7 +268,9 @@ class Form extends Component
         $weekStart = Carbon::parse($this->week_starting);
 
         return array_map(function (array $entry) use ($weekStart) {
-            $entry['date'] = $weekStart->copy()->addDays((int) $entry['day_of_week'])->toDateString();
+            $dayOffset = ((int) $entry['day_of_week'] - $weekStart->dayOfWeek + 7) % 7;
+
+            $entry['date'] = $weekStart->copy()->addDays($dayOffset)->toDateString();
             unset($entry['day_of_week']);
             unset($entry['row_key']);
 
@@ -334,7 +336,7 @@ class Form extends Component
         return [
             'id' => null,
             'row_key' => 'entry-'.(string) Str::ulid(),
-            'day_of_week' => 1,
+            'day_of_week' => app(TimecardWeekService::class)->currentWeekStart()->dayOfWeek,
             'start_time' => null,
             'project_id' => $projectId,
             'cost_code_id' => null,
