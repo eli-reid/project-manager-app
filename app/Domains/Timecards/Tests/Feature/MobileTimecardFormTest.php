@@ -5,6 +5,7 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Form as MobileForm;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Index as MobileIndex;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Show as MobileShow;
@@ -241,6 +242,43 @@ it('normalizes the selected week before saving mobile entries', function (): voi
 
     expect($timecard->week_starting?->toDateString())->toBe('2026-03-23');
     expect($timecard->entries()->whereDate('date', '2026-03-29')->count())->toBe(1);
+});
+
+it('clears a custom project name when selecting a configured project', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+    $project = Project::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('entries.0.custom_project_name', 'Temporary job name')
+        ->set('entries.0.project_id', (string) $project->id)
+        ->assertSet('entries.0.custom_project_name', null);
+});
+
+it('does not persist a custom project name with a configured project', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+    $project = Project::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('entries.0.project_id', (string) $project->id)
+        ->set('entries.0.custom_project_name', 'Stale project name')
+        ->set('entries.0.hours', '8.00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $timecard = Timecard::query()->where('user_id', $user->id)->latest()->firstOrFail();
+
+    expect($timecard->entries()->firstOrFail()->custom_project_name)->toBeNull();
+});
+
+it('requires confirmation before removing an entry with a cost code', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+
+    $component = Livewire::actingAs($user)->test(MobileForm::class)
+        ->set('entries.0.cost_code_id', 'cost-code-id');
+
+    expect($component->html())->toContain('wire:confirm="Remove this entry? Its entered details will be lost."');
 });
 
 it('prevents unauthorized user from creating timecards via mobile form', function (): void {

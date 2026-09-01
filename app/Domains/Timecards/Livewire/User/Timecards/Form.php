@@ -161,6 +161,19 @@ class Form extends Component
         }
     }
 
+    public function updatedEntries(mixed $value, string $key): void
+    {
+        if (! str_ends_with($key, '.project_id') || blank($value)) {
+            return;
+        }
+
+        [$index] = explode('.', $key, 2);
+
+        if (isset($this->entries[$index])) {
+            $this->entries[$index]['custom_project_name'] = null;
+        }
+    }
+
     public function hydrate(): void
     {
         if (filled($this->week_starting)) {
@@ -175,6 +188,13 @@ class Form extends Component
         }
 
         $validated = $this->validate();
+        $validated['entries'] = array_map(function (array $entry): array {
+            if (filled($entry['project_id'] ?? null)) {
+                $entry['custom_project_name'] = null;
+            }
+
+            return $entry;
+        }, $validated['entries'] ?? []);
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         // Convert day_of_week to actual dates

@@ -56,6 +56,13 @@ class Form extends DesktopForm
         }
 
         $validated = $this->validate();
+        $validated['entries'] = array_map(function (array $entry): array {
+            if (filled($entry['project_id'] ?? null)) {
+                $entry['custom_project_name'] = null;
+            }
+
+            return $entry;
+        }, $validated['entries'] ?? []);
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         $entries = $this->convertDayOfWeekToDate($validated['entries'] ?? []);
