@@ -175,13 +175,49 @@ class Form extends Component
 
     public function updatedWeekStarting(string $value): void
     {
-        unset($value);
+        if (filled($value)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($value)->toDateString();
+        }
+    }
+
+    public function updatedEntries(mixed $value, string $key): void
+    {
+        if (! str_ends_with($key, '.project_id') || blank($value)) {
+            return;
+        }
+
+        [$index] = explode('.', $key, 2);
+
+        if (isset($this->entries[$index])) {
+            $this->entries[$index]['custom_project_name'] = null;
+        }
+    }
+
+    public function hydrate(): void
+    {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
     }
 
     public function save(): void
     {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
+
         $validated = $this->validate();
+<<<<<<< HEAD
+        $validated['entries'] = array_map(function (array $entry): array {
+            if (filled($entry['project_id'] ?? null)) {
+                $entry['custom_project_name'] = null;
+            }
+
+            return $entry;
+        }, $validated['entries'] ?? []);
+=======
         $this->assertValidCustomProjectNames($validated['entries'] ?? []);
+>>>>>>> 6397be5203fa76d4bee3068b49d8f7b0607bd74a
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         // Convert day_of_week to actual dates

@@ -86,6 +86,7 @@
                                 @if (
                                     filled($entry['start_time'] ?? null)
                                     || filled($entry['project_id'] ?? null)
+                                    || filled($entry['cost_code_id'] ?? null)
                                     || filled($entry['custom_project_name'] ?? null)
                                     || filled($entry['notes'] ?? null)
                                     || (float) ($entry['hours'] ?? 0) > 0

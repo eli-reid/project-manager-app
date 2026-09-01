@@ -50,7 +50,18 @@ class Form extends DesktopForm
 
     public function save(): void
     {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
+
         $validated = $this->validate();
+        $validated['entries'] = array_map(function (array $entry): array {
+            if (filled($entry['project_id'] ?? null)) {
+                $entry['custom_project_name'] = null;
+            }
+
+            return $entry;
+        }, $validated['entries'] ?? []);
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         $entries = $this->convertDayOfWeekToDate($validated['entries'] ?? []);
