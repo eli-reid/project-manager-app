@@ -37,11 +37,15 @@ it('renders the mobile timecard create form', function (): void {
 
     actingAs($user);
 
-    get(route('timecards.mobile.create'))
+    $response = get(route('timecards.mobile.create'));
+
+    $response
         ->assertOk()
         ->assertSeeLivewire(MobileForm::class)
         ->assertSee('Week Range')
         ->assertSee('Tap a quick hour chip for faster entry.');
+
+    expect(substr_count($response->getContent(), 'Custom Project Name'))->toBe(1);
 });
 
 it('renders the mobile timecard index', function (): void {

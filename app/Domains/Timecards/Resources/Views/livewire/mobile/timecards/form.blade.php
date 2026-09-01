@@ -263,36 +263,6 @@
                             </details>
                             {{-- Project --}}
                             <div class="col-span-2">
-                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Project') }}</label>
-                                <select
-                                    wire:model="entries.{{ $index }}.project_id"
-                                    class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
-                                >
-                                    <option value="">{{ __('Custom / Unassigned') }}</option>
-                                    @foreach ($projects as $project)
-                                        <option value="{{ $project->id }}">{{ $project->name }}{{ $project->leave_category ? ' ('.str($project->leave_category)->headline().' Leave)' : '' }}</option>
-                                    @endforeach
-                                </select>
-                                @error('entries.'.$index.'.project_id')
-                                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- Custom Project Name --}}
-                            <div class="col-span-2">
-                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Custom Project Name') }}</label>
-                                <input
-                                    type="text"
-                                    wire:model="entries.{{ $index }}.custom_project_name"
-                                    placeholder="{{ __('Optional') }}"
-                                    class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
-                                />
-                                @error('entries.'.$index.'.custom_project_name')
-                                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                        </div>
                     </div>
                 @endif
             @endforeach
