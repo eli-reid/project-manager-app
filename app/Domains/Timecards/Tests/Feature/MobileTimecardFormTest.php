@@ -277,6 +277,38 @@ it('does not persist a custom project name with a configured project', function 
     expect($timecard->entries()->firstOrFail()->custom_project_name)->toBeNull();
 });
 
+it('shows and requires a custom project name when an edit form entry is changed to custom', function (): void {
+    $user = mobileTimecardUser(['timecards.view', 'timecards.edit']);
+    $project = Project::factory()->create();
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+        'week_starting' => '2026-09-20',
+    ]);
+
+    $timecard->entries()->create([
+        'user_id' => $user->id,
+        'date' => '2026-09-20',
+        'start_time' => '07:00',
+        'project_id' => $project->id,
+        'cost_code_id' => null,
+        'custom_project_name' => null,
+        'hours' => 8,
+        'notes' => null,
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test(MobileForm::class, ['timecard' => $timecard])
+        ->set('entries.0.project_id', '');
+
+    expect($component->html())->toContain('Required when Custom / Unassigned is selected.');
+
+    $component
+        ->call('save')
+        ->assertHasErrors(['entries.0.custom_project_name']);
+});
+
 it('requires confirmation before removing an entry with a cost code', function (): void {
     $user = mobileTimecardUser(['timecards.create']);
 

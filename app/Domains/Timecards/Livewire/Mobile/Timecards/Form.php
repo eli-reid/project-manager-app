@@ -63,6 +63,7 @@ class Form extends DesktopForm
 
             return $entry;
         }, $validated['entries'] ?? []);
+        $this->assertValidCustomProjectNames($validated['entries'] ?? []);
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         $entries = $this->convertDayOfWeekToDate($validated['entries'] ?? []);
