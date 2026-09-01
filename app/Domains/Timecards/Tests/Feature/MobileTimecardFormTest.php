@@ -43,7 +43,8 @@ it('renders the mobile timecard create form', function (): void {
         ->assertOk()
         ->assertSeeLivewire(MobileForm::class)
         ->assertSee('Week Range')
-        ->assertSee('Tap a quick hour chip for faster entry.');
+        ->assertSee('Tap a quick hour chip for faster entry.')
+        ->assertSee('Required when Custom / Unassigned is selected.');
 
     expect(substr_count($response->getContent(), 'Custom Project Name'))->toBe(1);
 });

@@ -238,12 +238,14 @@
                                     <input
                                         type="text"
                                         wire:model="entries.{{ $index }}.custom_project_name"
-                                        placeholder="{{ __('Optional') }}"
+                                        required
+                                        placeholder="{{ __('Required when Custom / Unassigned is selected') }}"
                                         class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
                                     />
                                     @error('entries.'.$index.'.custom_project_name')
                                         <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
                                     @enderror
+                                    <p class="mt-1.5 text-xs text-zinc-500">{{ __('Required when Custom / Unassigned is selected.') }}</p>
                                 </div>
                             @endif
 
