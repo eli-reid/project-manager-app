@@ -1,16 +1,29 @@
 <div class="w-full space-y-6">
-    <div class="flex items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Stock Orders Queue</h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">Review, approve, and track all material requests.</p>
+    @if ($embeddedProject)
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Project Stock Orders</h2>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                    {{ $orders->total() }} stock {{ \Illuminate\Support\Str::plural('order', $orders->total()) }} linked to this project.
+                </p>
+            </div>
+
+            <a href="{{ route('admin.stock-orders.index', ['project' => $embeddedProject->id]) }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Open Queue</a>
         </div>
-        @can('viewAny', \App\Domains\Stock\Models\StockOrderTemplate::class)
-            <a href="{{ route('admin.stock-order-templates.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Templates</a>
-        @endcan
-    </div>
+    @else
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Stock Orders Queue</h1>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">Review, approve, and track all material requests.</p>
+            </div>
+            @can('viewAny', \App\Domains\Stock\Models\StockOrderTemplate::class)
+                <a href="{{ route('admin.stock-order-templates.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Templates</a>
+            @endcan
+        </div>
+    @endif
 
     {{-- Stats --}}
-    @if ($pendingCount > 0 || $highUrgencyCount > 0)
+    @if (! $embeddedProject && ($pendingCount > 0 || $highUrgencyCount > 0))
         <div class="flex flex-wrap gap-3">
             @if ($pendingCount > 0)
                 <button wire:click="$set('filterStatus', 'pending')" class="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40">
@@ -51,10 +64,19 @@
             @endforeach
         </select>
 
-        <select wire:model.live="filterProject" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
-            <option value="">All Projects</option>
-            @foreach ($projects as $project)
-                <option value="{{ $project->id }}">{{ $project->name }}</option>
+        @unless ($embeddedProject)
+            <select wire:model.live="filterProject" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+                <option value="">All Projects</option>
+                @foreach ($projects as $project)
+                    <option value="{{ $project->id }}">{{ $project->name }}</option>
+                @endforeach
+            </select>
+        @endunless
+
+        <select wire:model.live="filterAccountingCode" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+            <option value="">All Accounting Codes</option>
+            @foreach ($accountingCodes as $accountingCode)
+                <option value="{{ $accountingCode->id }}">{{ $accountingCode->code }}</option>
             @endforeach
         </select>
 
@@ -65,8 +87,8 @@
             @endforeach
         </select>
 
-        @if ($filterStatus !== '' || $filterUrgency !== '' || $filterProject !== '' || $filterUser !== '')
-            <button wire:click="$set('filterStatus', ''); $set('filterUrgency', ''); $set('filterProject', ''); $set('filterUser', '')" class="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Clear filters</button>
+        @if ($filterStatus !== '' || $filterUrgency !== '' || $filterProject !== '' || $filterAccountingCode !== '' || $filterUser !== '')
+            <button wire:click="$set('filterStatus', ''); $set('filterUrgency', ''); $set('filterProject', ''); $set('filterAccountingCode', ''); $set('filterUser', '')" class="text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Clear filters</button>
         @endif
     </div>
 
@@ -76,7 +98,8 @@
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Requester</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">PO / Project</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ $embeddedProject ? 'PO #' : 'PO / Project' }}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Urgency</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Items</th>
@@ -95,9 +118,14 @@
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
                                 @if ($order->po_number)
                                     <div class="font-medium">{{ $order->po_number }}</div>
+                                @else
+                                    <div class="font-medium">—</div>
                                 @endif
-                                <div class="text-xs text-zinc-400 dark:text-zinc-500">{{ $order->project?->name ?? '— No project' }}</div>
+                                @unless ($embeddedProject)
+                                    <div class="text-xs text-zinc-400 dark:text-zinc-500">{{ $order->project?->name ?? '— No project' }}</div>
+                                @endunless
                             </td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $order->accountingCode?->code ?? '—' }}</td>
                             <td class="px-4 py-3 align-top text-sm">
                                 @php
                                     $statusColors = [
@@ -134,7 +162,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No stock orders found.</td>
+                            <td colspan="8" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No stock orders found.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -2,6 +2,7 @@
 
 namespace App\Domains\Stock\Livewire\User\StockOrders;
 
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Stock\Models\StockOrderItem;
@@ -23,6 +24,8 @@ class Form extends Component
 
     public ?string $project_id = null;
 
+    public ?string $accounting_code_id = null;
+
     public string $urgency = StockOrder::URGENCY_MEDIUM;
 
     public ?string $po_number = null;
@@ -40,6 +43,7 @@ class Form extends Component
             $this->stockOrder = $stockOrder;
             $this->isEdit = true;
             $this->project_id = $stockOrder->project_id;
+            $this->accounting_code_id = $stockOrder->accounting_code_id;
             $this->urgency = $stockOrder->urgency;
             $this->po_number = $stockOrder->po_number;
             $this->notes = $stockOrder->notes;
@@ -63,6 +67,7 @@ class Form extends Component
     {
         return [
             'project_id' => ['nullable', 'exists:projects,id'],
+            'accounting_code_id' => ['nullable', 'exists:accounting_codes,id'],
             'urgency' => ['required', 'in:low,medium,high'],
             'po_number' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
@@ -101,6 +106,7 @@ class Form extends Component
 
             $this->stockOrder->update([
                 'project_id' => $validated['project_id'],
+                'accounting_code_id' => $validated['accounting_code_id'],
                 'urgency' => $validated['urgency'],
                 'po_number' => $validated['po_number'],
                 'notes' => $validated['notes'],
@@ -113,7 +119,7 @@ class Form extends Component
             }
 
             session()->flash('success', 'Stock order updated successfully.');
-            $this->redirectToOrder($this->stockOrder);
+            $this->redirectRoute('stock-orders.show', ['stockOrder' => $this->stockOrder], navigate: true);
 
             return;
         }
@@ -123,6 +129,7 @@ class Form extends Component
         $order = StockOrder::query()->create([
             'user_id' => Auth::id(),
             'project_id' => $validated['project_id'],
+            'accounting_code_id' => $validated['accounting_code_id'],
             'urgency' => $validated['urgency'],
             'po_number' => $validated['po_number'],
             'notes' => $validated['notes'],
@@ -134,18 +141,17 @@ class Form extends Component
         }
 
         session()->flash('success', 'Stock order submitted successfully.');
-        $this->redirectToOrder($order);
-    }
-
-    protected function redirectToOrder(StockOrder $stockOrder): void
-    {
-        $this->redirectRoute('stock-orders.show', ['stockOrder' => $stockOrder], navigate: true);
+        $this->redirectRoute('stock-orders.show', ['stockOrder' => $order], navigate: true);
     }
 
     public function render()
     {
         return view('stock::livewire.user.stock-orders.form', [
             'projects' => Project::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'project_number']),
+            'accountingCodes' => AccountingCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'code', 'name']),
             'urgencies' => [
                 StockOrder::URGENCY_LOW => 'Low',
                 StockOrder::URGENCY_MEDIUM => 'Medium',

@@ -3,19 +3,21 @@
 namespace App\Domains\Documents\Services;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Documents\Contracts\DocumentSharingContract;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Models\DocumentShare;
-use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
-class DocumentShareService
+class DocumentShareService implements DocumentSharingContract
 {
     /**
      * Create a new share for a document.
      *
      * @param  array{
      *     password?: string,
-     *     expires_at?: Carbon,
+     *     expires_at?: DateTimeInterface,
      *     max_downloads?: int,
      *     access_notes?: string
      * }  $options
@@ -52,7 +54,7 @@ class DocumentShareService
     /**
      * Update share expiration.
      */
-    public function updateExpiration(DocumentShare $share, ?Carbon $expiresAt): DocumentShare
+    public function updateExpiration(DocumentShare $share, ?DateTimeInterface $expiresAt): DocumentShare
     {
         $share->update(['expires_at' => $expiresAt]);
 
@@ -72,7 +74,7 @@ class DocumentShareService
     /**
      * Get all shares for a document.
      */
-    public function getDocumentShares(Document $document)
+    public function getDocumentShares(Document $document): Collection
     {
         return $document->shares()->with('createdBy')->get();
     }

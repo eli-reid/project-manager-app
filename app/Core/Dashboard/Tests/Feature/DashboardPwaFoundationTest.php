@@ -42,12 +42,20 @@ it('renders pwa metadata on the dashboard shell', function (): void {
 
 it('avoids caching navigation html in the service worker to prevent stale csrf tokens', function (): void {
     $serviceWorker = file_get_contents(public_path('sw.js'));
+    $appJs = file_get_contents(base_path('resources/js/app.js'));
 
     expect($serviceWorker)
         ->toBeString()
         ->toContain("event.request.mode === 'navigate'")
         ->toContain('caches.match(OFFLINE_URL)')
-        ->not->toContain('cache.put(event.request');
+        ->toContain("event.respondWith(\n            fetch(event.request)\n                .catch(() => offlineFallbackResponse())")
+        ->not->toContain("if (event.request.mode === 'navigate') {\n        event.respondWith(\n            caches.match(event.request)");
+
+    expect($appJs)
+        ->toBeString()
+        ->toContain('clearBrowserAuthState')
+        ->toContain('caches.keys()')
+        ->toContain("url.pathname === '/logout' || url.pathname.endsWith('/logout')");
 });
 
 it('renders the mobile dashboard shell for authenticated users', function (): void {

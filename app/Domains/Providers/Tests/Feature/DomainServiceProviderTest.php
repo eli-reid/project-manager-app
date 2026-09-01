@@ -93,6 +93,7 @@ it('discovers all expected domain service providers on disk', function (): void 
         'Dailies',
         'Documents',
         'Invoices',
+        'PaymentReceipts',
         'Payroll',
         'Projects',
         'Reports',

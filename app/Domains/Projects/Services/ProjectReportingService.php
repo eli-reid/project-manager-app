@@ -13,7 +13,7 @@ class ProjectReportingService
     public function activeProjects(): Collection
     {
         return Project::query()
-            ->select(['id', 'name', 'project_number'])
+            ->select(['id', 'name', 'project_number', 'accounting_code'])
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -27,7 +27,7 @@ class ProjectReportingService
     public function findSummary(string $projectId): ?Project
     {
         return Project::query()
-            ->select(['id', 'name', 'project_number', 'status'])
+            ->select(['id', 'name', 'project_number', 'accounting_code', 'status'])
             ->find($projectId);
     }
 }

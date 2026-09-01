@@ -1,0 +1,41 @@
+graph LR
+  Projects[Projects]
+  Documents[Documents]
+  RFIs[RFIs]
+  ChangeOrders[ChangeOrders]
+  Dailies[Dailies]
+  Invoices[Invoices]
+  Stock[Stock]
+  Submittals[Submittals]
+  Timecards[Timecards]
+  Tasks[Tasks]
+  Payroll[Payroll]
+  Accounting[Accounting]
+  Reports[Reports]
+
+  Projects --> Documents
+  Projects --> RFIs
+  Projects --> ChangeOrders
+  Projects --> Dailies
+  Projects --> Invoices
+  Projects --> Stock
+  Projects --> Submittals
+  Projects --> Timecards
+  Projects --> Tasks
+
+  Timecards --> Payroll
+  Payroll --> Accounting
+  Reports --> Accounting
+  Reports --> Projects
+
+  Documents --> Projects
+  Tasks --> Projects
+  Stock --> Projects
+
+  %% bidirectional / close relationships
+  Timecards -- uses --> Projects
+  Payroll -- consumes events from --> Timecards
+  Accounting -- consumes events from --> Payroll
+
+  classDef domain fill:#f8f9fb,stroke:#333,stroke-width:1px;
+  class Projects,Documents,RFIs,ChangeOrders,Dailies,Invoices,Stock,Submittals,Timecards,Tasks,Payroll,Accounting,Reports domain;

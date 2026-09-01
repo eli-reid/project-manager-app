@@ -2,6 +2,7 @@
 
 namespace App\Domains\Invoices\Livewire\Admin\Invoices;
 
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
@@ -23,6 +24,8 @@ class Form extends Component
     public bool $isEdit = false;
 
     public string $project_id = '';
+
+    public string $accounting_code_id = '';
 
     public string $vendor_name = '';
 
@@ -53,6 +56,7 @@ class Form extends Component
             $this->invoice = $invoice;
             $this->isEdit = true;
             $this->project_id = $invoice->project_id;
+            $this->accounting_code_id = (string) ($invoice->accounting_code_id ?? '');
             $this->vendor_name = $invoice->vendor_name;
             $this->invoice_number = $invoice->invoice_number ?? '';
             $this->invoice_date = $invoice->invoice_date->format('Y-m-d');
@@ -175,6 +179,7 @@ class Form extends Component
     {
         return [
             'project_id' => ['required', 'exists:projects,id'],
+            'accounting_code_id' => ['nullable', 'exists:accounting_codes,id'],
             'vendor_name' => ['required', 'string', 'max:255'],
             'invoice_number' => ['nullable', 'string', 'max:100'],
             'invoice_date' => ['required', 'date'],
@@ -206,6 +211,7 @@ class Form extends Component
 
         $invoiceData = [
             'project_id' => $validated['project_id'],
+            'accounting_code_id' => $validated['accounting_code_id'] ?: null,
             'vendor_name' => $validated['vendor_name'],
             'invoice_number' => filled($validated['invoice_number']) ? $validated['invoice_number'] : null,
             'invoice_date' => $validated['invoice_date'],
@@ -272,6 +278,10 @@ class Form extends Component
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'project_number']),
+            'accountingCodes' => AccountingCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(['id', 'code', 'name']),
             'statuses' => InvoiceStatusEnum::toArray(),
         ]);
     }

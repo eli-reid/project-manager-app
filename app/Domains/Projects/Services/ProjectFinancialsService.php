@@ -3,17 +3,28 @@
 namespace App\Domains\Projects\Services;
 
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\PaymentReceipts\Models\PaymentReceipt;
+use App\Domains\Payroll\Services\PayrollReportingService;
 use App\Domains\Projects\Models\Project;
 
 class ProjectFinancialsService
 {
+    public function __construct(
+        private readonly PayrollReportingService $payrollReportingService,
+    ) {}
+
     /**
      * @return array{
      *     budget: float|null,
      *     invoiced: float,
+     *     labor_cost: float,
+     *     payments_received: float,
+     *     spent_total: float,
+     *     payment_receipt_delta: float,
      *     remaining: float|null,
      *     variance_pct: float|null,
      *     invoice_count: int,
+     *     payment_receipt_count: int,
      * }
      */
     public function summary(Project $project): array
@@ -26,20 +37,37 @@ class ProjectFinancialsService
             ->where('project_id', $project->id)
             ->count();
 
+        $paymentsReceived = (float) PaymentReceipt::query()
+            ->where('project_id', $project->id)
+            ->sum('amount');
+
+        $paymentReceiptCount = PaymentReceipt::query()
+            ->where('project_id', $project->id)
+            ->count();
+
         $budget = $project->budget !== null ? (float) $project->budget : null;
+
+        $laborCost = $this->payrollReportingService->estimatedLaborCostTotalForProject((string) $project->id);
+        $spentTotal = \round($invoiced + $laborCost, 2);
+        $paymentReceiptDelta = \round($paymentsReceived - $spentTotal, 2);
 
         $remaining = $budget !== null ? $budget - $invoiced : null;
 
         $variancePct = ($budget !== null && $budget > 0)
-            ? round(($invoiced / $budget) * 100, 1)
+            ? \round(($invoiced / $budget) * 100, 1)
             : null;
 
         return [
             'budget' => $budget,
             'invoiced' => $invoiced,
+            'labor_cost' => $laborCost,
+            'payments_received' => $paymentsReceived,
+            'spent_total' => $spentTotal,
+            'payment_receipt_delta' => $paymentReceiptDelta,
             'remaining' => $remaining,
             'variance_pct' => $variancePct,
             'invoice_count' => $invoiceCount,
+            'payment_receipt_count' => $paymentReceiptCount,
         ];
     }
 }
