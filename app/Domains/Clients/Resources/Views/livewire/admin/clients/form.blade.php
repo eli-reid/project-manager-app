@@ -52,6 +52,62 @@
                 <textarea wire:model="notes" rows="4" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"></textarea>
                 @error('notes') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
+
+            <div class="md:col-span-2 space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Client Addresses</label>
+                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Add one or more addresses for this client.</p>
+                    </div>
+                    <button type="button" wire:click="addAddressRow" class="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Add Address</button>
+                </div>
+
+                @foreach ($addresses as $index => $address)
+                    <div wire:key="client-address-row-{{ $index }}" class="space-y-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                        <div class="grid gap-3 md:grid-cols-2">
+                            <div class="md:col-span-2">
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Address 1</label>
+                                <input type="text" wire:model="addresses.{{ $index }}.address1" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                @error('addresses.'.$index.'.address1') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Address 2</label>
+                                <input type="text" wire:model="addresses.{{ $index }}.address2" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                @error('addresses.'.$index.'.address2') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">City</label>
+                                <input type="text" wire:model="addresses.{{ $index }}.city" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                @error('addresses.'.$index.'.city') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">State</label>
+                                <input type="text" wire:model="addresses.{{ $index }}.state" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                @error('addresses.'.$index.'.state') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Zip</label>
+                                <input type="text" wire:model="addresses.{{ $index }}.zip" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                @error('addresses.'.$index.'.zip') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Country</label>
+                                <input type="text" wire:model="addresses.{{ $index }}.country" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                                @error('addresses.'.$index.'.country') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" wire:click="removeAddressRow({{ $index }})" class="rounded-md border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:text-red-300 dark:hover:bg-red-900/30">Remove</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
 
         <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">

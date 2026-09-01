@@ -29,6 +29,17 @@
                 </div>
 
                 <div>
+                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting Code</label>
+                    <select wire:model="accounting_code_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                        <option value="">No accounting code</option>
+                        @foreach ($accountingCodes as $accountingCode)
+                            <option value="{{ $accountingCode->id }}">{{ $accountingCode->code }} - {{ $accountingCode->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('accounting_code_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
                     <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Vendor Name <span class="text-red-500">*</span></label>
                     <input type="text" wire:model="vendor_name" placeholder="e.g. ABC Supply Co." class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                     @error('vendor_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror

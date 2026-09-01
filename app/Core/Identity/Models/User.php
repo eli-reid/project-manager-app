@@ -9,9 +9,11 @@ use App\Core\Auth\User\Database\Factories\UserFactory;
 use App\Core\Identity\Services\UserAuthorizationSnapshotService;
 use App\Core\Notification\Models\UserNotificationPreference;
 use App\Core\Notification\Services\NotificationPreferenceService;
+use App\Domains\Addresses\Models\Address;
 use App\Domains\Payroll\Models\PayrollEmployeeProfile;
 use App\Domains\Payroll\Models\PayrollStatement;
 use App\Domains\Payroll\Models\PayRun;
+use App\Domains\Projects\Models\ProjectTabUserPreference;
 use App\Domains\Timecards\Models\TimecardRequiredUser;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,7 +32,7 @@ use Throwable;
  *
  * @mixin IdeHelperUser
  */
-class User extends Authenticatable
+class User extends Authenticatable 
 {
     public ?string $mailboxProvisioningPassword = null;
 
@@ -125,9 +127,20 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function addresses(): BelongsToMany
+    {
+        return $this->belongsToMany(Address::class, 'user_addresses')
+            ->withTimestamps();
+    }
+
     public function notificationPreferences(): HasMany
     {
         return $this->hasMany(UserNotificationPreference::class);
+    }
+
+    public function projectTabPreferences(): HasMany
+    {
+        return $this->hasMany(ProjectTabUserPreference::class);
     }
 
     public function payrollProfile(): HasOne
@@ -199,6 +212,7 @@ class User extends Authenticatable
 
         app(UserAuthorizationSnapshotService::class)->flush($this);
     }
+
 
     public static function bumpPermissionCacheVersion(): void
     {

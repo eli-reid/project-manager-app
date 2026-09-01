@@ -120,15 +120,55 @@
 
                 <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
                     @forelse ($availableDocuments as $document)
-                        <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                            <input type="checkbox" value="{{ $document->id }}" wire:model.live="documentIds" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-950">
-                            <span>{{ $document->title ?: $document->original_name }}</span>
-                        </label>
+                        @php($documentId = (string) $document->id)
+                        <div class="space-y-2 rounded-md border border-zinc-200 p-3 dark:border-zinc-700" wire:key="submittal-document-{{ $documentId }}">
+                            <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                <input type="checkbox" value="{{ $documentId }}" wire:model.live="documentIds" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-950">
+                                <span>{{ $document->title ?: $document->original_name }}</span>
+                            </label>
+
+                            @if (in_array($documentId, $documentIds, true))
+                                <div class="grid gap-2 md:grid-cols-2">
+                                    <flux:field>
+                                        <flux:label class="text-[11px]">Role</flux:label>
+                                        <flux:select wire:model="documentMetadata.{{ $documentId }}.document_role">
+                                            <option value="reference">Reference</option>
+                                            <option value="primary">Primary</option>
+                                            <option value="supporting">Supporting</option>
+                                            <option value="compliance">Compliance</option>
+                                        </flux:select>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label class="text-[11px]">Status</flux:label>
+                                        <flux:select wire:model="documentMetadata.{{ $documentId }}.document_status">
+                                            <option value="active">Active</option>
+                                            <option value="draft">Draft</option>
+                                            <option value="superseded">Superseded</option>
+                                        </flux:select>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label class="text-[11px]">Revision</flux:label>
+                                        <flux:input wire:model="documentMetadata.{{ $documentId }}.revision" placeholder="Rev A" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label class="text-[11px]">Discipline</flux:label>
+                                        <flux:input wire:model="documentMetadata.{{ $documentId }}.discipline" placeholder="Electrical" />
+                                    </flux:field>
+                                </div>
+                            @endif
+                        </div>
                     @empty
                         <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ $projectId !== '' ? 'No project documents are available yet. Use Upload Document to add one.' : 'Select a project to load documents.' }}</p>
                     @endforelse
                 </div>
                 <flux:error name="documentIds.*" />
+                <flux:error name="documentMetadata.*.document_role" />
+                <flux:error name="documentMetadata.*.document_status" />
+                <flux:error name="documentMetadata.*.revision" />
+                <flux:error name="documentMetadata.*.discipline" />
             </div>
         </div>
 

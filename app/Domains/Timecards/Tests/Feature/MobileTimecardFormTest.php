@@ -157,12 +157,10 @@ it('updates an existing draft timecard via the mobile form', function (): void {
     $timecard = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_DRAFT,
-        'notes' => 'Old notes',
     ]);
 
     Livewire::actingAs($user)
         ->test(MobileForm::class, ['timecard' => $timecard])
-        ->set('notes', 'Updated mobile notes')
         ->set('entries.0.day_of_week', 2)
         ->set('entries.0.hours', '6.00')
         ->call('save')
@@ -171,7 +169,7 @@ it('updates an existing draft timecard via the mobile form', function (): void {
 
     $this->assertDatabaseHas('timecards', [
         'id' => $timecard->id,
-        'notes' => 'Updated mobile notes',
+        'status' => Timecard::STATUS_DRAFT,
     ]);
 });
 

@@ -109,6 +109,20 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function approveTimecard(string $timecardId): void
+    {
+        $timecard = Timecard::query()->findOrFail($timecardId);
+
+        $this->authorize('approve', $timecard);
+
+        $actor = Auth::user();
+        abort_unless($actor !== null, 401);
+
+        app(TimecardLifecycleService::class)->approve($timecard, $actor);
+
+        session()->flash('success', 'Timecard approved successfully.');
+    }
+
     public function applyBulkAction(): void
     {
         $this->validate([

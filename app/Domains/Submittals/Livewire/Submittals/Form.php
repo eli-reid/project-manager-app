@@ -3,8 +3,9 @@
 namespace App\Domains\Submittals\Livewire\Submittals;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
+use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
-use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Submittals\Models\Submittal;
 use App\Domains\Submittals\Models\SubmittalApproval;
@@ -15,17 +16,19 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('layouts.app')]
-#[Title('Submittal Form')]
 class Form extends Component
 {
     use AuthorizesRequests;
     use WithFileUploads;
+
+    private DocumentOrchestratorContract $documentOrchestrator;
+
+    private ProjectDocumentLibraryContract $projectDocumentLibrary;
 
     public ?Submittal $submittal = null;
 
@@ -75,6 +78,17 @@ class Form extends Component
      */
     public array $documentIds = [];
 
+    /**
+     * @var array<string, array{document_role:string, document_status:string, revision:?string, discipline:?string}>
+     */
+    public array $documentMetadata = [];
+
+    public function boot(DocumentOrchestratorContract $documentOrchestrator, ProjectDocumentLibraryContract $projectDocumentLibrary): void
+    {
+        $this->documentOrchestrator = $documentOrchestrator;
+        $this->projectDocumentLibrary = $projectDocumentLibrary;
+    }
+
     public function mount(?Submittal $submittal = null, ?string $projectId = null, ?string $returnTo = null, ?bool $embedded = null): void
     {
         $this->submittal = $submittal;
@@ -122,6 +136,20 @@ class Form extends Component
                 ->values()
                 ->all();
 
+            $this->documentMetadata = $submittal->documents()
+                ->get()
+                ->mapWithKeys(function (Document $document): array {
+                    return [
+                        (string) $document->id => [
+                            'document_role' => (string) ($document->pivot?->document_role ?? Submittal::DOCUMENT_ROLE_REFERENCE),
+                            'document_status' => (string) ($document->pivot?->document_status ?? Submittal::DOCUMENT_STATUS_ACTIVE),
+                            'revision' => $this->normalizeNullableString($document->pivot?->revision),
+                            'discipline' => $this->normalizeNullableString($document->pivot?->discipline),
+                        ],
+                    ];
+                })
+                ->all();
+
             if ($this->items === []) {
                 $this->items = [$this->emptyItemRow()];
             }
@@ -155,7 +183,7 @@ class Form extends Component
         $this->showUploadModal = true;
     }
 
-    public function uploadDocument(DocumentService $documentService): void
+    public function uploadDocument(DocumentOrchestratorContract $documentOrchestrator): void
     {
         $project = Project::query()->find($this->projectId);
 
@@ -165,7 +193,7 @@ class Form extends Component
 
         $this->authorizeWithTrace('manageProjectDocuments', [Document::class, $project], 'uploadDocument');
 
-        $rules = $documentService->validationRules();
+        $rules = $documentOrchestrator->validationRules();
 
         $this->validate([
             'uploadTitle' => ['required', 'string', 'max:255'],
@@ -176,7 +204,7 @@ class Form extends Component
         /** @var User $user */
         $user = Auth::user();
 
-        $document = $documentService->uploadProjectDocument(
+        $document = $documentOrchestrator->uploadProjectDocument(
             $project,
             $user,
             $this->uploadFile,
@@ -187,6 +215,7 @@ class Form extends Component
         );
 
         $this->documentIds[] = (string) $document->id;
+        $this->updatedDocumentIds();
 
         $this->resetUploadModal();
     }
@@ -235,6 +264,8 @@ class Form extends Component
             'return_to' => $this->returnTo,
         ]);
 
+        $this->updatedDocumentIds();
+
         $validated = $this->validate([
             'projectId' => ['required', 'string', 'exists:projects,id'],
             'type' => ['required', 'string', 'max:120'],
@@ -245,6 +276,11 @@ class Form extends Component
             'reviewerIds.*' => ['string', 'exists:users,id', 'distinct'],
             'documentIds' => ['nullable', 'array'],
             'documentIds.*' => ['string', 'exists:documents,id', 'distinct'],
+            'documentMetadata' => ['nullable', 'array'],
+            'documentMetadata.*.document_role' => ['nullable', 'string', 'in:'.implode(',', Submittal::allowedDocumentRoles())],
+            'documentMetadata.*.document_status' => ['nullable', 'string', 'in:'.implode(',', Submittal::allowedDocumentStatuses())],
+            'documentMetadata.*.revision' => ['nullable', 'string', 'max:40'],
+            'documentMetadata.*.discipline' => ['nullable', 'string', 'max:60'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.description' => ['required', 'string', 'max:255'],
             'items.*.manufacturer' => ['nullable', 'string', 'max:120'],
@@ -303,13 +339,7 @@ class Form extends Component
         if ($this->projectId !== '') {
             $selectedProject = $projects->firstWhere('id', $this->projectId);
 
-            $availableDocuments = Document::query()
-                ->where(function ($query): void {
-                    $query->ownedByProject($this->projectId)
-                        ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject($this->projectId));
-                })
-                ->orderBy('title')
-                ->get(['id', 'title', 'original_name']);
+            $availableDocuments = $this->projectDocumentLibrary->listProjectAccessible($this->projectId);
 
             $canUploadDocument = $selectedProject instanceof Project
                 && Auth::user()?->can('manageProjectDocuments', [Document::class, $selectedProject]);
@@ -337,12 +367,12 @@ class Form extends Component
             'selectedProjectLabel' => $selectedProject instanceof Project
                 ? trim($selectedProject->name.' ('.($selectedProject->project_number ?? 'N/A').')')
                 : '',
-        ]);
+        ])->title('Submittal Form');
     }
 
     private function syncUploadConstraints(): void
     {
-        $rules = app(DocumentService::class)->validationRules();
+        $rules = $this->documentOrchestrator->validationRules();
 
         $this->uploadMaxKilobytes = max(1, (int) ($rules['max_kilobytes'] ?? 10240));
         $this->uploadAllowedExtensions = collect($rules['allowed_extensions'] ?? [])
@@ -483,17 +513,99 @@ class Form extends Component
      */
     private function syncDocuments(Submittal $submittal, array $selectedDocumentIds): void
     {
-        $allowedDocumentIds = Document::query()
-            ->where(function ($query) use ($submittal): void {
-                $query->ownedByProject((string) $submittal->project_id)
-                    ->orWhere(fn ($sharedQuery) => $sharedQuery->sharedWithProject((string) $submittal->project_id));
-            })
-            ->whereIn('id', $selectedDocumentIds)
-            ->pluck('id')
+        $allowedDocumentIds = $this->projectDocumentLibrary
+            ->allowedDocumentIdsForProject((string) $submittal->project_id, $selectedDocumentIds);
+
+        $pivotPayload = collect($allowedDocumentIds)
+            ->mapWithKeys(fn (string $documentId): array => [
+                $documentId => $this->documentMetadataValuesForDocument($documentId),
+            ])
+            ->all();
+
+        $submittal->documents()->sync($pivotPayload);
+    }
+
+    public function updatedDocumentIds(): void
+    {
+        $selectedDocumentIds = collect($this->documentIds)
+            ->filter(fn (mixed $id): bool => is_string($id) && $id !== '')
             ->values()
             ->all();
 
-        $submittal->documents()->sync($allowedDocumentIds);
+        $this->documentMetadata = collect($this->documentMetadata)
+            ->only($selectedDocumentIds)
+            ->map(function (mixed $metadata): array {
+                if (! is_array($metadata)) {
+                    return $this->defaultDocumentMetadata();
+                }
+
+                return [
+                    'document_role' => $this->normalizeRole((string) ($metadata['document_role'] ?? Submittal::DOCUMENT_ROLE_REFERENCE)),
+                    'document_status' => $this->normalizeStatus((string) ($metadata['document_status'] ?? Submittal::DOCUMENT_STATUS_ACTIVE)),
+                    'revision' => $this->normalizeNullableString($metadata['revision'] ?? null),
+                    'discipline' => $this->normalizeNullableString($metadata['discipline'] ?? null),
+                ];
+            })
+            ->all();
+
+        foreach ($selectedDocumentIds as $documentId) {
+            if (! array_key_exists($documentId, $this->documentMetadata)) {
+                $this->documentMetadata[$documentId] = $this->defaultDocumentMetadata();
+            }
+        }
+    }
+
+    /**
+     * @return array{document_role:string, document_status:string, revision:?string, discipline:?string}
+     */
+    private function documentMetadataValuesForDocument(string $documentId): array
+    {
+        $metadata = $this->documentMetadata[$documentId] ?? [];
+
+        return [
+            'document_role' => $this->normalizeRole((string) ($metadata['document_role'] ?? Submittal::DOCUMENT_ROLE_REFERENCE)),
+            'document_status' => $this->normalizeStatus((string) ($metadata['document_status'] ?? Submittal::DOCUMENT_STATUS_ACTIVE)),
+            'revision' => $this->normalizeNullableString($metadata['revision'] ?? null),
+            'discipline' => $this->normalizeNullableString($metadata['discipline'] ?? null),
+        ];
+    }
+
+    /**
+     * @return array{document_role:string, document_status:string, revision:?string, discipline:?string}
+     */
+    private function defaultDocumentMetadata(): array
+    {
+        return [
+            'document_role' => Submittal::DOCUMENT_ROLE_REFERENCE,
+            'document_status' => Submittal::DOCUMENT_STATUS_ACTIVE,
+            'revision' => null,
+            'discipline' => null,
+        ];
+    }
+
+    private function normalizeRole(string $role): string
+    {
+        return in_array($role, Submittal::allowedDocumentRoles(), true)
+            ? $role
+            : Submittal::DOCUMENT_ROLE_REFERENCE;
+    }
+
+    private function normalizeStatus(string $status): string
+    {
+        return in_array($status, Submittal::allowedDocumentStatuses(), true)
+            ? $status
+            : Submittal::DOCUMENT_STATUS_ACTIVE;
+    }
+
+    private function normalizeNullableString(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $normalized = trim($value);
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     /**

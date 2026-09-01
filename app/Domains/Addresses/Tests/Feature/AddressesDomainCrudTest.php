@@ -8,6 +8,7 @@ use App\Domains\Addresses\Livewire\Admin\Addresses\Form;
 use App\Domains\Addresses\Livewire\Admin\Addresses\InlineCreateWidget;
 use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Models\Client;
+use App\Domains\Projects\Models\Project;
 use Livewire\Livewire;
 
 it('allows authorized users to view addresses index route', function (): void {
@@ -23,8 +24,7 @@ it('allows authorized users to view addresses index route', function (): void {
 });
 
 it('creates an address through livewire form', function (): void {
-    $user = userWithAddressDomainPermissions(['addresses.create', 'addresses.view', 'clients.view']);
-    $client = Client::factory()->create(['company_name' => 'Address Test Client']);
+    $user = userWithAddressDomainPermissions(['addresses.create', 'addresses.view']);
 
     $this->actingAs($user);
 
@@ -33,7 +33,6 @@ it('creates an address through livewire form', function (): void {
         ->set('city', 'Denver')
         ->set('state', 'CO')
         ->set('zip', '80202')
-        ->set('client_id', (string) $client->id)
         ->call('save')
         ->assertHasNoErrors();
 
@@ -56,6 +55,28 @@ it('creates an address through inline widget and dispatches selection event', fu
         ->assertDispatched('address-inline-created');
 
     expect(Address::query()->where('address1', '303 Inline Blvd')->exists())->toBeTrue();
+});
+
+it('shows only project-accessible addresses for regular users', function (): void {
+    $user = userWithAddressDomainPermissions(['projects.view']);
+
+    $visibleAddress = Address::factory()->create(['address1' => 'Visible Address']);
+    $hiddenAddress = Address::factory()->create(['address1' => 'Hidden Address']);
+
+    Project::factory()->create([
+        'project_manager_id' => $user->id,
+        'address_id' => $visibleAddress->id,
+    ]);
+
+    Project::factory()->create([
+        'address_id' => $hiddenAddress->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.addresses.index'))
+        ->assertSuccessful()
+        ->assertSee('Visible Address')
+        ->assertDontSee('Hidden Address');
 });
 
 /**

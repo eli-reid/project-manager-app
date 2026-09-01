@@ -15,3 +15,8 @@ Schedule::call(function (): void {
     ->name('scheduler:run-dynamic-tasks')
     ->everyMinute()
     ->withoutOverlapping(5);
+
+Schedule::command('weather:sync-stored-data')
+    ->name('weather:sync-stored-data')
+    ->hourly()
+    ->withoutOverlapping(55);
