@@ -207,17 +207,7 @@ class Form extends Component
         }
 
         $validated = $this->validate();
-<<<<<<< HEAD
-        $validated['entries'] = array_map(function (array $entry): array {
-            if (filled($entry['project_id'] ?? null)) {
-                $entry['custom_project_name'] = null;
-            }
-
-            return $entry;
-        }, $validated['entries'] ?? []);
-=======
         $this->assertValidCustomProjectNames($validated['entries'] ?? []);
->>>>>>> 6397be5203fa76d4bee3068b49d8f7b0607bd74a
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         // Convert day_of_week to actual dates
