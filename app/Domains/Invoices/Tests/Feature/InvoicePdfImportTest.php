@@ -141,6 +141,52 @@ it('accepts an uploaded pdf and dispatches a processing job', function (): void 
     Queue::assertPushed(ProcessInvoicePdfJob::class);
 });
 
+it('processes queued jobs immediately when the run-on-import setting is enabled', function (): void {
+    config(['queue.default' => 'database']);
+    Settings::set('invoices.pdf_import.run_queue_synchronously', 'true');
+    Storage::fake('local');
+
+    $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
+    $project = Project::factory()->create();
+
+    $file = UploadedFile::fake()->create('invoice.pdf', 100, 'application/pdf');
+
+    Livewire::actingAs($user)
+        ->test(PdfImport::class)
+        ->set('project_id', $project->id)
+        ->set('files', [$file])
+        ->call('startImport')
+        ->assertHasNoErrors();
+
+    $import = InvoicePdfImport::query()->sole();
+
+    // Rather than waiting for the next scheduled queue run, the job should
+    // have already been processed inline within the same request.
+    expect($import->status)->not->toBe(InvoicePdfImport::STATUS_PENDING);
+});
+
+it('leaves jobs queued when the run-on-import setting is disabled', function (): void {
+    config(['queue.default' => 'database']);
+    Settings::set('invoices.pdf_import.run_queue_synchronously', 'false');
+    Storage::fake('local');
+
+    $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
+    $project = Project::factory()->create();
+
+    $file = UploadedFile::fake()->create('invoice.pdf', 100, 'application/pdf');
+
+    Livewire::actingAs($user)
+        ->test(PdfImport::class)
+        ->set('project_id', $project->id)
+        ->set('files', [$file])
+        ->call('startImport')
+        ->assertHasNoErrors();
+
+    $import = InvoicePdfImport::query()->sole();
+
+    expect($import->status)->toBe(InvoicePdfImport::STATUS_PENDING);
+});
+
 it('shows validation errors when uploading without a project', function (): void {
     $user = userWithPdfImportPermissions(['invoices.view', 'invoices.create']);
 

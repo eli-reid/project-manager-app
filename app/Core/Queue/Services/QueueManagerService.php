@@ -81,6 +81,21 @@ class QueueManagerService
         Artisan::call('queue:work', ['--once' => true]);
     }
 
+    /**
+     * Processes all currently pending jobs synchronously, then stops. Used
+     * when a feature needs queued work to complete before the request ends
+     * (e.g. on shared hosting where the scheduled queue worker only runs
+     * every few minutes). `--max-time` is a safety net against a runaway or
+     * stuck job blocking the request indefinitely.
+     */
+    public function runPendingJobs(int $maxSeconds = 120): void
+    {
+        Artisan::call('queue:work', [
+            '--stop-when-empty' => true,
+            '--max-time' => $maxSeconds,
+        ]);
+    }
+
     public function deleteFailedJob(string $uuid): void
     {
         FailedJob::query()->where('uuid', $uuid)->delete();

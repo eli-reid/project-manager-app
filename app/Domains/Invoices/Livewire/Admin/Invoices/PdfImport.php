@@ -2,6 +2,8 @@
 
 namespace App\Domains\Invoices\Livewire\Admin\Invoices;
 
+use App\Core\Queue\Services\QueueManagerService;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Invoices\Jobs\ProcessInvoicePdfJob;
 use App\Domains\Invoices\Models\Invoice;
@@ -72,7 +74,7 @@ class PdfImport extends Component
             ->where('created_by', Auth::id());
     }
 
-    public function startImport(): void
+    public function startImport(QueueManagerService $queueManager): void
     {
         $this->authorize('create', Invoice::class);
 
@@ -103,6 +105,24 @@ class PdfImport extends Component
         $this->importIds = $importIds;
         $this->uploaded = true;
         $this->files = [];
+
+        $this->runQueueInlineIfEnabled($queueManager);
+    }
+
+    /**
+     * On shared hosting the queue worker may only run every few minutes via
+     * cron (`schedule:run`), which would leave the progress step polling for
+     * a long time. When enabled, this setting processes the batch's queued
+     * jobs synchronously right after dispatch so review is available almost
+     * immediately, at the cost of the request taking longer to respond.
+     */
+    private function runQueueInlineIfEnabled(QueueManagerService $queueManager): void
+    {
+        if (! Settings::get('invoices.pdf_import.run_queue_synchronously', false)->toBool()) {
+            return;
+        }
+
+        $queueManager->runPendingJobs();
     }
 
     public function pollStatus(): void

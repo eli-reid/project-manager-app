@@ -3,6 +3,7 @@
 namespace App\Domains\Invoices\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Invoices\Console\Commands\PruneInvoicePdfImportsCommand;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Permissions\InvoicePermissions;
@@ -23,11 +24,12 @@ class InvoicesServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ReportRegistry $reportRegistry, ProjectTabRegistry $projectTabRegistry, SettingsRegistryContract $settingsRegistry): void
     {
         $this->registerPermissions($permissionRegistry);
         $this->registerReports($reportRegistry);
         $this->registerProjectTabs($projectTabRegistry);
+        $this->registerSettings($settingsRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
         $this->registerUIComponents();
@@ -107,5 +109,10 @@ class InvoicesServiceProvider extends ServiceProvider
                 'sort' => 10,
             ],
         ]);
+    }
+
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
+    {
+        $settingsRegistry->registerConfigFile('invoices', __DIR__.'/../config/settings.php');
     }
 }
