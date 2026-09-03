@@ -2,6 +2,9 @@
 
 namespace App\Domains\Documents\Services;
 
+use App\Core\Assets\Contracts\AssetOrchestratorContract;
+use App\Core\Assets\DTOs\AssetMeta;
+use App\Core\Assets\DTOs\AssetReferenceTarget;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Models\Document;
@@ -11,6 +14,10 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentService
 {
+    public function __construct(
+        private readonly AssetOrchestratorContract $orchestrator,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -22,18 +29,30 @@ class DocumentService
         $fileSize = (int) $file->getSize();
 
         $disk = $this->storageDisk();
-        $storedPath = $file->store('documents/user/'.$owner->id, $disk);
+        $folderPath = 'documents/user/'.$owner->id;
+
+        // Upload through Assets orchestrator
+        $asset = $this->orchestrator->upload(
+            $owner,
+            $file,
+            new AssetReferenceTarget('documents', 'doc-'.$owner->id, 'primary'),
+            AssetMeta::fromArray([
+                'folder_path' => $folderPath,
+                'disk' => $disk,
+            ]),
+        );
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
             'description' => $attributes['description'] ?? null,
             'original_name' => $originalName,
-            'stored_name' => basename((string) $storedPath),
+            'stored_name' => basename((string) $asset->storage_path),
             'extension' => $extension,
             'mime_type' => $mimeType,
             'file_size' => $fileSize,
             'storage_disk' => $disk,
-            'storage_path' => $storedPath,
+            'storage_path' => $asset->storage_path,
+            'asset_id' => $asset->id,
             'owner_scope' => Document::OWNER_SCOPE_USER,
             'owner_id' => $owner->id,
             'visibility' => Document::VISIBILITY_PRIVATE,
@@ -55,18 +74,30 @@ class DocumentService
         $fileSize = (int) $file->getSize();
 
         $disk = $this->storageDisk();
-        $storedPath = $file->store('documents/project/'.$project->id, $disk);
+        $folderPath = 'documents/project/'.$project->id;
+
+        // Upload through Assets orchestrator
+        $asset = $this->orchestrator->upload(
+            $actor,
+            $file,
+            new AssetReferenceTarget('documents', 'doc-'.$project->id, 'primary'),
+            AssetMeta::fromArray([
+                'folder_path' => $folderPath,
+                'disk' => $disk,
+            ]),
+        );
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
             'description' => $attributes['description'] ?? null,
             'original_name' => $originalName,
-            'stored_name' => basename((string) $storedPath),
+            'stored_name' => basename((string) $asset->storage_path),
             'extension' => $extension,
             'mime_type' => $mimeType,
             'file_size' => $fileSize,
             'storage_disk' => $disk,
-            'storage_path' => $storedPath,
+            'storage_path' => $asset->storage_path,
+            'asset_id' => $asset->id,
             'owner_scope' => Document::OWNER_SCOPE_PROJECT,
             'owner_id' => $project->id,
             'visibility' => Document::VISIBILITY_PROJECT,
@@ -89,37 +120,72 @@ class DocumentService
             ? 'documents/project/'.($document->owner_id ?? 'unknown')
             : 'documents/user/'.($document->owner_id ?? 'unknown');
 
-        $oldPath = $document->storage_path;
-        $storedPath = $file->store($folder, $disk);
+        if ($actor === null) {
+            $actor = $document->uploadedBy;
+        }
+
+        // Replace through Assets orchestrator if asset exists
+        if ($document->asset_id !== null && $document->asset !== null) {
+            $asset = $this->orchestrator->replaceFile(
+                $document->asset,
+                $file,
+                AssetMeta::fromArray(['folder_path' => $folder, 'disk' => $disk]),
+            );
+        } else {
+            // Fallback for documents without assets (shouldn't happen in Phase 2+)
+            $oldPath = $document->storage_path;
+            $storedPath = $file->store($folder, $disk);
+
+            $document->fill([
+                'original_name' => $originalName,
+                'stored_name' => basename((string) $storedPath),
+                'extension' => $extension,
+                'mime_type' => $mimeType,
+                'file_size' => $fileSize,
+                'storage_disk' => $disk,
+                'storage_path' => $storedPath,
+                'replace_mode' => $this->replaceBehavior(),
+                'last_replaced_at' => now(),
+            ]);
+
+            if ($actor !== null) {
+                $document->uploaded_by_id = $actor->id;
+            }
+
+            $document->save();
+
+            if ($this->replaceBehavior() === Document::REPLACE_MODE_REPLACE && filled($oldPath)) {
+                Storage::disk($disk)->delete((string) $oldPath);
+            }
+
+            return $document->fresh();
+        }
 
         $document->fill([
             'original_name' => $originalName,
-            'stored_name' => basename((string) $storedPath),
+            'stored_name' => basename((string) $asset->storage_path),
             'extension' => $extension,
             'mime_type' => $mimeType,
             'file_size' => $fileSize,
             'storage_disk' => $disk,
-            'storage_path' => $storedPath,
+            'storage_path' => $asset->storage_path,
             'replace_mode' => $this->replaceBehavior(),
             'last_replaced_at' => now(),
+            'uploaded_by_id' => $actor->id,
         ]);
 
-        if ($actor !== null) {
-            $document->uploaded_by_id = $actor->id;
-        }
-
         $document->save();
-
-        if ($this->replaceBehavior() === Document::REPLACE_MODE_REPLACE && filled($oldPath)) {
-            Storage::disk($disk)->delete((string) $oldPath);
-        }
 
         return $document->fresh();
     }
 
     public function deleteDocument(Document $document): void
     {
-        if (filled($document->storage_path)) {
+        // Delete through Assets orchestrator if asset exists
+        if ($document->asset_id !== null && $document->asset !== null) {
+            $this->orchestrator->purge($document->asset);
+        } elseif (filled($document->storage_path)) {
+            // Fallback for documents without assets
             Storage::disk($document->storage_disk)->delete($document->storage_path);
         }
 
