@@ -11,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('documents', function (Blueprint $table) {
+        if (Schema::hasColumn('documents', 'asset_id')) {
+            return;
+        }
+
+        Schema::table('documents', function (Blueprint $table): void {
             $table->ulid('asset_id')->nullable()->after('id');
             $table->foreign('asset_id')->references('id')->on('assets')->nullOnDelete();
         });
@@ -22,8 +26,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('documents', function (Blueprint $table) {
-            $table->dropForeignKey(['asset_id']);
+        if (! Schema::hasColumn('documents', 'asset_id')) {
+            return;
+        }
+
+        Schema::table('documents', function (Blueprint $table): void {
+            $table->dropForeign(['asset_id']);
             $table->dropColumn('asset_id');
         });
     }
