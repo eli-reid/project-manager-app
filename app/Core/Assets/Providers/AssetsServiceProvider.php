@@ -1,6 +1,5 @@
 <?php
 
-<<<<<<< HEAD
 declare(strict_types=1);
 
 namespace App\Core\Assets\Providers;
@@ -16,24 +15,11 @@ use App\Core\Assets\Services\LaravelFileStorage;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-=======
-namespace App\Core\Assets\Providers;
-
-use App\Core\Assets\Contracts\AssetOrchestratorContract;
-use App\Core\Assets\Contracts\AssetSharingContract;
-use App\Core\Assets\Services\AssetService;
-use App\Core\Assets\Services\AssetShareService;
-
-use Illuminate\Support\ServiceProvider;
-use Livewire\Livewire;
-use App\Core\Assets\Livewire\AssetUpload;
->>>>>>> production
 
 class AssetsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-<<<<<<< HEAD
         $this->app->singleton(AssetReferencerRegistry::class);
         $this->app->singleton(FileStorageContract::class, LaravelFileStorage::class);
         $this->app->singleton(FilePathNormalizerContract::class, DefaultFilePathNormalizer::class);
@@ -49,17 +35,5 @@ class AssetsServiceProvider extends ServiceProvider
 
         Route::middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/web.php');
-=======
-        $this->app->singleton(AssetOrchestratorContract::class, AssetService::class);
-        $this->app->singleton(AssetSharingContract::class, AssetShareService::class);
-    }
-
-    public function boot(): void
-    {
-        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
-        $this->loadViewsFrom(__DIR__ . '/../Resources/Views', 'assets');
-        Livewire::addNamespace('assets', classNamespace: 'App\\Core\\Assets\\Livewire');
-        Livewire::component('assets::asset-upload', AssetUpload::class);
->>>>>>> production
     }
 }
