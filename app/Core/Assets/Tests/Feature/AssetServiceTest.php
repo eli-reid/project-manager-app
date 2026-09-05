@@ -8,6 +8,7 @@ use App\Core\Assets\Models\AssetReference;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
@@ -21,6 +22,15 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     Settings::set('assets.deduplicate', 'true');
+});
+
+it('enforces cascading asset reference integrity', function (): void {
+    $assetForeignKey = collect(Schema::getForeignKeys('asset_references'))
+        ->first(fn (array $foreignKey): bool => $foreignKey['foreign_table'] === 'assets'
+            && $foreignKey['columns'] === ['asset_id']);
+
+    expect($assetForeignKey)->not->toBeNull()
+        ->and(strtolower($assetForeignKey['on_delete']))->toBe('cascade');
 });
 
 it('stores an uploaded file and creates one reference', function (): void {
