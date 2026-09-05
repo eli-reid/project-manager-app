@@ -9,7 +9,7 @@
             </div>
         @endif
 
-        <form wire:submit.prevent="upload" class="flex flex-col gap-4">
+        <form wire:submit.prevent="submitUpload" class="flex flex-col gap-4">
             <div>
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-400">{{ __('File') }}</label>
                 <input type="file" wire:model="file" class="block w-full text-sm text-zinc-200 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-800 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-zinc-200 hover:file:bg-zinc-700" />
@@ -22,6 +22,15 @@
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-400">{{ __('Description') }}</label>
                 <input type="text" wire:model="description" maxlength="255" class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200" placeholder="{{ __('Optional description...') }}" />
                 @error('description')
+                    <span class="mt-1 text-xs text-red-400">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-400">{{ __('Folder Path') }}</label>
+                <input type="text" wire:model="folderPath" maxlength="255" class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200" placeholder="{{ __('Submittals/Changes/RFI') }}" />
+                <p class="mt-1 text-[11px] text-zinc-500">{{ __('Use slashes to create subfolders.') }}</p>
+                @error('folderPath')
                     <span class="mt-1 text-xs text-red-400">{{ $message }}</span>
                 @enderror
             </div>

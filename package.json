@@ -7,17 +7,22 @@
         "dev": "vite"
     },
     "dependencies": {
-        "@tailwindcss/vite": "^4.1.11",
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
+        "flux-icons-pro-pack": "^2.0.0",
         "laravel-vite-plugin": "^2.0",
-        "tailwindcss": "^4.0.7",
         "vite": "^7.0.4"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.9.5",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
+    },
+    "devDependencies": {
+        "@mermaid-js/mermaid-cli": "^11.15.0",
+        "@tailwindcss/vite": "^4.3.2",
+        "puppeteer": "^24.43.1",
+        "tailwindcss": "^4.3.2"
     }
 }

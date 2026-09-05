@@ -55,7 +55,7 @@ class TaskCategory extends Model
 
     public function childrenRecursive(): HasMany
     {
-        return $this->children()->with(['childrenRecursive', 'project']);
+        return $this->children()->with(['childrenRecursive']);
     }
 
     public function tasks(): HasMany

@@ -24,6 +24,38 @@ it('allows authorized users to access weekly employee hours report', function ()
         ->assertSee('Weekly Employee Hours');
 });
 
+it('does not render employee id column in weekly employee hours table', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    Livewire::actingAs($admin)
+        ->test(WeeklyEmployeeHours::class)
+        ->assertDontSee('Employee ID');
+});
+
+it('does not render employee id column in weekly employee hours pdf', function (): void {
+    $employeeHours = collect([
+        [
+            'user_id' => '123',
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'source_hours' => 40.0,
+            'hours' => 40.0,
+            'is_adjusted' => false,
+            'adjustment_reason' => null,
+        ],
+    ]);
+
+    $html = view('payroll::pdf.weekly-employee-hours', [
+        'employeeHours' => $employeeHours,
+        'weekStart' => '2026-03-30',
+        'weekEnd' => '2026-04-05',
+    ])->render();
+
+    expect($html)
+        ->not->toContain('Employee ID')
+        ->and($html)->not->toContain('123');
+});
+
 it('forbids unauthorized users from accessing weekly employee hours report', function (): void {
     $user = User::factory()->create(['is_admin' => false]);
 

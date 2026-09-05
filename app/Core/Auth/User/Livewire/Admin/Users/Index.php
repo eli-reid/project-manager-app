@@ -2,6 +2,7 @@
 
 namespace App\Core\Auth\User\Livewire\Admin\Users;
 
+use App\Core\Auth\User\Actions\Admin\ResetUserPasswordWithGeneratedPassword;
 use App\Core\Identity\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,14 @@ class Index extends Component
     use AuthorizesRequests;
     use WithPagination;
 
+    protected ResetUserPasswordWithGeneratedPassword $resetUserPasswordWithGeneratedPassword;
+
     public string $search = '';
+
+    public function boot(ResetUserPasswordWithGeneratedPassword $resetUserPasswordWithGeneratedPassword): void
+    {
+        $this->resetUserPasswordWithGeneratedPassword = $resetUserPasswordWithGeneratedPassword;
+    }
 
     public function mount(): void
     {
@@ -61,6 +69,40 @@ class Index extends Component
         $user->delete();
 
         session()->flash('success', 'User deleted successfully.');
+    }
+
+    public function resendInvite(string $userId): void
+    {
+        $user = User::query()->findOrFail($userId);
+        $this->authorize('update', $user);
+
+        if ((string) $user->id === (string) Auth::id()) {
+            session()->flash('error', 'You cannot resend an invite to your own account.');
+
+            return;
+        }
+
+        $actor = Auth::user();
+        $this->resetUserPasswordWithGeneratedPassword->handle($user, $actor, 'admin.users.invite.resent');
+
+        session()->flash('success', 'Invitation resent with a new temporary password.');
+    }
+
+    public function resetPassword(string $userId): void
+    {
+        $user = User::query()->findOrFail($userId);
+        $this->authorize('update', $user);
+
+        if ((string) $user->id === (string) Auth::id()) {
+            session()->flash('error', 'You cannot reset your own password from this screen.');
+
+            return;
+        }
+
+        $actor = Auth::user();
+        $this->resetUserPasswordWithGeneratedPassword->handle($user, $actor, 'admin.users.password.reset');
+
+        session()->flash('success', 'A new temporary password was generated and sent to the user.');
     }
 
     public function render()

@@ -20,6 +20,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('file_size');
                 $table->string('storage_disk', 30)->default('local');
                 $table->string('storage_path');
+                $table->string('folder_path')->nullable();
                 $table->string('owner_scope', 20)->default('user');
                 $table->char('owner_id', 26);
                 $table->string('visibility', 20)->default('private');
@@ -31,6 +32,7 @@ return new class extends Migration
 
                 $table->index(['owner_scope', 'owner_id']);
                 $table->index(['owner_scope', 'visibility']);
+                $table->index(['owner_scope', 'owner_id', 'folder_path']);
                 $table->index(['uploaded_by_id', 'visibility']);
                 $table->index('created_at');
             });
@@ -40,6 +42,13 @@ return new class extends Migration
                 Schema::table('documents', function (Blueprint $table): void {
                     $table->char('owner_id', 26)->nullable()->after('storage_path');
                     $table->index(['owner_scope', 'owner_id']);
+                });
+            }
+
+            if (! Schema::hasColumn('documents', 'folder_path')) {
+                Schema::table('documents', function (Blueprint $table): void {
+                    $table->string('folder_path')->nullable()->after('storage_path');
+                    $table->index(['owner_scope', 'owner_id', 'folder_path']);
                 });
             }
         }

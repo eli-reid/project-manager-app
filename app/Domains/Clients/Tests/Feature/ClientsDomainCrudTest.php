@@ -4,6 +4,7 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Domains\Addresses\Models\Address;
 use App\Domains\Clients\Livewire\Admin\Clients\Form;
 use App\Domains\Clients\Livewire\Admin\Clients\InlineCreateWidget;
 use App\Domains\Clients\Models\Client;
@@ -31,10 +32,17 @@ it('creates a client through livewire form', function (): void {
         ->set('contact_name', 'Eli Reid')
         ->set('email', 'eli@example.test')
         ->set('phone', '555-0100')
+        ->set('addresses.0.address1', '100 Client Row')
+        ->set('addresses.0.city', 'Denver')
+        ->set('addresses.0.state', 'CO')
+        ->set('addresses.0.zip', '80202')
         ->call('save')
         ->assertHasNoErrors();
 
-    expect(Client::query()->where('company_name', 'North Ridge Construction')->exists())->toBeTrue();
+    $client = Client::query()->where('company_name', 'North Ridge Construction')->first();
+
+    expect($client)->not->toBeNull()
+        ->and(Address::query()->where('client_id', $client?->id)->where('address1', '100 Client Row')->exists())->toBeTrue();
 });
 
 it('creates a client through inline widget and dispatches selection event', function (): void {

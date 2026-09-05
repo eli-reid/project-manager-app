@@ -49,6 +49,7 @@
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
                         <h3 class="truncate text-sm font-semibold text-zinc-50">{{ $document->original_name }}</h3>
+                        <p class="mt-1 text-xs text-zinc-400">{{ $document->folder_path ?: __('Unsorted') }}</p>
                         <p class="mt-1 text-xs text-zinc-400">{{ $document->updated_at?->format('M j, Y') ?? '—' }}</p>
                     </div>
                 </div>

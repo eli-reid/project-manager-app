@@ -16,6 +16,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Name</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project #</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Accounting Code</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Status</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Dates</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
@@ -39,6 +40,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->project_number ?? 'N/A' }}</td>
+                            <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">{{ $project->accounting_code ?? 'N/A' }}</td>
                             <td class="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300">
                                 <span class="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{{ $project->status?->label() ?? 'Unknown' }}</span>
                             </td>
@@ -67,7 +69,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No projects found.</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No projects found.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -40,6 +40,18 @@ class ProjectPermissions
         'description' => 'View project financials (budget vs invoiced)',
     ];
 
+    public const VIEW_DOCUMENTS = [
+        'resource' => 'projects',
+        'action' => 'view-documents',
+        'description' => 'View project documents',
+    ];
+
+    public const UPLOAD_DOCUMENTS = [
+        'resource' => 'projects',
+        'action' => 'upload-documents',
+        'description' => 'Upload documents to a project',
+    ];
+
     public static function all(): array
     {
         return [
@@ -49,6 +61,8 @@ class ProjectPermissions
             self::EDIT,
             self::DELETE,
             self::VIEW_FINANCIALS,
+            self::VIEW_DOCUMENTS,
+            self::UPLOAD_DOCUMENTS,
         ];
     }
 }

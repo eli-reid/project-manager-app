@@ -3,6 +3,7 @@
 use App\Core\Identity\Livewire\Settings\DeleteUserForm;
 use App\Core\Identity\Livewire\Settings\Profile;
 use App\Core\Identity\Models\User;
+use App\Domains\Addresses\Models\Address;
 use Livewire\Livewire;
 
 test('profile page is displayed', function () {
@@ -34,12 +35,15 @@ test('profile settings pages do not show delete account action', function () {
 
 test('profile information can be updated', function () {
     $user = User::factory()->create();
+    $originalFirstName = $user->first_name;
+    $originalLastName = $user->last_name;
 
     $this->actingAs($user);
 
     $response = Livewire::test(Profile::class)
-        ->set('first_name', 'Test')
-        ->set('last_name', 'User')
+        ->set('first_name', 'Changed')
+        ->set('last_name', 'Name')
+        ->set('profile_addresses', [])
         ->set('phone', '+13035550123')
         ->set('username', 'test-user')
         ->set('email', 'test@example.com')
@@ -49,8 +53,8 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    expect($user->first_name)->toEqual('Test');
-    expect($user->last_name)->toEqual('User');
+    expect($user->first_name)->toEqual($originalFirstName);
+    expect($user->last_name)->toEqual($originalLastName);
     expect($user->phone)->toEqual('+13035550123');
     expect($user->username)->toEqual('test-user');
     expect($user->email)->toEqual('test@example.com');
@@ -65,6 +69,7 @@ test('email verification status is unchanged when email address is unchanged', f
     $response = Livewire::test(Profile::class)
         ->set('first_name', 'Test')
         ->set('last_name', 'User')
+        ->set('profile_addresses', [])
         ->set('phone', (string) ($user->phone ?? ''))
         ->set('username', $user->username)
         ->set('email', $user->email)
@@ -73,6 +78,33 @@ test('email verification status is unchanged when email address is unchanged', f
     $response->assertHasNoErrors();
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
+});
+
+test('user can manage profile addresses', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = Livewire::test(Profile::class)
+        ->set('profile_addresses', [
+            [
+                'id' => null,
+                'address1' => '42 Profile Way',
+                'address2' => '',
+                'city' => 'Boulder',
+                'state' => 'CO',
+                'zip' => '80301',
+                'country' => 'US',
+            ],
+        ])
+        ->call('updateProfileInformation');
+
+    $response->assertHasNoErrors();
+
+    $address = Address::query()->where('address1', '42 Profile Way')->first();
+
+    expect($address)->not->toBeNull()
+        ->and($user->fresh()->addresses()->where('addresses.id', $address?->id)->exists())->toBeTrue();
 });
 
 test('user can delete their account', function () {

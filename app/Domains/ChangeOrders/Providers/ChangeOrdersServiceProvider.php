@@ -6,10 +6,13 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Domains\ChangeOrders\Models\ChangeOrder;
 use App\Domains\ChangeOrders\Permissions\ChangeOrderPermissions;
 use App\Domains\ChangeOrders\Policies\ChangeOrderPolicy;
+use App\Domains\ChangeOrders\Support\ChangeOrderTab;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class ChangeOrdersServiceProvider extends ServiceProvider
 {
@@ -20,19 +23,28 @@ class ChangeOrdersServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('change-orders.', 'change-orders.mobile.');
 
         $this->registerPermissions($permissionRegistry);
+        $this->registerProjectTab($projectTabRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
+        $this->registerUIComponents();
         $this->registerRoutes();
     }
 
     private function registerPermissions(PermissionRegistryContract $permissionRegistry): void
     {
         $permissionRegistry->registerPermissions(ChangeOrderPermissions::all());
+    }
+
+    private function registerProjectTab(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            ChangeOrderTab::class,
+        ]);
     }
 
     private function registerAuthorization(): void
@@ -44,6 +56,11 @@ class ChangeOrdersServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'change-orders');
+    }
+
+    private function registerUIComponents(): void
+    {
+        Livewire::addNamespace('change-orders', classNamespace: 'App\\Domains\\ChangeOrders\\Livewire');
     }
 
     private function registerRoutes(): void

@@ -14,6 +14,22 @@ const STATIC_PATTERNS = [
     /\/livewire\/livewire\.js$/,
 ];
 
+function offlineFallbackResponse() {
+    return caches.match(OFFLINE_URL).then((offlineResponse) => {
+        if (offlineResponse) {
+            return offlineResponse;
+        }
+
+        return new Response('Offline', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            },
+        });
+    });
+}
+
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -41,7 +57,7 @@ self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request)
-                .catch(() => caches.match(OFFLINE_URL))
+                .catch(() => offlineFallbackResponse())
         );
 
         return;
@@ -63,7 +79,7 @@ self.addEventListener('fetch', (event) => {
 
                     return response;
                 })
-                .catch(() => cached);
+                .catch(() => cached ?? offlineFallbackResponse());
         })
     );
 });

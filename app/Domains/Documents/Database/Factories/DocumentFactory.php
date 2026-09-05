@@ -24,6 +24,7 @@ class DocumentFactory extends Factory
         return [
             'title' => fake()->sentence(3),
             'description' => fake()->optional()->sentence(),
+            'folder_path' => null,
             'original_name' => $name,
             'stored_name' => $name,
             'extension' => 'pdf',

@@ -2,7 +2,9 @@
 
 namespace App\Domains\Timecards\Livewire\User\Timecards;
 
+use App\Core\Identity\Models\User;
 use App\Domains\Timecards\Models\Timecard;
+use App\Domains\Timecards\Services\TimecardLifecycleService;
 use App\Domains\Timecards\Services\TimecardWeekService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +23,35 @@ class Index extends Component
     public function mount(): void
     {
         $this->authorize('viewAny', Timecard::class);
+    }
+
+    public function createForWeek(string $weekStarting): void
+    {
+        $this->authorize('create', Timecard::class);
+
+        $user = Auth::user();
+        abort_unless($user instanceof User, 401);
+
+        $timecardWeekService = app(TimecardWeekService::class);
+        $normalizedWeekStart = $timecardWeekService->normalizeWeekStart($weekStarting);
+
+        $existingTimecard = Timecard::query()
+            ->where('user_id', $user->id)
+            ->whereDate('week_starting', $normalizedWeekStart->toDateString())
+            ->first();
+
+        if ($existingTimecard instanceof Timecard) {
+            $this->redirectRoute('timecards.edit', ['timecard' => $existingTimecard], navigate: true);
+
+            return;
+        }
+
+        $timecard = app(TimecardLifecycleService::class)
+            ->createDraftForUser($user, $normalizedWeekStart);
+
+        session()->flash('success', 'Timecard draft created successfully.');
+
+        $this->redirectRoute('timecards.edit', ['timecard' => $timecard], navigate: true);
     }
 
     public function render()

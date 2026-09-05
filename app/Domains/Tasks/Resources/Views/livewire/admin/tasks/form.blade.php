@@ -19,7 +19,26 @@
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</label>
                 <input type="text" wire:model="title" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
                 @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                @unless ($isEdit)
+                    <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                        When creating multiple tasks, an existing number in the title is incremented automatically. If the title has no number, the starting number is appended.
+                    </p>
+                @endunless
             </div>
+
+            @unless ($isEdit)
+                <div>
+                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Task Count</label>
+                    <input type="number" min="1" max="100" wire:model="batch_count" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                    @error('batch_count') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Starting Number</label>
+                    <input type="number" min="0" max="999999" wire:model="batch_start_number" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100" />
+                    @error('batch_start_number') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+            @endunless
 
             <div class="md:col-span-2">
                 <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</label>

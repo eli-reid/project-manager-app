@@ -83,6 +83,26 @@
 
                                     <button
                                         type="button"
+                                        wire:click="resendInvite('{{ $user->id }}')"
+                                        wire:confirm="Resend invite and generate a new temporary password for this user?"
+                                        class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        @click="closeMenu()"
+                                    >
+                                        Resend Invite
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        wire:click="resetPassword('{{ $user->id }}')"
+                                        wire:confirm="Generate and send a new temporary password? The user will be forced to change it at sign in."
+                                        class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                        @click="closeMenu()"
+                                    >
+                                        Reset Password
+                                    </button>
+
+                                    <button
+                                        type="button"
                                         wire:click="toggleActive('{{ $user->id }}')"
                                         class="block w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                         @click="closeMenu()"

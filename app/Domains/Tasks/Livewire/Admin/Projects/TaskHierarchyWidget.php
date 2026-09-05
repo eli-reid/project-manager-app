@@ -7,12 +7,15 @@ use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Models\TaskTemplate;
 use App\Domains\Tasks\Services\ProjectTaskHierarchyViewDataService;
+use App\Domains\Tasks\Services\TaskHierarchyBulkActionService;
 use App\Domains\Tasks\Services\TaskTreeService;
+use App\Domains\Tasks\Support\TaskBatchTitleGenerator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Session;
 use Livewire\Component;
 
 class TaskHierarchyWidget extends Component
@@ -61,6 +64,10 @@ class TaskHierarchyWidget extends Component
 
     public ?string $inlineCategoryParentId = null;
 
+    public int $inlineCategoryBatchCount = 1;
+
+    public int $inlineCategoryBatchStartNumber = 1;
+
     public string $inlineTaskTitle = '';
 
     public string $inlineTaskDescription = '';
@@ -68,6 +75,10 @@ class TaskHierarchyWidget extends Component
     public ?string $inlineTaskCategoryId = null;
 
     public ?string $inlineTaskAssignedTo = null;
+
+    public int $inlineTaskBatchCount = 1;
+
+    public int $inlineTaskBatchStartNumber = 1;
 
     public ?string $editingTaskStatus = null;
 
@@ -85,10 +96,45 @@ class TaskHierarchyWidget extends Component
 
     public string $editingCategoryNameValue = '';
 
+    /**
+     * @var array<int, string>
+     */
+    public array $selectedTaskIds = [];
+
+    /**
+     * @var array<int, string>
+     */
+    public array $selectedCategoryIds = [];
+
+    /**
+     * @var array<int, string>
+     */
+    #[Session(key: 'task-hierarchy-expanded-{project.id}')]
+    public ?array $expandedCategoryIds = null;
+
     public function mount(Project $project): void
     {
         $this->authorize('view', $project);
         $this->project = $project;
+
+        if ($this->expandedCategoryIds === null) {
+            $this->expandedCategoryIds = [];
+        }
+    }
+
+    public function toggleCategoryExpansion(string $categoryId): void
+    {
+        if (in_array($categoryId, $this->expandedCategoryIds, true)) {
+            $this->expandedCategoryIds = array_values(array_filter(
+                $this->expandedCategoryIds,
+                fn (string $expandedCategoryId): bool => $expandedCategoryId !== $categoryId,
+            ));
+
+            return;
+        }
+
+        $this->expandedCategoryIds[] = $categoryId;
+        $this->expandedCategoryIds = array_values(array_unique($this->expandedCategoryIds));
     }
 
     public function copyCategoryTasks(): void
@@ -288,6 +334,184 @@ class TaskHierarchyWidget extends Component
 
         $this->dispatchProjectTasksUpdated();
         session()->flash('success', "Deleted category branch for {$categoryName}.");
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedTaskIds = [];
+        $this->selectedCategoryIds = [];
+    }
+
+    public function toggleTaskSelection(string $taskId): void
+    {
+        if ($taskId === '') {
+            return;
+        }
+
+        if (in_array($taskId, $this->selectedTaskIds, true)) {
+            $this->selectedTaskIds = array_values(array_filter(
+                $this->selectedTaskIds,
+                fn (string $selectedTaskId): bool => $selectedTaskId !== $taskId,
+            ));
+
+            return;
+        }
+
+        $this->selectedTaskIds[] = $taskId;
+        $this->selectedTaskIds = array_values(array_unique($this->selectedTaskIds));
+    }
+
+    public function selectOnlyTask(string $taskId): void
+    {
+        if ($taskId === '') {
+            return;
+        }
+
+        $this->selectedTaskIds = [$taskId];
+        $this->selectedCategoryIds = [];
+    }
+
+    public function toggleCategorySelection(string $categoryId): void
+    {
+        if ($categoryId === '') {
+            return;
+        }
+
+        if (in_array($categoryId, $this->selectedCategoryIds, true)) {
+            $this->selectedCategoryIds = array_values(array_filter(
+                $this->selectedCategoryIds,
+                fn (string $selectedCategoryId): bool => $selectedCategoryId !== $categoryId,
+            ));
+
+            return;
+        }
+
+        $this->selectedCategoryIds[] = $categoryId;
+        $this->selectedCategoryIds = array_values(array_unique($this->selectedCategoryIds));
+    }
+
+    public function selectOnlyCategory(string $categoryId): void
+    {
+        if ($categoryId === '') {
+            return;
+        }
+
+        $this->selectedCategoryIds = [$categoryId];
+        $this->selectedTaskIds = [];
+    }
+
+    public function bulkCopySelected(): void
+    {
+        if ($this->selectedTaskIds === [] && $this->selectedCategoryIds === []) {
+            session()->flash('error', 'Select at least one task or category to copy.');
+
+            return;
+        }
+
+        if ($this->selectedTaskIds !== []) {
+            $this->authorize('create', Task::class);
+        }
+
+        if ($this->selectedCategoryIds !== []) {
+            $this->authorize('create', TaskCategory::class);
+            $this->authorize('create', Task::class);
+        }
+
+        $result = app(TaskHierarchyBulkActionService::class)->copySelected(
+            $this->project,
+            $this->selectedTaskIds,
+            $this->selectedCategoryIds,
+        );
+
+        $this->clearSelection();
+
+        if ($result['copiedCategories'] > 0) {
+            app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
+        }
+
+        $this->dispatchProjectTasksUpdated();
+        session()->flash('success', sprintf(
+            'Copied %d %s and %d %s.',
+            $result['copiedCategories'],
+            $result['copiedCategories'] === 1 ? 'category' : 'categories',
+            $result['copiedTasks'],
+            $result['copiedTasks'] === 1 ? 'task' : 'tasks',
+        ));
+    }
+
+    public function bulkDeleteSelected(): void
+    {
+        if ($this->selectedTaskIds === [] && $this->selectedCategoryIds === []) {
+            session()->flash('error', 'Select at least one task or category to delete.');
+
+            return;
+        }
+
+        if ($this->selectedTaskIds !== []) {
+            Task::query()
+                ->where('project_id', $this->project->id)
+                ->whereIn('id', $this->selectedTaskIds)
+                ->get()
+                ->each(fn (Task $task) => $this->authorize('delete', $task));
+        }
+
+        if ($this->selectedCategoryIds !== []) {
+            TaskCategory::query()
+                ->where('project_id', $this->project->id)
+                ->whereIn('id', $this->selectedCategoryIds)
+                ->get()
+                ->each(fn (TaskCategory $category) => $this->authorize('delete', $category));
+        }
+
+        $result = app(TaskHierarchyBulkActionService::class)->deleteSelected(
+            $this->project,
+            $this->selectedTaskIds,
+            $this->selectedCategoryIds,
+        );
+
+        $this->clearSelection();
+
+        if ($result['deletedCategories'] > 0) {
+            app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
+        }
+
+        $this->dispatchProjectTasksUpdated();
+
+        $message = sprintf(
+            'Deleted %d %s and %d %s.',
+            $result['deletedCategories'],
+            $result['deletedCategories'] === 1 ? 'category' : 'categories',
+            $result['deletedTasks'],
+            $result['deletedTasks'] === 1 ? 'task' : 'tasks',
+        );
+
+        if ($result['skippedTasks'] > 0) {
+            $message .= sprintf(' Skipped %d %s that still had subtasks.', $result['skippedTasks'], $result['skippedTasks'] === 1 ? 'task' : 'tasks');
+        }
+
+        session()->flash('success', $message);
+    }
+
+    public function bulkMarkSelectedTasksComplete(): void
+    {
+        if ($this->selectedTaskIds === []) {
+            session()->flash('error', 'Select at least one task to mark complete.');
+
+            return;
+        }
+
+        Task::query()
+            ->where('project_id', $this->project->id)
+            ->whereIn('id', $this->selectedTaskIds)
+            ->get()
+            ->each(fn (Task $task) => $this->authorize('updateStatus', $task));
+
+        $updatedCount = app(TaskHierarchyBulkActionService::class)->markTasksComplete($this->project, $this->selectedTaskIds);
+
+        $this->selectedTaskIds = [];
+
+        $this->dispatchProjectTasksUpdated();
+        session()->flash('success', sprintf('Marked %d %s complete.', $updatedCount, $updatedCount === 1 ? 'task' : 'tasks'));
     }
 
     public function copyTaskFrom(?string $taskId): void
@@ -596,7 +820,7 @@ class TaskHierarchyWidget extends Component
 
     public function cancelInlineCategoryForm(): void
     {
-        $this->reset('inlineCategoryName', 'inlineCategoryDescription', 'inlineCategoryParentId');
+        $this->reset('inlineCategoryName', 'inlineCategoryDescription', 'inlineCategoryParentId', 'inlineCategoryBatchCount', 'inlineCategoryBatchStartNumber');
         $this->showInlineCategoryForm = false;
     }
 
@@ -611,23 +835,40 @@ class TaskHierarchyWidget extends Component
                 'nullable',
                 Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
             ],
+            'inlineCategoryBatchCount' => ['integer', 'min:1', 'max:100'],
+            'inlineCategoryBatchStartNumber' => ['integer', 'min:0', 'max:999999'],
         ]);
 
-        TaskCategory::query()->create([
-            'project_id' => $this->project->id,
-            'parent_id' => $validated['inlineCategoryParentId'] ?: null,
-            'name' => $validated['inlineCategoryName'],
-            'description' => $validated['inlineCategoryDescription'] ?: null,
-            'sort_order' => 0,
-            'is_active' => true,
-        ]);
+        $names = app(TaskBatchTitleGenerator::class)->generate(
+            $validated['inlineCategoryName'],
+            (int) $validated['inlineCategoryBatchCount'],
+            (int) $validated['inlineCategoryBatchStartNumber'],
+        );
+
+        DB::transaction(function () use ($names, $validated): void {
+            foreach ($names as $name) {
+                TaskCategory::query()->create([
+                    'project_id' => $this->project->id,
+                    'parent_id' => $validated['inlineCategoryParentId'] ?: null,
+                    'name' => $name,
+                    'description' => $validated['inlineCategoryDescription'] ?: null,
+                    'sort_order' => 0,
+                    'is_active' => true,
+                ]);
+            }
+        });
 
         $this->cancelInlineCategoryForm();
 
         app(TaskTreeService::class)->clearCategoryTreeCache($this->project->id);
 
         $this->dispatchProjectTasksUpdated();
-        session()->flash('success', 'Category created successfully.');
+        session()->flash(
+            'success',
+            count($names) === 1
+                ? 'Category created successfully.'
+                : sprintf('%d categories created successfully.', count($names))
+        );
     }
 
     public function startInlineTaskForm(?string $categoryId = null): void
@@ -640,7 +881,7 @@ class TaskHierarchyWidget extends Component
 
     public function cancelInlineTaskForm(): void
     {
-        $this->reset('inlineTaskTitle', 'inlineTaskDescription', 'inlineTaskCategoryId', 'inlineTaskAssignedTo');
+        $this->reset('inlineTaskTitle', 'inlineTaskDescription', 'inlineTaskCategoryId', 'inlineTaskAssignedTo', 'inlineTaskBatchCount', 'inlineTaskBatchStartNumber');
         $this->showInlineTaskForm = false;
     }
 
@@ -656,26 +897,65 @@ class TaskHierarchyWidget extends Component
                 Rule::exists('task_categories', 'id')->where(fn ($query) => $query->where('project_id', $this->project->id)),
             ],
             'inlineTaskAssignedTo' => ['nullable', 'exists:users,id'],
+            'inlineTaskBatchCount' => ['integer', 'min:1', 'max:100'],
+            'inlineTaskBatchStartNumber' => ['integer', 'min:0', 'max:999999'],
         ]);
 
-        Task::query()->create([
-            'project_id' => $this->project->id,
-            'task_category_id' => $validated['inlineTaskCategoryId'],
-            'parent_task_id' => null,
-            'title' => $validated['inlineTaskTitle'],
-            'description' => $validated['inlineTaskDescription'] ?: null,
-            'status' => Task::STATUS_TODO,
-            'priority' => Task::PRIORITY_MEDIUM,
-            'completion_percentage' => 0,
-            'assigned_to' => $validated['inlineTaskAssignedTo'] ?: null,
-            'is_billable' => false,
-            'sort_order' => 0,
-        ]);
+        $titles = app(TaskBatchTitleGenerator::class)->generate(
+            $validated['inlineTaskTitle'],
+            (int) $validated['inlineTaskBatchCount'],
+            (int) $validated['inlineTaskBatchStartNumber'],
+        );
+
+        DB::transaction(function () use ($titles, $validated): void {
+            foreach ($titles as $title) {
+                Task::query()->create([
+                    'project_id' => $this->project->id,
+                    'task_category_id' => $validated['inlineTaskCategoryId'],
+                    'parent_task_id' => null,
+                    'title' => $title,
+                    'description' => $validated['inlineTaskDescription'] ?: null,
+                    'status' => Task::STATUS_TODO,
+                    'priority' => Task::PRIORITY_MEDIUM,
+                    'completion_percentage' => 0,
+                    'assigned_to' => $validated['inlineTaskAssignedTo'] ?: null,
+                    'is_billable' => false,
+                    'sort_order' => 0,
+                ]);
+            }
+        });
 
         $this->cancelInlineTaskForm();
 
         $this->dispatchProjectTasksUpdated();
-        session()->flash('success', 'Task created successfully.');
+        session()->flash(
+            'success',
+            count($titles) === 1
+                ? 'Task created successfully.'
+                : sprintf('%d tasks created successfully.', count($titles))
+        );
+    }
+
+    public function markTaskComplete(?string $taskId): void
+    {
+        if (! $taskId) {
+            return;
+        }
+
+        $task = Task::query()
+            ->where('project_id', $this->project->id)
+            ->findOrFail($taskId);
+
+        $this->authorize('updateStatus', $task);
+
+        $updatedCount = app(TaskHierarchyBulkActionService::class)->markTasksComplete($this->project, [$taskId]);
+
+        if ($updatedCount === 0) {
+            return;
+        }
+
+        $this->dispatchProjectTasksUpdated();
+        session()->flash('success', "Marked task {$task->title} complete.");
     }
 
     public function startEditTaskTitle(?string $taskId): void
@@ -758,10 +1038,59 @@ class TaskHierarchyWidget extends Component
 
     public function render()
     {
+        $categories = app(TaskTreeService::class)->getCachedCategoryTree($this->project->id);
+
+        $this->pruneExpandedCategoryIds($categories);
+
         return view('tasks::livewire.admin.projects.task-hierarchy-widget', [
             'project' => $this->project,
-            ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project),
+            ...app(ProjectTaskHierarchyViewDataService::class)->forProject($this->project, $this->expandedCategoryIds, $categories),
+            'selectedItemCount' => count($this->selectedTaskIds) + count($this->selectedCategoryIds),
+            'selectedTaskCount' => count($this->selectedTaskIds),
+            'selectedCategoryCount' => count($this->selectedCategoryIds),
         ]);
+    }
+
+    protected function pruneExpandedCategoryIds(iterable $categories): void
+    {
+        $validCategoryIdLookup = $this->currentProjectCategoryIdLookup($categories);
+
+        $normalizedExpandedCategoryIds = collect($this->expandedCategoryIds ?? [])
+            ->map(fn (mixed $categoryId): string => (string) $categoryId)
+            ->filter(fn (string $categoryId): bool => isset($validCategoryIdLookup[$categoryId]))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($normalizedExpandedCategoryIds !== ($this->expandedCategoryIds ?? [])) {
+            $this->expandedCategoryIds = $normalizedExpandedCategoryIds;
+        }
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    protected function currentProjectCategoryIdLookup(iterable $categories): array
+    {
+        $categoryIdLookup = [];
+
+        foreach ($categories as $category) {
+            $this->appendCategoryIdLookup($categoryIdLookup, $category);
+        }
+
+        return $categoryIdLookup;
+    }
+
+    /**
+     * @param  array<string, bool>  $categoryIdLookup
+     */
+    protected function appendCategoryIdLookup(array &$categoryIdLookup, mixed $category): void
+    {
+        $categoryIdLookup[(string) $category->id] = true;
+
+        foreach ($category->childrenRecursive ?? collect() as $childCategory) {
+            $this->appendCategoryIdLookup($categoryIdLookup, $childCategory);
+        }
     }
 
     /**

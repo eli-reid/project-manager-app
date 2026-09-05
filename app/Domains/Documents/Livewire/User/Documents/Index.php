@@ -26,6 +26,8 @@ class Index extends Component
 
     public string $description = '';
 
+    public string $folderPath = '';
+
     public string $search = '';
 
     public ?string $editingDocumentId = null;
@@ -70,6 +72,7 @@ class Index extends Component
         $validationRules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'folderPath' => ['nullable', 'string', 'max:255'],
             'file' => ['nullable', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
         ];
 
@@ -86,6 +89,7 @@ class Index extends Component
                 ->findOrFail($this->editingDocumentId);
 
             $this->authorize('update', $document);
+            $folderPath = $this->folderPath !== '' ? $this->folderPath : null;
 
             $document->update([
                 'title' => $this->title,
@@ -93,7 +97,9 @@ class Index extends Component
             ]);
 
             if ($this->file !== null) {
-                $documentService->replaceFile($document, $this->file, $user);
+                $documentService->replaceFile($document, $this->file, $user, $folderPath);
+            } else {
+                $documentService->moveDocument($document, $folderPath);
             }
         } else {
             $documentService->uploadUserDocument(
@@ -102,6 +108,7 @@ class Index extends Component
                 [
                     'title' => $this->title,
                     'description' => $this->description !== '' ? $this->description : null,
+                    'folder_path' => $this->folderPath !== '' ? $this->folderPath : null,
                 ]
             );
         }
@@ -121,6 +128,7 @@ class Index extends Component
         $this->editingDocumentId = $document->id;
         $this->title = $document->title;
         $this->description = (string) ($document->description ?? '');
+        $this->folderPath = (string) ($document->folder_path ?? '');
         $this->file = null;
     }
 
@@ -251,7 +259,8 @@ class Index extends Component
             ->userOwned()
             ->ownedByUser((string) Auth::id())
             ->withCount('shares')
-            ->latest();
+            ->orderByRaw("COALESCE(folder_path, '')")
+            ->orderBy('title');
 
         if ($this->search !== '') {
             $documentsQuery->where(function ($query): void {
@@ -282,6 +291,7 @@ class Index extends Component
         $this->editingDocumentId = null;
         $this->title = '';
         $this->description = '';
+        $this->folderPath = '';
         $this->file = null;
         $this->resetValidation();
         $this->dispatch('documents-file-input-reset');

@@ -5,10 +5,21 @@ use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Invoices\Models\Invoice;
+use App\Domains\PaymentReceipts\Models\PaymentReceipt;
+use App\Domains\Payroll\Services\PayrollReportingService;
 use App\Domains\Projects\Models\CostCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Projects\Services\ProjectFinancialsService;
 use App\Domains\Tasks\Models\Task;
+
+beforeEach(function (): void {
+    $payrollReportingService = Mockery::mock(PayrollReportingService::class);
+    $payrollReportingService
+        ->shouldReceive('estimatedLaborCostTotalForProject')
+        ->andReturn(0.0);
+
+    $this->app->instance(PayrollReportingService::class, $payrollReportingService);
+});
 
 // ─── Service Unit Tests ───────────────────────────────────────────────────────
 
@@ -20,8 +31,30 @@ it('returns zero invoiced total when project has no invoices', function (): void
     expect($summary['invoiced'])->toBe(0.0)
         ->and($summary['invoice_count'])->toBe(0)
         ->and($summary['budget'])->toBeNull()
+        ->and($summary['labor_cost'])->toBe(0.0)
+        ->and($summary['payments_received'])->toBe(0.0)
+        ->and($summary['spent_total'])->toBe(0.0)
+        ->and($summary['payment_receipt_delta'])->toBe(0.0)
+        ->and($summary['payment_receipt_count'])->toBe(0)
         ->and($summary['remaining'])->toBeNull()
         ->and($summary['variance_pct'])->toBeNull();
+});
+
+it('includes estimated labor cost in the financial summary', function (): void {
+    $project = Project::factory()->create(['budget' => 1000.00]);
+
+    $payrollReportingService = Mockery::mock(PayrollReportingService::class);
+    $payrollReportingService
+        ->shouldReceive('estimatedLaborCostTotalForProject')
+        ->once()
+        ->with((string) $project->id)
+        ->andReturn(325.75);
+
+    $this->app->instance(PayrollReportingService::class, $payrollReportingService);
+
+    $summary = app(ProjectFinancialsService::class)->summary($project);
+
+    expect($summary['labor_cost'])->toBe(325.75);
 });
 
 it('sums invoice total_amount correctly', function (): void {
@@ -84,6 +117,41 @@ it('does not include invoices from other projects in totals', function (): void 
         ->and($summary['invoice_count'])->toBe(1);
 });
 
+it('includes payment receipts in the financial summary', function (): void {
+    $project = Project::factory()->create(['budget' => 1000.00]);
+    $otherProject = Project::factory()->create();
+
+    PaymentReceipt::factory()->for($project)->create(['amount' => 450.25]);
+    PaymentReceipt::factory()->for($project)->create(['amount' => 99.75]);
+    PaymentReceipt::factory()->for($otherProject)->create(['amount' => 9999.00]);
+
+    $summary = app(ProjectFinancialsService::class)->summary($project);
+
+    expect($summary['payments_received'])->toBe(550.0)
+        ->and($summary['payment_receipt_count'])->toBe(2);
+});
+
+it('tracks total spent against payment receipts', function (): void {
+    $project = Project::factory()->create(['budget' => 1000.00]);
+
+    $payrollReportingService = Mockery::mock(PayrollReportingService::class);
+    $payrollReportingService
+        ->shouldReceive('estimatedLaborCostTotalForProject')
+        ->once()
+        ->with((string) $project->id)
+        ->andReturn(150.25);
+
+    $this->app->instance(PayrollReportingService::class, $payrollReportingService);
+
+    Invoice::factory()->for($project)->create(['total_amount' => 400.00]);
+    PaymentReceipt::factory()->for($project)->create(['amount' => 700.00]);
+
+    $summary = app(ProjectFinancialsService::class)->summary($project);
+
+    expect($summary['spent_total'])->toBe(550.25)
+        ->and($summary['payment_receipt_delta'])->toBe(149.75);
+});
+
 // ─── Tab Access Tests ─────────────────────────────────────────────────────────
 
 it('shows financials tab when user has projects.view-financials permission', function (): void {
@@ -135,6 +203,31 @@ it('renders the forecasting widget on the project forecasting tab', function ():
         ->assertSuccessful()
         ->assertSee('Project Payroll Forecast')
         ->assertSee('Open Full Forecasting');
+});
+
+it('shows payment receipt totals on the financials tab', function (): void {
+    $project = Project::factory()->create();
+    $user = projectUserWithPermissions(['projects.view', 'projects.view-financials', 'payment-receipts.view'], $project);
+
+    Invoice::factory()->for($project)->create([
+        'total_amount' => 1000.00,
+    ]);
+
+    PaymentReceipt::factory()->for($project)->create([
+        'amount' => 1250.00,
+        'received_from' => 'Acme Client',
+        'reference' => 'ACH-4451',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.projects.show', $project).'?tab=financials')
+        ->assertSuccessful()
+        ->assertSee('Payments Received')
+        ->assertSee('1,250.00')
+        ->assertSee('Pay Recs +/-')
+        ->assertSee('+$250.00')
+        ->assertSee('Receipts exceed tracked spend.')
+        ->assertSee('Open Pay Recs');
 });
 
 it('uses cost code budget hours for the project forecasting widget', function (): void {

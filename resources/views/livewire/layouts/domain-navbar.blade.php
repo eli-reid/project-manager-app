@@ -1,5 +1,5 @@
-@if ($items !== [])
-    <div class="w-full">
+<div class="w-full">
+    @if ($items !== [])
         <flux:navbar class="flex flex-wrap items-center gap-2">
             @foreach ($items as $item)
                 @if (($item['visible'] ?? true) !== false)
@@ -9,5 +9,5 @@
                 @endif
             @endforeach
         </flux:navbar>
-    </div>
-@endif
+    @endif
+</div>

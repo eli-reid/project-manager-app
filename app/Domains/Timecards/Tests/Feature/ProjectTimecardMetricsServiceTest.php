@@ -95,3 +95,52 @@ it('returns project timecard detail metrics', function (): void {
         ->and((float) $detail['hours_by_user']->first()->total_hours)->toBe(9.0)
         ->and((float) $detail['hours_by_user']->last()->total_hours)->toBe(8.0);
 });
+
+it('falls back regular hours from total hours when breakdown columns are null', function (): void {
+    $project = Project::factory()->create();
+    $user = User::factory()->create();
+    $timecard = Timecard::factory()->create(['user_id' => $user->id]);
+
+    TimecardEntry::factory()->create([
+        'timecard_id' => $timecard->id,
+        'user_id' => $user->id,
+        'project_id' => $project->id,
+        'hours' => 100,
+        'regular_hours' => null,
+        'overtime_hours' => null,
+        'double_time_hours' => null,
+    ]);
+
+    $summary = app(ProjectTimecardMetricsService::class)
+        ->summaryForProject((string) $project->id);
+
+    expect($summary['time_entry_count'])->toBe(1)
+        ->and($summary['total_hours'])->toBe(100.0)
+        ->and($summary['regular_hours'])->toBe(100.0)
+        ->and($summary['overtime_hours'])->toBe(0.0)
+        ->and($summary['double_time_hours'])->toBe(0.0);
+});
+
+it('derives regular hours from total minus overtime and double time when regular is null', function (): void {
+    $project = Project::factory()->create();
+    $user = User::factory()->create();
+    $timecard = Timecard::factory()->create(['user_id' => $user->id]);
+
+    TimecardEntry::factory()->create([
+        'timecard_id' => $timecard->id,
+        'user_id' => $user->id,
+        'project_id' => $project->id,
+        'hours' => 12,
+        'regular_hours' => null,
+        'overtime_hours' => 2,
+        'double_time_hours' => 1,
+    ]);
+
+    $summary = app(ProjectTimecardMetricsService::class)
+        ->summaryForProject((string) $project->id);
+
+    expect($summary['total_hours'])->toBe(12.0)
+        ->and($summary['regular_hours'])->toBe(9.0)
+        ->and($summary['overtime_hours'])->toBe(2.0)
+        ->and($summary['double_time_hours'])->toBe(1.0);
+});

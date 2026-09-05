@@ -7,7 +7,9 @@ use App\Domains\Projects\Models\Project;
 use App\Domains\Tasks\Models\Task;
 use App\Domains\Tasks\Models\TaskCategory;
 use App\Domains\Tasks\Services\TaskDepthGuardService;
+use App\Domains\Tasks\Support\TaskBatchTitleGenerator;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -48,6 +50,10 @@ class Form extends Component
     public bool $is_billable = true;
 
     public int $sort_order = 0;
+
+    public int $batch_count = 1;
+
+    public int $batch_start_number = 1;
 
     public function mount(?Task $task = null): void
     {
@@ -108,6 +114,8 @@ class Form extends Component
             'assigned_to' => ['nullable', 'exists:users,id'],
             'is_billable' => ['boolean'],
             'sort_order' => ['integer', 'min:0'],
+            'batch_count' => ['integer', 'min:1', 'max:100'],
+            'batch_start_number' => ['integer', 'min:0', 'max:999999'],
         ];
     }
 
@@ -133,9 +141,31 @@ class Form extends Component
         }
 
         $this->authorize('create', Task::class);
-        Task::query()->create($validated);
 
-        session()->flash('success', 'Task created successfully.');
+        $titles = app(TaskBatchTitleGenerator::class)->generate(
+            $validated['title'],
+            (int) $validated['batch_count'],
+            (int) $validated['batch_start_number'],
+        );
+
+        unset($validated['batch_count'], $validated['batch_start_number']);
+
+        DB::transaction(function () use ($titles, $validated): void {
+            foreach ($titles as $title) {
+                Task::query()->create([
+                    ...$validated,
+                    'title' => $title,
+                ]);
+            }
+        });
+
+        session()->flash(
+            'success',
+            count($titles) === 1
+                ? 'Task created successfully.'
+                : sprintf('%d tasks created successfully.', count($titles))
+        );
+
         $this->redirectRoute('admin.tasks.index', ['project_id' => $validated['project_id']], navigate: true);
     }
 

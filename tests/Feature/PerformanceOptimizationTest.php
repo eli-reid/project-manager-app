@@ -2,6 +2,7 @@
 
 use App\Core\Identity\Models\User;
 use Illuminate\Support\Facades\DB;
+<<<<<<< HEAD
 use Tests\TestCase;
 
 uses(TestCase::class);
@@ -11,6 +12,20 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+=======
+
+/**
+ * Performance & Optimization Test Suite
+ *
+ * Validates query efficiency, response times, memory usage, and caching effectiveness
+ * Tests N+1 detection, eager loading, and resource optimization
+ */
+beforeEach(function () {
+    DB::enableQueryLog();
+});
+
+afterEach(function () {
+>>>>>>> production
     DB::disableQueryLog();
 });
 
@@ -45,7 +60,11 @@ afterEach(function (): void {
             
             // Accessing a relationship without eager loading
             DB::flushQueryLog();
+<<<<<<< HEAD
             $user->getKey(); // Access primary key (no query)
+=======
+            $ignored = $user->getKey(); // Access primary key (no query)
+>>>>>>> production
             
             $finalQueries = count(DB::getQueryLog());
             expect($finalQueries)->toBeLessThanOrEqual($baselineQueries + 2);
@@ -170,8 +189,13 @@ afterEach(function (): void {
             
             // Operations on collection
             foreach ($users as $user) {
+<<<<<<< HEAD
                 $user->id;
                 $user->email;
+=======
+                $ignored = $user->id;
+                $ignored = $user->email;
+>>>>>>> production
             }
             
             $endMem = memory_get_usage();
@@ -241,7 +265,11 @@ afterEach(function (): void {
             
             for ($i = 0; $i < 100; $i++) {
                 $key = 'user.' . $user->id . '.profile';
+<<<<<<< HEAD
                 $key;
+=======
+                $ignored = $key;
+>>>>>>> production
             }
             
             $elapsed = (microtime(true) - $startTime) * 1000;
@@ -501,6 +529,7 @@ function createTestUser(): User
 {
     $userClass = getUserModelClass();
 
+<<<<<<< HEAD
     return $userClass::create([
         'first_name' => fake()->firstName(),
         'last_name' => fake()->lastName(),
@@ -526,3 +555,40 @@ function getUserModelClass(): string
 {
     return User::class;
 }
+=======
+    /**
+     * Create a test user
+     */
+    function createTestUser()
+    {
+        $userClass = getUserModelClass();
+        return $userClass::create([
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => bcrypt('password'),
+            'is_admin' => false,
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Create multiple test users
+     */
+    function createTestUsers(int $count)
+    {
+        $users = [];
+        for ($i = 0; $i < $count; $i++) {
+            $users[] = createTestUser();
+        }
+        return collect($users);
+    }
+
+    /**
+     * Get the user model class
+     */
+    function getUserModelClass()
+    {
+        return \App\Core\Identity\Models\User::class;
+    }
+>>>>>>> production

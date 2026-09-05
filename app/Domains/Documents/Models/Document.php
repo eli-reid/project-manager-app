@@ -42,6 +42,7 @@ class Document extends Model
     protected $fillable = [
         'title',
         'description',
+        'folder_path',
         'original_name',
         'stored_name',
         'extension',
@@ -109,7 +110,11 @@ class Document extends Model
 
     public function asset(): BelongsTo
     {
+<<<<<<< HEAD
         return $this->belongsTo(Asset::class, 'asset_id');
+=======
+        return $this->belongsTo(\App\Core\Assets\Models\Asset::class, 'asset_id');
+>>>>>>> production
     }
 
     public function scopeUserOwned(Builder $query): Builder

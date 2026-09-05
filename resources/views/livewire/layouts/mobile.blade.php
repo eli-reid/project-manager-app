@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark h-full">
     <head>
-    @include('livewire.layouts.head', ['title' => $title ?? null])
+        @include('partials.head', ['title' => $title ?? null])
     </head>
     <body class="min-h-safe-screen bg-zinc-950 text-zinc-50">
         <div class="min-h-safe-screen bg-zinc-950">
@@ -10,7 +10,6 @@
                     <button
                         type="button"
                         class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-zinc-100"
-                        data-fallback-url="{{ $mobileDashboardFallbackUrl ?? route('mobile.dashboard') }}"
                         onclick="handleBackNavigation(this.dataset.fallbackUrl)"
                         data-mobile-haptic
                         aria-label="{{ __('Go back') }}"

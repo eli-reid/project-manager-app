@@ -65,6 +65,12 @@
                     </flux:field>
 
                     <flux:field>
+                        <flux:label>Folder Path</flux:label>
+                        <flux:input wire:model="folderPath" placeholder="Submittals/Changes/RFI" />
+                        <flux:error name="folderPath" />
+                    </flux:field>
+
+                    <flux:field>
                         <flux:label>Description</flux:label>
                         <flux:textarea wire:model="description" rows="5" placeholder="Add context so this is easier to find later." />
                         <flux:error name="description" />
@@ -226,6 +232,7 @@
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Folder</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Visibility</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">File</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Actions</th>
@@ -240,6 +247,7 @@
                                     <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $document->description ?: 'No description added yet.' }}</p>
                                 </div>
                             </td>
+                            <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ $document->folder_path ?: 'Unsorted' }}</td>
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ str($document->visibility)->headline() }}</td>
                             <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{{ $document->original_name }}</td>
                             <td class="px-4 py-3 text-right">
@@ -274,6 +282,7 @@
                                     </flux:dropdown>
                                 </div>
                             </td>
+                                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Folder: {{ $document->folder_path ?: 'Unsorted' }}</p>
                         </tr>
                     @endforeach
                 </tbody>

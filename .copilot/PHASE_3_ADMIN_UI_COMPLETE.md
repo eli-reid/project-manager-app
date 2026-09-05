@@ -7,7 +7,7 @@
 
 ---
 
-## Overview
+## Overview 
 
 Phase 3 delivers a complete admin UI for the Settings subsystem using **Livewire 4** reactive components and **Bootstrap 5** styling. The interface allows admins to view, edit, and manage all application settings in an intuitive, user-friendly dashboard.
 

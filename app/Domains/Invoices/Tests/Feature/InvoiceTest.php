@@ -6,7 +6,9 @@ use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Form;
+use App\Domains\Invoices\Livewire\Admin\Invoices\Index;
 use App\Domains\Invoices\Livewire\Admin\Invoices\Show;
+use App\Domains\Invoices\Livewire\Admin\Projects\ProjectTab;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Models\InvoiceLineItem;
 use App\Domains\Projects\Models\Project;
@@ -179,6 +181,65 @@ it('validates required fields on create', function (): void {
         ->set('invoice_date', '')
         ->call('save')
         ->assertHasErrors(['vendor_name', 'invoice_date', 'project_id']);
+});
+
+it('updates an invoice with the edit permission', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.edit']);
+    $invoice = Invoice::factory()->for(Project::factory())->pending()->create([
+        'vendor_name' => 'Original Vendor',
+        'created_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['invoice' => $invoice])
+        ->set('vendor_name', 'Corrected Vendor')
+        ->call('save');
+
+    expect($invoice->fresh()->vendor_name)->toBe('Corrected Vendor');
+});
+
+it('deletes an invoice with the delete permission from the invoice index', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.delete']);
+    $invoice = Invoice::factory()->for(Project::factory())->pending()->create([
+        'created_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Index::class)
+        ->call('deleteInvoice', $invoice->id);
+
+    $this->assertSoftDeleted('invoices', ['id' => $invoice->id]);
+});
+
+it('does not allow users without the edit permission to edit an invoice', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view']);
+    $invoice = Invoice::factory()->for(Project::factory())->create([
+        'created_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['invoice' => $invoice])
+        ->assertForbidden();
+});
+
+it('deletes an invoice from the project invoices tab', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.delete']);
+    $project = Project::factory()->create();
+    $invoice = Invoice::factory()->for($project)->pending()->create([
+        'created_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(ProjectTab::class, [
+            'project' => $project,
+            'invoices' => collect([$invoice]),
+            'invoiceCount' => 1,
+        ])
+        ->call('deleteInvoice', $invoice->id)
+        ->assertSet('invoiceCount', 0)
+        ->assertDontSee($invoice->vendor_name);
+
+    $this->assertSoftDeleted('invoices', ['id' => $invoice->id]);
 });
 
 // ---------------------------------------------------------------------------

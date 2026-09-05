@@ -19,13 +19,21 @@ class Show extends Component
 
     public Submittal $submittal;
 
+    public bool $embedded = false;
+
+    public string $returnTo = '';
+
     public string $comment = '';
 
     public string $rejectionReason = '';
 
-    public function mount(Submittal $submittal): void
+    public function mount(Submittal $submittal, bool $embedded = false, ?string $returnTo = null): void
     {
         $this->authorize('view', $submittal);
+
+        $this->embedded = $embedded;
+        $this->returnTo = is_string($returnTo) ? $returnTo : '';
+
         $this->submittal = $submittal->load([
             'project:id,name,project_number',
             'submittedBy:id,first_name,last_name,email',

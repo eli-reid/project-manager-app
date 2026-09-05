@@ -7,6 +7,7 @@ use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Notification\Services\NotificationRegistry;
 use App\Core\Scheduler\Services\TaskTypeRegistry;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Reports\Services\ReportRegistry;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
@@ -16,6 +17,7 @@ use App\Domains\Timecards\Observers\TimecardObserver;
 use App\Domains\Timecards\Permissions\TimecardPermissions;
 use App\Domains\Timecards\Policies\TimecardPolicy;
 use App\Domains\Timecards\Reports\TimecardReportDefinitions;
+use App\Domains\Timecards\Support\TimecardsProjectTab;
 use App\Domains\Timecards\Tasks\TimecardReminderTask;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -33,13 +35,14 @@ class TimecardsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, NotificationRegistry $notificationRegistry, ReportRegistry $reportRegistry, TaskTypeRegistry $taskTypeRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileRoutePrefixMapping('timecards.', 'timecards.mobile.');
 
         $this->registerPermissions($permissionRegistry);
         $this->registerNotifications($notificationRegistry);
         $this->registerReports($reportRegistry);
+        $this->registerProjectTabs($projectTabRegistry);
         $this->registerSchedulerTasks($taskTypeRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
@@ -135,6 +138,13 @@ class TimecardsServiceProvider extends ServiceProvider
                     'rejected',
                 ],
             ],
+        ]);
+    }
+
+    private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
+    {
+        $projectTabRegistry->registerDefinitions([
+            TimecardsProjectTab::class,
         ]);
     }
 }

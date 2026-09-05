@@ -95,6 +95,7 @@
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Document</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Folder</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Owner</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Disk</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Size</th>
@@ -111,6 +112,7 @@
                                 <div class="text-xs text-zinc-500 dark:text-zinc-400">{{ $document->original_name }}</div>
                                 <div class="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500">{{ $document->storage_path }}</div>
                             </td>
+                            <td class="px-4 py-3 align-top text-xs text-zinc-600 dark:text-zinc-300">{{ $document->folder_path ?: 'Unsorted' }}</td>
                             <td class="px-4 py-3 align-top text-xs text-zinc-600 dark:text-zinc-300">
                                 @if ($document->owner_scope === \App\Domains\Documents\Models\Document::OWNER_SCOPE_PROJECT)
                                     {{ $document->ownerProject?->name ?? '—' }}
@@ -130,7 +132,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No documents found.</td>
+                            <td colspan="8" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">No documents found.</td>
                         </tr>
                     @endforelse
                 </tbody>

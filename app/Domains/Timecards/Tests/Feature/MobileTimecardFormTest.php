@@ -4,6 +4,8 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
+use App\Core\Settings\Facades\Settings;
+use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Form as MobileForm;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Index as MobileIndex;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Show as MobileShow;
@@ -35,9 +37,16 @@ it('renders the mobile timecard create form', function (): void {
 
     actingAs($user);
 
-    get(route('timecards.mobile.create'))
+    $response = get(route('timecards.mobile.create'));
+
+    $response
         ->assertOk()
-        ->assertSeeLivewire(MobileForm::class);
+        ->assertSeeLivewire(MobileForm::class)
+        ->assertSee('Week Range')
+        ->assertSee('Tap a quick hour chip for faster entry.')
+        ->assertSee('Required when Custom / Unassigned is selected.');
+
+    expect(substr_count($response->getContent(), 'Custom Project Name'))->toBe(1);
 });
 
 it('renders the mobile timecard index', function (): void {
@@ -97,6 +106,18 @@ it('uses the mobile layout on the create form', function (): void {
         ->assertSee('Create Timecard');
 });
 
+it('shows only configured week-start dates in the mobile week picker', function (): void {
+    Settings::set('app.week_start_day', 'monday');
+    $user = mobileTimecardUser(['timecards.create']);
+
+    $component = Livewire::actingAs($user)->test(MobileForm::class);
+
+    preg_match_all('/<option value="(\d{4}-\d{2}-\d{2})">/', $component->html(), $matches);
+
+    expect($matches[1])->not->toBeEmpty();
+    expect(collect($matches[1])->every(fn (string $date): bool => Carbon::parse($date)->isMonday()))->toBeTrue();
+});
+
 it('renders the cancel link to the mobile timecard index on the create form', function (): void {
     $user = mobileTimecardUser(['timecards.create']);
 
@@ -114,8 +135,8 @@ it('renders a submit action on the mobile header button', function (): void {
 
     get(route('timecards.mobile.create'))
         ->assertOk()
-    ->assertSee('form="mobile-timecard-form"', false)
-    ->assertSee('type="submit"', false);
+        ->assertSee('form="mobile-timecard-form"', false)
+        ->assertSee('type="submit"', false);
 });
 
 it('creates a draft timecard via the mobile form and redirects to mobile show', function (): void {
@@ -144,12 +165,10 @@ it('updates an existing draft timecard via the mobile form', function (): void {
     $timecard = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_DRAFT,
-        'notes' => 'Old notes',
     ]);
 
     Livewire::actingAs($user)
         ->test(MobileForm::class, ['timecard' => $timecard])
-        ->set('notes', 'Updated mobile notes')
         ->set('entries.0.day_of_week', 2)
         ->set('entries.0.hours', '6.00')
         ->call('save')
@@ -158,7 +177,7 @@ it('updates an existing draft timecard via the mobile form', function (): void {
 
     $this->assertDatabaseHas('timecards', [
         'id' => $timecard->id,
-        'notes' => 'Updated mobile notes',
+        'status' => Timecard::STATUS_DRAFT,
     ]);
 });
 
@@ -190,6 +209,113 @@ it('applies a quick start time preset to a mobile entry row', function (): void 
         ->set('entries.0.start_time', '05:00')
         ->call('applyStartTimePreset', 0, '07:30')
         ->assertSet('entries.0.start_time', '07:30');
+});
+
+it('saves multiple entries for the same configured week day', function (): void {
+    Settings::set('app.week_start_day', 'monday');
+    $user = mobileTimecardUser(['timecards.create']);
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('week_starting', '2026-03-30')
+        ->set('entries.0.day_of_week', 1)
+        ->set('entries.0.hours', '4.00')
+        ->call('addEntry')
+        ->set('entries.1.day_of_week', 1)
+        ->set('entries.1.hours', '4.00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $timecard = Timecard::query()->where('user_id', $user->id)->latest()->firstOrFail();
+
+    expect($timecard->entries()->whereDate('date', '2026-03-30')->count())->toBe(2);
+});
+
+it('normalizes the selected week before saving mobile entries', function (): void {
+    Settings::set('app.week_start_day', 'monday');
+    $user = mobileTimecardUser(['timecards.create']);
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('week_starting', '2026-03-29')
+        ->set('entries.0.day_of_week', 0)
+        ->set('entries.0.hours', '8.00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $timecard = Timecard::query()->where('user_id', $user->id)->latest()->firstOrFail();
+
+    expect($timecard->week_starting?->toDateString())->toBe('2026-03-23');
+    expect($timecard->entries()->whereDate('date', '2026-03-29')->count())->toBe(1);
+});
+
+it('clears a custom project name when selecting a configured project', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+    $project = Project::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('entries.0.custom_project_name', 'Temporary job name')
+        ->set('entries.0.project_id', (string) $project->id)
+        ->assertSet('entries.0.custom_project_name', null);
+});
+
+it('does not persist a custom project name with a configured project', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+    $project = Project::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(MobileForm::class)
+        ->set('entries.0.project_id', (string) $project->id)
+        ->set('entries.0.custom_project_name', 'Stale project name')
+        ->set('entries.0.hours', '8.00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $timecard = Timecard::query()->where('user_id', $user->id)->latest()->firstOrFail();
+
+    expect($timecard->entries()->firstOrFail()->custom_project_name)->toBeNull();
+});
+
+it('shows and requires a custom project name when an edit form entry is changed to custom', function (): void {
+    $user = mobileTimecardUser(['timecards.view', 'timecards.edit']);
+    $project = Project::factory()->create();
+
+    $timecard = Timecard::factory()->create([
+        'user_id' => $user->id,
+        'status' => Timecard::STATUS_DRAFT,
+        'week_starting' => '2026-09-20',
+    ]);
+
+    $timecard->entries()->create([
+        'user_id' => $user->id,
+        'date' => '2026-09-20',
+        'start_time' => '07:00',
+        'project_id' => $project->id,
+        'cost_code_id' => null,
+        'custom_project_name' => null,
+        'hours' => 8,
+        'notes' => null,
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test(MobileForm::class, ['timecard' => $timecard])
+        ->set('entries.0.project_id', '');
+
+    expect($component->html())->toContain('Required when Custom / Unassigned is selected.');
+
+    $component
+        ->call('save')
+        ->assertHasErrors(['entries.0.custom_project_name']);
+});
+
+it('requires confirmation before removing an entry with a cost code', function (): void {
+    $user = mobileTimecardUser(['timecards.create']);
+
+    $component = Livewire::actingAs($user)->test(MobileForm::class)
+        ->set('entries.0.cost_code_id', 'cost-code-id');
+
+    expect($component->html())->toContain('wire:confirm="Remove this entry? Its entered details will be lost."');
 });
 
 it('prevents unauthorized user from creating timecards via mobile form', function (): void {

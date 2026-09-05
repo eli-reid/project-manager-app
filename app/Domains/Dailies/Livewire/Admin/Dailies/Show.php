@@ -4,6 +4,7 @@ namespace App\Domains\Dailies\Livewire\Admin\Dailies;
 
 use App\Domains\Dailies\Models\DailyReport;
 use App\Domains\Dailies\Services\DailyReportLifecycleService;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -19,11 +20,18 @@ class Show extends Component
 
     public DailyReport $dailyReport;
 
+    public bool $embedded = false;
+
+    public string $returnTo = '';
+
     public string $rejectionReason = '';
 
-    public function mount(DailyReport $dailyReport): void
+    public function mount(DailyReport $dailyReport, bool $embedded = false, ?string $returnTo = null): void
     {
         $this->authorize('view', $dailyReport);
+
+        $this->embedded = $embedded;
+        $this->returnTo = is_string($returnTo) ? $returnTo : '';
 
         $this->dailyReport = $dailyReport->load(['project', 'user', 'submittedBy']);
     }
@@ -74,8 +82,15 @@ class Show extends Component
 
     public function render()
     {
+        $backUrl = $this->returnTo;
+
+        if ($backUrl === '' && $this->embedded) {
+            $backUrl = app(ProjectTabLinkBuilder::class)->to((string) $this->dailyReport->project_id, 'dailies');
+        }
+
         return view('dailies::livewire.admin.dailies.show', [
             'dailyReport' => $this->dailyReport,
+            'backUrl' => $backUrl,
         ]);
     }
 }

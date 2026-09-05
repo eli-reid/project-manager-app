@@ -3,6 +3,7 @@
 namespace App\Domains\Dailies\Livewire\Dashboard;
 
 use App\Core\Identity\Models\User;
+use App\Support\Diagnostics\MemoryProbe;
 use App\Domains\Dailies\Models\DailyReport;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,7 @@ class Widget extends Component
 {
     public function render(): View
     {
+        $baseline = MemoryProbe::enabled() ? MemoryProbe::snapshot('widget.dailies.field-summary.render.start') : null;
         $user = Auth::user();
         abort_unless($user instanceof User, 401);
 
@@ -44,6 +46,20 @@ class Widget extends Component
 
         $indexHref = $usesMobileRoutes ? route('dailies.mobile.index') : route('dailies.index');
         $reportRoute = $usesMobileRoutes && Route::has('dailies.mobile.show') ? 'dailies.mobile.show' : 'dailies.show';
+        if ($baseline !== null) {
+            MemoryProbe::logDelta('Dashboard widget memory probe.', $baseline, 'rendered', [
+                'widget' => 'dailies.field-summary',
+                'phase' => 'render',
+                'reports_count' => $reports->count(),
+                'can_view_all' => $canViewAll,
+                'reports_payload' => MemoryProbe::inspect($reports, 'reports'),
+                'status_counts' => [
+                    'draft' => $draftCount,
+                    'submitted' => $submittedCount,
+                    'approved' => $approvedCount,
+                ],
+            ]);
+        }
 
         return view('dailies::livewire.dashboard.widget', [
             'reports' => $reports,

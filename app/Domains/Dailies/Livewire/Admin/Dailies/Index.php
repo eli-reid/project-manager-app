@@ -3,6 +3,7 @@
 namespace App\Domains\Dailies\Livewire\Admin\Dailies;
 
 use App\Domains\Dailies\Models\DailyReport;
+use App\Domains\Projects\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
@@ -17,6 +18,10 @@ class Index extends Component
 {
     use AuthorizesRequests;
     use WithPagination;
+
+    public ?Project $project = null;
+
+    public bool $embedded = false;
 
     #[Url(as: 'status')]
     public string $statusFilter = '';
@@ -42,9 +47,12 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function mount(): void
+    public function mount(?Project $project = null, bool $embedded = false): void
     {
         $this->authorize('viewAll', DailyReport::class);
+
+        $this->project = $project;
+        $this->embedded = $embedded && $project instanceof Project;
     }
 
     private function baseQuery(): Builder
@@ -65,6 +73,10 @@ class Index extends Component
             $query->whereDate('report_date', '<=', $this->dateTo);
         }
 
+        if ($this->embedded && $this->project instanceof Project) {
+            $query->where('project_id', (string) $this->project->id);
+        }
+
         return $query;
     }
 
@@ -72,6 +84,7 @@ class Index extends Component
     {
         return view('dailies::livewire.admin.dailies.index', [
             'reports' => $this->baseQuery()->paginate(15),
+            'embeddedProject' => $this->embedded ? $this->project : null,
         ]);
     }
 }

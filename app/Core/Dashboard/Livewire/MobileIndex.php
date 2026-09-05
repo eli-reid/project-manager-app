@@ -32,12 +32,12 @@ class MobileIndex extends Component
 
     public function mount(DashboardWidgetRegistry $widgetRegistry): void
     {
-        $this->sections = $this->resolveDashboardSections($widgetRegistry, 'dashboard::livewire.mobile.index');
+        $this->sections = $this->resolveDashboardSectionsWithMemoryProbe($widgetRegistry, 'dashboard::livewire.mobile.index');
     }
 
     public function render()
     {
-        $showLabels = count($this->sections) > 1;
+        $showLabels = \count($this->sections) > 1;
 
         return view('dashboard::livewire.mobile.index', [
             'sections' => $this->sections,

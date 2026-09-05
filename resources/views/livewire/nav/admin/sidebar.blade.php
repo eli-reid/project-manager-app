@@ -1,3 +1,4 @@
+<div class="contents">
 <flux:sidebar.spacer />
 
 @if ($canViewAdminNav)
@@ -17,6 +18,12 @@
         </flux:sidebar.item>
     @endif
 
+    @if ($canViewAdminAccountingCodes)
+        <flux:sidebar.item icon="calculator" :href="route('admin.accounting-codes.index')" :current="request()->routeIs('admin.accounting-codes.*')" wire:navigate>
+            {{ __('Accounting Codes') }}
+        </flux:sidebar.item>
+    @endif
+
     @if ($canManageUsers)
         <flux:sidebar.item icon="shield-check" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')" wire:navigate data-test="admin-settings-sidebar-main-link">
             {{ __('User Management') }}
@@ -27,7 +34,7 @@
         <flux:sidebar.item
             icon="building-2"
             :href="$canViewAdminClients ? route('admin.clients.index') : route('admin.addresses.index')"
-            :current="request()->routeIs('admin.clients.*') || request()->routeIs('admin.addresses.*')"
+            :current="request()->routeIs('admin.clients.*')"
             wire:navigate
             data-test="admin-client-management-sidebar-main-link"
         >
@@ -112,6 +119,7 @@
         </flux:sidebar.item>
     @endif
 @endif
+</div>
 
      
 

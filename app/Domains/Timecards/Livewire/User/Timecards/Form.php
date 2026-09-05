@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -113,6 +114,12 @@ class Form extends Component
         $this->entries[] = $this->newEntry();
     }
 
+    #[On('timecard-form:add-entry')]
+    public function addEntryFromNavbar(): void
+    {
+        $this->addEntry();
+    }
+
     public function addLeaveEntry(string $leaveCategory): void
     {
         if (! in_array($leaveCategory, ['sick', 'vacation'], true)) {
@@ -132,6 +139,18 @@ class Form extends Component
         }
 
         $this->entries[] = $this->newEntry($leaveProjectId);
+    }
+
+    #[On('timecard-form:add-sick-entry')]
+    public function addSickEntryFromNavbar(): void
+    {
+        $this->addLeaveEntry('sick');
+    }
+
+    #[On('timecard-form:add-vacation-entry')]
+    public function addVacationEntryFromNavbar(): void
+    {
+        $this->addLeaveEntry('vacation');
     }
 
     public function removeEntry(int $index): void
@@ -156,12 +175,39 @@ class Form extends Component
 
     public function updatedWeekStarting(string $value): void
     {
-        unset($value);
+        if (filled($value)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($value)->toDateString();
+        }
+    }
+
+    public function updatedEntries(mixed $value, string $key): void
+    {
+        if (! str_ends_with($key, '.project_id') || blank($value)) {
+            return;
+        }
+
+        [$index] = explode('.', $key, 2);
+
+        if (isset($this->entries[$index])) {
+            $this->entries[$index]['custom_project_name'] = null;
+        }
+    }
+
+    public function hydrate(): void
+    {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
     }
 
     public function save(): void
     {
+        if (filled($this->week_starting)) {
+            $this->week_starting = app(TimecardWeekService::class)->normalizeWeekStart($this->week_starting)->toDateString();
+        }
+
         $validated = $this->validate();
+        $this->assertValidCustomProjectNames($validated['entries'] ?? []);
         $this->assertValidCostCodeMapping($validated['entries'] ?? []);
 
         // Convert day_of_week to actual dates
@@ -193,6 +239,25 @@ class Form extends Component
         $this->redirectRoute('timecards.show', ['timecard' => $timecard], navigate: true);
     }
 
+    /**
+     * Ensure entries using Custom / Unassigned (no project_id) provide a custom_project_name.
+     *
+     * @param  array<int, array<string, mixed>>  $entries
+     */
+    protected function assertValidCustomProjectNames(array $entries): void
+    {
+        foreach ($entries as $index => $entry) {
+            $projectId = (string) ($entry['project_id'] ?? '');
+            $custom = trim((string) ($entry['custom_project_name'] ?? ''));
+
+            if ($projectId === '' && $custom === '') {
+                throw ValidationException::withMessages([
+                    "entries.{$index}.custom_project_name" => 'Please provide a custom project name when Custom / Unassigned is selected.',
+                ]);
+            }
+        }
+    }
+
     public function render()
     {
         $projects = Project::query()
@@ -215,11 +280,6 @@ class Form extends Component
             'leaveBalances' => $user instanceof User
                 ? app(LeaveBalanceService::class)->forUser($user)
                 : ['sick' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0], 'vacation' => ['allowed' => 0.0, 'used' => 0.0, 'remaining' => 0.0]],
-            'costCodesByProject' => CostCode::query()
-                ->where('is_active', true)
-                ->orderBy('code')
-                ->get(['id', 'project_id', 'code', 'description'])
-                ->groupBy('project_id'),
         ]);
     }
 
@@ -234,7 +294,9 @@ class Form extends Component
         $weekStart = Carbon::parse($this->week_starting);
 
         return array_map(function (array $entry) use ($weekStart) {
-            $entry['date'] = $weekStart->copy()->addDays((int) $entry['day_of_week'])->toDateString();
+            $dayOffset = ((int) $entry['day_of_week'] - $weekStart->dayOfWeek + 7) % 7;
+
+            $entry['date'] = $weekStart->copy()->addDays($dayOffset)->toDateString();
             unset($entry['day_of_week']);
             unset($entry['row_key']);
 
@@ -300,7 +362,7 @@ class Form extends Component
         return [
             'id' => null,
             'row_key' => 'entry-'.(string) Str::ulid(),
-            'day_of_week' => 1,
+            'day_of_week' => app(TimecardWeekService::class)->currentWeekStart()->dayOfWeek,
             'start_time' => null,
             'project_id' => $projectId,
             'cost_code_id' => null,
@@ -309,5 +371,37 @@ class Form extends Component
             'notes' => null,
             'delete' => false,
         ];
+    }
+
+    public function applyStartTimePreset(int $index, string $startTime): void
+    {
+        if (! isset($this->entries[$index]) || ($this->entries[$index]['delete'] ?? false)) {
+            return;
+        }
+
+        $allowedPresets = ['06:00', '06:30', '07:00', '07:30'];
+
+        if (! in_array($startTime, $allowedPresets, true)) {
+            return;
+        }
+
+        $this->entries[$index]['start_time'] = $startTime;
+        $this->resetValidation('entries.'.$index.'.start_time');
+    }
+
+    public function applyHoursPreset(int $index, string $hours): void
+    {
+        if (! isset($this->entries[$index]) || ($this->entries[$index]['delete'] ?? false)) {
+            return;
+        }
+
+        $allowedPresets = ['4.00', '6.00', '8.00', '10.00'];
+
+        if (! in_array($hours, $allowedPresets, true)) {
+            return;
+        }
+
+        $this->entries[$index]['hours'] = $hours;
+        $this->resetValidation('entries.'.$index.'.hours');
     }
 }

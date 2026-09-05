@@ -9,13 +9,13 @@
 
         <div class="flex flex-wrap gap-2">
             @foreach ($futureWeeks as $futureWeek)
-                <a
-                    href="{{ route('timecards.create', ['week_starting' => $futureWeek['start']]) }}"
+                <button
+                    type="button"
+                    wire:click="createForWeek('{{ $futureWeek['start'] }}')"
                     class="inline-flex items-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                    wire:navigate
                 >
                     {{ __('New for :range', ['range' => $futureWeek['label']]) }}
-                </a>
+                </button>
             @endforeach
         </div>
     </div>

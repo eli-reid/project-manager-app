@@ -1,3 +1,4 @@
+<div class="contents">
         @if ($canViewProjects)
             <flux:sidebar.item
                 icon="briefcase"
@@ -55,3 +56,4 @@
                 {{ __('Documents') }}
             </flux:sidebar.item>
         @endif
+</div>

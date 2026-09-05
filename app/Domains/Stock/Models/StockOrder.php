@@ -3,6 +3,7 @@
 namespace App\Domains\Stock\Models;
 
 use App\Core\Identity\Models\User;
+use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Projects\Models\Project;
 use App\Domains\Stock\Database\Factories\StockOrderFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,6 +51,7 @@ class StockOrder extends Model
     protected $fillable = [
         'user_id',
         'project_id',
+        'accounting_code_id',
         'po_number',
         'status',
         'urgency',
@@ -76,6 +78,11 @@ class StockOrder extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function accountingCode(): BelongsTo
+    {
+        return $this->belongsTo(AccountingCode::class);
     }
 
     public function items(): HasMany

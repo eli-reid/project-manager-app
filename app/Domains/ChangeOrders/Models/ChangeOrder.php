@@ -4,11 +4,13 @@ namespace App\Domains\ChangeOrders\Models;
 
 use App\Core\Identity\Models\User;
 use App\Domains\ChangeOrders\Database\Factories\ChangeOrderFactory;
+use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -29,6 +31,14 @@ class ChangeOrder extends Model
     public const STATUS_IMPLEMENTED = 'implemented';
 
     public const STATUS_CANCELLED = 'cancelled';
+
+    public const DOCUMENT_ROLE_REFERENCE = 'reference';
+
+    public const DOCUMENT_ROLE_SUPPORTING = 'supporting';
+
+    public const DOCUMENT_STATUS_ACTIVE = 'active';
+
+    public const DOCUMENT_STATUS_SUPERSEDED = 'superseded';
 
     protected $fillable = [
         'project_id',
@@ -90,6 +100,23 @@ class ChangeOrder extends Model
         return $this->belongsTo(User::class, 'rejected_by_id');
     }
 
+    public function documents(): BelongsToMany
+    {
+        return $this->belongsToMany(Document::class, 'change_order_documents', 'change_order_id', 'document_id')
+            ->withTimestamps()
+            ->withPivot(['document_role', 'document_status', 'revision', 'discipline']);
+    }
+
+    public function activeDocuments(): BelongsToMany
+    {
+        return $this->documents()->wherePivot('document_status', self::DOCUMENT_STATUS_ACTIVE);
+    }
+
+    public function documentsByRole(string $documentRole): BelongsToMany
+    {
+        return $this->documents()->wherePivot('document_role', $documentRole);
+    }
+
     /**
      * @return array<int, string>
      */
@@ -102,6 +129,28 @@ class ChangeOrder extends Model
             self::STATUS_REJECTED,
             self::STATUS_IMPLEMENTED,
             self::STATUS_CANCELLED,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function allowedDocumentRoles(): array
+    {
+        return [
+            self::DOCUMENT_ROLE_REFERENCE,
+            self::DOCUMENT_ROLE_SUPPORTING,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function allowedDocumentStatuses(): array
+    {
+        return [
+            self::DOCUMENT_STATUS_ACTIVE,
+            self::DOCUMENT_STATUS_SUPERSEDED,
         ];
     }
 

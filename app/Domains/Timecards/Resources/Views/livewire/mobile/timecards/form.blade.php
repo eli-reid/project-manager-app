@@ -1,12 +1,13 @@
 @php
-    $weekStart = \Illuminate\Support\Carbon::parse($week_starting);
+    $activeEntries = collect($entries)->reject(fn (array $entry): bool => $entry['delete'] ?? false);
+    $totalHours = $activeEntries->sum(fn (array $entry): float => (float) ($entry['hours'] ?? 0));
 @endphp
 
 <x-slot:headerAction>
     <div class="flex items-center gap-2">
         <span
             wire:dirty
-            wire:target="week_starting,notes,entries"
+            wire:target="entries"
             class="inline-flex h-8 items-center rounded-full border border-amber-700/60 bg-amber-900/40 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-200"
         >
             {{ __('Unsaved') }}
@@ -16,18 +17,21 @@
             type="submit"
             form="mobile-timecard-form"
             data-mobile-haptic
-            class="inline-flex min-h-10 items-center justify-center rounded-xl bg-zinc-100 px-3 text-xs font-semibold text-zinc-900 active:bg-zinc-300"
+            wire:loading.attr="disabled"
+            wire:target="save"
+            class="inline-flex min-h-11 items-center justify-center rounded-xl bg-zinc-100 px-3 text-xs font-semibold text-zinc-900 active:bg-zinc-300 disabled:cursor-wait disabled:opacity-70"
         >
-            <span>{{ $isEdit ? __('Save') : __('Create') }}</span>
+            <span wire:loading.remove wire:target="save">{{ $isEdit ? __('Save') : __('Create') }}</span>
+            <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
         </button>
     </div>
 </x-slot:headerAction>
 
-<div class="flex flex-col gap-5 px-4 py-5 pb-24">
+<div class="flex flex-col gap-5 px-4 py-5 pb-36">
     <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3">
         <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Week Range') }}</p>
         <p class="mt-1 text-sm font-semibold text-zinc-100">
-            {{ $weekStart->copy()->startOfWeek()->format('M j') }} - {{ $weekStart->copy()->endOfWeek()->format('M j, Y') }}
+            {{ $weekDays->first()->format('M j') }} - {{ $weekDays->last()->format('M j, Y') }}
         </p>
         <p class="mt-1 text-xs text-zinc-400">{{ __('Tap a quick hour chip for faster entry.') }}</p>
     </div>
@@ -54,37 +58,15 @@
     @endif
 
     <form id="mobile-timecard-form" wire:submit="save" class="flex flex-col gap-5">
-        {{-- Week Starting --}}
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4">
-            <label class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Week Starting') }}</label>
-            <input
-                type="date"
-                wire:model="week_starting"
-                class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
-            />
-            @error('week_starting')
-                <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
-
-        {{-- Notes --}}
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4">
-            <label class="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Notes') }}</label>
-            <textarea
-                wire:model="notes"
-                rows="3"
-                placeholder="{{ __('Optional notes for this timecard…') }}"
-                class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
-            ></textarea>
-            @error('notes')
-                <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
+        @error('week_starting')
+            <p class="text-xs text-red-400">{{ $message }}</p>
+        @enderror
 
         {{-- Entries --}}
         <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Daily Entries') }}</p>
+                <p class="text-sm font-semibold text-zinc-100">{{ number_format($totalHours, 2) }} {{ __('hrs') }}</p>
                 @error('entries')
                     <p class="text-xs text-red-400">{{ $message }}</p>
                 @enderror
@@ -101,7 +83,17 @@
                             <button
                                 type="button"
                                 wire:click="removeEntry({{ $index }})"
-                                class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-800/60 bg-rose-900/30 text-rose-300"
+                                @if (
+                                    filled($entry['start_time'] ?? null)
+                                    || filled($entry['project_id'] ?? null)
+                                    || filled($entry['cost_code_id'] ?? null)
+                                    || filled($entry['custom_project_name'] ?? null)
+                                    || filled($entry['notes'] ?? null)
+                                    || (float) ($entry['hours'] ?? 0) > 0
+                                )
+                                    wire:confirm="{{ __('Remove this entry? Its entered details will be lost.') }}"
+                                @endif
+                                class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-rose-800/60 bg-rose-900/30 text-rose-300 active:bg-rose-900/60"
                                 data-mobile-haptic
                                 aria-label="{{ __('Remove entry') }}"
                             >
@@ -113,19 +105,41 @@
                             {{-- Day --}}
                             <div class="col-span-2">
                                 <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Day') }}</label>
+                                <div class="grid grid-cols-4 gap-2">
+                                    @foreach ($weekDays as $weekDay)
+                                        <button
+                                            type="button"
+                                            wire:click="$set('entries.{{ $index }}.day_of_week', {{ $weekDay->dayOfWeek }})"
+                                            @class([
+                                                'min-h-12 rounded-xl border px-2 text-left text-xs font-semibold',
+                                                'border-zinc-100 bg-zinc-100 text-zinc-900' => (int) $entry['day_of_week'] === $weekDay->dayOfWeek,
+                                                'border-zinc-700 bg-zinc-950 text-zinc-300 active:bg-zinc-800' => (int) $entry['day_of_week'] !== $weekDay->dayOfWeek,
+                                            ])
+                                            data-mobile-haptic
+                                        >
+                                            <span class="block">{{ $weekDay->format('D') }}</span>
+                                            <span class="block text-[11px] font-normal opacity-70">{{ $weekDay->format('M j') }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                                @error('entries.'.$index.'.day_of_week')
+                                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Project --}}
+                            <div class="col-span-2">
+                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Project') }}</label>
                                 <select
-                                    wire:model="entries.{{ $index }}.day_of_week"
+                                    wire:model="entries.{{ $index }}.project_id"
                                     class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
                                 >
-                                    <option value="0">{{ __('Sunday') }}</option>
-                                    <option value="1">{{ __('Monday') }}</option>
-                                    <option value="2">{{ __('Tuesday') }}</option>
-                                    <option value="3">{{ __('Wednesday') }}</option>
-                                    <option value="4">{{ __('Thursday') }}</option>
-                                    <option value="5">{{ __('Friday') }}</option>
-                                    <option value="6">{{ __('Saturday') }}</option>
+                                    <option value="">{{ __('Custom / Unassigned') }}</option>
+                                    @foreach ($projects as $project)
+                                        <option value="{{ $project->id }}">{{ $project->name }}{{ $project->leave_category ? ' ('.str($project->leave_category)->headline().' Leave)' : '' }}</option>
+                                    @endforeach
                                 </select>
-                                @error('entries.'.$index.'.day_of_week')
+                                @error('entries.'.$index.'.project_id')
                                     <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -143,11 +157,15 @@
                                 @enderror
 
                                 <div class="mt-2 flex flex-wrap gap-1.5">
-                                    @foreach ([['value' => '06:00', 'label' => '6:00 AM'], ['value' => '06:30', 'label' => '6:30 AM'], ['value' => '07:00', 'label' => '7:00 AM'], ['value' => '07:30', 'label' => '7:30 AM'], ['value' => '08:00', 'label' => '8:00 AM']] as $presetStart)
+                                    @foreach ([['value' => '06:00', 'label' => '6:00A'], ['value' => '06:30', 'label' => '6:30A'], ['value' => '07:00', 'label' => '7:00A'], ['value' => '07:30', 'label' => '7:30A']] as $presetStart)
                                         <button
                                             type="button"
                                             wire:click="applyStartTimePreset({{ $index }}, '{{ $presetStart['value'] }}')"
-                                            class="rounded-full border border-zinc-700 px-2.5 py-1 text-[11px] font-semibold text-zinc-300"
+                                            @class([
+                                                'min-h-11 rounded-full border px-3 text-[11px] font-semibold',
+                                                'border-zinc-100 bg-zinc-100 text-zinc-900' => ($entry['start_time'] ?? null) === $presetStart['value'],
+                                                'border-zinc-700 text-zinc-300 active:bg-zinc-800' => ($entry['start_time'] ?? null) !== $presetStart['value'],
+                                            ])
                                             data-mobile-haptic
                                         >
                                             {{ $presetStart['label'] }}
@@ -173,34 +191,21 @@
                                 @enderror
 
                                 <div class="mt-2 flex flex-wrap gap-1.5">
-                                    @foreach (['4.00', '6.00', '8.00', '10.00', '12.00'] as $presetHours)
+                                    @foreach (['4.00', '6.00', '8.00', '10.00'] as $presetHours)
                                         <button
                                             type="button"
                                             wire:click="applyHoursPreset({{ $index }}, '{{ $presetHours }}')"
-                                            class="rounded-full border border-zinc-700 px-2.5 py-1 text-[11px] font-semibold text-zinc-300"
+                                            @class([
+                                                'min-h-11 rounded-full border px-3 text-[11px] font-semibold',
+                                                'border-zinc-100 bg-zinc-100 text-zinc-900' => (float) ($entry['hours'] ?? 0) === (float) $presetHours,
+                                                'border-zinc-700 text-zinc-300 active:bg-zinc-800' => (float) ($entry['hours'] ?? 0) !== (float) $presetHours,
+                                            ])
                                             data-mobile-haptic
                                         >
                                             {{ $presetHours }}h
                                         </button>
                                     @endforeach
                                 </div>
-                            </div>
-
-                            {{-- Project --}}
-                            <div class="col-span-2">
-                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Project') }}</label>
-                                <select
-                                    wire:model="entries.{{ $index }}.project_id"
-                                    class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
-                                >
-                                    <option value="">{{ __('Custom / Unassigned') }}</option>
-                                    @foreach ($projects as $project)
-                                        <option value="{{ $project->id }}">{{ $project->name }}{{ $project->leave_category ? ' ('.str($project->leave_category)->headline().' Leave)' : '' }}</option>
-                                    @endforeach
-                                </select>
-                                @error('entries.'.$index.'.project_id')
-                                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             {{-- Cost Code --}}
@@ -227,34 +232,39 @@
                                 </div>
                             @endif
 
-                            {{-- Custom Project Name --}}
-                            <div class="col-span-2">
-                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Custom Project Name') }}</label>
-                                <input
-                                    type="text"
-                                    wire:model="entries.{{ $index }}.custom_project_name"
-                                    placeholder="{{ __('Optional') }}"
-                                    class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
-                                />
-                                @error('entries.'.$index.'.custom_project_name')
-                                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            @if (blank($entry['project_id'] ?? null))
+                                <div class="col-span-2">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Custom Project Name') }}</label>
+                                    <input
+                                        type="text"
+                                        wire:model="entries.{{ $index }}.custom_project_name"
+                                        required
+                                        placeholder="{{ __('Required when Custom / Unassigned is selected') }}"
+                                        class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
+                                    />
+                                    @error('entries.'.$index.'.custom_project_name')
+                                        <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
+                                    @enderror
+                                    <p class="mt-1.5 text-xs text-zinc-500">{{ __('Required when Custom / Unassigned is selected.') }}</p>
+                                </div>
+                            @endif
 
-                            {{-- Entry Notes --}}
+                            <details class="col-span-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1" @if (filled($entry['notes'] ?? null)) open @endif>
+                                <summary class="min-h-11 cursor-pointer py-3 text-xs font-semibold text-zinc-400">{{ __('Add entry notes') }}</summary>
+                                <div class="pb-3">
+                                    <input
+                                        type="text"
+                                        wire:model="entries.{{ $index }}.notes"
+                                        placeholder="{{ __('Optional') }}"
+                                        class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
+                                    />
+                                    @error('entries.'.$index.'.notes')
+                                        <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </details>
+                            {{-- Project --}}
                             <div class="col-span-2">
-                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ __('Entry Notes') }}</label>
-                                <input
-                                    type="text"
-                                    wire:model="entries.{{ $index }}.notes"
-                                    placeholder="{{ __('Optional') }}"
-                                    class="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
-                                />
-                                @error('entries.'.$index.'.notes')
-                                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
                     </div>
                 @endif
             @endforeach
@@ -304,4 +314,13 @@
             {{ __('Cancel') }}
         </a>
     </form>
+</div>
+
+<div class="pointer-events-none fixed inset-x-0 bottom-20 z-40">
+    <div class="mx-auto max-w-md px-4">
+        <div class="flex items-center justify-between rounded-2xl border border-zinc-700 bg-zinc-900/95 px-4 py-3 shadow-lg backdrop-blur">
+            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">{{ __('Total hours') }}</span>
+            <span class="text-base font-semibold text-zinc-50">{{ number_format($totalHours, 2) }} {{ __('hrs') }}</span>
+        </div>
+    </div>
 </div>

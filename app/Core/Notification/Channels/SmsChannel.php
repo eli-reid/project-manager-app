@@ -19,6 +19,11 @@ class SmsChannel
 
         $payload = $notification->toSms($notifiable);
 
+        // A null payload indicates the notification intentionally skipped SMS delivery.
+        if ($payload === null) {
+            return;
+        }
+
         if (! is_array($payload) || ($payload['to'] ?? null) === null || ($payload['message'] ?? null) === null) {
             Log::warning('SMS notification payload is missing required fields.', [
                 'notification' => get_class($notification),

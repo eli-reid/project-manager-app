@@ -1,16 +1,29 @@
 <div class="space-y-6">
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <flux:heading size="xl" level="1">{{ __('Daily Reports') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Review and manage all field daily reports.') }}</flux:text>
-        </div>
+    @if ($embeddedProject)
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Project Dailies</h2>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                    {{ $reports->total() }} {{ \Illuminate\Support\Str::plural('daily report', $reports->total()) }} linked to this project.
+                </p>
+            </div>
 
-        @can('create', \App\Domains\Dailies\Models\DailyReport::class)
-            <flux:button :href="route('admin.dailies.create')" wire:navigate icon="plus" variant="primary">
-                {{ __('New Report') }}
-            </flux:button>
-        @endcan
-    </div>
+            <a href="{{ route('admin.dailies.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Open Queue</a>
+        </div>
+    @else
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <flux:heading size="xl" level="1">{{ __('Daily Reports') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Review and manage all field daily reports.') }}</flux:text>
+            </div>
+
+            @can('create', \App\Domains\Dailies\Models\DailyReport::class)
+                <flux:button :href="route('admin.dailies.create')" wire:navigate icon="plus" variant="primary">
+                    {{ __('New Report') }}
+                </flux:button>
+            @endcan
+        </div>
+    @endif
 
     @if (session('success'))
         <div class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{{ session('success') }}</div>
@@ -57,7 +70,9 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Date') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Worker') }}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project') }}</th>
+                        @unless ($embeddedProject)
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Project') }}</th>
+                        @endunless
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Hours') }}</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</th>
                         <th class="relative px-4 py-3"><span class="sr-only">{{ __('Actions') }}</span></th>
@@ -72,9 +87,11 @@
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ trim(($report->user?->first_name ?? '').' '.($report->user?->last_name ?? '')) ?: '—' }}
                             </td>
-                            <td class="max-w-40 truncate px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-                                {{ $report->project?->name ?? $report->custom_project_name ?? '—' }}
-                            </td>
+                            @unless ($embeddedProject)
+                                <td class="max-w-40 truncate px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
+                                    {{ $report->project?->name ?? $report->custom_project_name ?? '—' }}
+                                </td>
+                            @endunless
                             <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ number_format($report->total_hours, 2) }}
                             </td>
@@ -93,7 +110,7 @@
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('admin.dailies.show', $report) }}" wire:navigate class="rounded px-2 py-1 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                                    <a href="{{ $embeddedProject ? app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'dailies', detailId: (string) $report->id) : route('admin.dailies.show', $report) }}" wire:navigate class="rounded px-2 py-1 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
                                         {{ $report->status === \App\Domains\Dailies\Models\DailyReport::STATUS_SUBMITTED ? __('Review') : __('View') }}
                                     </a>
                                     @can('update', $report)
@@ -106,15 +123,17 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No daily reports found.') }}</td>
+                            <td colspan="{{ $embeddedProject ? 5 : 6 }}" class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">{{ __('No daily reports found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
-            {{ $reports->links() }}
-        </div>
+        @if ($reports->hasPages())
+            <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                {{ $reports->links() }}
+            </div>
+        @endif
     </div>
 </div>

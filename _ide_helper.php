@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 12.56.0.
+ * Generated for Laravel 12.60.2.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -13964,7 +13964,6 @@ namespace Illuminate\Support\Facades {
 
             }
     /**
-     * @method static \BackedEnum|(\BackedEnum|null enum(string $key, string $enumClass, \BackedEnum|null $default = null)
      * @see \Illuminate\Http\Request
      */
     class Request {
@@ -20437,6 +20436,7 @@ namespace Illuminate\Support\Facades {
          * @param array $headers
          * @param string|null $disposition
          * @return \Symfony\Component\HttpFoundation\StreamedResponse
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function response($path, $name = null, $headers = [], $disposition = 'inline')
@@ -20454,6 +20454,7 @@ namespace Illuminate\Support\Facades {
          * @param string|null $name
          * @param array $headers
          * @return \Symfony\Component\HttpFoundation\StreamedResponse
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function serve($request, $path, $name = null, $headers = [])
@@ -20470,6 +20471,7 @@ namespace Illuminate\Support\Facades {
          * @param string|null $name
          * @param array $headers
          * @return \Symfony\Component\HttpFoundation\StreamedResponse
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function download($path, $name = null, $headers = [])
@@ -20668,6 +20670,7 @@ namespace Illuminate\Support\Facades {
          *
          * @param string $path
          * @return string|false
+         * @throws UnableToRetrieveMetadata
          * @static
          */
         public static function mimeType($path)
@@ -23298,6 +23301,377 @@ namespace Illuminate\Support\Facades {
             }
     }
 
+namespace Barryvdh\DomPDF\Facade {
+    /**
+     * @method static BasePDF setBaseHost(string $baseHost)
+     * @method static BasePDF setBasePath(string $basePath)
+     * @method static BasePDF setCanvas(\Dompdf\Canvas $canvas)
+     * @method static BasePDF setCallbacks(array<string, mixed> $callbacks)
+     * @method static BasePDF setCss(\Dompdf\Css\Stylesheet $css)
+     * @method static BasePDF setDefaultView(string $defaultView, array<string, mixed> $options)
+     * @method static BasePDF setDom(\DOMDocument $dom)
+     * @method static BasePDF setFontMetrics(\Dompdf\FontMetrics $fontMetrics)
+     * @method static BasePDF setHttpContext(resource|array<string, mixed> $httpContext)
+     * @method static BasePDF setPaper(string|float[] $paper, string $orientation = 'portrait')
+     * @method static BasePDF setProtocol(string $protocol)
+     * @method static BasePDF setTree(\Dompdf\Frame\FrameTree $tree)
+     */
+    class Pdf {
+        /**
+         * Get the DomPDF instance
+         *
+         * @static
+         */
+        public static function getDomPDF()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->getDomPDF();
+        }
+
+        /**
+         * Show or hide warnings
+         *
+         * @static
+         */
+        public static function setWarnings($warnings)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setWarnings($warnings);
+        }
+
+        /**
+         * Load a HTML string
+         *
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadHTML($string, $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadHTML($string, $encoding);
+        }
+
+        /**
+         * Load a HTML file
+         *
+         * @static
+         */
+        public static function loadFile($file)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadFile($file);
+        }
+
+        /**
+         * Add metadata info
+         *
+         * @param array<string, string> $info
+         * @static
+         */
+        public static function addInfo($info)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->addInfo($info);
+        }
+
+        /**
+         * Load a View and convert to HTML
+         *
+         * @param array<string, mixed> $data
+         * @param array<string, mixed> $mergeData
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadView($view, $data = [], $mergeData = [], $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadView($view, $data, $mergeData, $encoding);
+        }
+
+        /**
+         * Set/Change an option (or array of options) in Dompdf
+         *
+         * @param array<string, mixed>|string $attribute
+         * @param null|mixed $value
+         * @static
+         */
+        public static function setOption($attribute, $value = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOption($attribute, $value);
+        }
+
+        /**
+         * Replace all the Options from DomPDF
+         *
+         * @param array<string, mixed> $options
+         * @static
+         */
+        public static function setOptions($options, $mergeWithDefaults = false)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOptions($options, $mergeWithDefaults);
+        }
+
+        /**
+         * Output the PDF as a string.
+         *
+         * The options parameter controls the output. Accepted options are:
+         *
+         * 'compress' = > 1 or 0 - apply content stream compression, this is
+         *    on (1) by default
+         *
+         * @param array<string, int> $options
+         * @return string The rendered PDF as string
+         * @static
+         */
+        public static function output($options = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->output($options);
+        }
+
+        /**
+         * Save the PDF to a file
+         *
+         * @static
+         */
+        public static function save($filename, $disk = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->save($filename, $disk);
+        }
+
+        /**
+         * Make the PDF downloadable by the user
+         *
+         * @static
+         */
+        public static function download($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->download($filename);
+        }
+
+        /**
+         * Return a response with the PDF to show in the browser
+         *
+         * @static
+         */
+        public static function stream($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->stream($filename);
+        }
+
+        /**
+         * Render the PDF
+         *
+         * @static
+         */
+        public static function render()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->render();
+        }
+
+        /**
+         * @param array<string> $pc
+         * @static
+         */
+        public static function setEncryption($password, $ownerpassword = '', $pc = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setEncryption($password, $ownerpassword, $pc);
+        }
+
+            }
+    /**
+     * @method static BasePDF setBaseHost(string $baseHost)
+     * @method static BasePDF setBasePath(string $basePath)
+     * @method static BasePDF setCanvas(\Dompdf\Canvas $canvas)
+     * @method static BasePDF setCallbacks(array<string, mixed> $callbacks)
+     * @method static BasePDF setCss(\Dompdf\Css\Stylesheet $css)
+     * @method static BasePDF setDefaultView(string $defaultView, array<string, mixed> $options)
+     * @method static BasePDF setDom(\DOMDocument $dom)
+     * @method static BasePDF setFontMetrics(\Dompdf\FontMetrics $fontMetrics)
+     * @method static BasePDF setHttpContext(resource|array<string, mixed> $httpContext)
+     * @method static BasePDF setPaper(string|float[] $paper, string $orientation = 'portrait')
+     * @method static BasePDF setProtocol(string $protocol)
+     * @method static BasePDF setTree(\Dompdf\Frame\FrameTree $tree)
+     */
+    class Pdf {
+        /**
+         * Get the DomPDF instance
+         *
+         * @static
+         */
+        public static function getDomPDF()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->getDomPDF();
+        }
+
+        /**
+         * Show or hide warnings
+         *
+         * @static
+         */
+        public static function setWarnings($warnings)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setWarnings($warnings);
+        }
+
+        /**
+         * Load a HTML string
+         *
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadHTML($string, $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadHTML($string, $encoding);
+        }
+
+        /**
+         * Load a HTML file
+         *
+         * @static
+         */
+        public static function loadFile($file)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadFile($file);
+        }
+
+        /**
+         * Add metadata info
+         *
+         * @param array<string, string> $info
+         * @static
+         */
+        public static function addInfo($info)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->addInfo($info);
+        }
+
+        /**
+         * Load a View and convert to HTML
+         *
+         * @param array<string, mixed> $data
+         * @param array<string, mixed> $mergeData
+         * @param string|null $encoding Not used yet
+         * @static
+         */
+        public static function loadView($view, $data = [], $mergeData = [], $encoding = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->loadView($view, $data, $mergeData, $encoding);
+        }
+
+        /**
+         * Set/Change an option (or array of options) in Dompdf
+         *
+         * @param array<string, mixed>|string $attribute
+         * @param null|mixed $value
+         * @static
+         */
+        public static function setOption($attribute, $value = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOption($attribute, $value);
+        }
+
+        /**
+         * Replace all the Options from DomPDF
+         *
+         * @param array<string, mixed> $options
+         * @static
+         */
+        public static function setOptions($options, $mergeWithDefaults = false)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setOptions($options, $mergeWithDefaults);
+        }
+
+        /**
+         * Output the PDF as a string.
+         *
+         * The options parameter controls the output. Accepted options are:
+         *
+         * 'compress' = > 1 or 0 - apply content stream compression, this is
+         *    on (1) by default
+         *
+         * @param array<string, int> $options
+         * @return string The rendered PDF as string
+         * @static
+         */
+        public static function output($options = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->output($options);
+        }
+
+        /**
+         * Save the PDF to a file
+         *
+         * @static
+         */
+        public static function save($filename, $disk = null)
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->save($filename, $disk);
+        }
+
+        /**
+         * Make the PDF downloadable by the user
+         *
+         * @static
+         */
+        public static function download($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->download($filename);
+        }
+
+        /**
+         * Return a response with the PDF to show in the browser
+         *
+         * @static
+         */
+        public static function stream($filename = 'document.pdf')
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->stream($filename);
+        }
+
+        /**
+         * Render the PDF
+         *
+         * @static
+         */
+        public static function render()
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->render();
+        }
+
+        /**
+         * @param array<string> $pc
+         * @static
+         */
+        public static function setEncryption($password, $ownerpassword = '', $pc = [])
+        {
+            /** @var \Barryvdh\DomPDF\PDF $instance */
+            return $instance->setEncryption($password, $ownerpassword, $pc);
+        }
+
+            }
+    }
+
 namespace Flux {
     /**
      * @see \Flux\FluxManager
@@ -24973,7 +25347,7 @@ namespace  {
          * @param string $pageName
          * @param int|null $page
          * @param \Closure|int|null $total
-         * @return \Illuminate\Pagination\LengthAwarePaginator
+         * @return \Illuminate\Pagination\LengthAwarePaginator<int, TModel>
          * @throws \InvalidArgumentException
          * @static
          */
@@ -24990,7 +25364,7 @@ namespace  {
          * @param array|string $columns
          * @param string $pageName
          * @param int|null $page
-         * @return \Illuminate\Contracts\Pagination\Paginator
+         * @return \Illuminate\Pagination\Paginator<int, TModel>
          * @static
          */
         public static function simplePaginate($perPage = null, $columns = [], $pageName = 'page', $page = null)
@@ -25006,7 +25380,7 @@ namespace  {
          * @param array|string $columns
          * @param string $cursorName
          * @param \Illuminate\Pagination\Cursor|string|null $cursor
-         * @return \Illuminate\Contracts\Pagination\CursorPaginator
+         * @return \Illuminate\Pagination\CursorPaginator<int, TModel>
          * @static
          */
         public static function cursorPaginate($perPage = null, $columns = [], $cursorName = 'cursor', $cursor = null)
@@ -29377,6 +29751,8 @@ namespace  {
     class Validator extends \Illuminate\Support\Facades\Validator {}
     class View extends \Illuminate\Support\Facades\View {}
     class Vite extends \Illuminate\Support\Facades\Vite {}
+    class PDF extends \Barryvdh\DomPDF\Facade\Pdf {}
+    class Pdf extends \Barryvdh\DomPDF\Facade\Pdf {}
     class Flux extends \Flux\Flux {}
     class Livewire extends \Livewire\Livewire {}
 }

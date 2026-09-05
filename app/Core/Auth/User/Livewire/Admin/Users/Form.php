@@ -38,6 +38,8 @@ class Form extends Component
 
     public bool $canUpdatePayrollProfiles = false;
 
+    public bool $create_payroll_profile_on_save = false;
+
     public string $first_name = '';
 
     public string $last_name = '';
@@ -132,7 +134,11 @@ class Form extends Component
             } else {
                 $this->seedProfileFormDefaults($user);
             }
+
+            return;
         }
+
+        $this->seedProfileFormDefaults();
     }
 
     /**
@@ -147,6 +153,7 @@ class Form extends Component
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($this->user?->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user?->id)],
             'is_active' => ['boolean'],
+            'create_payroll_profile_on_save' => ['boolean'],
             'selectedRoleIds' => ['required', 'array', 'min:1'],
             'selectedRoleIds.*' => ['exists:roles,id'],
         ];
@@ -163,6 +170,15 @@ class Form extends Component
         $this->authorize($this->isEdit ? 'update' : 'create', $this->isEdit ? $this->user : User::class);
 
         $validated = $this->validate();
+        $validatedPayrollProfile = null;
+
+        if (! $this->isEdit && $this->shouldCreatePayrollProfileOnSave()) {
+            if (! $this->canCreatePayrollProfiles) {
+                abort(403);
+            }
+
+            $validatedPayrollProfile = $this->validate($this->payrollProfileRules());
+        }
 
         $payload = [
             'first_name' => $validated['first_name'],
@@ -186,7 +202,15 @@ class Form extends Component
 
             $user->update($payload);
         } else {
-            $user = $this->createInvitedUser->handle($payload, $validated['selectedRoleIds']);
+            $user = $this->createInvitedUser->handle(
+                $payload,
+                $validated['selectedRoleIds'],
+                $validatedPayrollProfile !== null
+                    ? function (User $user) use ($validatedPayrollProfile): void {
+                        $this->payrollProfile = $this->createPayrollProfileRecord($user, $validatedPayrollProfile);
+                    }
+                : null,
+            );
         }
 
         if ($this->isEdit) {
@@ -197,7 +221,9 @@ class Form extends Component
 
         session()->flash('success', $this->isEdit
             ? 'User updated successfully.'
-            : 'User created and invitation email sent successfully.');
+            : ($validatedPayrollProfile !== null
+                ? 'User and payroll profile created successfully. Invitation email sent successfully.'
+                : 'User created and invitation email sent successfully.'));
 
         $this->redirectRoute('admin.users.index', navigate: true);
     }
@@ -262,22 +288,7 @@ class Form extends Component
 
         $validated = $this->validate($this->payrollProfileRules());
 
-        $this->payrollProfile = PayrollEmployeeProfile::query()->create([
-            'user_id' => $this->user->id,
-            'employee_number' => $validated['profile_employee_number'],
-            'ssn_encrypted' => $validated['profile_ssn'],
-            'date_of_birth' => $validated['profile_date_of_birth'],
-            'hire_date' => $validated['profile_hire_date'],
-            'termination_date' => ($validated['profile_termination_date'] ?? '') !== '' ? $validated['profile_termination_date'] : null,
-            'status' => $validated['profile_status'],
-            'pay_type' => $validated['profile_pay_type'],
-            'department' => ($validated['profile_department'] ?? '') !== '' ? $validated['profile_department'] : null,
-            'job_classification' => $validated['profile_job_classification'],
-            'union_code' => ($validated['profile_union_code'] ?? '') !== '' ? $validated['profile_union_code'] : null,
-            'direct_deposit_active' => (bool) $validated['profile_direct_deposit_active'],
-            'sick_hours_allowance' => (float) $validated['profile_sick_hours_allowance'],
-            'vacation_hours_allowance' => (float) $validated['profile_vacation_hours_allowance'],
-        ]);
+        $this->payrollProfile = $this->createPayrollProfileRecord($this->user, $validated);
 
         if ($this->canManagePayrollRates) {
             $this->new_effective_date = now()->toDateString();
@@ -393,7 +404,7 @@ class Form extends Component
         $this->new_expiration_date = '';
     }
 
-    protected function seedProfileFormDefaults(User $user): void
+    protected function seedProfileFormDefaults(?User $user = null): void
     {
         $this->profile_employee_number = '';
         $this->profile_ssn = '';
@@ -409,9 +420,37 @@ class Form extends Component
         $this->profile_sick_hours_allowance = '0.00';
         $this->profile_vacation_hours_allowance = '0.00';
 
-        if ($user->id !== '') {
+        if ($user !== null && $user->id !== '') {
             $this->profile_employee_number = 'EMP-'.strtoupper(substr($user->id, -6));
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    protected function createPayrollProfileRecord(User $user, array $validated): PayrollEmployeeProfile
+    {
+        return PayrollEmployeeProfile::query()->create([
+            'user_id' => $user->id,
+            'employee_number' => $validated['profile_employee_number'],
+            'ssn_encrypted' => $validated['profile_ssn'],
+            'date_of_birth' => $validated['profile_date_of_birth'],
+            'hire_date' => $validated['profile_hire_date'],
+            'termination_date' => ($validated['profile_termination_date'] ?? '') !== '' ? $validated['profile_termination_date'] : null,
+            'status' => $validated['profile_status'],
+            'pay_type' => $validated['profile_pay_type'],
+            'department' => ($validated['profile_department'] ?? '') !== '' ? $validated['profile_department'] : null,
+            'job_classification' => $validated['profile_job_classification'],
+            'union_code' => ($validated['profile_union_code'] ?? '') !== '' ? $validated['profile_union_code'] : null,
+            'direct_deposit_active' => (bool) $validated['profile_direct_deposit_active'],
+            'sick_hours_allowance' => (float) $validated['profile_sick_hours_allowance'],
+            'vacation_hours_allowance' => (float) $validated['profile_vacation_hours_allowance'],
+        ]);
+    }
+
+    protected function shouldCreatePayrollProfileOnSave(): bool
+    {
+        return $this->create_payroll_profile_on_save;
     }
 
     protected function seedProfileFormFromExistingProfile(): void

@@ -9,7 +9,7 @@ use App\Domains\Stock\Models\StockOrder;
 use App\Domains\Timecards\Models\Timecard;
 use Illuminate\View\View;
 use Livewire\Component;
-
+use Illuminate\Support\Facades\Auth;
 class SidebarUserNav extends Component
 {
     public function render(): View
@@ -22,7 +22,8 @@ class SidebarUserNav extends Component
      */
     private function getNavPermissions(): array
     {
-        $user = auth()->user();
+        
+        $user = Auth::user();
 
         return [
             'canViewProjects' => $user?->can('viewAny', Project::class) ?? false,
