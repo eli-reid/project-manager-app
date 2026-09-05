@@ -2,14 +2,9 @@
 
 namespace App\Domains\Documents\Services;
 
-<<<<<<< HEAD
 use App\Core\Assets\Contracts\AssetOrchestratorContract;
 use App\Core\Assets\DTOs\AssetMeta;
 use App\Core\Assets\DTOs\AssetReferenceTarget;
-=======
-use App\Core\Files\Contracts\FilePathNormalizerContract;
-use App\Core\Files\Contracts\FileStorageContract;
->>>>>>> production
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
@@ -20,12 +15,7 @@ use Illuminate\Http\UploadedFile;
 class DocumentService implements DocumentOrchestratorContract
 {
     public function __construct(
-<<<<<<< HEAD
         private readonly AssetOrchestratorContract $orchestrator,
-=======
-        private readonly FileStorageContract $fileStorage,
-        private readonly FilePathNormalizerContract $filePathNormalizer,
->>>>>>> production
     ) {}
 
     /**
@@ -40,7 +30,6 @@ class DocumentService implements DocumentOrchestratorContract
         $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-<<<<<<< HEAD
         $folderPath = 'documents/user/'.$owner->id;
 
         // Upload through Assets orchestrator
@@ -53,9 +42,6 @@ class DocumentService implements DocumentOrchestratorContract
                 'disk' => $disk,
             ]),
         );
-=======
-        $storedPath = $this->fileStorage->store($file, $this->storageFolder('documents/user/'.$owner->id, $folderPath), $disk);
->>>>>>> production
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
@@ -91,7 +77,6 @@ class DocumentService implements DocumentOrchestratorContract
         $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-<<<<<<< HEAD
         $folderPath = 'documents/project/'.$project->id;
 
         // Upload through Assets orchestrator
@@ -104,9 +89,6 @@ class DocumentService implements DocumentOrchestratorContract
                 'disk' => $disk,
             ]),
         );
-=======
-        $storedPath = $this->fileStorage->store($file, $this->storageFolder('documents/project/'.$project->id, $folderPath), $disk);
->>>>>>> production
 
         $document = Document::query()->create([
             'title' => (string) ($attributes['title'] ?? pathinfo($originalName, PATHINFO_FILENAME)),
@@ -146,7 +128,6 @@ class DocumentService implements DocumentOrchestratorContract
             $folderPath,
         );
 
-<<<<<<< HEAD
         if ($actor === null) {
             $actor = $document->uploadedBy;
         }
@@ -187,10 +168,6 @@ class DocumentService implements DocumentOrchestratorContract
 
             return $document->fresh();
         }
-=======
-        $oldPath = $document->storage_path;
-        $storedPath = $this->fileStorage->store($file, $folder, $disk);
->>>>>>> production
 
         $document->fill([
             'folder_path' => $folderPath,
@@ -208,13 +185,6 @@ class DocumentService implements DocumentOrchestratorContract
 
         $document->save();
 
-<<<<<<< HEAD
-=======
-        if ($this->replaceBehavior() === Document::REPLACE_MODE_REPLACE && filled($oldPath)) {
-            $this->fileStorage->delete((string) $oldPath, $disk);
-        }
-
->>>>>>> production
         return $document->fresh();
     }
 
@@ -247,17 +217,12 @@ class DocumentService implements DocumentOrchestratorContract
 
     public function deleteDocument(Document $document): void
     {
-<<<<<<< HEAD
         // Delete through Assets orchestrator if asset exists
         if ($document->asset_id !== null && $document->asset !== null) {
             $this->orchestrator->purge($document->asset);
         } elseif (filled($document->storage_path)) {
             // Fallback for documents without assets
             Storage::disk($document->storage_disk)->delete($document->storage_path);
-=======
-        if (filled($document->storage_path)) {
-            $this->fileStorage->delete($document->storage_path, (string) $document->storage_disk);
->>>>>>> production
         }
 
         $document->delete();

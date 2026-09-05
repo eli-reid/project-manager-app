@@ -8,6 +8,7 @@ use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Documents\Console\MigrateDocumentsToAssets;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
 use App\Domains\Documents\Contracts\DocumentSharingContract;
@@ -15,20 +16,16 @@ use App\Domains\Documents\Contracts\ProjectDocumentLibraryContract;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
-<<<<<<< HEAD
 use App\Domains\Documents\Services\DocumentAssetAccessResolver;
-=======
 use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Documents\Services\DocumentShareService;
 use App\Domains\Documents\Services\ProjectDocumentLibrary;
-use App\Domains\Documents\Support\DocumentsProjectTab;
-use App\Domains\Projects\Services\ProjectTabRegistry;
->>>>>>> production
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
 
 class DocumentsServiceProvider extends ServiceProvider
 {
@@ -42,11 +39,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->commands([MigrateDocumentsToAssets::class]);
     }
 
-<<<<<<< HEAD
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, AssetReferencerRegistry $assetRegistry): void
-=======
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, ProjectTabRegistry $projectTabRegistry): void
->>>>>>> production
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, AssetReferencerRegistry $assetRegistry, ProjectTabRegistry $projectTabRegistry): void
     {
         $this->registerMobileExactRouteMapping('documents.index', 'documents.mobile.global');
         $this->registerMobileExactRouteMapping('documents.global', 'documents.mobile.global');
@@ -136,7 +129,7 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
     {
         $projectTabRegistry->registerDefinitions([
-            DocumentsProjectTab::class,
+            DocumentsTab::class,
         ]);
     }
 
