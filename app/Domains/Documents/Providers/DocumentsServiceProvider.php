@@ -2,6 +2,7 @@
 
 namespace App\Domains\Documents\Providers;
 
+use App\Core\Assets\Services\AssetReferencerRegistry;
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
@@ -10,6 +11,7 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Documents\Permissions\DocumentPermissions;
 use App\Domains\Documents\Policies\DocumentPolicy;
+use App\Domains\Documents\Services\DocumentAssetAccessResolver;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -25,7 +27,7 @@ class DocumentsServiceProvider extends ServiceProvider
         //
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry): void
+    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, DashboardWidgetRegistry $widgetRegistry, AssetReferencerRegistry $assetRegistry): void
     {
         $this->registerMobileExactRouteMapping('documents.index', 'documents.mobile.global');
         $this->registerMobileExactRouteMapping('documents.global', 'documents.mobile.global');
@@ -35,6 +37,7 @@ class DocumentsServiceProvider extends ServiceProvider
         $this->registerPermissions($permissionRegistry);
         $this->registerAuthorization();
         $this->registerInfrastructure();
+        $this->registerAssetIntegration($assetRegistry);
         $this->registerUIComponents();
         $this->registerDashboardWidgets($widgetRegistry);
         $this->registerRoutes();
@@ -43,6 +46,11 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerAuthorization(): void
     {
         Gate::policy(Document::class, DocumentPolicy::class);
+    }
+
+    private function registerAssetIntegration(AssetReferencerRegistry $assetRegistry): void
+    {
+        $assetRegistry->register('documents', DocumentAssetAccessResolver::class);
     }
 
     private function registerInfrastructure(): void

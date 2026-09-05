@@ -2,6 +2,7 @@
 
 namespace App\Domains\Documents\Models;
 
+use App\Core\Assets\Models\Asset;
 use App\Core\Identity\Models\User;
 use App\Domains\Documents\Database\Factories\DocumentFactory;
 use App\Domains\Projects\Models\Project;
@@ -48,6 +49,7 @@ class Document extends Model
         'file_size',
         'storage_disk',
         'storage_path',
+        'asset_id',
         'owner_scope',
         'owner_id',
         'visibility',
@@ -103,6 +105,11 @@ class Document extends Model
     public function internalShares(): HasMany
     {
         return $this->hasMany(DocumentInternalShare::class);
+    }
+
+    public function asset(): BelongsTo
+    {
+        return $this->belongsTo(Asset::class, 'asset_id');
     }
 
     public function scopeUserOwned(Builder $query): Builder
@@ -175,6 +182,54 @@ class Document extends Model
     public function isProjectOwned(): bool
     {
         return $this->owner_scope === self::OWNER_SCOPE_PROJECT;
+    }
+
+    /**
+     * Proxy storage_path to asset when asset_id is set, for backward compatibility.
+     */
+    public function getStoragePathAttribute(): ?string
+    {
+        if ($this->asset_id !== null && $this->relationLoaded('asset') && $this->asset !== null) {
+            return $this->asset->storage_path;
+        }
+
+        return $this->attributes['storage_path'] ?? null;
+    }
+
+    /**
+     * Proxy storage_disk to asset when asset_id is set, for backward compatibility.
+     */
+    public function getStorageDiskAttribute(): ?string
+    {
+        if ($this->asset_id !== null && $this->relationLoaded('asset') && $this->asset !== null) {
+            return $this->asset->storage_disk;
+        }
+
+        return $this->attributes['storage_disk'] ?? null;
+    }
+
+    /**
+     * Proxy mime_type to asset when asset_id is set, for backward compatibility.
+     */
+    public function getMimeTypeAttribute(): ?string
+    {
+        if ($this->asset_id !== null && $this->relationLoaded('asset') && $this->asset !== null) {
+            return $this->asset->mime_type;
+        }
+
+        return $this->attributes['mime_type'] ?? null;
+    }
+
+    /**
+     * Proxy file_size to asset when asset_id is set, for backward compatibility.
+     */
+    public function getFileSizeAttribute(): ?int
+    {
+        if ($this->asset_id !== null && $this->relationLoaded('asset') && $this->asset !== null) {
+            return $this->asset->size_bytes;
+        }
+
+        return isset($this->attributes['file_size']) ? (int) $this->attributes['file_size'] : null;
     }
 
     protected static function newFactory(): DocumentFactory
