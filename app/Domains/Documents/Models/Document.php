@@ -110,11 +110,7 @@ class Document extends Model
 
     public function asset(): BelongsTo
     {
-<<<<<<< HEAD
         return $this->belongsTo(Asset::class, 'asset_id');
-=======
-        return $this->belongsTo(\App\Core\Assets\Models\Asset::class, 'asset_id');
->>>>>>> production
     }
 
     public function scopeUserOwned(Builder $query): Builder
