@@ -9,6 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('assets')) {
+            Schema::table('assets', function (Blueprint $table): void {
+                if (! Schema::hasColumn('assets', 'content_hash')) {
+                    $table->string('content_hash', 64)->nullable()->after('folder_path');
+                    $table->index(['storage_disk', 'content_hash']);
+                }
+
+                if (! Schema::hasColumn('assets', 'created_at')) {
+                    $table->timestamps();
+                }
+            });
+
             return;
         }
 
