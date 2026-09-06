@@ -18,6 +18,10 @@ Use this index to find current, canonical documentation quickly.
 - `docs/development/STOCK_ORDERS_IMPLEMENTATION_CHECKLIST.md`
 - `docs/development/DOCUMENTS_IMPLEMENTATION_CHECKLIST.md`
 
+## Draft Feature Specs (Not Yet Implemented)
+- `docs/development/plans-domain/README.md` (Plans domain spec index)
+- `docs/development/plans-domain/08_PHASE_BREAKDOWN.md` (implementation tracker)
+
 ## Release Operations
 - `docs/development/PRODUCTION_PROMOTION_AND_DEPLOY_CHECKLIST.md`
 - `docs/development/MANUAL_SSH_DEPLOY_CHECKLIST.md`
