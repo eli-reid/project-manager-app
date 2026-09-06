@@ -49,7 +49,8 @@ it('stores an uploaded file and creates one reference', function (): void {
         ($this->targetFor)('record-1'),
     );
 
-    expect($asset->original_name)->toBe('plan.pdf')
+    expect($asset->id)->toHaveLength(26)
+        ->and($asset->original_name)->toBe('plan.pdf')
         ->and($asset->content_hash)->not->toBeNull()
         ->and($asset->created_by_id)->toBe($this->uploader->id)
         ->and($asset->references()->count())->toBe(1);
