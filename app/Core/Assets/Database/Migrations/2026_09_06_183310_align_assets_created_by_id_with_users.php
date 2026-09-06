@@ -34,13 +34,13 @@ return new class extends Migration
             }
 
             DB::statement(sprintf(
-                'ALTER TABLE `assets` MODIFY `created_by_id` CHAR(26) CHARACTER SET %s COLLATE %s NULL',
+                'ALTER TABLE `assets` MODIFY `created_by_id` VARCHAR(255) CHARACTER SET %s COLLATE %s NULL',
                 $userIdColumn->CHARACTER_SET_NAME,
                 $userIdColumn->COLLATION_NAME,
             ));
         } else {
             Schema::table('assets', function (Blueprint $table): void {
-                $table->char('created_by_id', 26)->nullable()->change();
+                $table->string('created_by_id')->nullable()->change();
             });
         }
 
@@ -52,6 +52,18 @@ return new class extends Migration
                     ->whereColumn('users.id', 'assets.created_by_id');
             })
             ->update(['created_by_id' => null]);
+
+        if (isset($userIdColumn)) {
+            DB::statement(sprintf(
+                'ALTER TABLE `assets` MODIFY `created_by_id` CHAR(26) CHARACTER SET %s COLLATE %s NULL',
+                $userIdColumn->CHARACTER_SET_NAME,
+                $userIdColumn->COLLATION_NAME,
+            ));
+        } else {
+            Schema::table('assets', function (Blueprint $table): void {
+                $table->char('created_by_id', 26)->nullable()->change();
+            });
+        }
 
         Schema::table('assets', function (Blueprint $table): void {
             $table->foreign('created_by_id')->references('id')->on('users')->nullOnDelete();
