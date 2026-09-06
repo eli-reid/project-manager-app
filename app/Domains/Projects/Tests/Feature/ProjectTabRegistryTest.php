@@ -44,6 +44,7 @@ it('includes the expected provider-registered project view tabs', function (): v
         'change-orders',
         'rfis',
         'documents',
+        'plans',
         'access',
         'time',
         'payment-receipts',

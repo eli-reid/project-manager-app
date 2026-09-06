@@ -3,6 +3,7 @@
 namespace App\Domains\Documents\Services;
 
 use App\Core\Assets\Contracts\AssetOrchestratorContract;
+use App\Core\Assets\Contracts\FilePathNormalizerContract;
 use App\Core\Assets\DTOs\AssetMeta;
 use App\Core\Assets\DTOs\AssetReferenceTarget;
 use App\Core\Identity\Models\User;
@@ -11,11 +12,13 @@ use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
 use App\Domains\Documents\Models\Document;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentService implements DocumentOrchestratorContract
 {
     public function __construct(
         private readonly AssetOrchestratorContract $orchestrator,
+        private readonly FilePathNormalizerContract $filePathNormalizer,
     ) {}
 
     /**
@@ -30,7 +33,7 @@ class DocumentService implements DocumentOrchestratorContract
         $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-        $folderPath = 'documents/user/'.$owner->id;
+        $storageFolder = $this->storageFolder('documents/user/'.$owner->id, $folderPath);
 
         // Upload through Assets orchestrator
         $asset = $this->orchestrator->upload(
@@ -38,7 +41,7 @@ class DocumentService implements DocumentOrchestratorContract
             $file,
             new AssetReferenceTarget('documents', 'doc-'.$owner->id, 'primary'),
             AssetMeta::fromArray([
-                'folder_path' => $folderPath,
+                'folder_path' => $storageFolder,
                 'disk' => $disk,
             ]),
         );
@@ -77,7 +80,7 @@ class DocumentService implements DocumentOrchestratorContract
         $folderPath = $this->normalizeFolderPath($attributes['folder_path'] ?? null);
 
         $disk = $this->storageDisk();
-        $folderPath = 'documents/project/'.$project->id;
+        $storageFolder = $this->storageFolder('documents/project/'.$project->id, $folderPath);
 
         // Upload through Assets orchestrator
         $asset = $this->orchestrator->upload(
@@ -85,7 +88,7 @@ class DocumentService implements DocumentOrchestratorContract
             $file,
             new AssetReferenceTarget('documents', 'doc-'.$project->id, 'primary'),
             AssetMeta::fromArray([
-                'folder_path' => $folderPath,
+                'folder_path' => $storageFolder,
                 'disk' => $disk,
             ]),
         );

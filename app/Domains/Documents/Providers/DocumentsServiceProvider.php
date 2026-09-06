@@ -8,7 +8,6 @@ use App\Core\Dashboard\Data\WidgetDefinition;
 use App\Core\Dashboard\Services\DashboardWidgetRegistry;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Domains\Documents\Console\MigrateDocumentsToAssets;
 use App\Domains\Documents\Contracts\DocumentOrchestratorContract;
 use App\Domains\Documents\Contracts\DocumentSharingContract;
@@ -20,12 +19,14 @@ use App\Domains\Documents\Services\DocumentAssetAccessResolver;
 use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Documents\Services\DocumentShareService;
 use App\Domains\Documents\Services\ProjectDocumentLibrary;
+use App\Domains\Documents\Support\DocumentsProjectTab;
+use App\Domains\Documents\Support\PlansProjectTab;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use App\Domains\Documents\Livewire\Admin\Projects\DocumentsTab;
 
 class DocumentsServiceProvider extends ServiceProvider
 {
@@ -129,7 +130,8 @@ class DocumentsServiceProvider extends ServiceProvider
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
     {
         $projectTabRegistry->registerDefinitions([
-            DocumentsTab::class,
+            DocumentsProjectTab::class,
+            PlansProjectTab::class,
         ]);
     }
 
