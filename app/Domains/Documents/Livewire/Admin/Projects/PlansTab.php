@@ -28,7 +28,7 @@ class PlansTab extends Component
 
     public string $description = '';
 
-    public string $set = '';
+    public string $planSet = '';
 
     public string $search = '';
 
@@ -71,7 +71,7 @@ class PlansTab extends Component
         $validationRules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'set' => ['nullable', 'string', 'max:255'],
+            'planSet' => ['nullable', 'string', 'max:255'],
             'file' => ['nullable', 'file', 'max:'.$rules['max_kilobytes'], 'mimes:'.implode(',', $rules['allowed_extensions'])],
         ];
 
@@ -81,7 +81,7 @@ class PlansTab extends Component
 
         $this->validate($validationRules);
 
-        $folderPath = $this->folderPathForSet($this->set);
+        $folderPath = $this->folderPathForSet($this->planSet);
 
         if ($this->editingDocumentId !== null) {
             $document = $this->findOwnedPlanOrFail($projectDocumentLibrary, $this->editingDocumentId);
@@ -123,7 +123,7 @@ class PlansTab extends Component
         $this->editingDocumentId = $document->id;
         $this->title = $document->title;
         $this->description = (string) ($document->description ?? '');
-        $this->set = $this->setLabelFromFolderPath($document->folder_path);
+        $this->planSet = $this->setLabelFromFolderPath($document->folder_path);
         $this->file = null;
     }
 
@@ -279,7 +279,7 @@ class PlansTab extends Component
         $this->editingDocumentId = null;
         $this->title = '';
         $this->description = '';
-        $this->set = '';
+        $this->planSet = '';
         $this->file = null;
         $this->resetValidation();
         $this->dispatch('project-plans-file-input-reset');

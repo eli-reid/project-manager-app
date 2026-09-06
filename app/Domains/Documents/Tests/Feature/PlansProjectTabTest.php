@@ -53,7 +53,7 @@ it('uploads a plan into the Plans folder scoped to the project', function (): vo
     Livewire::actingAs($user)
         ->test(PlansTab::class, ['project' => $project])
         ->set('title', 'Floor Plan Level 1')
-        ->set('set', 'Architectural')
+        ->set('planSet', 'Architectural')
         ->set('file', $file)
         ->call('save')
         ->assertHasNoErrors();

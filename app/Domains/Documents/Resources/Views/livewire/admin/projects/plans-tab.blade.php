@@ -84,9 +84,9 @@
 
                     <flux:field>
                         <flux:label>Drawing Set</flux:label>
-                        <flux:input type="text" wire:model="set" placeholder="Architectural, Structural, MEP..." />
+                        <flux:input type="text" wire:model="planSet" placeholder="Architectural, Structural, MEP..." />
                         <p class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">Group blueprints by discipline or set name.</p>
-                        <flux:error name="set" />
+                        <flux:error name="planSet" />
                     </flux:field>
 
                     <div class="md:col-span-2">
