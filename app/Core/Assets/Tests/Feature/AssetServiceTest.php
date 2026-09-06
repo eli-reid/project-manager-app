@@ -33,6 +33,15 @@ it('enforces cascading asset reference integrity', function (): void {
         ->and(strtolower($assetForeignKey['on_delete']))->toBe('cascade');
 });
 
+it('enforces nullable asset creator integrity', function (): void {
+    $creatorForeignKey = collect(Schema::getForeignKeys('assets'))
+        ->first(fn (array $foreignKey): bool => $foreignKey['foreign_table'] === 'users'
+            && $foreignKey['columns'] === ['created_by_id']);
+
+    expect($creatorForeignKey)->not->toBeNull()
+        ->and(strtolower($creatorForeignKey['on_delete']))->toBe('set null');
+});
+
 it('stores an uploaded file and creates one reference', function (): void {
     $asset = $this->orchestrator->upload(
         $this->uploader,
