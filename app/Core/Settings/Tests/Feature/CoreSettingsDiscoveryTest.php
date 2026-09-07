@@ -50,3 +50,64 @@ it('prunes undefined settings when prune mode is enabled', function () {
     expect(SettingsSqlite::query()->where('key', $orphanKey)->exists())->toBeFalse();
     expect(SettingsSqlite::query()->where('key', 'app.name')->exists())->toBeTrue();
 });
+
+it('resyncs domain settings while preserving saved values and refreshing groups', function (): void {
+    SettingsSqlite::query()->updateOrCreate(
+        ['key' => 'app.name'],
+        [
+            'value' => 'Saved Production Name',
+            'default_value' => 'Old Default',
+            'display_name' => 'Old Display Name',
+            'description' => 'Old description',
+            'type' => 'text',
+            'group' => 'legacy',
+            'order' => 999,
+            'is_public' => false,
+            'is_visible' => true,
+            'is_required' => false,
+            'encrypted' => false,
+        ],
+    );
+
+    $this->artisan('settings:resync-domain')
+        ->expectsOutputToContain('Domain settings resynced:')
+        ->expectsOutputToContain('Saved setting values were preserved')
+        ->assertSuccessful();
+
+    $setting = SettingsSqlite::query()->where('key', 'app.name')->firstOrFail();
+
+    expect($setting->value)->toBe('Saved Production Name')
+        ->and($setting->group)->toBe('app')
+        ->and($setting->display_name)->toBe('Application Name')
+        ->and(SettingsSqlite::query()->where('key', 'assets.storage_disk')->exists())->toBeTrue();
+});
+
+it('supports a dry run without writing refreshed groups', function (): void {
+    SettingsSqlite::query()->updateOrCreate(
+        ['key' => 'app.name'],
+        [
+            'value' => 'Dry Run Name',
+            'default_value' => 'Old Default',
+            'display_name' => 'Old Display Name',
+            'description' => 'Old description',
+            'type' => 'text',
+            'group' => 'legacy',
+            'order' => 999,
+            'is_public' => false,
+            'is_visible' => true,
+            'is_required' => false,
+            'encrypted' => false,
+        ],
+    );
+
+    $this->artisan('settings:resync-domain --dry-run')
+        ->expectsOutputToContain('Discovered settings:')
+        ->expectsOutputToContain('Dry run: database settings were not changed.')
+        ->assertSuccessful();
+
+    $setting = SettingsSqlite::query()->where('key', 'app.name')->firstOrFail();
+
+    expect($setting->value)->toBe('Dry Run Name')
+        ->and($setting->group)->toBe('legacy')
+        ->and($setting->display_name)->toBe('Old Display Name');
+});

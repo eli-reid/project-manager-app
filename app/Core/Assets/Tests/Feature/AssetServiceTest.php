@@ -3,6 +3,7 @@
 use App\Core\Assets\Contracts\AssetOrchestratorContract;
 use App\Core\Assets\DTOs\AssetMeta;
 use App\Core\Assets\DTOs\AssetReferenceTarget;
+use App\Core\Assets\Livewire\AssetUpload;
 use App\Core\Assets\Models\Asset;
 use App\Core\Assets\Models\AssetReference;
 use App\Core\Identity\Models\User;
@@ -10,6 +11,7 @@ use App\Core\Settings\Facades\Settings;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 
 beforeEach(function (): void {
     Storage::fake('local');
@@ -21,6 +23,9 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    Settings::set('assets.storage_disk', 'local');
+    Settings::set('assets.allowed_types', 'pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png,gif,webp,svg');
+    Settings::set('assets.max_file_size', '10240');
     Settings::set('assets.deduplicate', 'true');
 });
 
@@ -56,6 +61,58 @@ it('stores an uploaded file and creates one reference', function (): void {
         ->and($asset->references()->count())->toBe(1);
 
     Storage::disk('local')->assertExists($asset->storage_path);
+});
+
+it('uses the configured default storage disk when no meta disk is provided', function (): void {
+    Storage::fake('public');
+    Settings::set('assets.storage_disk', 'public');
+
+    $asset = $this->orchestrator->upload(
+        $this->uploader,
+        UploadedFile::fake()->create('photo.jpg', 12, 'image/jpeg'),
+        ($this->targetFor)('record-1'),
+    );
+
+    expect($asset->storage_disk)->toBe('public');
+
+    Storage::disk('public')->assertExists($asset->storage_path);
+});
+
+it('builds default validation rules from asset settings', function (): void {
+    Settings::set('assets.max_file_size', '2048');
+    Settings::set('assets.allowed_types', 'PDF, jpg, ,png');
+
+    expect($this->orchestrator->validationRules())->toBe([
+        'max_kilobytes' => 2048,
+        'allowed_extensions' => ['pdf', 'jpg', 'png'],
+    ]);
+});
+
+it('uploads through the Livewire component using configured asset settings', function (): void {
+    Storage::fake('public');
+    Settings::set('assets.storage_disk', 'public');
+    Settings::set('assets.allowed_types', 'jpg');
+
+    Livewire::actingAs($this->uploader)
+        ->test(AssetUpload::class, [
+            'folder' => 'component-files',
+            'referencerType' => 'fake-domain',
+            'referencerId' => 'record-1',
+        ])
+        ->set('assetFile', UploadedFile::fake()->create('photo.jpg', 12, 'image/jpeg'))
+        ->set('title', 'Permit photo')
+        ->call('saveAsset')
+        ->assertHasNoErrors()
+        ->assertDispatched('assets-file-input-reset')
+        ->assertDispatched('project-asset:uploaded');
+
+    $asset = Asset::query()->firstOrFail();
+
+    expect($asset->storage_disk)->toBe('public')
+        ->and($asset->storage_path)->toStartWith('component-files/')
+        ->and($asset->references()->where('referencer_type', 'fake-domain')->where('referencer_id', 'record-1')->exists())->toBeTrue();
+
+    Storage::disk('public')->assertExists($asset->storage_path);
 });
 
 it('normalizes the folder path into the storage path', function (): void {
