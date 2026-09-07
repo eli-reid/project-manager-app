@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Jobs;
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use Illuminate\Bus\Queueable;
@@ -44,11 +45,11 @@ final class RenderPlanPageJob implements ShouldBeUnique, ShouldQueue
         }
         try {
             $asset = $revision->set->sourceAsset;
-            $disk = Storage::disk((string) config('plans.storage_disk', 'local'));
+            $disk = Storage::disk(Settings::get('plans.storage_disk', 'local')->toString());
             $directory = "plans/{$revision->set->project_id}/{$revision->set_id}/{$revision->page_number}";
             $disk->makeDirectory($directory);
             $path = $disk->path($directory);
-            $rasterizer->renderPage(Storage::disk($asset->storage_disk)->path($asset->storage_path), $revision->page_number, (int) config('plans.render_dpi', 150), $path.'/preview.png');
+            $rasterizer->renderPage(Storage::disk($asset->storage_disk)->path($asset->storage_path), $revision->page_number, Settings::get('plans.render_dpi', 150)->toInt(), $path.'/preview.png');
             $revision->update(['preview_path' => $directory.'/preview.png', 'thumbnail_path' => $directory.'/preview.png', 'status' => 'rendered', 'width' => null, 'height' => null]);
             $revision->set()->update(['processed_page_count' => DB::raw('processed_page_count + 1')]);
         } catch (Throwable $exception) {

@@ -2,6 +2,7 @@
 
 namespace App\Domains\Plans\Console\Commands;
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,7 @@ final class PrunePlanDerivativesCommand extends Command
 
     public function handle(): int
     {
-        $disk = Storage::disk((string) config('plans.storage_disk', 'local'));
+        $disk = Storage::disk(Settings::get('plans.storage_disk', 'local')->toString());
         $referenced = PlanSheetRevision::query()->whereNotNull('preview_path')->pluck('preview_path')->merge(
             PlanSheetRevision::query()->whereNotNull('thumbnail_path')->pluck('thumbnail_path')
         )->all();
