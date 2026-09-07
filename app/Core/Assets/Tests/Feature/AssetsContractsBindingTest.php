@@ -37,5 +37,10 @@ it('registers assets settings definitions', function (): void {
 
     expect($keys)->toContain('assets.storage_disk')
         ->and($keys)->toContain('assets.allowed_types')
-        ->and($keys)->toContain('assets.max_file_size');
+        ->and($keys)->toContain('assets.max_file_size')
+        ->and($keys)->toContain('assets.deduplicate');
+    });
+
+    it('registers assets view namespace', function (): void {
+        expect(view()->exists('assets::livewire.asset-upload'))->toBeTrue();
 });

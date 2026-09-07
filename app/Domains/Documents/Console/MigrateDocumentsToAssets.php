@@ -4,9 +4,10 @@ namespace App\Domains\Documents\Console;
 
 use App\Core\Assets\Contracts\AssetOrchestratorContract;
 use App\Core\Assets\DTOs\AssetMeta;
+use App\Core\Assets\DTOs\AssetReferenceTarget;
 use App\Core\Assets\Models\Asset;
-use App\Domains\Documents\Models\Document;
 use App\Core\Identity\Models\User;
+use App\Domains\Documents\Models\Document;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
@@ -119,7 +120,12 @@ class MigrateDocumentsToAssets extends Command
                             'disk' => $document->storage_disk ?? null,
                         ]);
 
-                        $asset = $orchestrator->uploadAsset($uploader, $uploadedFile, $meta);
+                        $asset = $orchestrator->upload(
+                            $uploader,
+                            $uploadedFile,
+                            new AssetReferenceTarget('documents', (string) $document->id),
+                            $meta,
+                        );
 
                         // link and optionally delete original
                         $document->asset_id = $asset->id;

@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Assets\Support\StorageDiskOptions;
+
 return [
     [
         'key' => 'documents.allowed_types',
@@ -67,12 +69,8 @@ return [
         'display_name' => 'Document Storage Disk',
         'description' => 'Storage disk for project documents',
         'type' => 'select',
-        'group' => 'documents',
-        'options' => [
-            'local' => 'Local Storage',
-            's3' => 'Amazon S3',
-            'public' => 'Public Storage',
-        ],
+        'group' => 'storage',
+        'options' => StorageDiskOptions::all(),
         'order' => 5,
         'is_visible' => true,
         'is_public' => false,
