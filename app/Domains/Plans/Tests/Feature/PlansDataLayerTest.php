@@ -12,8 +12,11 @@ use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Plans\Models\PlanViewState;
+use App\Domains\Plans\Services\PlanGeometryService;
+use App\Domains\Plans\Services\PlanRevisionService;
 use App\Domains\Plans\Services\PlanSetIngestionService;
 use App\Domains\Plans\Services\PlanSheetMatcher;
+use App\Domains\Plans\Services\PlanSheetMetadataOverrideService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
@@ -74,6 +77,35 @@ it('matches a detected revision to an existing sheet identity', function (): voi
         ->and($revision->fresh()->plan_sheet_id)->toBe($existing->id);
 });
 
+it('preserves manual metadata overrides when applying sheet metadata', function (): void {
+    $revision = PlanSheetRevision::factory()->create([
+        'detected_sheet_number' => 'A-101',
+        'detected_title' => 'Existing title',
+        'detection_source' => 'text-layer',
+    ]);
+
+    $updated = app(PlanSheetMetadataOverrideService::class)->apply($revision, 'a-201', 'Reflected ceiling plan');
+
+    expect($updated->detected_sheet_number)->toBe('A-201')
+        ->and($updated->detected_title)->toBe('Reflected ceiling plan')
+        ->and($updated->detection_source)->toBe('manual')
+        ->and((float) $updated->detection_confidence)->toBe(1.0);
+});
+
+it('normalizes annotation geometry to the unit square', function (): void {
+    $geometry = app(PlanGeometryService::class)->normalize([
+        'points' => [[-1, 0.25], [2, 0.75]],
+        'x' => 1.4,
+        'y' => -0.2,
+        'width' => 0.5,
+    ]);
+
+    expect($geometry['points'])->toEqual([[0, 0.25], [1, 0.75]])
+        ->and((float) $geometry['x'])->toBe(1.0)
+        ->and((float) $geometry['y'])->toBe(0.0)
+        ->and((float) $geometry['width'])->toBe(0.5);
+});
+
 it('finalizes one current revision per sheet', function (): void {
     $set = PlanSet::factory()->create();
     $sheet = PlanSheet::factory()->create(['project_id' => $set->project_id]);
@@ -83,6 +115,19 @@ it('finalizes one current revision per sheet', function (): void {
     (new FinalizePlanSetJob($set->id))->handle(app(PlanSheetMatcher::class));
 
     expect($sheet->revisions()->where('is_current', true)->count())->toBe(1);
+});
+
+it('publishes a selected revision and demotes the previous current revision', function (): void {
+    $set = PlanSet::factory()->create();
+    $sheet = PlanSheet::factory()->create(['project_id' => $set->project_id]);
+    $current = PlanSheetRevision::factory()->rendered()->create(['plan_set_id' => $set->id, 'plan_sheet_id' => $sheet->id, 'is_current' => true]);
+    $older = PlanSheetRevision::factory()->rendered()->create(['plan_set_id' => $set->id, 'plan_sheet_id' => $sheet->id, 'is_current' => false]);
+    $sheet->update(['current_revision_id' => $current->id]);
+
+    app(PlanRevisionService::class)->publish($sheet, $older);
+
+    expect($sheet->fresh()->current_revision_id)->toBe($older->id)
+        ->and($sheet->revisions()->where('is_current', true)->pluck('id')->all())->toBe([$older->id]);
 });
 
 it('restores and persists viewer state for the authenticated user', function (): void {
