@@ -6,10 +6,12 @@ use App\Core\Assets\Models\AssetReference;
 use App\Core\Identity\Models\User;
 use App\Domains\Plans\Jobs\FinalizePlanSetJob;
 use App\Domains\Plans\Jobs\SplitPlanSetJob;
+use App\Domains\Plans\Livewire\Sheets\Viewer;
 use App\Domains\Plans\Models\PlanAnnotation;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
+use App\Domains\Plans\Models\PlanViewState;
 use App\Domains\Plans\Services\PlanSetIngestionService;
 use App\Domains\Plans\Services\PlanSheetMatcher;
 use App\Domains\Projects\Models\Project;
@@ -81,4 +83,26 @@ it('finalizes one current revision per sheet', function (): void {
     (new FinalizePlanSetJob($set->id))->handle(app(PlanSheetMatcher::class));
 
     expect($sheet->revisions()->where('is_current', true)->count())->toBe(1);
+});
+
+it('restores and persists viewer state for the authenticated user', function (): void {
+    $user = User::factory()->create(['is_admin' => true]);
+    $sheet = PlanSheet::factory()->create();
+    $revision = PlanSheetRevision::factory()->rendered()->create([
+        'plan_sheet_id' => $sheet->id,
+        'plan_set_id' => PlanSet::factory()->create(['project_id' => $sheet->project_id])->id,
+        'is_current' => true,
+    ]);
+    $sheet->update(['current_revision_id' => $revision->id]);
+    $this->actingAs($user);
+
+    $viewer = new Viewer;
+    $viewer->sheet = $sheet;
+    $viewer->persistViewState(2.5, 1.4, -0.2);
+
+    $state = PlanViewState::query()->where('user_id', $user->id)->where('plan_sheet_id', $sheet->id)->firstOrFail();
+
+    expect((float) $state->zoom)->toBe(2.5)
+        ->and((float) $state->center_x)->toBe(1.0)
+        ->and((float) $state->center_y)->toBe(0.0);
 });
