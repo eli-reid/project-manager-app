@@ -25,6 +25,7 @@ use App\Domains\Plans\Services\Rasterizers\NullRasterizer;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 final class PlansServiceProvider extends ServiceProvider
 {
@@ -41,10 +42,15 @@ final class PlansServiceProvider extends ServiceProvider
         $this->commands([CheckRasterizerCommand::class, PrunePlanDerivativesCommand::class]);
     }
 
-    public function boot(PermissionRegistryContract $permissionRegistry, SettingsRegistryContract $settingsRegistry, AssetReferencerRegistry $assetRegistry): void
-    {
+    public function boot(
+        PermissionRegistryContract $permissionRegistry,
+        SettingsRegistryContract $settingsRegistry,
+        AssetReferencerRegistry $assetRegistry,
+    ): void {
         $permissionRegistry->registerPermissions(PlanPermissions::all());
         $settingsRegistry->registerConfigFile('plans', __DIR__.'/../config/settings.php');
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'plans');
+        Livewire::addNamespace('plans', classNamespace: 'App\\Domains\\Plans\\Livewire');
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $assetRegistry->register('plans', PlanAssetAccessResolver::class);
         Gate::policy(PlanSet::class, PlanSetPolicy::class);
