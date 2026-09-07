@@ -117,6 +117,22 @@ it('finalizes one current revision per sheet', function (): void {
     expect($sheet->revisions()->where('is_current', true)->count())->toBe(1);
 });
 
+it('marks a plan set failed when a revision failed to render', function (): void {
+    $set = PlanSet::factory()->create();
+    $sheet = PlanSheet::factory()->create(['project_id' => $set->project_id]);
+    PlanSheetRevision::factory()->create([
+        'plan_set_id' => $set->id,
+        'plan_sheet_id' => $sheet->id,
+        'status' => 'failed',
+        'error_message' => 'Renderer failed',
+    ]);
+
+    (new FinalizePlanSetJob($set->id))->handle(app(PlanSheetMatcher::class));
+
+    expect($set->fresh()->status)->toBe(PlanSet::STATUS_FAILED)
+        ->and($set->fresh()->error_message)->toBe('One or more plan pages failed to render.');
+});
+
 it('publishes a selected revision and demotes the previous current revision', function (): void {
     $set = PlanSet::factory()->create();
     $sheet = PlanSheet::factory()->create(['project_id' => $set->project_id]);

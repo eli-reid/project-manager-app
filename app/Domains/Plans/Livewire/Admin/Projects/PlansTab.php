@@ -48,7 +48,7 @@ final class PlansTab extends Component
 
     public function save(PlanSetIngestionService $ingestion): void
     {
-        abort_unless($this->canUploadPlans, 403);
+        $this->authorize('create', PlanSet::class);
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'discipline' => ['nullable', 'string', 'max:100'],
@@ -70,6 +70,7 @@ final class PlansTab extends Component
             ->whereBelongsTo($this->project)
             ->when($this->search !== '', fn ($query) => $query->where('name', 'like', '%'.$this->search.'%'))
             ->latest()
+            ->limit(100)
             ->get();
 
         return view('plans::livewire.admin.projects.plans-tab', [

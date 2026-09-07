@@ -30,6 +30,7 @@ final class Index extends Component
                 ->whereBelongsTo($this->project)
                 ->with('currentRevision:id,plan_sheet_id,thumbnail_path')
                 ->orderBy('sort_index')
+                ->limit(100)
                 ->get(['id', 'project_id', 'sheet_number', 'title', 'current_revision_id']),
         ]);
     }

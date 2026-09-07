@@ -92,6 +92,7 @@ class Viewer extends Component
                 ->where('project_id', $this->project->id)
                 ->select(['id', 'sheet_number', 'title', 'sort_index'])
                 ->orderBy('sort_index')
+                ->limit(240)
                 ->get(),
         ]);
     }

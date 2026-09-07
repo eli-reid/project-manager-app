@@ -26,7 +26,15 @@ final class SplitPlanSetJob implements ShouldQueue
     public function handle(PlanRasterizerContract $rasterizer): void
     {
         $set = PlanSet::query()->with('sourceAsset')->find($this->planSetId);
-        if ($set === null || $set->sourceAsset === null) {
+        if ($set === null) {
+            return;
+        }
+        if ($set->sourceAsset === null) {
+            $set->update([
+                'status' => PlanSet::STATUS_FAILED,
+                'error_message' => 'Plan source asset is missing.',
+            ]);
+
             return;
         }
         try {
@@ -46,7 +54,15 @@ final class SplitPlanSetJob implements ShouldQueue
                 $revision = $sheet->revisions()->create(['plan_set_id' => $set->id, 'page_number' => $page]);
                 $jobs[] = new RenderPlanPageJob($revision->id);
             }
-            Bus::batch($jobs)->then(fn (Batch $batch) => FinalizePlanSetJob::dispatch($this->planSetId))->dispatch();
+            Bus::batch($jobs)
+                ->then(fn (Batch $batch) => FinalizePlanSetJob::dispatch($this->planSetId))
+                ->catch(function (Batch $batch, Throwable $exception): void {
+                    $set->update([
+                        'status' => PlanSet::STATUS_FAILED,
+                        'error_message' => $exception->getMessage(),
+                    ]);
+                })
+                ->dispatch();
         } catch (Throwable $exception) {
             $set->update(['status' => PlanSet::STATUS_FAILED, 'error_message' => $exception->getMessage()]);
         }
