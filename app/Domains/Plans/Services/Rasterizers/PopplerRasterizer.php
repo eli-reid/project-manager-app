@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Plans\Services\Rasterizers;
 
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
+use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
@@ -28,7 +29,11 @@ final class PopplerRasterizer implements PlanRasterizerContract
         int $dpi,
         string $absoluteOutPath,
     ): void {
-        $prefix = preg_replace('/\.png$/i', '', $absoluteOutPath) ?: $absoluteOutPath;
+        if (strtolower((string) pathinfo($absoluteOutPath, PATHINFO_EXTENSION)) !== 'png') {
+            throw new InvalidArgumentException('Poppler rasterizer output paths must use the PNG format.');
+        }
+
+        $prefix = substr($absoluteOutPath, 0, -4);
         $process = $this->process('pdftoppm', [
             '-r', (string) $dpi,
             '-f', (string) $page,
@@ -39,6 +44,12 @@ final class PopplerRasterizer implements PlanRasterizerContract
             $prefix,
         ]);
         $process->mustRun();
+
+        $generatedPath = $prefix.'.png';
+
+        if ($generatedPath !== $absoluteOutPath && ! rename($generatedPath, $absoluteOutPath)) {
+            throw new RuntimeException("Unable to normalize Poppler output path [{$absoluteOutPath}].");
+        }
     }
 
     public function isAvailable(): bool
