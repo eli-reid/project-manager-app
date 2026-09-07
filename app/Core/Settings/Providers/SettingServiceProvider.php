@@ -3,6 +3,7 @@
 namespace App\Core\Settings\Providers;
 
 use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
+use App\Core\Settings\Commands\ResyncDomainSettingsCommand;
 use App\Core\Settings\Commands\RotateAppKeyCommand;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Core\Settings\Models\SettingsSqlite;
@@ -116,6 +117,7 @@ class SettingServiceProvider extends ServiceProvider
         }
 
         $this->commands([
+            ResyncDomainSettingsCommand::class,
             RotateAppKeyCommand::class,
         ]);
     }
