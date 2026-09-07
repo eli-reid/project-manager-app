@@ -15,6 +15,7 @@ use App\Core\Assets\Services\LaravelFileStorage;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AssetsServiceProvider extends ServiceProvider
 {
@@ -29,10 +30,25 @@ class AssetsServiceProvider extends ServiceProvider
 
     public function boot(SettingsRegistryContract $settingsRegistry): void
     {
+        $this->registerSettings($settingsRegistry);
+        $this->registerInfrastructure();
+        $this->registerRoutes();
+    }
+
+    private function registerSettings(SettingsRegistryContract $settingsRegistry): void
+    {
         $settingsRegistry->registerConfigFile('assets', __DIR__.'/../config/settings.php');
+    }
 
+    private function registerInfrastructure(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../Resources/Views', 'assets');
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+        Livewire::addNamespace('assets', classNamespace: 'App\Core\Assets\Livewire');
+    }
 
+    private function registerRoutes(): void
+    {
         Route::middleware(['web', 'auth', 'verified'])
             ->group(__DIR__.'/../Routes/web.php');
     }
