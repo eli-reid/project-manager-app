@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Assets\Support\StorageDiskOptions;
+
 return [
     [
         'key' => 'assets.storage_disk',
@@ -7,12 +9,8 @@ return [
         'display_name' => 'Asset Storage Disk',
         'description' => 'Default filesystem disk used to store uploaded assets',
         'type' => 'select',
-        'group' => 'assets',
-        'options' => [
-            'local' => 'Local Storage',
-            's3' => 'Amazon S3',
-            'public' => 'Public Storage',
-        ],
+        'group' => 'storage',
+        'options' => StorageDiskOptions::all(),
         'order' => 1,
         'is_visible' => true,
         'is_public' => false,
