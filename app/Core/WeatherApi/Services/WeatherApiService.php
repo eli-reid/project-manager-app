@@ -432,7 +432,7 @@ class WeatherApiService implements WeatherApiContract
 
     protected function forecastDays(): int
     {
-        return 3;
+        return 2;
     }
 
     protected function retentionDays(): int
