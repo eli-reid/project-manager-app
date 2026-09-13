@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Jobs;
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use Illuminate\Bus\Queueable;
@@ -22,7 +23,7 @@ final class DetectPlanLinksJob implements ShouldQueue
     {
         $revision = PlanSheetRevision::query()->with(['sheet.project', 'sheet', 'links'])->findOrFail($this->revisionId);
         $text = (string) $revision->text_layer;
-        $pattern = '/'.trim((string) config('plans.sheet_number_pattern'), '/').'/i';
+        $pattern = '/'.trim(Settings::get('plans.sheet_number_pattern', config('plans.sheet_number_pattern'))->toString(), '/').'/i';
         preg_match_all($pattern, $text, $matches);
 
         $targets = PlanSheet::query()

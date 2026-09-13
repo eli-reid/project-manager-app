@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Services;
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use Illuminate\Support\Str;
 use Smalot\PdfParser\Parser;
@@ -17,7 +18,7 @@ final class PlanSheetMetadataExtractor
         $revision->loadMissing('set');
         $pdf = $this->parser->parseFile($absolutePdfPath);
         $text = trim($pdf->getPages()[$revision->page_number - 1]?->getText() ?? '');
-        $pattern = (string) config('plans.sheet_number_pattern');
+        $pattern = Settings::get('plans.sheet_number_pattern', config('plans.sheet_number_pattern'))->toString();
         preg_match_all('/'.trim($pattern, '/').'/i', $text, $matches);
 
         $number = collect($matches[0] ?? [])

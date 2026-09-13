@@ -6,6 +6,7 @@ use App\Core\Auth\Permission\Models\Permission;
 use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Plans\Jobs\PurgePlanDerivativesJob;
+use App\Domains\Plans\Jobs\ReindexPlanSetMetadataJob;
 use App\Domains\Plans\Livewire\Admin\Projects\PlansTab;
 use App\Domains\Plans\Livewire\Sheets\Index;
 use App\Domains\Plans\Models\PlanSet;
@@ -13,6 +14,7 @@ use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Plans\Services\PlanSetRollbackService;
 use App\Domains\Projects\Models\Project;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -46,7 +48,12 @@ function createPlansAdminUser(): User
         ['label' => 'Upload Plans', 'description' => 'Upload Plans']
     );
 
-    $role->permissions()->sync([$p1->id, $p2->id, $p3->id, $p4->id]);
+    $p5 = Permission::query()->firstOrCreate(
+        ['resource' => 'plans', 'action' => 'update'],
+        ['label' => 'Update Plans', 'description' => 'Update Plans']
+    );
+
+    $role->permissions()->sync([$p1->id, $p2->id, $p3->id, $p4->id, $p5->id]);
 
     $user = User::factory()->create(['is_admin' => true]);
     $user->roles()->sync([$role->id]);
@@ -101,6 +108,22 @@ it('allows authorized users to delete a plan set from admin', function (): void 
     Queue::assertPushed(PurgePlanDerivativesJob::class, fn (PurgePlanDerivativesJob $job): bool => $job->planSetId === $set->id && $job->projectId === $project->id);
 });
 
+it('queues metadata reindexing for an existing plan set', function (): void {
+    Queue::fake();
+
+    $user = createPlansAdminUser();
+    $project = Project::factory()->create();
+    $set = PlanSet::factory()->create(['project_id' => $project->id, 'status' => PlanSet::STATUS_READY]);
+
+    Livewire::actingAs($user)
+        ->test(PlansTab::class, ['project' => $project])
+        ->call('reindexPlanSetMetadata', $set->id)
+        ->assertHasNoErrors()
+        ->assertSee('Sheet naming has been queued.');
+
+    Queue::assertPushed(ReindexPlanSetMetadataJob::class, fn (ReindexPlanSetMetadataJob $job): bool => $job->planSetId === $set->id);
+});
+
 it('allows authorized users to delete an individual sheet from admin', function (): void {
     $user = createPlansAdminUser();
 
@@ -122,7 +145,7 @@ it('accepts file upload in PlansTab livewire component', function (): void {
 
     $user = createPlansAdminUser();
     $project = Project::factory()->create();
-    $file = \Illuminate\Http\UploadedFile::fake()->create('architectural-set.pdf', 100, 'application/pdf');
+    $file = UploadedFile::fake()->create('architectural-set.pdf', 100, 'application/pdf');
 
     Livewire::actingAs($user)
         ->test(PlansTab::class, ['project' => $project])

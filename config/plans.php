@@ -14,6 +14,6 @@ return [
     'max_pages_per_set' => env('PLANS_MAX_PAGES_PER_SET', 500),
     'max_upload_kilobytes' => env('PLANS_MAX_UPLOAD_KILOBYTES', 512000),
     'title_block_region' => env('PLANS_TITLE_BLOCK_REGION', 'bottom-right'),
-    'sheet_number_pattern' => env('PLANS_SHEET_NUMBER_PATTERN', '^[A-Z]{1,3}[-.]?\\d{1,3}(\\.\\d+)?$'),
+    'sheet_number_pattern' => env('PLANS_SHEET_NUMBER_PATTERN', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])'),
     'null_page_count' => env('PLANS_NULL_PAGE_COUNT', 1),
 ];

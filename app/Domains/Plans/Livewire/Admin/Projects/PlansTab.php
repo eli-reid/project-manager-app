@@ -7,6 +7,7 @@ namespace App\Domains\Plans\Livewire\Admin\Projects;
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Jobs\PurgePlanDerivativesJob;
+use App\Domains\Plans\Jobs\ReindexPlanSetMetadataJob;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Services\PlanSetIngestionService;
@@ -83,6 +84,16 @@ final class PlansTab extends Component
         });
 
         session()->flash('success', 'Plan set deleted successfully.');
+    }
+
+    public function reindexPlanSetMetadata(string $setId): void
+    {
+        $set = PlanSet::query()->whereBelongsTo($this->project)->findOrFail($setId);
+        $this->authorize('update', $set);
+
+        ReindexPlanSetMetadataJob::dispatch($set->id);
+
+        session()->flash('success', 'Sheet naming has been queued.');
     }
 
     public function deleteSheet(string $sheetId): void

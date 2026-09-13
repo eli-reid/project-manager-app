@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Assets\Models\Asset;
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
 use App\Domains\Plans\Jobs\RenderPlanPageJob;
 use App\Domains\Plans\Jobs\SplitPlanSetJob;
@@ -16,6 +17,15 @@ it('uses the Batchable trait on RenderPlanPageJob', function (): void {
     $uses = class_uses_recursive(RenderPlanPageJob::class);
 
     expect($uses)->toContain(Batchable::class);
+});
+
+it('matches sheet numbers in extracted PDF text', function (): void {
+    Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
+
+    $pattern = Settings::get('plans.sheet_number_pattern')->toString();
+    preg_match_all('/'.trim($pattern, '/').'/i', 'FOR PRICING SCHEDULES H 0.02', $matches);
+
+    expect($matches[0])->toContain('H 0.02');
 });
 
 it('dispatches batch jobs in SplitPlanSetJob without memory errors', function (): void {

@@ -57,6 +57,16 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <flux:badge>{{ str($set->status)->headline() }}</flux:badge>
+                    @if ($canUpdatePlans && $set->status === \App\Domains\Plans\Models\PlanSet::STATUS_READY)
+                        <flux:button
+                            wire:click="reindexPlanSetMetadata('{{ $set->id }}')"
+                            wire:confirm="Automatically name sheets in this plan set using its PDF text layer?"
+                            variant="ghost"
+                            size="sm"
+                            icon="arrow-path">
+                            Auto-name sheets
+                        </flux:button>
+                    @endif
                     @if ($canDeletePlans)
                         <flux:button
                             wire:click="deletePlanSet('{{ $set->id }}')"
