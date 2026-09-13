@@ -24,6 +24,15 @@ final class FinalizePlanSetJob implements ShouldQueue
         if ($set === null) {
             return;
         }
+        if ($set->revisions()->where('status', 'failed')->exists()) {
+            $set->update([
+                'status' => PlanSet::STATUS_FAILED,
+                'error_message' => 'One or more plan pages failed to render.',
+            ]);
+
+            return;
+        }
+
         $set->revisions()->each(function ($revision) use ($matcher): void {
             $sheet = $matcher->match($revision);
             $sheet->revisions()->where('id', '!=', $revision->id)->update(['is_current' => false]);

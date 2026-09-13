@@ -35,7 +35,7 @@ final class Index extends Component
 
     public function loadMore(): void
     {
-        $this->perPage += 24;
+        $this->perPage = min($this->perPage + 24, 240);
     }
 
     public function clearFilters(): void
@@ -57,14 +57,14 @@ final class Index extends Component
             ->when($this->setId !== '', fn ($query) => $query->whereHas('revisions', fn ($query) => $query->where('plan_set_id', $this->setId)))
             ->orderBy('sort_index')
             ->orderBy('sheet_number')
-            ->limit($this->perPage)
+            ->limit(min($this->perPage, 240))
             ->get();
 
         return view('plans::livewire.sheets.index', [
             'sheets' => $sheets,
             'sets' => PlanSet::query()->whereBelongsTo($this->project)->orderBy('name')->get(['id', 'name']),
             'disciplines' => PlanSheet::query()->whereBelongsTo($this->project)->whereNotNull('discipline')->distinct()->orderBy('discipline')->pluck('discipline'),
-            'hasMore' => $sheets->count() === $this->perPage,
+            'hasMore' => $sheets->count() === min($this->perPage, 240) && $this->perPage < 240,
         ]);
     }
 }

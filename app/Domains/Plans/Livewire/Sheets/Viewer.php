@@ -7,6 +7,7 @@ namespace App\Domains\Plans\Livewire\Sheets;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Plans\Models\PlanViewState;
+use App\Domains\Plans\Services\PlanRevisionService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +15,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-final class Viewer extends Component
+class Viewer extends Component
 {
     use AuthorizesRequests;
 
@@ -59,6 +60,15 @@ final class Viewer extends Component
         $this->activeRevisionId = $revisionId;
     }
 
+    public function publishRevision(string $revisionId, PlanRevisionService $revisions): void
+    {
+        $this->authorize('publishRevision', $this->sheet);
+        $revision = $this->sheet->revisions->firstWhere('id', $revisionId);
+        abort_unless($revision instanceof PlanSheetRevision, 404);
+        $revisions->publish($this->sheet, $revision);
+        $this->sheet->refresh()->load(['currentRevision', 'revisions.set']);
+    }
+
     public function persistViewState(float $zoom, float $centerX, float $centerY): void
     {
         $this->zoom = max(0.25, min(4, $zoom));
@@ -82,6 +92,7 @@ final class Viewer extends Component
                 ->where('project_id', $this->project->id)
                 ->select(['id', 'sheet_number', 'title', 'sort_index'])
                 ->orderBy('sort_index')
+                ->limit(240)
                 ->get(),
         ]);
     }

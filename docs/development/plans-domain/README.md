@@ -20,6 +20,7 @@ Status: **Draft - not yet implemented.**
 | `08_PHASE_BREAKDOWN.md` | Phase-by-phase implementation checklist (the tracker) |
 | `09_TESTING_AND_VERIFICATION.md` | Test strategy, gates, known repo test caveats |
 | `10_MIGRATION_AND_ROLLOUT.md` | Legacy import, feature flag, deployment prerequisites |
+| `SETUP_AND_CONFIGURATION_GUIDE.md` | Complete setup, rasterizer engines, queue config & troubleshooting |
 
 ## One-Paragraph Summary
 

@@ -20,7 +20,6 @@ use App\Domains\Documents\Services\DocumentService;
 use App\Domains\Documents\Services\DocumentShareService;
 use App\Domains\Documents\Services\ProjectDocumentLibrary;
 use App\Domains\Documents\Support\DocumentsProjectTab;
-use App\Domains\Documents\Support\PlansProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use App\Providers\Concerns\RegistersMobileRedirectMappings;
 use Illuminate\Support\Facades\Gate;
@@ -129,10 +128,15 @@ class DocumentsServiceProvider extends ServiceProvider
 
     private function registerProjectTabs(ProjectTabRegistry $projectTabRegistry): void
     {
-        $projectTabRegistry->registerDefinitions([
+        $tabs = [
             DocumentsProjectTab::class,
-            PlansProjectTab::class,
-        ]);
+        ];
+
+        if (! (bool) config('plans.enabled', false)) {
+            $tabs[] = PlansProjectTab::class;
+        }
+
+        $projectTabRegistry->registerDefinitions($tabs);
     }
 
     private function registerSettings(SettingsRegistryContract $settingsRegistry): void

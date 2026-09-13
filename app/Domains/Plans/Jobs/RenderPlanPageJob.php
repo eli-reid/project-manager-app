@@ -6,6 +6,7 @@ namespace App\Domains\Plans\Jobs;
 
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
+use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -56,5 +57,23 @@ final class RenderPlanPageJob implements ShouldBeUnique, ShouldQueue
             $revision->update(['status' => 'failed', 'error_message' => $exception->getMessage()]);
             throw $exception;
         }
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        $revision = PlanSheetRevision::query()->with('set')->find($this->revisionId);
+
+        if ($revision === null) {
+            return;
+        }
+
+        $revision->update([
+            'status' => 'failed',
+            'error_message' => $exception->getMessage(),
+        ]);
+        $revision->set?->update([
+            'status' => PlanSet::STATUS_FAILED,
+            'error_message' => $exception->getMessage(),
+        ]);
     }
 }

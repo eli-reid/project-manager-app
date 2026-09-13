@@ -22,6 +22,8 @@ use App\Domains\Plans\Policies\PlanSheetPolicy;
 use App\Domains\Plans\Services\PlanAssetAccessResolver;
 use App\Domains\Plans\Services\PlanRasterizerManager;
 use App\Domains\Plans\Services\Rasterizers\NullRasterizer;
+use App\Domains\Plans\Support\PlansProjectTab;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -46,6 +48,7 @@ final class PlansServiceProvider extends ServiceProvider
         PermissionRegistryContract $permissionRegistry,
         SettingsRegistryContract $settingsRegistry,
         AssetReferencerRegistry $assetRegistry,
+        ProjectTabRegistry $projectTabRegistry,
     ): void {
         $permissionRegistry->registerPermissions(PlanPermissions::all());
         $settingsRegistry->registerConfigFile('plans', __DIR__.'/../config/settings.php');
@@ -58,6 +61,8 @@ final class PlansServiceProvider extends ServiceProvider
         Gate::policy(PlanAnnotation::class, PlanAnnotationPolicy::class);
         Gate::policy(PlanLink::class, PlanLinkPolicy::class);
         if ((bool) config('plans.enabled', false)) {
+            $projectTabRegistry->registerDefinitions([PlansProjectTab::class]);
+
             Route::middleware(['web', 'auth', 'verified'])
                 ->group(__DIR__.'/../Routes/web.php');
         }
