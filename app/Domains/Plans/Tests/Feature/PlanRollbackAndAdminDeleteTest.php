@@ -41,6 +41,13 @@ function createPlansAdminUser(): User
 
     $role->permissions()->sync([$p1->id, $p2->id, $p3->id]);
 
+    $p4 = Permission::query()->firstOrCreate(
+        ['resource' => 'plans', 'action' => 'upload'],
+        ['label' => 'Upload Plans', 'description' => 'Upload Plans']
+    );
+
+    $role->permissions()->sync([$p1->id, $p2->id, $p3->id, $p4->id]);
+
     $user = User::factory()->create(['is_admin' => true]);
     $user->roles()->sync([$role->id]);
     User::bumpPermissionCacheVersion();
@@ -108,4 +115,23 @@ it('allows authorized users to delete an individual sheet from admin', function 
 
     expect(PlanSheet::query()->where('id', $sheet->id)->exists())->toBeFalse()
         ->and(PlanSheetRevision::query()->where('id', $revision->id)->exists())->toBeFalse();
+});
+
+it('accepts file upload in PlansTab livewire component', function (): void {
+    Storage::fake('local');
+
+    $user = createPlansAdminUser();
+    $project = Project::factory()->create();
+    $file = \Illuminate\Http\UploadedFile::fake()->create('architectural-set.pdf', 100, 'application/pdf');
+
+    Livewire::actingAs($user)
+        ->test(PlansTab::class, ['project' => $project])
+        ->set('name', 'Architectural Set')
+        ->set('discipline', 'Architectural')
+        ->set('file', $file)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSee('Plan set uploaded and queued for processing.');
+
+    expect(PlanSet::query()->where('project_id', $project->id)->where('name', 'Architectural Set')->exists())->toBeTrue();
 });

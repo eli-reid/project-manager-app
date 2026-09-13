@@ -1,4 +1,4 @@
-<div class="space-y-5" @if ($polling) wire:poll.2s @endif>
+<div class="space-y-5">
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
             <flux:heading size="lg">Plans</flux:heading>
@@ -12,7 +12,7 @@
     @endif
 
     @if ($canUploadPlans)
-        <form wire:submit="save" class="grid gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 md:grid-cols-4">
+        <form wire:submit="save" wire:key="plans-upload-form" class="grid gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 md:grid-cols-4">
             <flux:field>
                 <flux:label>Set name</flux:label>
                 <flux:input wire:model="name" placeholder="Permit set" />
@@ -25,16 +25,30 @@
             </flux:field>
             <flux:field>
                 <flux:label>PDF drawing set</flux:label>
-                <input type="file" wire:model="file" accept="application/pdf" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900" />
+                <div class="space-y-1">
+                    <input type="file" wire:model="file" accept="application/pdf" wire:key="plans-file-input" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900" />
+                    <div wire:loading wire:target="file" class="text-xs font-medium text-sky-600 dark:text-sky-400">
+                        Uploading PDF file&hellip;
+                    </div>
+                    @if ($file)
+                        <div class="text-xs text-emerald-600 dark:text-emerald-400">
+                            Selected: {{ method_exists($file, 'getClientOriginalName') ? $file->getClientOriginalName() : 'PDF File' }}
+                        </div>
+                    @endif
+                </div>
                 <flux:error name="file" />
             </flux:field>
             <div class="flex items-end">
-                <flux:button type="submit" variant="primary" class="w-full">Upload set</flux:button>
+                <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled" wire:target="save,file">
+                    <span wire:loading.remove wire:target="file">Upload set</span>
+                    <span wire:loading wire:target="file">Uploading&hellip;</span>
+                </flux:button>
             </div>
         </form>
     @endif
 
-    @forelse ($sets as $set)
+    <div @if ($polling) wire:poll.2s @endif class="space-y-4">
+        @forelse ($sets as $set)
         <div wire:key="plan-set-{{ $set->id }}" class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -70,6 +84,7 @@
             <flux:text class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Upload a PDF drawing set to start building the sheet index.</flux:text>
         </div>
     @endforelse
+    </div>
 
     <livewire:plans::sheets.index :project="$project" :key="'plans-sheet-index-'.$project->id" />
 </div>
