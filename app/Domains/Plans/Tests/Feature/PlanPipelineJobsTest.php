@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Assets\Models\Asset;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
+use App\Domains\Plans\Jobs\ReindexPlanSetMetadataJob;
 use App\Domains\Plans\Jobs\RenderPlanPageJob;
 use App\Domains\Plans\Jobs\SplitPlanSetJob;
 use App\Domains\Plans\Models\PlanSet;
@@ -38,6 +39,14 @@ it('applies OCR text without parsing the source PDF again', function (): void {
 
     expect($updatedRevision->detected_sheet_number)->toBe('H 0.02')
         ->and($updatedRevision->detection_source)->toBe('text-layer');
+});
+
+it('records reindexing failures on the plan set', function (): void {
+    $planSet = PlanSet::factory()->create();
+
+    (new ReindexPlanSetMetadataJob($planSet->id))->failed(new RuntimeException('Ghostscript is not available.'));
+
+    expect($planSet->fresh()->error_message)->toBe('Sheet naming failed: Ghostscript is not available.');
 });
 
 it('dispatches batch jobs in SplitPlanSetJob without memory errors', function (): void {

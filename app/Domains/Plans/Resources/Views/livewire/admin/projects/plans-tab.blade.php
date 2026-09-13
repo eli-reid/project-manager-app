@@ -86,6 +86,8 @@
                 <flux:text class="mt-1 text-xs">{{ $set->processed_page_count }} / {{ $set->page_count }} pages rendered</flux:text>
             @elseif ($set->status === \App\Domains\Plans\Models\PlanSet::STATUS_FAILED)
                 <flux:callout class="mt-3" variant="danger">{{ $set->error_message ?: 'Processing failed.' }}</flux:callout>
+            @elseif ($set->error_message)
+                <flux:callout class="mt-3" variant="danger">{{ $set->error_message }}</flux:callout>
             @endif
         </div>
     @empty

@@ -16,6 +16,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
 {
@@ -42,14 +43,30 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $path = Storage::disk($set->sourceAsset->storage_disk)->path($set->sourceAsset->storage_path);
+        try {
+            $path = Storage::disk($set->sourceAsset->storage_disk)->path($set->sourceAsset->storage_path);
 
-        $set->revisions()
-            ->where('status', 'rendered')
-            ->orderBy('page_number')
-            ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor): void {
-                $updatedRevision = $extractor->applyText($revision, $textExtractor->extract($path, $revision->page_number));
-                $matcher->match($updatedRevision);
-            });
+            $set->revisions()
+                ->where('status', 'rendered')
+                ->orderBy('page_number')
+                ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor): void {
+                    $updatedRevision = $extractor->applyText($revision, $textExtractor->extract($path, $revision->page_number));
+                    $matcher->match($updatedRevision);
+                });
+
+            $set->update(['error_message' => null]);
+        } catch (Throwable $exception) {
+            $set->update(['error_message' => 'Sheet naming failed: '.$exception->getMessage()]);
+
+            throw $exception;
+        }
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        PlanSet::query()
+            ->whereKey($this->planSetId)
+            ->whereNull('error_message')
+            ->update(['error_message' => 'Sheet naming failed: '.$exception->getMessage()]);
     }
 }
