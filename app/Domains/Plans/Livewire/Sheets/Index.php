@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Livewire\Sheets;
 
+use App\Core\Identity\Models\User;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 final class Index extends Component
@@ -26,11 +28,26 @@ final class Index extends Component
 
     public int $perPage = 24;
 
+    public bool $canDeletePlans = false;
+
     public function mount(Project $project): void
     {
         $this->project = $project;
         $this->authorize('view', $project);
         $this->authorize('viewAny', PlanSet::class);
+        $user = Auth::user();
+        $this->canDeletePlans = $user instanceof User && $user->hasPermission('plans.delete');
+    }
+
+    public function deleteSheet(string $sheetId): void
+    {
+        $sheet = PlanSheet::query()->whereBelongsTo($this->project)->findOrFail($sheetId);
+        $this->authorize('delete', $sheet);
+
+        $sheet->revisions()->delete();
+        $sheet->delete();
+
+        session()->flash('success', 'Plan sheet deleted successfully.');
     }
 
     public function loadMore(): void

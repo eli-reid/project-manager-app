@@ -40,9 +40,21 @@
                             <flux:text class="truncate font-semibold">{{ $sheet->sheet_number ?: 'Unnumbered' }}</flux:text>
                             <flux:text class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $sheet->title ?: 'Untitled sheet' }}</flux:text>
                         </div>
-                        @if ($sheet->annotations_count > 0)
-                            <flux:badge size="sm">{{ $sheet->annotations_count }}</flux:badge>
-                        @endif
+                        <div class="flex items-center gap-1">
+                            @if ($sheet->annotations_count > 0)
+                                <flux:badge size="sm">{{ $sheet->annotations_count }}</flux:badge>
+                            @endif
+                            @if ($canDeletePlans)
+                                <flux:button
+                                    wire:click.prevent="deleteSheet('{{ $sheet->id }}')"
+                                    wire:confirm="Are you sure you want to delete this sheet?"
+                                    variant="ghost"
+                                    size="sm"
+                                    class="text-red-500 hover:text-red-700">
+                                    Delete
+                                </flux:button>
+                            @endif
+                        </div>
                     </div>
                 </a>
             @endforeach

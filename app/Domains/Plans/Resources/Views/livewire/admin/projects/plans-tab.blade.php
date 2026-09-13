@@ -41,7 +41,19 @@
                     <flux:text class="font-semibold">{{ $set->name }}</flux:text>
                     <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">{{ $set->discipline ?: 'Unassigned' }} · {{ $set->page_count }} pages</flux:text>
                 </div>
-                <flux:badge>{{ str($set->status)->headline() }}</flux:badge>
+                <div class="flex items-center gap-2">
+                    <flux:badge>{{ str($set->status)->headline() }}</flux:badge>
+                    @if ($canDeletePlans)
+                        <flux:button
+                            wire:click="deletePlanSet('{{ $set->id }}')"
+                            wire:confirm="Are you sure you want to delete this plan set? All associated revisions will be removed."
+                            variant="ghost"
+                            size="sm"
+                            class="text-red-600 hover:text-red-700 dark:text-red-400">
+                            Delete
+                        </flux:button>
+                    @endif
+                </div>
             </div>
             @if ($set->status === \App\Domains\Plans\Models\PlanSet::STATUS_RENDERING)
                 <div class="mt-3 h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Plans\Jobs;
 
 use App\Domains\Plans\Models\PlanSet;
+use App\Domains\Plans\Services\PlanSetRollbackService;
 use App\Domains\Plans\Services\PlanSheetMatcher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,17 +19,15 @@ final class FinalizePlanSetJob implements ShouldQueue
 
     public function __construct(public string $planSetId) {}
 
-    public function handle(PlanSheetMatcher $matcher): void
+    public function handle(PlanSheetMatcher $matcher, ?PlanSetRollbackService $rollbackService = null): void
     {
+        $rollbackService ??= app(PlanSetRollbackService::class);
         $set = PlanSet::query()->find($this->planSetId);
         if ($set === null) {
             return;
         }
         if ($set->revisions()->where('status', 'failed')->exists()) {
-            $set->update([
-                'status' => PlanSet::STATUS_FAILED,
-                'error_message' => 'One or more plan pages failed to render.',
-            ]);
+            $rollbackService->rollback($set, 'One or more plan pages failed to render.');
 
             return;
         }

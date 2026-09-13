@@ -6,11 +6,14 @@ namespace App\Domains\Plans\Livewire\Admin\Projects;
 
 use App\Core\Identity\Models\User;
 use App\Core\Settings\Facades\Settings;
+use App\Domains\Plans\Jobs\PurgePlanDerivativesJob;
 use App\Domains\Plans\Models\PlanSet;
+use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Services\PlanSetIngestionService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
@@ -62,6 +65,35 @@ final class PlansTab extends Component
         ]);
         $this->reset(['name', 'discipline', 'file']);
         session()->flash('success', 'Plan set uploaded and queued for processing.');
+    }
+
+    public function deletePlanSet(string $setId): void
+    {
+        $set = PlanSet::query()->whereBelongsTo($this->project)->findOrFail($setId);
+        $this->authorize('delete', $set);
+
+        DB::transaction(function () use ($set): void {
+            $setKey = $set->id;
+            $projectId = $set->project_id;
+
+            $set->revisions()->delete();
+            $set->delete();
+
+            PurgePlanDerivativesJob::dispatch($setKey, $projectId);
+        });
+
+        session()->flash('success', 'Plan set deleted successfully.');
+    }
+
+    public function deleteSheet(string $sheetId): void
+    {
+        $sheet = PlanSheet::query()->whereBelongsTo($this->project)->findOrFail($sheetId);
+        $this->authorize('delete', $sheet);
+
+        $sheet->revisions()->delete();
+        $sheet->delete();
+
+        session()->flash('success', 'Plan sheet deleted successfully.');
     }
 
     public function render()

@@ -6,8 +6,8 @@ namespace App\Domains\Plans\Jobs;
 
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
-use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheetRevision;
+use App\Domains\Plans\Services\PlanSetRollbackService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -68,13 +68,8 @@ final class RenderPlanPageJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $revision->update([
-            'status' => 'failed',
-            'error_message' => $exception->getMessage(),
-        ]);
-        $revision->set?->update([
-            'status' => PlanSet::STATUS_FAILED,
-            'error_message' => $exception->getMessage(),
-        ]);
+        if ($revision->set !== null) {
+            app(PlanSetRollbackService::class)->rollback($revision->set, $exception->getMessage());
+        }
     }
 }

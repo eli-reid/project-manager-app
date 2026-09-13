@@ -7,6 +7,7 @@ namespace App\Domains\Plans\Jobs;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
+use App\Domains\Plans\Services\PlanSetRollbackService;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,17 +24,15 @@ final class SplitPlanSetJob implements ShouldQueue
 
     public function __construct(public string $planSetId) {}
 
-    public function handle(PlanRasterizerContract $rasterizer): void
+    public function handle(PlanRasterizerContract $rasterizer, ?PlanSetRollbackService $rollbackService = null): void
     {
+        $rollbackService ??= app(PlanSetRollbackService::class);
         $set = PlanSet::query()->with('sourceAsset')->find($this->planSetId);
         if ($set === null) {
             return;
         }
         if ($set->sourceAsset === null) {
-            $set->update([
-                'status' => PlanSet::STATUS_FAILED,
-                'error_message' => 'Plan source asset is missing.',
-            ]);
+            $rollbackService->rollback($set, 'Plan source asset is missing.');
 
             return;
         }
@@ -56,15 +55,12 @@ final class SplitPlanSetJob implements ShouldQueue
             }
             Bus::batch($jobs)
                 ->then(fn (Batch $batch) => FinalizePlanSetJob::dispatch($this->planSetId))
-                ->catch(function (Batch $batch, Throwable $exception): void {
-                    $set->update([
-                        'status' => PlanSet::STATUS_FAILED,
-                        'error_message' => $exception->getMessage(),
-                    ]);
+                ->catch(function (Batch $batch, Throwable $exception) use ($set, $rollbackService): void {
+                    $rollbackService->rollback($set, $exception->getMessage());
                 })
                 ->dispatch();
         } catch (Throwable $exception) {
-            $set->update(['status' => PlanSet::STATUS_FAILED, 'error_message' => $exception->getMessage()]);
+            $rollbackService->rollback($set, $exception->getMessage());
         }
     }
 }
