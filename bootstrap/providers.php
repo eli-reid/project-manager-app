@@ -1,12 +1,14 @@
 <?php
 
 use App\Core\Announcement\Providers\AnnouncementServiceProvider;
+use App\Core\Assets\Providers\AssetsServiceProvider;
 use App\Core\Audit\Providers\AuditServiceProvider;
 use App\Core\Auth\Permission\Providers\PermissionServiceProvider;
 use App\Core\Auth\Role\Providers\RoleServiceProvider;
 use App\Core\Auth\User\Providers\AuthUserServiceProvider;
 use App\Core\Cpanel\Providers\CpanelServiceProvider;
 use App\Core\Dashboard\Providers\DashboardServiceProvider;
+use App\Core\Files\Providers\FilesServiceProvider;
 use App\Core\Identity\Providers\FortifyServiceProvider;
 use App\Core\Identity\Providers\UserServiceProvider;
 use App\Core\Notification\Providers\NotificationServiceProvider;
@@ -19,7 +21,6 @@ use App\Domains\Providers\DomainServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\TelescopeServiceProvider;
 use App\Providers\VoltServiceProvider;
-use App\Core\Assets\Providers\AssetsServiceProvider;
 
 return [
     AnnouncementServiceProvider::class,
@@ -29,6 +30,7 @@ return [
     AuthUserServiceProvider::class,
     CpanelServiceProvider::class,
     DashboardServiceProvider::class,
+    FilesServiceProvider::class,
     FortifyServiceProvider::class,
     UserServiceProvider::class,
     NotificationServiceProvider::class,

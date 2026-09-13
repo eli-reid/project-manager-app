@@ -42,8 +42,6 @@ final class ImagickRasterizer implements PlanRasterizerContract
 
         try {
             $imagick = new \Imagick;
-            $imagick->setIteratorIndex(0);
-            $imagick->pingImage('logo:');
 
             return in_array('PDF', array_map('strtoupper', $imagick->queryFormats('PDF')), true);
         } catch (\Throwable) {
