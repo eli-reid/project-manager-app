@@ -7,17 +7,11 @@ namespace App\Domains\Plans\Services;
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use Illuminate\Support\Str;
-use Smalot\PdfParser\Parser;
 
 final class PlanSheetMetadataExtractor
 {
-    public function __construct(private readonly Parser $parser) {}
-
-    public function extract(PlanSheetRevision $revision, string $absolutePdfPath): PlanSheetRevision
+    public function applyText(PlanSheetRevision $revision, string $text): PlanSheetRevision
     {
-        $revision->loadMissing('set');
-        $pdf = $this->parser->parseFile($absolutePdfPath);
-        $text = trim($pdf->getPages()[$revision->page_number - 1]?->getText() ?? '');
         $pattern = Settings::get('plans.sheet_number_pattern', config('plans.sheet_number_pattern'))->toString();
         preg_match_all('/'.trim($pattern, '/').'/i', $text, $matches);
 

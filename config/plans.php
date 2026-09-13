@@ -4,6 +4,7 @@ return [
     'enabled' => env('PLANS_ENABLED', true),
     'rasterizer_driver' => env('PLANS_RASTERIZER_DRIVER', 'imagick'),
     'poppler_bin_path' => env('PLANS_POPPLER_BIN_PATH', ''),
+    'ghostscript_bin_path' => env('PLANS_GHOSTSCRIPT_BIN_PATH', ''),
     'process_timeout' => env('PLANS_PROCESS_TIMEOUT', 300),
     'render_dpi' => env('PLANS_RENDER_DPI', 150),
     'thumbnail_width' => env('PLANS_THUMBNAIL_WIDTH', 320),

@@ -6,6 +6,7 @@ namespace App\Domains\Plans\Jobs;
 
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheetRevision;
+use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
 use App\Domains\Plans\Services\PlanSheetMatcher;
 use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
 use Illuminate\Bus\Queueable;
@@ -31,8 +32,11 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
         return $this->planSetId;
     }
 
-    public function handle(PlanSheetMetadataExtractor $extractor, PlanSheetMatcher $matcher): void
-    {
+    public function handle(
+        PlanSheetMetadataExtractor $extractor,
+        PlanSheetMatcher $matcher,
+        GhostscriptPageTextExtractor $textExtractor,
+    ): void {
         $set = PlanSet::query()->with('sourceAsset')->find($this->planSetId);
         if ($set?->sourceAsset === null) {
             return;
@@ -43,9 +47,9 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
         $set->revisions()
             ->where('status', 'rendered')
             ->orderBy('page_number')
-            ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path): void {
-                $extractor->extract($revision, $path);
-                $matcher->match($revision->fresh());
+            ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor): void {
+                $updatedRevision = $extractor->applyText($revision, $textExtractor->extract($path, $revision->page_number));
+                $matcher->match($updatedRevision);
             });
     }
 }

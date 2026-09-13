@@ -6,6 +6,7 @@ namespace App\Domains\Plans\Jobs;
 
 use App\Core\Assets\Models\Asset;
 use App\Domains\Plans\Models\PlanSheetRevision;
+use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
 use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +23,7 @@ final class ExtractSheetMetadataJob implements ShouldQueue
 
     public function __construct(public string $revisionId) {}
 
-    public function handle(PlanSheetMetadataExtractor $extractor): void
+    public function handle(PlanSheetMetadataExtractor $extractor, GhostscriptPageTextExtractor $textExtractor): void
     {
         $revision = PlanSheetRevision::query()->with('set.sourceAsset')->findOrFail($this->revisionId);
         $asset = $revision->set?->sourceAsset;
@@ -32,6 +33,6 @@ final class ExtractSheetMetadataJob implements ShouldQueue
         }
 
         $path = Storage::disk($asset->storage_disk)->path($asset->storage_path);
-        $extractor->extract($revision, $path);
+        $extractor->applyText($revision, $textExtractor->extract($path, $revision->page_number));
     }
 }
