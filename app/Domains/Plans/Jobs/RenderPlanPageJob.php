@@ -8,6 +8,7 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheetRevision;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,7 +21,7 @@ use Throwable;
 
 final class RenderPlanPageJob implements ShouldBeUnique, ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
 
