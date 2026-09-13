@@ -53,10 +53,18 @@ final class SplitPlanSetJob implements ShouldQueue
                 $revision = $sheet->revisions()->create(['plan_set_id' => $set->id, 'page_number' => $page]);
                 $jobs[] = new RenderPlanPageJob($revision->id);
             }
+
+            $planSetId = $this->planSetId;
+
             Bus::batch($jobs)
-                ->then(fn (Batch $batch) => FinalizePlanSetJob::dispatch($this->planSetId))
-                ->catch(function (Batch $batch, Throwable $exception) use ($set, $rollbackService): void {
-                    $rollbackService->rollback($set, $exception->getMessage());
+                ->then(function (Batch $batch) use ($planSetId): void {
+                    FinalizePlanSetJob::dispatch($planSetId);
+                })
+                ->catch(function (Batch $batch, Throwable $exception) use ($planSetId): void {
+                    $set = PlanSet::query()->find($planSetId);
+                    if ($set !== null) {
+                        app(PlanSetRollbackService::class)->rollback($set, $exception->getMessage());
+                    }
                 })
                 ->dispatch();
         } catch (Throwable $exception) {
