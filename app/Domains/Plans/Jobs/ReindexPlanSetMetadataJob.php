@@ -17,8 +17,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Throwable;
 
 final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
 {
@@ -45,41 +43,55 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        $metadataOutputPath = "plans/reindex-metadata/{$this->planSetId}.json";
+        $metadataResults = [];
+
         try {
             $path = Storage::disk($set->sourceAsset->storage_disk)->path($set->sourceAsset->storage_path);
 
             $set->revisions()
                 ->where('status', 'rendered')
                 ->orderBy('page_number')
-                ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor): void {
+                ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor, $metadataOutputPath, &$metadataResults): void {
                     $text = $textExtractor->extract($path, $revision->page_number);
                     $updatedRevision = $extractor->applyText($revision, $text);
                     $matchedSheet = $matcher->match($updatedRevision);
 
-                    Log::info('ReindexPlanSetMetadataJob extracted revision metadata.', [
+                    $metadataResults[] = [
                         'plan_set_id' => $this->planSetId,
                         'revision_id' => $updatedRevision->id,
                         'page_number' => $updatedRevision->page_number,
-                        'text_excerpt' => Str::limit(preg_replace('/\s+/', ' ', trim($text)) ?? '', 200),
-                        'text_length' => strlen($text),
+                        'extracted_text' => $text,
+                        'text_length' => \strlen($text),
                         'detected_sheet_number' => $updatedRevision->detected_sheet_number,
                         'detected_title' => $updatedRevision->detected_title,
                         'detection_confidence' => $updatedRevision->detection_confidence,
                         'detection_source' => $updatedRevision->detection_source,
                         'matched_sheet_id' => $matchedSheet->id,
                         'matched_sheet_number' => $matchedSheet->sheet_number,
-                    ]);
+                    ];
+
+                    Storage::disk('local')->put(
+                        $metadataOutputPath,
+                        \json_encode($metadataResults, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)
+                    );
                 });
 
+            Log::info('ReindexPlanSetMetadataJob wrote metadata output file.', [
+                'plan_set_id' => $this->planSetId,
+                'output_path' => $metadataOutputPath,
+                'result_count' => \count($metadataResults),
+            ]);
+
             $set->update(['error_message' => null]);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             $set->update(['error_message' => 'Sheet naming failed: '.$exception->getMessage()]);
 
             throw $exception;
         }
     }
 
-    public function failed(Throwable $exception): void
+    public function failed(\Throwable $exception): void
     {
         PlanSet::query()
             ->whereKey($this->planSetId)

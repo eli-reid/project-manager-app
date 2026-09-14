@@ -17,7 +17,6 @@ use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 it('uses the Batchable trait on RenderPlanPageJob', function (): void {
@@ -53,7 +52,7 @@ it('records reindexing failures on the plan set', function (): void {
     expect($planSet->fresh()->error_message)->toBe('Sheet naming failed: Ghostscript is not available.');
 });
 
-it('logs extracted metadata while reindexing a rendered revision', function (): void {
+it('writes extracted metadata to a json file while reindexing a rendered revision', function (): void {
     Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
     Storage::disk('local')->put('test-asset.pdf', 'pdf-content');
 
@@ -81,28 +80,30 @@ it('logs extracted metadata while reindexing a rendered revision', function (): 
         'page_number' => 3,
     ]);
 
-    Log::shouldReceive('info')
-        ->once()
-        ->withArgs(function (string $message, array $context) use ($planSet, $revision, $sheet): bool {
-            return $message === 'ReindexPlanSetMetadataJob extracted revision metadata.'
-                && $context['plan_set_id'] === $planSet->id
-                && $context['revision_id'] === $revision->id
-                && $context['page_number'] === 3
-                && $context['text_excerpt'] === 'A-101 FLOOR PLAN'
-                && $context['text_length'] === 16
-                && $context['detected_sheet_number'] === 'A-101'
-                && $context['detected_title'] === 'FLOOR PLAN'
-                && (float) $context['detection_confidence'] === 0.9
-                && $context['detection_source'] === 'text-layer'
-                && $context['matched_sheet_id'] === $sheet->id
-                && $context['matched_sheet_number'] === 'A-101';
-        });
-
     (new ReindexPlanSetMetadataJob($planSet->id))->handle(
         app(PlanSheetMetadataExtractor::class),
         app(PlanSheetMatcher::class),
         app(GhostscriptPageTextExtractor::class),
     );
+
+    $outputPath = "plans/reindex-metadata/{$planSet->id}.json";
+
+    Storage::disk('local')->assertExists($outputPath);
+
+    $payload = json_decode(Storage::disk('local')->get($outputPath), true, 512, JSON_THROW_ON_ERROR);
+
+    expect($payload)->toHaveCount(1)
+        ->and($payload[0]['plan_set_id'])->toBe($planSet->id)
+        ->and($payload[0]['revision_id'])->toBe($revision->id)
+        ->and($payload[0]['page_number'])->toBe(3)
+        ->and(trim($payload[0]['extracted_text']))->toBe('A-101 FLOOR PLAN')
+        ->and($payload[0]['text_length'])->toBe(16)
+        ->and($payload[0]['detected_sheet_number'])->toBe('A-101')
+        ->and($payload[0]['detected_title'])->toBeNull()
+        ->and((float) $payload[0]['detection_confidence'])->toBe(0.65)
+        ->and($payload[0]['detection_source'])->toBe('text-layer')
+        ->and($payload[0]['matched_sheet_id'])->toBe($sheet->id)
+        ->and($payload[0]['matched_sheet_number'])->toBe('A-101');
 });
 
 it('dispatches batch jobs in SplitPlanSetJob without memory errors', function (): void {
