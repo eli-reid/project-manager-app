@@ -15,7 +15,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
@@ -50,8 +52,23 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
                 ->where('status', 'rendered')
                 ->orderBy('page_number')
                 ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor): void {
-                    $updatedRevision = $extractor->applyText($revision, $textExtractor->extract($path, $revision->page_number));
-                    $matcher->match($updatedRevision);
+                    $text = $textExtractor->extract($path, $revision->page_number);
+                    $updatedRevision = $extractor->applyText($revision, $text);
+                    $matchedSheet = $matcher->match($updatedRevision);
+
+                    Log::info('ReindexPlanSetMetadataJob extracted revision metadata.', [
+                        'plan_set_id' => $this->planSetId,
+                        'revision_id' => $updatedRevision->id,
+                        'page_number' => $updatedRevision->page_number,
+                        'text_excerpt' => Str::limit(preg_replace('/\s+/', ' ', trim($text)) ?? '', 200),
+                        'text_length' => strlen($text),
+                        'detected_sheet_number' => $updatedRevision->detected_sheet_number,
+                        'detected_title' => $updatedRevision->detected_title,
+                        'detection_confidence' => $updatedRevision->detection_confidence,
+                        'detection_source' => $updatedRevision->detection_source,
+                        'matched_sheet_id' => $matchedSheet->id,
+                        'matched_sheet_number' => $matchedSheet->sheet_number,
+                    ]);
                 });
 
             $set->update(['error_message' => null]);
