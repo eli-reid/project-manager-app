@@ -6,9 +6,9 @@ namespace App\Domains\Plans\Jobs;
 
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheetRevision;
-use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
 use App\Domains\Plans\Services\PlanSheetMatcher;
 use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
+use App\Domains\Plans\Services\PlanSheetTextResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -36,7 +36,7 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
     public function handle(
         PlanSheetMetadataExtractor $extractor,
         PlanSheetMatcher $matcher,
-        GhostscriptPageTextExtractor $textExtractor,
+        PlanSheetTextResolver $resolver,
     ): void {
         $set = PlanSet::query()->with('sourceAsset')->find($this->planSetId);
         if ($set?->sourceAsset === null) {
@@ -49,8 +49,8 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
             $set->revisions()
                 ->where('status', 'rendered')
                 ->orderBy('page_number')
-                ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor): void {
-                    $updatedRevision = $extractor->applyText($revision, $textExtractor->extract($path, $revision->page_number));
+                ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $resolver): void {
+                    $updatedRevision = $extractor->applyDetection($revision, $resolver->resolve($path, $revision->page_number));
                     $matcher->match($updatedRevision);
                 });
 

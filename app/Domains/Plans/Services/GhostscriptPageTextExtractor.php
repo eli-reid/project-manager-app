@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Services;
 
+use App\Domains\Plans\Services\Support\GhostscriptBinaryLocator;
 use RuntimeException;
-use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
 
 final class GhostscriptPageTextExtractor
 {
     public function extract(string $absolutePdfPath, int $page): string
     {
-        $binary = $this->binaryPath();
+        $binary = GhostscriptBinaryLocator::locate();
         if ($binary === null) {
             throw new RuntimeException('Ghostscript is not available. Configure PLANS_GHOSTSCRIPT_BIN_PATH to the Ghostscript executable used by Imagick.');
         }
@@ -31,17 +31,5 @@ final class GhostscriptPageTextExtractor
         $process->mustRun();
 
         return trim($process->getOutput());
-    }
-
-    private function binaryPath(): ?string
-    {
-        $configuredPath = trim((string) config('plans.ghostscript_bin_path', ''));
-        if ($configuredPath !== '') {
-            return is_file($configuredPath) ? $configuredPath : null;
-        }
-
-        $finder = new ExecutableFinder;
-
-        return $finder->find(PHP_OS_FAMILY === 'Windows' ? 'gswin64c' : 'gs');
     }
 }

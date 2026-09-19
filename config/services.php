@@ -67,6 +67,13 @@ return [
         'timeout' => (int) env('WEATHERAPI_TIMEOUT', 10),
     ],
 
+    'google_vision' => [
+        'api_key' => env('GOOGLE_VISION_API_KEY'),
+        'endpoint' => env('GOOGLE_VISION_ENDPOINT', 'https://vision.googleapis.com/v1/files:annotate'),
+        'timeout' => (int) env('GOOGLE_VISION_TIMEOUT', 30),
+        'connect_timeout' => (int) env('GOOGLE_VISION_CONNECT_TIMEOUT', 5),
+    ],
+
     'zoom' => [
         'account_id' => env('ZOOM_ACCOUNT_ID'),
         'client_id' => env('ZOOM_CLIENT_ID'),
