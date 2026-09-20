@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Services;
 
+use App\Core\Settings\Facades\Settings;
 use Illuminate\Support\Manager;
 
 final class SheetMetadataExtractorManager extends Manager
@@ -25,6 +26,6 @@ final class SheetMetadataExtractorManager extends Manager
 
     public function getDefaultDriver(): string
     {
-        return (string) config('plans.ocr_driver', 'ghostscript');
+        return Settings::get('plans.ocr_driver', config('plans.ocr_driver', 'ghostscript'))->toString();
     }
 }
