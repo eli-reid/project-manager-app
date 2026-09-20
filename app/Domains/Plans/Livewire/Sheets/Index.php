@@ -65,7 +65,7 @@ final class Index extends Component
         $sheets = PlanSheet::query()
             ->whereBelongsTo($this->project)
             ->select(['id', 'project_id', 'sheet_number', 'title', 'discipline', 'sort_index', 'current_revision_id'])
-            ->with(['currentRevision:id,plan_sheet_id,revision_label,thumbnail_path,preview_path,is_current'])
+            ->with(['currentRevision:id,plan_sheet_id,revision_label,page_number,thumbnail_path,preview_path,is_current'])
             ->withCount('annotations')
             ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query
                 ->where('sheet_number', 'like', '%'.$this->search.'%')

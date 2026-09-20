@@ -20,8 +20,8 @@
         }
     }"
     x-on:keydown.window="keydown($event)"
-    class="min-h-[calc(100vh-8rem)] bg-zinc-950 text-white"
-    :class="{ 'fixed inset-0 z-50 min-h-screen': fullScreen }"
+    class="flex h-[calc(100vh-8rem)] flex-col bg-zinc-950 text-white"
+    :class="{ 'fixed inset-0 z-50 h-screen overflow-hidden': fullScreen }"
 >
     <div class="flex items-center justify-between gap-3 border-b border-zinc-800 bg-zinc-900 px-4 py-3">
         <div class="flex min-w-0 items-center gap-3">
@@ -41,9 +41,9 @@
         </div>
     </div>
 
-    <div class="grid min-h-[calc(100vh-12rem)] grid-cols-[4.5rem_minmax(0,1fr)_18rem]">
+    <div class="grid flex-1 grid-cols-[4.5rem_minmax(0,1fr)_18rem] overflow-hidden">
         @island(name: 'thumbnail-rail')
-            <aside class="overflow-y-auto border-r border-zinc-800 p-2">
+            <aside class="h-full overflow-y-auto border-r border-zinc-800 p-2">
                 <div class="space-y-2">
                     @foreach ($this->siblings as $sibling)
                         <a wire:key="viewer-sibling-{{ $sibling->id }}" href="{{ route('plans.sheets.show', [$project, $sibling]) }}" wire:navigate class="block rounded-lg p-1 {{ $sibling->is($sheet) ? 'bg-sky-600' : 'bg-zinc-800 hover:bg-zinc-700' }}">
@@ -54,7 +54,7 @@
             </aside>
         @endisland
 
-        <main class="relative overflow-hidden bg-zinc-900" x-on:wheel.prevent="zoomBy($event.deltaY > 0 ? -.1 : .1)">
+        <main class="relative h-full overflow-hidden bg-zinc-900" x-on:wheel.prevent="zoomBy($event.deltaY > 0 ? -.1 : .1)">
             <div class="absolute inset-0 flex items-center justify-center p-8">
                 <div class="relative origin-center transition-transform duration-75" :style="`transform: translate(${(x - .5) * 100}%, ${(y - .5) * 100}%) scale(${zoom})`">
                     @if ($revision->preview_path)
@@ -69,12 +69,13 @@
             </div>
         </main>
 
-        <aside class="overflow-y-auto border-l border-zinc-800 bg-zinc-900 p-4">
+        <aside class="h-full overflow-y-auto border-l border-zinc-800 bg-zinc-900 p-4">
             <flux:heading size="sm" class="text-white">Details</flux:heading>
             <dl class="mt-4 space-y-3 text-sm">
                 <div><dt class="text-zinc-500">Sheet</dt><dd>{{ $sheet->sheet_number ?: 'Unnumbered' }}</dd></div>
                 <div><dt class="text-zinc-500">Title</dt><dd>{{ $sheet->title ?: 'Untitled sheet' }}</dd></div>
                 <div><dt class="text-zinc-500">Discipline</dt><dd>{{ $sheet->discipline ?: 'Unassigned' }}</dd></div>
+                <div><dt class="text-zinc-500">Page</dt><dd>{{ $revision->page_number ?? '—' }}</dd></div>
                 <div><dt class="text-zinc-500">Revision</dt><dd>{{ $revision->revision_label ?: 'Current' }}</dd></div>
             </dl>
             <flux:heading size="sm" class="mt-8 text-white">Revisions</flux:heading>

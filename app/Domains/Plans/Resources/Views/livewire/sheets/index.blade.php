@@ -39,6 +39,9 @@
                         <div class="min-w-0">
                             <flux:text class="truncate font-semibold">{{ $sheet->sheet_number ?: 'Unnumbered' }}</flux:text>
                             <flux:text class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $sheet->title ?: 'Untitled sheet' }}</flux:text>
+                            @if ($sheet->currentRevision?->page_number !== null)
+                                <flux:text class="truncate text-xs text-zinc-400 dark:text-zinc-500">Page {{ $sheet->currentRevision->page_number }}</flux:text>
+                            @endif
                         </div>
                         <div class="flex items-center gap-1">
                             @if ($sheet->annotations_count > 0)

@@ -6,6 +6,7 @@ use App\Core\Assets\Models\AssetReference;
 use App\Core\Identity\Models\User;
 use App\Domains\Plans\Jobs\FinalizePlanSetJob;
 use App\Domains\Plans\Jobs\SplitPlanSetJob;
+use App\Domains\Plans\Livewire\Sheets\Index;
 use App\Domains\Plans\Livewire\Sheets\Viewer;
 use App\Domains\Plans\Models\PlanAnnotation;
 use App\Domains\Plans\Models\PlanSet;
@@ -178,11 +179,31 @@ it('renders the sheet viewer with its sibling thumbnail island without error', f
         'plan_sheet_id' => $sheet->id,
         'plan_set_id' => PlanSet::factory()->create(['project_id' => $project->id])->id,
         'is_current' => true,
+        'page_number' => 7,
     ]);
     $sheet->update(['current_revision_id' => $revision->id]);
 
     Livewire::actingAs($user)
         ->test(Viewer::class, ['project' => $project, 'sheet' => $sheet])
         ->assertOk()
-        ->assertSee($sibling->sheet_number);
+        ->assertSee($sibling->sheet_number)
+        ->assertSee('7');
+});
+
+it('shows the PDF page number on each sheet in the sheet index', function (): void {
+    $user = createPlansAdminUser();
+    $project = Project::factory()->create();
+    $sheet = PlanSheet::factory()->create(['project_id' => $project->id, 'sheet_number' => 'A-101']);
+    $revision = PlanSheetRevision::factory()->rendered()->create([
+        'plan_sheet_id' => $sheet->id,
+        'plan_set_id' => PlanSet::factory()->create(['project_id' => $project->id])->id,
+        'is_current' => true,
+        'page_number' => 12,
+    ]);
+    $sheet->update(['current_revision_id' => $revision->id]);
+
+    Livewire::actingAs($user)
+        ->test(Index::class, ['project' => $project])
+        ->assertOk()
+        ->assertSee('Page 12');
 });
