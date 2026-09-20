@@ -11,9 +11,9 @@ use App\Domains\Plans\Jobs\SplitPlanSetJob;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
-use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
 use App\Domains\Plans\Services\PlanSheetMatcher;
 use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
+use App\Domains\Plans\Services\PlanSheetTextResolver;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\Bus;
@@ -88,6 +88,7 @@ it('records reindexing failures on the plan set', function (): void {
 
 it('writes extracted metadata to a json file while reindexing a rendered revision', function (): void {
     Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
+    Settings::set('plans.ocr_fallback_enabled', 'false');
     Storage::disk('local')->put('test-asset.pdf', 'pdf-content');
 
     $ghostscriptPath = storage_path('framework/testing/fake-gs.cmd');
@@ -117,7 +118,7 @@ it('writes extracted metadata to a json file while reindexing a rendered revisio
     (new ReindexPlanSetMetadataJob($planSet->id))->handle(
         app(PlanSheetMetadataExtractor::class),
         app(PlanSheetMatcher::class),
-        app(GhostscriptPageTextExtractor::class),
+        app(PlanSheetTextResolver::class),
     );
 
     $outputPath = "plans/reindex-metadata/{$planSet->id}.json";

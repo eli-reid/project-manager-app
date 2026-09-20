@@ -19,7 +19,7 @@ beforeEach(function (): void {
 });
 
 it('falls back to ocr when ghostscript is unavailable and fallback is enabled', function (): void {
-    config(['plans.ocr_fallback_enabled' => true]);
+    Settings::set('plans.ocr_fallback_enabled', 'true');
 
     $resolver = new PlanSheetTextResolver(new GhostscriptPageTextExtractor(new PlanTextExtractionLogger), new NullOcrExtractor, new SheetTextDetector, new PlanTitleBlockRegion);
 
@@ -29,7 +29,7 @@ it('falls back to ocr when ghostscript is unavailable and fallback is enabled', 
 });
 
 it('rethrows the ghostscript error when ocr fallback is disabled', function (): void {
-    config(['plans.ocr_fallback_enabled' => false]);
+    Settings::set('plans.ocr_fallback_enabled', 'false');
 
     $resolver = new PlanSheetTextResolver(new GhostscriptPageTextExtractor(new PlanTextExtractionLogger), new NullOcrExtractor, new SheetTextDetector, new PlanTitleBlockRegion);
 
@@ -57,7 +57,7 @@ it('writes full ghostscript text extraction output to a dedicated log file', fun
 });
 
 it('prefers focused title block ocr when ocr fallback is enabled and a region is configured', function (): void {
-    config(['plans.ocr_fallback_enabled' => true]);
+    Settings::set('plans.ocr_fallback_enabled', 'true');
 
     $ghostscriptPath = storage_path('framework/testing/fake-gs-focused.cmd');
     if (! is_dir(dirname($ghostscriptPath))) {

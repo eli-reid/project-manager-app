@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Services;
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\SheetMetadataExtractorContract;
 use RuntimeException;
 
@@ -71,13 +72,18 @@ final class PlanSheetTextResolver
 
     private function needsOcrFallback(string $text): bool
     {
-        return (bool) config('plans.ocr_fallback_enabled', false)
-            && mb_strlen(trim($text)) < (int) config('plans.ocr_min_text_length', 12);
+        return $this->ocrFallbackEnabled()
+            && mb_strlen(trim($text)) < Settings::get('plans.ocr_min_text_length', config('plans.ocr_min_text_length', 12))->toInt();
     }
 
     private function shouldPreferFocusedOcr(): bool
     {
-        return (bool) config('plans.ocr_fallback_enabled', false)
+        return $this->ocrFallbackEnabled()
             && $this->titleBlockRegion->resolve() !== null;
+    }
+
+    private function ocrFallbackEnabled(): bool
+    {
+        return Settings::get('plans.ocr_fallback_enabled', config('plans.ocr_fallback_enabled', false))->toBool();
     }
 }
