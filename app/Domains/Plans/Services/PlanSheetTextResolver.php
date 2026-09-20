@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domains\Plans\Services;
+
+use App\Domains\Plans\Contracts\SheetMetadataExtractorContract;
+use RuntimeException;
+
+/**
+ * Resolves sheet metadata for a page, preferring the fast, free PDF text
+ * layer and falling back to OCR only when the text layer looks empty (e.g. a
+ * scanned drawing with no embedded text) and OCR fallback is enabled via
+ * `plans.ocr_fallback_enabled`. OCR fallback is opt-in because it sends page
+ * content to an external provider and incurs per-page cost.
+ */
+final class PlanSheetTextResolver
+{
+    public function __construct(
+        private readonly GhostscriptPageTextExtractor $textExtractor,
+        private readonly SheetMetadataExtractorContract $ocrExtractor,
+        private readonly SheetTextDetector $detector,
+    ) {}
+
+    /**
+     * @return array{sheet_number:?string,title:?string,confidence:float,source:string,text:string}
+     */
+    public function resolve(string $absolutePdfPath, int $page): array
+    {
+        $text = '';
+        $ghostscriptError = null;
+
+        try {
+            $text = $this->textExtractor->extract($absolutePdfPath, $page);
+        } catch (RuntimeException $exception) {
+            $ghostscriptError = $exception;
+        }
+
+        if ($this->needsOcrFallback($text)) {
+            return $this->ocrExtractor->extract($absolutePdfPath, $page);
+        }
+
+        if ($ghostscriptError !== null) {
+            throw $ghostscriptError;
+        }
+
+        $detection = $this->detector->detect($text);
+
+        return [
+            'sheet_number' => $detection['sheet_number'],
+            'title' => $detection['title'],
+            'confidence' => $detection['confidence'],
+            'source' => 'text-layer',
+            'text' => $text,
+        ];
+    }
+
+    private function needsOcrFallback(string $text): bool
+    {
+        return (bool) config('plans.ocr_fallback_enabled', false)
+            && mb_strlen(trim($text)) < (int) config('plans.ocr_min_text_length', 12);
+    }
+}

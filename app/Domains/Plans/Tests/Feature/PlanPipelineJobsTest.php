@@ -44,6 +44,40 @@ it('applies OCR text without parsing the source PDF again', function (): void {
         ->and($updatedRevision->detection_source)->toBe('text-layer');
 });
 
+it('applies a pre-computed OCR detection result including its source', function (): void {
+    $revision = PlanSheetRevision::factory()->create();
+
+    $updatedRevision = app(PlanSheetMetadataExtractor::class)->applyDetection($revision, [
+        'sheet_number' => 'A 1.01',
+        'title' => 'FLOOR PLAN',
+        'confidence' => 0.9,
+        'source' => 'google-vision',
+        'text' => 'FLOOR PLAN A 1.01',
+    ]);
+
+    expect($updatedRevision->detected_sheet_number)->toBe('A 1.01')
+        ->and($updatedRevision->detected_title)->toBe('FLOOR PLAN')
+        ->and($updatedRevision->detection_source)->toBe('google-vision');
+});
+
+it('does not overwrite a manual detection with an OCR detection result', function (): void {
+    $revision = PlanSheetRevision::factory()->create([
+        'detection_source' => 'manual',
+        'detected_sheet_number' => 'MANUAL-1',
+    ]);
+
+    $updatedRevision = app(PlanSheetMetadataExtractor::class)->applyDetection($revision, [
+        'sheet_number' => 'A 1.01',
+        'title' => 'FLOOR PLAN',
+        'confidence' => 0.9,
+        'source' => 'google-vision',
+        'text' => 'FLOOR PLAN A 1.01',
+    ]);
+
+    expect($updatedRevision->detected_sheet_number)->toBe('MANUAL-1')
+        ->and($updatedRevision->detection_source)->toBe('manual');
+});
+
 it('records reindexing failures on the plan set', function (): void {
     $planSet = PlanSet::factory()->create();
 

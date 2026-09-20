@@ -10,6 +10,7 @@ use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Plans\Console\Commands\CheckRasterizerCommand;
 use App\Domains\Plans\Console\Commands\PrunePlanDerivativesCommand;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
+use App\Domains\Plans\Contracts\SheetMetadataExtractorContract;
 use App\Domains\Plans\Models\PlanAnnotation;
 use App\Domains\Plans\Models\PlanLink;
 use App\Domains\Plans\Models\PlanSet;
@@ -19,9 +20,11 @@ use App\Domains\Plans\Policies\PlanAnnotationPolicy;
 use App\Domains\Plans\Policies\PlanLinkPolicy;
 use App\Domains\Plans\Policies\PlanSetPolicy;
 use App\Domains\Plans\Policies\PlanSheetPolicy;
+use App\Domains\Plans\Services\NullOcrExtractor;
 use App\Domains\Plans\Services\PlanAssetAccessResolver;
 use App\Domains\Plans\Services\PlanRasterizerManager;
 use App\Domains\Plans\Services\Rasterizers\NullRasterizer;
+use App\Domains\Plans\Services\SheetMetadataExtractorManager;
 use App\Domains\Plans\Support\PlansProjectTab;
 use App\Domains\Projects\Services\ProjectTabRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -41,6 +44,16 @@ final class PlansServiceProvider extends ServiceProvider
 
             return $app->make(PlanRasterizerManager::class)->driver();
         });
+
+        $this->app->singleton(SheetMetadataExtractorManager::class);
+        $this->app->bind(SheetMetadataExtractorContract::class, function ($app): SheetMetadataExtractorContract {
+            if ($app->environment('testing')) {
+                return new NullOcrExtractor;
+            }
+
+            return $app->make(SheetMetadataExtractorManager::class)->driver();
+        });
+
         $this->commands([CheckRasterizerCommand::class, PrunePlanDerivativesCommand::class]);
     }
 

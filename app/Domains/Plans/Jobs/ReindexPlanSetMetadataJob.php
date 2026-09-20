@@ -6,9 +6,9 @@ namespace App\Domains\Plans\Jobs;
 
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheetRevision;
-use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
 use App\Domains\Plans\Services\PlanSheetMatcher;
 use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
+use App\Domains\Plans\Services\PlanSheetTextResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -36,7 +36,7 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
     public function handle(
         PlanSheetMetadataExtractor $extractor,
         PlanSheetMatcher $matcher,
-        GhostscriptPageTextExtractor $textExtractor,
+        PlanSheetTextResolver $resolver,
     ): void {
         $set = PlanSet::query()->with('sourceAsset')->find($this->planSetId);
         if ($set?->sourceAsset === null) {
@@ -52,29 +52,9 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
             $set->revisions()
                 ->where('status', 'rendered')
                 ->orderBy('page_number')
-                ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $textExtractor, $metadataOutputPath, &$metadataResults): void {
-                    $text = $textExtractor->extract($path, $revision->page_number);
-                    $updatedRevision = $extractor->applyText($revision, $text);
-                    $matchedSheet = $matcher->match($updatedRevision);
-
-                    $metadataResults[] = [
-                        'plan_set_id' => $this->planSetId,
-                        'revision_id' => $updatedRevision->id,
-                        'page_number' => $updatedRevision->page_number,
-                        'extracted_text' => $text,
-                        'text_length' => \strlen($text),
-                        'detected_sheet_number' => $updatedRevision->detected_sheet_number,
-                        'detected_title' => $updatedRevision->detected_title,
-                        'detection_confidence' => $updatedRevision->detection_confidence,
-                        'detection_source' => $updatedRevision->detection_source,
-                        'matched_sheet_id' => $matchedSheet->id,
-                        'matched_sheet_number' => $matchedSheet->sheet_number,
-                    ];
-
-                    Storage::disk('local')->put(
-                        $metadataOutputPath,
-                        \json_encode($metadataResults, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE)
-                    );
+                ->each(function (PlanSheetRevision $revision) use ($extractor, $matcher, $path, $resolver): void {
+                    $updatedRevision = $extractor->applyDetection($revision, $resolver->resolve($path, $revision->page_number));
+                    $matcher->match($updatedRevision);
                 });
 
             Log::info('ReindexPlanSetMetadataJob wrote metadata output file.', [
