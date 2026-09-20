@@ -18,10 +18,12 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Intentionally does not revert `public` rows back to `project`: that would be
+        // destructive to any annotation created (or explicitly set to `public`) after this
+        // migration ran, not just the rows this migration originally converted. Only the
+        // schema default is reversed.
         Schema::table('plan_annotations', function (Blueprint $table): void {
             $table->string('visibility')->default('project')->change();
         });
-
-        DB::table('plan_annotations')->where('visibility', 'public')->update(['visibility' => 'project']);
     }
 };

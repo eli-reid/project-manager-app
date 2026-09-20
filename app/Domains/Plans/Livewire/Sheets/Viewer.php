@@ -193,6 +193,10 @@ class Viewer extends Component
 
     public function updateAnnotation(string $annotationId, ?string $content, ?string $visibility, PlanAnnotationService $annotations): void
     {
+        if ($visibility !== null) {
+            abort_unless(in_array($visibility, [PlanAnnotation::VISIBILITY_PUBLIC, PlanAnnotation::VISIBILITY_PRIVATE], true), 422);
+        }
+
         $annotation = PlanAnnotation::query()->whereBelongsTo($this->sheet, 'sheet')->findOrFail($annotationId);
 
         $annotations->update(Auth::user(), $annotation, [
