@@ -24,12 +24,35 @@ final class PlanAnnotationService
             'geometry' => $this->geometry->normalize($attributes['geometry']),
             'style' => $attributes['style'] ?? [],
             'content' => $attributes['content'] ?? null,
+            'visibility' => $attributes['visibility'] ?? PlanAnnotation::VISIBILITY_PUBLIC,
             'plan_sheet_revision_id' => $attributes['plan_sheet_revision_id'] ?? null,
         ]);
         abort_unless($author->can('create', $annotation), 403);
         $annotation->save();
 
         return $annotation;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function update(User $user, PlanAnnotation $annotation, array $attributes): PlanAnnotation
+    {
+        abort_unless($user->can('update', $annotation), 403);
+
+        $annotation->fill(array_filter([
+            'content' => $attributes['content'] ?? null,
+            'visibility' => $attributes['visibility'] ?? null,
+        ], fn (mixed $value): bool => $value !== null));
+        $annotation->save();
+
+        return $annotation->fresh();
+    }
+
+    public function delete(User $user, PlanAnnotation $annotation): void
+    {
+        abort_unless($user->can('delete', $annotation), 403);
+        $annotation->delete();
     }
 
     public function setStatus(User $user, PlanAnnotation $annotation, string $status): PlanAnnotation

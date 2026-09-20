@@ -12,6 +12,19 @@ class PlanAnnotationPolicy
         return $user->can('view', $annotation->sheet);
     }
 
+    public function view(User $user, PlanAnnotation $annotation): bool
+    {
+        if (! $user->can('view', $annotation->sheet)) {
+            return false;
+        }
+
+        if ($annotation->visibility === PlanAnnotation::VISIBILITY_PRIVATE) {
+            return $annotation->author_id === $user->id || $user->hasPermission('plans.manage-annotations');
+        }
+
+        return true;
+    }
+
     public function create(User $user, PlanAnnotation $annotation): bool
     {
         return $user->can('view', $annotation->sheet) && $user->hasPermission('plans.annotate');
