@@ -19,7 +19,7 @@
                     <flux:text class="font-semibold text-white">{{ ucfirst($side) }} revision</flux:text>
                     <flux:select wire:model.live="{{ $side }}RevisionId">
                         @foreach ($revisions as $option)
-                            <option wire:key="compare-{{ $side }}-revision-{{ $option->id }}" value="{{ $option->id }}">{{ $option->revision_label ?: $option->created_at?->format('M j, Y') }} (Page {{ $option->page_number ?? '—' }})</option>
+                            <option wire:key="compare-{{ $side }}-revision-{{ $option->id }}" value="{{ $option->id }}">{{ $option->revision_label ?: $option->effectiveDate()->format('M j, Y') }} (Page {{ $option->page_number ?? '—' }})</option>
                         @endforeach
                     </flux:select>
                 </div>

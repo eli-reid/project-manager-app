@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Plans\Models;
 
 use App\Domains\Plans\Database\Factories\PlanSheetRevisionFactory;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -55,6 +56,16 @@ class PlanSheetRevision extends Model
     public function scopeCurrent(Builder $query): Builder
     {
         return $query->where('is_current', true);
+    }
+
+    /**
+     * The real-world date this revision was issued, i.e. the date printed on the
+     * drawing set's title block. Revisions are ordered by this date rather than by
+     * upload timestamp, since sets are not always uploaded in chronological order.
+     */
+    public function effectiveDate(): CarbonInterface
+    {
+        return $this->set?->issued_at ?? $this->created_at;
     }
 
     protected static function newFactory(): PlanSheetRevisionFactory

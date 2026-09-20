@@ -18,9 +18,13 @@ class PlanAnnotation extends Model
 {
     use HasFactory, HasUlids, SoftDeletes;
 
+    public const VISIBILITY_PUBLIC = 'public';
+
+    public const VISIBILITY_PRIVATE = 'private';
+
     protected $fillable = ['plan_sheet_id', 'plan_sheet_revision_id', 'author_id', 'type', 'geometry', 'style', 'content', 'status', 'linked_task_id', 'visibility'];
 
-    protected $attributes = ['status' => 'open', 'visibility' => 'project'];
+    protected $attributes = ['status' => 'open', 'visibility' => self::VISIBILITY_PUBLIC];
 
     protected function casts(): array
     {
@@ -50,6 +54,19 @@ class PlanAnnotation extends Model
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', 'open');
+    }
+
+    /**
+     * Constrain to annotations visible to the given user: every public note, plus
+     * private notes the user authored or is permitted to moderate.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->where(function (Builder $query) use ($user): void {
+            $query->where('visibility', self::VISIBILITY_PUBLIC)
+                ->orWhere('author_id', $user->id)
+                ->when($user->hasPermission('plans.manage-annotations'), fn (Builder $query): Builder => $query->orWhere('visibility', self::VISIBILITY_PRIVATE));
+        });
     }
 
     protected static function newFactory(): PlanAnnotationFactory

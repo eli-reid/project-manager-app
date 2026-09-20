@@ -1,6 +1,10 @@
 import './mobile';
 import './pwa';
 
+// Domain-owned client-side behaviour lives inside its domain folder, not here —
+// this is just the single Vite entry point required to bundle it.
+import '../../app/Domains/Plans/Resources/js/sheet-viewer.js';
+
 /**
  * Force a full page load when navigating to auth pages.
  *
