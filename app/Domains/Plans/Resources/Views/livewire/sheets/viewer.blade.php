@@ -3,12 +3,30 @@
         zoom: @js($zoom),
         x: @js($centerX),
         y: @js($centerY),
+        baseWidth: null,
+        baseHeight: null,
         markup: true,
         palette: false,
         fullScreen: false,
-        persist() { $wire.persistViewState(this.zoom, this.x, this.y) },
-        fit() { this.zoom = 1; this.x = .5; this.y = .5; this.persist() },
-        zoomBy(amount) { this.zoom = Math.max(.25, Math.min(4, this.zoom + amount)); this.persist() },
+        onImageLoad(event) {
+            this.baseWidth = event.target.offsetWidth
+            this.baseHeight = event.target.offsetHeight
+            this.$nextTick(() => this.restoreScroll())
+        },
+        restoreScroll() {
+            const el = this.$refs.viewport
+            if (!el) return
+            el.scrollLeft = (el.scrollWidth - el.clientWidth) * this.x
+            el.scrollTop = (el.scrollHeight - el.clientHeight) * this.y
+        },
+        persist() {
+            const el = this.$refs.viewport
+            if (el && el.scrollWidth > el.clientWidth) { this.x = el.scrollLeft / (el.scrollWidth - el.clientWidth) }
+            if (el && el.scrollHeight > el.clientHeight) { this.y = el.scrollTop / (el.scrollHeight - el.clientHeight) }
+            $wire.persistViewState(this.zoom, this.x, this.y)
+        },
+        fit() { this.zoom = 1; this.x = .5; this.y = .5; this.$nextTick(() => this.restoreScroll()); this.persist() },
+        zoomBy(amount) { this.zoom = Math.max(.25, Math.min(4, this.zoom + amount)); this.$nextTick(() => this.restoreScroll()); this.persist() },
         keydown(event) {
             if (event.key === 'Escape') { this.palette = false; this.fullScreen = false }
             if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); this.palette = true }
@@ -54,13 +72,13 @@
             </aside>
         @endisland
 
-        <main class="relative h-full overflow-hidden bg-zinc-900" x-on:wheel.prevent="zoomBy($event.deltaY > 0 ? -.1 : .1)">
-            <div class="absolute inset-0 flex items-center justify-center p-8">
-                <div class="relative origin-center transition-transform duration-75" :style="`transform: translate(${(x - .5) * 100}%, ${(y - .5) * 100}%) scale(${zoom})`">
+        <main x-ref="viewport" class="relative h-full overflow-auto bg-zinc-900" x-on:wheel.prevent="zoomBy($event.deltaY > 0 ? -.1 : .1)" x-on:scroll.debounce.500ms="persist()">
+            <div class="flex min-h-full items-center justify-center p-8">
+                <div class="relative inline-block">
                     @if ($revision->preview_path)
-                        <img src="{{ route('plans.images', [$revision, 'preview']) }}" alt="{{ $sheet->sheet_number }} {{ $sheet->title }}" class="max-h-[calc(100vh-14rem)] max-w-full select-none object-contain" draggable="false">
+                        <img x-on:load="onImageLoad($event)" :style="baseWidth ? `width: ${baseWidth * zoom}px; max-width: none; max-height: none;` : ''" src="{{ route('plans.images', [$revision, 'preview']) }}" alt="{{ $sheet->sheet_number }} {{ $sheet->title }}" class="block max-h-[calc(100vh-14rem)] max-w-full select-none object-contain transition-[width] duration-150" draggable="false">
                     @elseif ($revision->thumbnail_path)
-                        <img src="{{ route('plans.images', [$revision, 'thumb']) }}" alt="{{ $sheet->sheet_number }} {{ $sheet->title }}" class="max-h-[calc(100vh-14rem)] max-w-full select-none object-contain" draggable="false">
+                        <img x-on:load="onImageLoad($event)" :style="baseWidth ? `width: ${baseWidth * zoom}px; max-width: none; max-height: none;` : ''" src="{{ route('plans.images', [$revision, 'thumb']) }}" alt="{{ $sheet->sheet_number }} {{ $sheet->title }}" class="block max-h-[calc(100vh-14rem)] max-w-full select-none object-contain transition-[width] duration-150" draggable="false">
                     @else
                         <div class="flex h-96 w-[32rem] items-center justify-center rounded bg-zinc-800 text-zinc-400">Preview unavailable</div>
                     @endif
