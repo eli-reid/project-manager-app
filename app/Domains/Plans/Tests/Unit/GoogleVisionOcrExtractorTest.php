@@ -6,6 +6,8 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Services\GoogleVisionOcrExtractor;
 use App\Domains\Plans\Services\PdfPageIsolator;
 use App\Domains\Plans\Services\PlanTextExtractionLogger;
+use App\Domains\Plans\Services\PlanTitleBlockImageCropper;
+use App\Domains\Plans\Services\PlanTitleBlockRegion;
 use App\Domains\Plans\Services\SheetTextDetector;
 use App\Domains\Plans\Services\Support\GhostscriptBinaryLocator;
 use Illuminate\Support\Facades\File;
@@ -13,12 +15,13 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
     File::delete(storage_path('logs/plan-text-extraction.log'));
+    Settings::set('plans.title_block_region', 'full-page');
 });
 
 it('throws when the Google Vision API key is not configured', function (): void {
     config(['services.google_vision.api_key' => '']);
 
-    $extractor = new GoogleVisionOcrExtractor(new PdfPageIsolator, new SheetTextDetector, new PlanTextExtractionLogger);
+    $extractor = new GoogleVisionOcrExtractor(new PdfPageIsolator, new SheetTextDetector, new PlanTextExtractionLogger, new PlanTitleBlockRegion, new PlanTitleBlockImageCropper);
 
     expect(fn () => $extractor->extract(base_path('tests/fixtures/sample-invoice.pdf'), 1))
         ->toThrow(RuntimeException::class, 'Google Vision API key is not configured. Set GOOGLE_VISION_API_KEY.');
@@ -43,7 +46,7 @@ it('extracts sheet metadata from a Google Vision response', function (): void {
         ]),
     ]);
 
-    $extractor = new GoogleVisionOcrExtractor(new PdfPageIsolator, new SheetTextDetector, new PlanTextExtractionLogger);
+    $extractor = new GoogleVisionOcrExtractor(new PdfPageIsolator, new SheetTextDetector, new PlanTextExtractionLogger, new PlanTitleBlockRegion, new PlanTitleBlockImageCropper);
     $result = $extractor->extract(base_path('tests/fixtures/sample-invoice.pdf'), 1);
 
     expect($result['source'])->toBe('google-vision')

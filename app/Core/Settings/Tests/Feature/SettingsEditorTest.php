@@ -173,3 +173,29 @@ it('shows plans sheet number detection as friendly presets', function (): void {
         ->and($meta['options'])->toContain('Common construction sheets - A 0.05, H 0.01, E1, FA 0.01, A-101')
         ->and($meta['options'])->toContain('Decimal sheets only - A 0.05, H 0.01, E 2.03');
 });
+
+it('shows plans title block region as friendly presets', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $this->actingAs($admin);
+
+    $this->artisan('settings:resync-domain')->assertSuccessful();
+
+    $component = Livewire::test(SettingsEditor::class)
+        ->call('loadSettings', 'plans')
+        ->assertSet('errorMessage', null);
+
+    $settingsMetadata = $component->get('settingsMetadata');
+
+    $fieldId = collect($settingsMetadata)
+        ->search(fn (array $meta): bool => ($meta['setting_key'] ?? null) === 'plans.title_block_region');
+
+    expect($fieldId)->not->toBeFalse();
+
+    $meta = $settingsMetadata[$fieldId];
+
+    expect($meta['type'])->toBe('select')
+        ->and($meta['display_name'])->toBe('Title Block Region')
+        ->and($meta['options'])->toContain('Right side title block')
+        ->and($meta['options'])->toContain('Bottom-right title block')
+        ->and($meta['options'])->toContain('Full page');
+});

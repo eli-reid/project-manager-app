@@ -20,6 +20,7 @@ final class PlanSheetTextResolver
         private readonly GhostscriptPageTextExtractor $textExtractor,
         private readonly SheetMetadataExtractorContract $ocrExtractor,
         private readonly SheetTextDetector $detector,
+        private readonly PlanTitleBlockRegion $titleBlockRegion,
     ) {}
 
     /**
@@ -29,6 +30,15 @@ final class PlanSheetTextResolver
     {
         $text = '';
         $ghostscriptError = null;
+        $focusedOcrError = null;
+
+        if ($this->shouldPreferFocusedOcr()) {
+            try {
+                return $this->ocrExtractor->extract($absolutePdfPath, $page);
+            } catch (RuntimeException $exception) {
+                $focusedOcrError = $exception;
+            }
+        }
 
         try {
             $text = $this->textExtractor->extract($absolutePdfPath, $page);
@@ -37,6 +47,10 @@ final class PlanSheetTextResolver
         }
 
         if ($this->needsOcrFallback($text)) {
+            if ($focusedOcrError !== null) {
+                throw $focusedOcrError;
+            }
+
             return $this->ocrExtractor->extract($absolutePdfPath, $page);
         }
 
@@ -59,5 +73,11 @@ final class PlanSheetTextResolver
     {
         return (bool) config('plans.ocr_fallback_enabled', false)
             && mb_strlen(trim($text)) < (int) config('plans.ocr_min_text_length', 12);
+    }
+
+    private function shouldPreferFocusedOcr(): bool
+    {
+        return (bool) config('plans.ocr_fallback_enabled', false)
+            && $this->titleBlockRegion->resolve() !== null;
     }
 }

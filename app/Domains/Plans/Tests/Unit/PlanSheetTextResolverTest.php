@@ -2,23 +2,26 @@
 
 declare(strict_types=1);
 
+use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
 use App\Domains\Plans\Services\NullOcrExtractor;
 use App\Domains\Plans\Services\PlanSheetTextResolver;
 use App\Domains\Plans\Services\PlanTextExtractionLogger;
+use App\Domains\Plans\Services\PlanTitleBlockRegion;
 use App\Domains\Plans\Services\SheetTextDetector;
 use Illuminate\Support\Facades\File;
 
 beforeEach(function (): void {
     // Force Ghostscript to be considered unavailable regardless of the host machine.
     config(['plans.ghostscript_bin_path' => 'Z:/does-not-exist/gs.exe']);
+    Settings::set('plans.title_block_region', 'right-strip');
     File::delete(storage_path('logs/plan-text-extraction.log'));
 });
 
 it('falls back to ocr when ghostscript is unavailable and fallback is enabled', function (): void {
     config(['plans.ocr_fallback_enabled' => true]);
 
-    $resolver = new PlanSheetTextResolver(new GhostscriptPageTextExtractor(new PlanTextExtractionLogger), new NullOcrExtractor, new SheetTextDetector);
+    $resolver = new PlanSheetTextResolver(new GhostscriptPageTextExtractor(new PlanTextExtractionLogger), new NullOcrExtractor, new SheetTextDetector, new PlanTitleBlockRegion);
 
     $result = $resolver->resolve('unused.pdf', 1);
 
@@ -28,7 +31,7 @@ it('falls back to ocr when ghostscript is unavailable and fallback is enabled', 
 it('rethrows the ghostscript error when ocr fallback is disabled', function (): void {
     config(['plans.ocr_fallback_enabled' => false]);
 
-    $resolver = new PlanSheetTextResolver(new GhostscriptPageTextExtractor(new PlanTextExtractionLogger), new NullOcrExtractor, new SheetTextDetector);
+    $resolver = new PlanSheetTextResolver(new GhostscriptPageTextExtractor(new PlanTextExtractionLogger), new NullOcrExtractor, new SheetTextDetector, new PlanTitleBlockRegion);
 
     expect(fn () => $resolver->resolve('unused.pdf', 1))->toThrow(RuntimeException::class);
 });
@@ -51,4 +54,22 @@ it('writes full ghostscript text extraction output to a dedicated log file', fun
         ->toContain('page: 7')
         ->toContain('A-101 FLOOR PLAN')
         ->toContain('FULL OCR TEXT FROM IMAGE');
+});
+
+it('prefers focused title block ocr when ocr fallback is enabled and a region is configured', function (): void {
+    config(['plans.ocr_fallback_enabled' => true]);
+
+    $ghostscriptPath = storage_path('framework/testing/fake-gs-focused.cmd');
+    if (! is_dir(dirname($ghostscriptPath))) {
+        mkdir(dirname($ghostscriptPath), 0755, true);
+    }
+    file_put_contents($ghostscriptPath, "@echo off\r\necho A-101 FLOOR PLAN\r\n");
+
+    config(['plans.ghostscript_bin_path' => $ghostscriptPath]);
+
+    $resolver = new PlanSheetTextResolver(new GhostscriptPageTextExtractor(new PlanTextExtractionLogger), new NullOcrExtractor, new SheetTextDetector, new PlanTitleBlockRegion);
+
+    $result = $resolver->resolve('source-plan.pdf', 1);
+
+    expect($result['source'])->toBe('null');
 });
