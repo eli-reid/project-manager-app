@@ -9,7 +9,10 @@ use App\Domains\Plans\Jobs\ReindexPlanSetMetadataJob;
 use App\Domains\Plans\Jobs\RenderPlanPageJob;
 use App\Domains\Plans\Jobs\SplitPlanSetJob;
 use App\Domains\Plans\Models\PlanSet;
+use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
+use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
+use App\Domains\Plans\Services\PlanSheetMatcher;
 use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Bus\Batchable;
@@ -81,6 +84,60 @@ it('records reindexing failures on the plan set', function (): void {
     (new ReindexPlanSetMetadataJob($planSet->id))->failed(new RuntimeException('Ghostscript is not available.'));
 
     expect($planSet->fresh()->error_message)->toBe('Sheet naming failed: Ghostscript is not available.');
+});
+
+it('writes extracted metadata to a json file while reindexing a rendered revision', function (): void {
+    Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
+    Storage::disk('local')->put('test-asset.pdf', 'pdf-content');
+
+    $ghostscriptPath = storage_path('framework/testing/fake-gs.cmd');
+    if (! is_dir(dirname($ghostscriptPath))) {
+        mkdir(dirname($ghostscriptPath), 0755, true);
+    }
+    file_put_contents($ghostscriptPath, "@echo off\r\necho A-101 FLOOR PLAN\r\n");
+
+    config()->set('plans.ghostscript_bin_path', $ghostscriptPath);
+
+    $project = Project::factory()->create();
+    $asset = Asset::factory()->create(['storage_disk' => 'local', 'storage_path' => 'test-asset.pdf']);
+    $planSet = PlanSet::factory()->create([
+        'project_id' => $project->id,
+        'source_asset_id' => $asset->id,
+    ]);
+    $sheet = PlanSheet::factory()->create([
+        'project_id' => $project->id,
+        'sheet_number' => 'TEMP-1',
+    ]);
+    $revision = PlanSheetRevision::factory()->rendered()->create([
+        'plan_set_id' => $planSet->id,
+        'plan_sheet_id' => $sheet->id,
+        'page_number' => 3,
+    ]);
+
+    (new ReindexPlanSetMetadataJob($planSet->id))->handle(
+        app(PlanSheetMetadataExtractor::class),
+        app(PlanSheetMatcher::class),
+        app(GhostscriptPageTextExtractor::class),
+    );
+
+    $outputPath = "plans/reindex-metadata/{$planSet->id}.json";
+
+    Storage::disk('local')->assertExists($outputPath);
+
+    $payload = json_decode(Storage::disk('local')->get($outputPath), true, 512, JSON_THROW_ON_ERROR);
+
+    expect($payload)->toHaveCount(1)
+        ->and($payload[0]['plan_set_id'])->toBe($planSet->id)
+        ->and($payload[0]['revision_id'])->toBe($revision->id)
+        ->and($payload[0]['page_number'])->toBe(3)
+        ->and(trim($payload[0]['extracted_text']))->toBe('A-101 FLOOR PLAN')
+        ->and($payload[0]['text_length'])->toBe(16)
+        ->and($payload[0]['detected_sheet_number'])->toBe('A-101')
+        ->and($payload[0]['detected_title'])->toBeNull()
+        ->and((float) $payload[0]['detection_confidence'])->toBe(0.65)
+        ->and($payload[0]['detection_source'])->toBe('text-layer')
+        ->and($payload[0]['matched_sheet_id'])->toBe($sheet->id)
+        ->and($payload[0]['matched_sheet_number'])->toBe('A-101');
 });
 
 it('dispatches batch jobs in SplitPlanSetJob without memory errors', function (): void {

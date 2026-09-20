@@ -15,8 +15,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Throwable;
 
 final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
 {
@@ -43,6 +43,9 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        $metadataOutputPath = "plans/reindex-metadata/{$this->planSetId}.json";
+        $metadataResults = [];
+
         try {
             $path = Storage::disk($set->sourceAsset->storage_disk)->path($set->sourceAsset->storage_path);
 
@@ -54,15 +57,21 @@ final class ReindexPlanSetMetadataJob implements ShouldBeUnique, ShouldQueue
                     $matcher->match($updatedRevision);
                 });
 
+            Log::info('ReindexPlanSetMetadataJob wrote metadata output file.', [
+                'plan_set_id' => $this->planSetId,
+                'output_path' => $metadataOutputPath,
+                'result_count' => \count($metadataResults),
+            ]);
+
             $set->update(['error_message' => null]);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             $set->update(['error_message' => 'Sheet naming failed: '.$exception->getMessage()]);
 
             throw $exception;
         }
     }
 
-    public function failed(Throwable $exception): void
+    public function failed(\Throwable $exception): void
     {
         PlanSet::query()
             ->whereKey($this->planSetId)
