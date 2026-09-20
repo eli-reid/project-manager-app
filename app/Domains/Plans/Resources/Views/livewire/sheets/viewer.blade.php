@@ -45,7 +45,7 @@
         @island(name: 'thumbnail-rail')
             <aside class="overflow-y-auto border-r border-zinc-800 p-2">
                 <div class="space-y-2">
-                    @foreach ($siblings as $sibling)
+                    @foreach ($this->siblings as $sibling)
                         <a wire:key="viewer-sibling-{{ $sibling->id }}" href="{{ route('plans.sheets.show', [$project, $sibling]) }}" wire:navigate class="block rounded-lg p-1 {{ $sibling->is($sheet) ? 'bg-sky-600' : 'bg-zinc-800 hover:bg-zinc-700' }}">
                             <div class="flex aspect-[4/3] items-center justify-center rounded bg-zinc-700 text-[10px] font-semibold">{{ $sibling->sheet_number ?: '?' }}</div>
                         </a>
@@ -93,7 +93,7 @@
         <div class="w-full max-w-xl rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl">
             <flux:input x-ref="jumpSearch" x-init="$watch('palette', value => value && $nextTick(() => $refs.jumpSearch.focus()))" placeholder="Jump to sheet number or title..." />
             <div class="mt-3 max-h-80 space-y-1 overflow-y-auto">
-                @foreach ($siblings as $sibling)
+                @foreach ($this->siblings as $sibling)
                     <a wire:key="palette-sheet-{{ $sibling->id }}" href="{{ route('plans.sheets.show', [$project, $sibling]) }}" wire:navigate x-on:click="palette = false" class="block rounded-lg px-3 py-2 hover:bg-zinc-800">{{ $sibling->sheet_number }} — {{ $sibling->title }}</a>
                 @endforeach
             </div>

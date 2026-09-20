@@ -20,6 +20,7 @@ use App\Domains\Plans\Services\PlanSheetMetadataOverrideService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
+use Livewire\Livewire;
 
 it('creates a plan set with related sheets and rendered revisions', function (): void {
     $set = PlanSet::factory()->create(['page_count' => 4, 'processed_page_count' => 3]);
@@ -166,4 +167,22 @@ it('restores and persists viewer state for the authenticated user', function ():
     expect((float) $state->zoom)->toBe(2.5)
         ->and((float) $state->center_x)->toBe(1.0)
         ->and((float) $state->center_y)->toBe(0.0);
+});
+
+it('renders the sheet viewer with its sibling thumbnail island without error', function (): void {
+    $user = createPlansAdminUser();
+    $project = Project::factory()->create();
+    $sheet = PlanSheet::factory()->create(['project_id' => $project->id, 'sheet_number' => 'A-101']);
+    $sibling = PlanSheet::factory()->create(['project_id' => $project->id, 'sheet_number' => 'A-102']);
+    $revision = PlanSheetRevision::factory()->rendered()->create([
+        'plan_sheet_id' => $sheet->id,
+        'plan_set_id' => PlanSet::factory()->create(['project_id' => $project->id])->id,
+        'is_current' => true,
+    ]);
+    $sheet->update(['current_revision_id' => $revision->id]);
+
+    Livewire::actingAs($user)
+        ->test(Viewer::class, ['project' => $project, 'sheet' => $sheet])
+        ->assertOk()
+        ->assertSee($sibling->sheet_number);
 });

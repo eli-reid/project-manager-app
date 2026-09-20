@@ -9,8 +9,10 @@ use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Plans\Models\PlanViewState;
 use App\Domains\Plans\Services\PlanRevisionService;
 use App\Domains\Projects\Models\Project;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -81,6 +83,20 @@ class Viewer extends Component
         );
     }
 
+    /**
+     * @return Collection<int, PlanSheet>
+     */
+    #[Computed]
+    public function siblings(): Collection
+    {
+        return PlanSheet::query()
+            ->where('project_id', $this->project->id)
+            ->select(['id', 'sheet_number', 'title', 'sort_index'])
+            ->orderBy('sort_index')
+            ->limit(240)
+            ->get();
+    }
+
     public function render()
     {
         $revision = $this->sheet->revisions->firstWhere('id', $this->activeRevisionId);
@@ -88,12 +104,6 @@ class Viewer extends Component
 
         return view('plans::livewire.sheets.viewer', [
             'revision' => $revision,
-            'siblings' => PlanSheet::query()
-                ->where('project_id', $this->project->id)
-                ->select(['id', 'sheet_number', 'title', 'sort_index'])
-                ->orderBy('sort_index')
-                ->limit(240)
-                ->get(),
         ]);
     }
 }
