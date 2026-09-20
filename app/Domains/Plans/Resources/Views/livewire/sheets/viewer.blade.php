@@ -27,24 +27,27 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-1">
-            {{-- Tool selection (client-side only — no round trip on tool switch) --}}
-            <div class="flex items-center gap-1 rounded-lg bg-zinc-800 p-0.5 text-xs font-medium">
-                <button type="button" x-on:click="setTool('pan')" x-bind:class="tool === 'pan' ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1" title="Pan (V)">Pan</button>
-                @if ($this->canAnnotate)
-                    <button type="button" x-on:click="setTool('pin')" x-bind:class="tool === 'pin' ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1" title="Add pin note (P)">Pin</button>
-                    <button type="button" x-on:click="setTool('rect')" x-bind:class="tool === 'rect' ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1" title="Add area note (R)">Area</button>
-                @endif
+            {{-- Tool selection (client-side only — no round trip on tool switch); only meaningful once a revision image is loaded --}}
+            @if ($revision)
+                <div class="flex items-center gap-1 rounded-lg bg-zinc-800 p-0.5 text-xs font-medium">
+                    <button type="button" x-on:click="setTool('pan')" x-bind:class="tool === 'pan' ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1" title="Pan (V)">Pan</button>
+                    @if ($this->canAnnotate)
+                        <button type="button" x-on:click="setTool('pin')" x-bind:class="tool === 'pin' ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1" title="Add pin note (P)">Pin</button>
+                        <button type="button" x-on:click="setTool('rect')" x-bind:class="tool === 'rect' ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1" title="Add area note (R)">Area</button>
+                    @endif
                 <button type="button" x-on:click="setTool('capture')" x-bind:class="tool === 'capture' ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1" title="Copy selection to clipboard (C)">Copy</button>
-            </div>
+                </div>
 
-            <div class="flex items-center gap-1">
-                <flux:button size="sm" x-on:click="zoomBy(-0.25)" variant="ghost" title="Zoom out (-)">−</flux:button>
-                <flux:text class="w-12 text-center text-xs tabular-nums text-zinc-400" x-text="Math.round(zoom * 100) + '%'"></flux:text>
-                <flux:button size="sm" x-on:click="zoomBy(0.25)" variant="ghost" title="Zoom in (+)">+</flux:button>
-                <flux:button size="sm" x-on:click="fit()" variant="ghost" title="Reset zoom (0)">Fit</flux:button>
-            </div>
+                <div class="flex items-center gap-1">
+                    <flux:button size="sm" x-on:click="zoomBy(-0.25)" variant="ghost" title="Zoom out (-)">−</flux:button>
+                    <flux:text class="w-12 text-center text-xs tabular-nums text-zinc-400" x-text="Math.round(zoom * 100) + '%'"></flux:text>
+                    <flux:button size="sm" x-on:click="zoomBy(0.25)" variant="ghost" title="Zoom in (+)">+</flux:button>
+                    <flux:button size="sm" x-on:click="fit()" variant="ghost" title="Reset zoom (0)">Fit</flux:button>
+                </div>
 
-            <button type="button" x-on:click="showMarkup = !showMarkup; drawMarkers()" x-bind:class="showMarkup ? 'bg-sky-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1 text-xs font-medium" title="Toggle notes (M)">Notes</button>
+                <button type="button" x-on:click="showMarkup = !showMarkup; drawMarkers()" x-bind:class="showMarkup ? 'bg-sky-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1 text-xs font-medium" title="Toggle notes (M)">Notes</button>
+            @endif
+
             <button type="button" x-on:click="toggleFullScreen()" x-bind:class="fullScreen ? 'bg-sky-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1 text-xs font-medium" title="Fullscreen (F)">Fullscreen</button>
 
             @can('compare', $sheet)
@@ -84,7 +87,7 @@
         >
             <div x-ref="stage" class="absolute left-0 top-0" x-bind:style="stageStyle">
                 <div class="relative inline-block leading-[0]">
-                    @if ($revision->preview_path || $revision->thumbnail_path)
+                    @if ($revision && ($revision->preview_path || $revision->thumbnail_path))
                         <img
                             x-ref="sheetImage"
                             x-on:load="onImageLoad($event)"
@@ -95,8 +98,15 @@
                         >
                         <canvas x-ref="markupCanvas" class="pointer-events-none absolute inset-0 h-full w-full"></canvas>
                         <canvas x-ref="draftCanvas" class="pointer-events-none absolute inset-0 h-full w-full"></canvas>
-                    @else
+                    @elseif ($revision)
                         <div class="flex h-96 w-[32rem] items-center justify-center rounded bg-zinc-800 text-zinc-400">Preview unavailable</div>
+                    @else
+                        <div class="flex h-96 w-[32rem] flex-col items-center justify-center gap-2 rounded bg-zinc-800 text-center text-zinc-400">
+                            <span>No revisions uploaded yet for this sheet.</span>
+                            @if ($this->canEditMetadata)
+                                <span class="text-xs text-zinc-500">You can still edit its details from the toolbar above.</span>
+                            @endif
+                        </div>
                     @endif
                 </div>
             </div>
@@ -187,20 +197,20 @@
                         <div><dt class="text-zinc-500">Sheet</dt><dd>{{ $sheet->sheet_number ?: 'Unnumbered' }}</dd></div>
                         <div><dt class="text-zinc-500">Title</dt><dd>{{ $sheet->title ?: 'Untitled sheet' }}</dd></div>
                         <div><dt class="text-zinc-500">Discipline</dt><dd>{{ $sheet->discipline ?: 'Unassigned' }}</dd></div>
-                        <div><dt class="text-zinc-500">Page</dt><dd>{{ $revision->page_number ?? '—' }}</dd></div>
-                        <div><dt class="text-zinc-500">Revision</dt><dd>{{ $revision->revision_label ?: 'Current' }}</dd></div>
+                        <div><dt class="text-zinc-500">Page</dt><dd>{{ $revision?->page_number ?? '—' }}</dd></div>
+                        <div><dt class="text-zinc-500">Revision</dt><dd>{{ $revision?->revision_label ?: ($revision ? 'Current' : '—') }}</dd></div>
                         <div>
                             <dt class="text-zinc-500">Plan date</dt>
-                            <dd>{{ $revision->set?->issued_at?->format('M j, Y') ?? 'Not set' }}</dd>
+                            <dd>{{ $revision?->set?->issued_at?->format('M j, Y') ?? 'Not set' }}</dd>
                         </div>
-                        <div><dt class="text-zinc-500">Uploaded</dt><dd>{{ $revision->created_at->format('M j, Y') }}</dd></div>
+                        <div><dt class="text-zinc-500">Uploaded</dt><dd>{{ $revision?->created_at?->format('M j, Y') ?? '—' }}</dd></div>
                     </dl>
                 </div>
 
                 {{-- Revisions --}}
                 <div x-show="panel === 'revisions'" x-cloak class="space-y-2">
-                    @foreach ($this->orderedRevisions as $sheetRevision)
-                        <div wire:key="viewer-revision-{{ $sheetRevision->id }}" class="rounded-lg {{ $sheetRevision->id === $revision->id ? 'bg-sky-600' : 'bg-zinc-800' }}">
+                    @forelse ($this->orderedRevisions as $sheetRevision)
+                        <div wire:key="viewer-revision-{{ $sheetRevision->id }}" class="rounded-lg {{ $revision && $sheetRevision->id === $revision->id ? 'bg-sky-600' : 'bg-zinc-800' }}">
                             <button wire:click="selectRevision('{{ $sheetRevision->id }}')" class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:opacity-90">
                                 <span>
                                     <span class="block font-medium">{{ $sheetRevision->revision_label ?: 'Revision' }}</span>
@@ -218,7 +228,9 @@
                                 @endif
                             @endcan
                         </div>
-                    @endforeach
+                    @empty
+                        <flux:text class="text-sm text-zinc-500">No revisions uploaded yet.</flux:text>
+                    @endforelse
                 </div>
 
                 {{-- Notes --}}

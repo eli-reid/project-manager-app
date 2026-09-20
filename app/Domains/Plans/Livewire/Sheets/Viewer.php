@@ -71,9 +71,11 @@ class Viewer extends Component
         $this->sheet = $sheet->load(['currentRevision', 'revisions.set']);
         $this->authorize('view', $sheet);
 
+        // Sheets can exist with no revisions yet (e.g. still splitting/rendering, or a
+        // failed pipeline run) — still let the sheet be opened so its metadata can be
+        // viewed/edited rather than 404ing the whole page.
         $currentRevision = $this->sheet->currentRevision ?: $this->orderedRevisions->first();
-        abort_unless($currentRevision instanceof PlanSheetRevision, 404);
-        $this->activeRevisionId = $currentRevision->id;
+        $this->activeRevisionId = $currentRevision?->id ?? '';
 
         $state = PlanViewState::query()
             ->where('user_id', Auth::id())
@@ -344,8 +346,12 @@ class Viewer extends Component
         // (not just the first) has `revisions.set` available without lazy-loading.
         $this->sheet->loadMissing(['currentRevision', 'revisions.set']);
 
-        $revision = $this->sheet->revisions->firstWhere('id', $this->activeRevisionId);
-        abort_unless($revision instanceof PlanSheetRevision, 404);
+        // A sheet with no revisions yet (still processing, or a failed upload) is a
+        // valid state to view/edit metadata for — the stage simply renders a
+        // placeholder instead of an image.
+        $revision = $this->activeRevisionId !== ''
+            ? $this->sheet->revisions->firstWhere('id', $this->activeRevisionId)
+            : null;
 
         return view('plans::livewire.sheets.viewer', [
             'revision' => $revision,

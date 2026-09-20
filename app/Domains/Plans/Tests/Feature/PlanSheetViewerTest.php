@@ -120,6 +120,35 @@ it('opens a sheet with no metadata set, including the compare link, and allows e
         ->title->toBe('First Floor Plan');
 });
 
+it('opens a sheet that has no revisions at all so its metadata can still be edited', function (): void {
+    // Reflects a real production state: a sheet split out of a plan set before it has
+    // any rendered (or even pending) revision row — previously this 404'd the whole
+    // page, blocking the user from ever fixing its metadata.
+    $user = viewerTestUser(['plans.view', 'plans.update', 'projects.view']);
+    $project = Project::factory()->create();
+    $sheet = PlanSheet::factory()->create([
+        'project_id' => $project->id,
+        'sheet_number' => null,
+        'title' => null,
+        'discipline' => null,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Viewer::class, ['project' => $project, 'sheet' => $sheet])
+        ->assertOk()
+        ->assertSee('Unnumbered')
+        ->assertSee('No revisions uploaded yet')
+        ->call('openMetadataEditor')
+        ->set('metaSheetNumber', 'A-300')
+        ->set('metaTitle', 'Roof Plan')
+        ->call('saveMetadata')
+        ->assertHasNoErrors();
+
+    expect($sheet->fresh())
+        ->sheet_number->toBe('A-300')
+        ->title->toBe('Roof Plan');
+});
+
 it('rejects a duplicate sheet number when saving metadata', function (): void {
     $user = viewerTestUser(['plans.view', 'plans.update', 'projects.view']);
     $project = Project::factory()->create();

@@ -94,8 +94,10 @@ function planSheetViewer({ zoom, centerX, centerY, minZoom = 0.25, maxZoom = 6 }
             return this.$refs.viewport.getBoundingClientRect();
         },
 
+        // Returns null when no revision image is loaded (e.g. a sheet still awaiting
+        // its first render) so callers can no-op instead of throwing.
         imageRect() {
-            return this.$refs.sheetImage.getBoundingClientRect();
+            return this.$refs.sheetImage ? this.$refs.sheetImage.getBoundingClientRect() : null;
         },
 
         /**
@@ -179,7 +181,7 @@ function planSheetViewer({ zoom, centerX, centerY, minZoom = 0.25, maxZoom = 6 }
         // --- pointer interaction: pan, pin, rect, capture ------------------------
         normalizedPoint(event) {
             const rect = this.imageRect();
-            if (rect.width === 0 || rect.height === 0) {
+            if (!rect || rect.width === 0 || rect.height === 0) {
                 return null;
             }
 
