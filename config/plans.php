@@ -17,7 +17,7 @@ return [
     'title_block_region' => env('PLANS_TITLE_BLOCK_REGION', 'right-strip'),
     'sheet_number_pattern' => env('PLANS_SHEET_NUMBER_PATTERN', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])'),
     'null_page_count' => env('PLANS_NULL_PAGE_COUNT', 1),
-    'ocr_driver' => env('PLANS_OCR_DRIVER', 'google-vision'),
-    'ocr_fallback_enabled' => env('PLANS_OCR_FALLBACK_ENABLED', false),
+    'ocr_driver' => env('PLANS_OCR_DRIVER', 'ghostscript'),
+    'ocr_fallback_enabled' => env('PLANS_OCR_FALLBACK_ENABLED', true),
     'ocr_min_text_length' => env('PLANS_OCR_MIN_TEXT_LENGTH', 12),
 ];

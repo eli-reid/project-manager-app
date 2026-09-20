@@ -140,6 +140,17 @@ it('allows authorized users to delete an individual sheet from admin', function 
         ->and(PlanSheetRevision::query()->where('id', $revision->id)->exists())->toBeFalse();
 });
 
+it('links each sheet in the index to its viewer route', function (): void {
+    $user = createPlansAdminUser();
+
+    $project = Project::factory()->create();
+    $sheet = PlanSheet::factory()->create(['project_id' => $project->id]);
+
+    Livewire::actingAs($user)
+        ->test(Index::class, ['project' => $project])
+        ->assertSee(route('plans.sheets.show', [$project, $sheet]), false);
+});
+
 it('accepts file upload in PlansTab livewire component', function (): void {
     Storage::fake('local');
 

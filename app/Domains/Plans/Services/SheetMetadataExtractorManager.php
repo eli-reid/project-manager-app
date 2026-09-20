@@ -18,8 +18,13 @@ final class SheetMetadataExtractorManager extends Manager
         return $this->container->make(TesseractOcrExtractor::class);
     }
 
+    public function createGhostscriptDriver(): GhostscriptOcrExtractor
+    {
+        return $this->container->make(GhostscriptOcrExtractor::class);
+    }
+
     public function getDefaultDriver(): string
     {
-        return (string) config('plans.ocr_driver', 'google-vision');
+        return (string) config('plans.ocr_driver', 'ghostscript');
     }
 }
