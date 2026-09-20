@@ -70,6 +70,32 @@ TEXT;
     expect($result['sheet_number'])->toBe('A 0.05');
 });
 
+it('ignores ordinary words that look like sheet number prefixes', function (): void {
+    Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
+
+    $text = <<<'TEXT'
+FOR1 PERMIT NOTES
+FOR 4 REASONS LISTED BELOW
+SHEET NAME
+SPECIFICATIONS
+SHEET NUMBER
+A 0.05
+TEXT;
+
+    $result = (new SheetTextDetector)->detect($text);
+
+    expect($result['sheet_number'])->toBe('A 0.05');
+});
+
+it('does not return common words as sheet numbers', function (): void {
+    Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
+
+    $result = (new SheetTextDetector)->detect("FOR1 PERMIT\nSEE2 NOTES");
+
+    expect($result['sheet_number'])->toBeNull()
+        ->and($result['confidence'])->toBe(0.0);
+});
+
 it('returns zero confidence when no sheet number is found', function (): void {
     Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
 

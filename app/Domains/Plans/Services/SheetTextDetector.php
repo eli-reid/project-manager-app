@@ -41,6 +41,7 @@ final class SheetTextDetector
         $lines = preg_split('/\R+/', $text) ?: [];
 
         return collect($matches)
+            ->filter(fn (array $match): bool => ! $this->hasRejectedPrefix($match[0]))
             ->map(function (array $match) use ($lines, $text, $textLength): array {
                 $candidate = strtoupper(trim($match[0]));
                 $offset = $match[1];
@@ -67,6 +68,13 @@ final class SheetTextDetector
                 fn (array $candidateA, array $candidateB): int => strlen($candidateB['number']) <=> strlen($candidateA['number']),
             ])
             ->value('number');
+    }
+
+    private function hasRejectedPrefix(string $candidate): bool
+    {
+        preg_match('/^[A-Z]{2,3}/i', trim($candidate), $matches);
+
+        return in_array(strtoupper($matches[0] ?? ''), ['AND', 'FOR', 'REF', 'SEE', 'THE'], true);
     }
 
     private function scoreCandidate(string $candidate, string $line, string $nearbyText, int $offset, int $textLength): int
