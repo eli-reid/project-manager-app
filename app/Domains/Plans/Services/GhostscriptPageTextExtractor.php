@@ -10,6 +10,8 @@ use Symfony\Component\Process\Process;
 
 final class GhostscriptPageTextExtractor
 {
+    public function __construct(private readonly PlanTextExtractionLogger $extractionLogger) {}
+
     public function extract(string $absolutePdfPath, int $page): string
     {
         $binary = GhostscriptBinaryLocator::locate();
@@ -30,6 +32,9 @@ final class GhostscriptPageTextExtractor
         ], null, null, null, (int) config('plans.process_timeout', 300));
         $process->mustRun();
 
-        return trim($process->getOutput());
+        $text = $process->getOutput();
+        $this->extractionLogger->record('ghostscript-text-layer', $absolutePdfPath, $page, $text);
+
+        return trim($text);
     }
 }

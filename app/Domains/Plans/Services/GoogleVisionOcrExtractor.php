@@ -31,6 +31,7 @@ final class GoogleVisionOcrExtractor implements SheetMetadataExtractorContract
     public function __construct(
         private readonly PdfPageIsolator $pageIsolator,
         private readonly SheetTextDetector $detector,
+        private readonly PlanTextExtractionLogger $extractionLogger,
     ) {}
 
     public function extract(string $absolutePdfPath, int $page): array
@@ -69,6 +70,8 @@ final class GoogleVisionOcrExtractor implements SheetMetadataExtractorContract
         }
 
         $text = (string) data_get($result, 'fullTextAnnotation.text', '');
+        $this->extractionLogger->record('google-vision-ocr', $absolutePdfPath, $page, $text);
+
         $detection = $this->detector->detect($text);
 
         return [
