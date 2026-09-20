@@ -48,7 +48,7 @@
             <button type="button" x-on:click="toggleFullScreen()" x-bind:class="fullScreen ? 'bg-sky-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="rounded-md px-2 py-1 text-xs font-medium" title="Fullscreen (F)">Fullscreen</button>
 
             @can('compare', $sheet)
-                <flux:button size="sm" href="{{ route('plans.sheets.compare', $project) }}" wire:navigate variant="ghost" icon="arrows-right-left">Compare</flux:button>
+                <flux:button size="sm" href="{{ route('plans.sheets.compare', [$project, $sheet]) }}" wire:navigate variant="ghost" icon="arrows-right-left">Compare</flux:button>
             @endcan
 
             @if ($this->canEditMetadata)

@@ -94,6 +94,32 @@ it('prevents a user without plans.update from editing sheet metadata', function 
         ->assertForbidden();
 });
 
+it('opens a sheet with no metadata set, including the compare link, and allows editing it there', function (): void {
+    $user = viewerTestUser(['plans.view', 'plans.update', 'plans.compare', 'projects.view']);
+    $project = Project::factory()->create();
+    $sheet = PlanSheet::factory()->create([
+        'project_id' => $project->id,
+        'sheet_number' => null,
+        'title' => null,
+        'discipline' => null,
+    ]);
+    makeCurrentRevision($sheet);
+
+    Livewire::actingAs($user)
+        ->test(Viewer::class, ['project' => $project, 'sheet' => $sheet])
+        ->assertOk()
+        ->assertSee('Unnumbered')
+        ->call('openMetadataEditor')
+        ->set('metaSheetNumber', 'A-200')
+        ->set('metaTitle', 'First Floor Plan')
+        ->call('saveMetadata')
+        ->assertHasNoErrors();
+
+    expect($sheet->fresh())
+        ->sheet_number->toBe('A-200')
+        ->title->toBe('First Floor Plan');
+});
+
 it('rejects a duplicate sheet number when saving metadata', function (): void {
     $user = viewerTestUser(['plans.view', 'plans.update', 'projects.view']);
     $project = Project::factory()->create();
