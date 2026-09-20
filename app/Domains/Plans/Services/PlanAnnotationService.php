@@ -40,6 +40,13 @@ final class PlanAnnotationService
     {
         abort_unless($user->can('update', $annotation), 403);
 
+        if (array_key_exists('visibility', $attributes) && $attributes['visibility'] !== null) {
+            abort_unless(
+                in_array($attributes['visibility'], [PlanAnnotation::VISIBILITY_PUBLIC, PlanAnnotation::VISIBILITY_PRIVATE], true),
+                422
+            );
+        }
+
         $annotation->fill(array_filter([
             'content' => $attributes['content'] ?? null,
             'visibility' => $attributes['visibility'] ?? null,
