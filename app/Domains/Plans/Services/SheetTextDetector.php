@@ -19,13 +19,58 @@ final class SheetTextDetector
     public function detect(string $text): array
     {
         $pattern = Settings::get('plans.sheet_number_pattern', config('plans.sheet_number_pattern'))->toString();
+        $titleBlockMetadata = $this->detectTitleBlockMetadata($text, $pattern);
         preg_match_all('/'.trim($pattern, '/').'/i', $text, $matches, PREG_OFFSET_CAPTURE);
 
-        $number = $this->findSheetNumber($text, $matches[0] ?? []);
-        $title = $this->findTitle($text, $number);
+        $number = $titleBlockMetadata['sheet_number'] ?? $this->findSheetNumber($text, $matches[0] ?? []);
+        $title = $titleBlockMetadata['title'] ?? $this->findTitle($text, $number);
         $confidence = $number === null ? 0.0 : ($title === null ? 0.65 : 0.9);
 
         return ['sheet_number' => $number, 'title' => $title, 'confidence' => $confidence];
+    }
+
+    /**
+     * @return array{sheet_number:?string,title:?string}
+     */
+    private function detectTitleBlockMetadata(string $text, string $pattern): array
+    {
+        $lines = collect(preg_split('/\R+/', $text) ?: [])
+            ->map(static fn (string $line): string => trim($line))
+            ->values();
+
+        $sheetNameIndex = $lines->search(static fn (string $line): bool => preg_match('/^SHEET\s+NAME$/i', $line) === 1);
+        $sheetNumberIndex = $lines->search(static fn (string $line): bool => preg_match('/^SHEET\s+NUMBER$/i', $line) === 1);
+
+        if ($sheetNameIndex === false || $sheetNumberIndex === false || $sheetNumberIndex <= $sheetNameIndex) {
+            return ['sheet_number' => null, 'title' => null];
+        }
+
+        $title = $lines
+            ->slice($sheetNameIndex + 1, $sheetNumberIndex - $sheetNameIndex - 1)
+            ->filter(static fn (string $line): bool => $line !== '')
+            ->implode(' ');
+
+        $sheetNumberLine = $lines
+            ->slice($sheetNumberIndex + 1)
+            ->first(static fn (string $line): bool => $line !== '');
+
+        return [
+            'sheet_number' => $this->extractSheetNumberFromLabeledLine($sheetNumberLine, $pattern),
+            'title' => $title !== '' ? $title : null,
+        ];
+    }
+
+    private function extractSheetNumberFromLabeledLine(?string $line, string $pattern): ?string
+    {
+        if ($line === null) {
+            return null;
+        }
+
+        if (preg_match('/'.trim($pattern, '/').'/i', $line, $match) === 1) {
+            return strtoupper(trim($match[0]));
+        }
+
+        return trim($line) !== '' ? strtoupper(trim($line)) : null;
     }
 
     /**

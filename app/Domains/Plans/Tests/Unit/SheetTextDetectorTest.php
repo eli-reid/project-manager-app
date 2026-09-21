@@ -70,6 +70,25 @@ TEXT;
     expect($result['sheet_number'])->toBe('A 0.05');
 });
 
+it('combines multiline sheet names and uses the labeled sheet number line', function (): void {
+    Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
+
+    $text = <<<'TEXT'
+SHEET NAME
+BUILDING A
+COLUMN
+SCHEDULE
+SHEET NUMBER
+S2.00.a
+TEXT;
+
+    $result = (new SheetTextDetector)->detect($text);
+
+    expect($result['sheet_number'])->toBe('S2.00.A')
+        ->and($result['title'])->toBe('BUILDING A COLUMN SCHEDULE')
+        ->and($result['confidence'])->toBe(0.9);
+});
+
 it('ignores ordinary words that look like sheet number prefixes', function (): void {
     Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
 
