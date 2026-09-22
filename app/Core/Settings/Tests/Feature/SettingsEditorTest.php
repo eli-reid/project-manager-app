@@ -195,7 +195,7 @@ it('shows plans title block region as friendly presets', function (): void {
 
     expect($meta['type'])->toBe('select')
         ->and($meta['display_name'])->toBe('Title Block Region')
-        ->and($meta['options'])->toContain('Right side title block')
-        ->and($meta['options'])->toContain('Bottom-right title block')
+        ->and($meta['options'])->toContain('Bottom-right title and number')
+        ->and($meta['options'])->toContain('Bottom-right title and number (legacy)')
         ->and($meta['options'])->toContain('Full page');
 });
