@@ -89,6 +89,29 @@ TEXT;
         ->and($result['confidence'])->toBe(0.9);
 });
 
+it('drops oversized labeled titles instead of concatenating a drawing index into the title', function (): void {
+    Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
+
+    $text = <<<'TEXT'
+SHEET NAME
+LEGEND, NOTES AND ABBREVIATIONS
+DETAILS
+LEVEL 01 & 02
+LEVEL 03 & 04
+DRAWING INDEX
+ROOF
+EXTRA INDEX ENTRY
+SHEET NUMBER
+A0.00
+TEXT;
+
+    $result = (new SheetTextDetector)->detect($text);
+
+    expect($result['sheet_number'])->toBe('A0.00')
+        ->and($result['title'])->toBeNull()
+        ->and($result['confidence'])->toBe(0.65);
+});
+
 it('ignores ordinary words that look like sheet number prefixes', function (): void {
     Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');
 

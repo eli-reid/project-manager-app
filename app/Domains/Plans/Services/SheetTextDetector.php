@@ -13,6 +13,10 @@ use App\Core\Settings\Facades\Settings;
  */
 final class SheetTextDetector
 {
+    private const MAX_LABELED_TITLE_LINES = 6;
+
+    private const MAX_DETECTED_TITLE_LENGTH = 255;
+
     /**
      * @return array{sheet_number:?string,title:?string,confidence:float}
      */
@@ -23,14 +27,16 @@ final class SheetTextDetector
         preg_match_all('/'.trim($pattern, '/').'/i', $text, $matches, PREG_OFFSET_CAPTURE);
 
         $number = $titleBlockMetadata['sheet_number'] ?? $this->findSheetNumber($text, $matches[0] ?? []);
-        $title = $titleBlockMetadata['title'] ?? $this->findTitle($text, $number);
+        $title = $titleBlockMetadata['has_labels']
+            ? $titleBlockMetadata['title']
+            : $this->findTitle($text, $number);
         $confidence = $number === null ? 0.0 : ($title === null ? 0.65 : 0.9);
 
         return ['sheet_number' => $number, 'title' => $title, 'confidence' => $confidence];
     }
 
     /**
-     * @return array{sheet_number:?string,title:?string}
+     * @return array{has_labels:bool,sheet_number:?string,title:?string}
      */
     private function detectTitleBlockMetadata(string $text, string $pattern): array
     {
@@ -42,19 +48,26 @@ final class SheetTextDetector
         $sheetNumberIndex = $lines->search(static fn (string $line): bool => preg_match('/^SHEET\s+NUMBER$/i', $line) === 1);
 
         if ($sheetNameIndex === false || $sheetNumberIndex === false || $sheetNumberIndex <= $sheetNameIndex) {
-            return ['sheet_number' => null, 'title' => null];
+            return ['has_labels' => false, 'sheet_number' => null, 'title' => null];
         }
 
-        $title = $lines
+        $titleLines = $lines
             ->slice($sheetNameIndex + 1, $sheetNumberIndex - $sheetNameIndex - 1)
             ->filter(static fn (string $line): bool => $line !== '')
-            ->implode(' ');
+            ->values();
+
+        $title = $titleLines->implode(' ');
+
+        if ($titleLines->count() > self::MAX_LABELED_TITLE_LINES || strlen($title) > self::MAX_DETECTED_TITLE_LENGTH) {
+            $title = null;
+        }
 
         $sheetNumberLine = $lines
             ->slice($sheetNumberIndex + 1)
             ->first(static fn (string $line): bool => $line !== '');
 
         return [
+            'has_labels' => true,
             'sheet_number' => $this->extractSheetNumberFromLabeledLine($sheetNumberLine, $pattern),
             'title' => $title !== '' ? $title : null,
         ];
@@ -66,11 +79,20 @@ final class SheetTextDetector
             return null;
         }
 
-        if (preg_match('/'.trim($pattern, '/').'/i', $line, $match) === 1) {
-            return strtoupper(trim($match[0]));
+        $trimmedLine = trim($line);
+
+        if (preg_match('/'.trim($pattern, '/').'/i', $trimmedLine, $match) === 1) {
+            $normalizedMatch = strtoupper(trim($match[0]));
+            $suffix = substr($trimmedLine, strlen($match[0]));
+
+            if ($suffix !== '' && preg_match('/^[.\s-]*[A-Z]{1,2}$/i', $suffix) === 1) {
+                return strtoupper($trimmedLine);
+            }
+
+            return $normalizedMatch;
         }
 
-        return trim($line) !== '' ? strtoupper(trim($line)) : null;
+        return $trimmedLine !== '' ? strtoupper($trimmedLine) : null;
     }
 
     /**

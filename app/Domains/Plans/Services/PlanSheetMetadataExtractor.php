@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Plans\Services;
 
 use App\Domains\Plans\Models\PlanSheetRevision;
+use Illuminate\Support\Str;
 
 final class PlanSheetMetadataExtractor
 {
@@ -35,14 +36,31 @@ final class PlanSheetMetadataExtractor
             return $revision;
         }
 
+        $title = $this->normalizeDetectedTitle($detection['title']);
+
         $revision->update([
             'text_layer' => $detection['text'],
             'detected_sheet_number' => $detection['sheet_number'],
-            'detected_title' => $detection['title'],
+            'detected_title' => $title,
             'detection_confidence' => $detection['confidence'],
             'detection_source' => $detection['source'],
         ]);
 
         return $revision->fresh();
+    }
+
+    private function normalizeDetectedTitle(?string $title): ?string
+    {
+        if ($title === null) {
+            return null;
+        }
+
+        $normalizedTitle = Str::squish($title);
+
+        if ($normalizedTitle === '' || strlen($normalizedTitle) > 255) {
+            return null;
+        }
+
+        return $normalizedTitle;
     }
 }

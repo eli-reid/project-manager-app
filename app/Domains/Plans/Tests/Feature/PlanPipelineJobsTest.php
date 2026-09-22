@@ -60,6 +60,23 @@ it('applies a pre-computed OCR detection result including its source', function 
         ->and($updatedRevision->detection_source)->toBe('google-vision');
 });
 
+it('drops oversized detected titles before updating a revision', function (): void {
+    $revision = PlanSheetRevision::factory()->create();
+    $oversizedTitle = str_repeat('DRAWING INDEX ', 30);
+
+    $updatedRevision = app(PlanSheetMetadataExtractor::class)->applyDetection($revision, [
+        'sheet_number' => 'A0.00',
+        'title' => $oversizedTitle,
+        'confidence' => 0.65,
+        'source' => 'google-vision',
+        'text' => 'SHEET NAME DRAWING INDEX SHEET NUMBER A0.00',
+    ]);
+
+    expect($updatedRevision->detected_sheet_number)->toBe('A0.00')
+        ->and($updatedRevision->detected_title)->toBeNull()
+        ->and($updatedRevision->detection_source)->toBe('google-vision');
+});
+
 it('does not overwrite a manual detection with an OCR detection result', function (): void {
     $revision = PlanSheetRevision::factory()->create([
         'detection_source' => 'manual',
