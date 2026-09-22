@@ -7,6 +7,7 @@ namespace App\Domains\Plans\Livewire\Sheets;
 use App\Core\Identity\Models\User;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
+use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
@@ -62,6 +63,7 @@ final class Index extends Component
 
     public function render()
     {
+        $limit = min($this->perPage, 240);
         $sheets = PlanSheet::query()
             ->whereBelongsTo($this->project)
             ->select(['id', 'project_id', 'sheet_number', 'title', 'discipline', 'sort_index', 'current_revision_id'])
@@ -71,17 +73,22 @@ final class Index extends Component
                 ->where('sheet_number', 'like', '%'.$this->search.'%')
                 ->orWhere('title', 'like', '%'.$this->search.'%')))
             ->when($this->discipline !== '', fn ($query) => $query->where('discipline', $this->discipline))
-            ->when($this->setId !== '', fn ($query) => $query->whereHas('revisions', fn ($query) => $query->where('plan_set_id', $this->setId)))
+            ->when($this->setId !== '', fn ($query) => $query->whereIn(
+                'id',
+                PlanSheetRevision::query()
+                    ->select('plan_sheet_id')
+                    ->where('plan_set_id', $this->setId),
+            ))
             ->orderBy('sort_index')
             ->orderBy('sheet_number')
-            ->limit(min($this->perPage, 240))
+            ->limit($limit < 240 ? $limit + 1 : $limit)
             ->get();
 
         return view('plans::livewire.sheets.index', [
-            'sheets' => $sheets,
+            'sheets' => $sheets->take($limit),
             'sets' => PlanSet::query()->whereBelongsTo($this->project)->orderBy('name')->get(['id', 'name']),
             'disciplines' => PlanSheet::query()->whereBelongsTo($this->project)->whereNotNull('discipline')->distinct()->orderBy('discipline')->pluck('discipline'),
-            'hasMore' => $sheets->count() === min($this->perPage, 240) && $this->perPage < 240,
+            'hasMore' => $limit < 240 && $sheets->count() > $limit,
         ]);
     }
 }

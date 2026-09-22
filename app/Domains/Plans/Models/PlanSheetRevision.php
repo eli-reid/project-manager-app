@@ -58,6 +58,23 @@ class PlanSheetRevision extends Model
         return $query->where('is_current', true);
     }
 
+    public function scopeWithPlanViewData(Builder $query): Builder
+    {
+        return $query
+            ->select([
+                'id',
+                'plan_sheet_id',
+                'plan_set_id',
+                'revision_label',
+                'page_number',
+                'thumbnail_path',
+                'preview_path',
+                'is_current',
+                'created_at',
+            ])
+            ->with('set:id,issued_at');
+    }
+
     /**
      * The real-world date this revision was issued, i.e. the date printed on the
      * drawing set's title block. Revisions are ordered by this date rather than by

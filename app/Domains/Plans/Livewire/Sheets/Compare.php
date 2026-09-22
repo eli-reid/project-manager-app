@@ -28,7 +28,9 @@ final class Compare extends Component
 
     public function mount(PlanSheet $sheet): void
     {
-        $this->sheet = $sheet->load(['revisions.set']);
+        $this->sheet = $sheet->load([
+            'revisions' => fn ($query) => $query->withPlanViewData(),
+        ]);
         $this->authorize('compare', $sheet);
         $revisions = $this->orderedRevisions();
         abort_unless($revisions->count() >= 2, 404);

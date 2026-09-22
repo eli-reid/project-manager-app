@@ -68,13 +68,15 @@ class Viewer extends Component
     {
         abort_unless($sheet->project_id === $project->id, 404);
         $this->project = $project;
-        $this->sheet = $sheet->load(['currentRevision', 'revisions.set']);
+        $this->sheet = $sheet;
+        $this->loadSheetRevisions();
         $this->authorize('view', $sheet);
 
         // Sheets can exist with no revisions yet (e.g. still splitting/rendering, or a
         // failed pipeline run) — still let the sheet be opened so its metadata can be
         // viewed/edited rather than 404ing the whole page.
-        $currentRevision = $this->sheet->currentRevision ?: $this->orderedRevisions->first();
+        $currentRevision = $this->sheet->revisions->firstWhere('id', $this->sheet->current_revision_id)
+            ?: $this->orderedRevisions->first();
         $this->activeRevisionId = $currentRevision?->id ?? '';
 
         $state = PlanViewState::query()
@@ -104,7 +106,8 @@ class Viewer extends Component
         $revision = $this->sheet->revisions->firstWhere('id', $revisionId);
         abort_unless($revision instanceof PlanSheetRevision, 404);
         $revisions->publish($this->sheet, $revision);
-        $this->sheet->refresh()->load(['currentRevision', 'revisions.set']);
+        $this->sheet->refresh();
+        $this->loadSheetRevisions();
     }
 
     #[Renderless]
@@ -339,12 +342,18 @@ class Viewer extends Component
             ->all();
     }
 
+    private function loadSheetRevisions(): void
+    {
+        $this->sheet->load([
+            'revisions' => fn ($query) => $query->withPlanViewData(),
+        ]);
+    }
+
     public function render()
     {
-        // Livewire only preserves the properties it snapshots between requests, not
-        // relations eager-loaded during mount(); reload them here so every request
-        // (not just the first) has `revisions.set` available without lazy-loading.
-        $this->sheet->loadMissing(['currentRevision', 'revisions.set']);
+        if (! $this->sheet->relationLoaded('revisions')) {
+            $this->loadSheetRevisions();
+        }
 
         // A sheet with no revisions yet (still processing, or a failed upload) is a
         // valid state to view/edit metadata for — the stage simply renders a
