@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Core\Assets\Models\AssetReference;
+use App\Core\Auth\Permission\Models\Permission;
+use App\Core\Auth\Permission\Services\DomainPermissionSynchronizer;
+use App\Core\Auth\Role\Models\Role;
 use App\Core\Identity\Models\User;
 use App\Domains\Plans\Jobs\FinalizePlanSetJob;
 use App\Domains\Plans\Jobs\SplitPlanSetJob;
@@ -206,4 +209,45 @@ it('shows the PDF page number on each sheet in the sheet index', function (): vo
         ->test(Index::class, ['project' => $project])
         ->assertOk()
         ->assertSee('Page 12');
+});
+
+it('filters the sheet index by plan set without duplicating sheets', function (): void {
+    app(DomainPermissionSynchronizer::class)->sync();
+    $role = Role::query()->create([
+        'name' => 'Plan Index Filter Test Role '.str()->uuid(),
+        'is_active' => true,
+        'built_in' => false,
+        'access_level' => 20,
+    ]);
+    $role->permissions()->sync(
+        Permission::query()
+            ->where(fn ($query) => $query
+                ->where('resource', 'plans')->where('action', 'view')
+                ->orWhere(fn ($query) => $query->where('resource', 'projects')->where('action', 'view')))
+            ->pluck('id'),
+    );
+    $user = User::factory()->create(['is_admin' => true]);
+    $user->roles()->sync([$role->id]);
+    User::bumpPermissionCacheVersion();
+
+    $project = Project::factory()->create();
+    $selectedSet = PlanSet::factory()->create(['project_id' => $project->id, 'name' => 'Selected Set']);
+    $otherSet = PlanSet::factory()->create(['project_id' => $project->id, 'name' => 'Other Set']);
+    $matchingSheet = PlanSheet::factory()->create(['project_id' => $project->id, 'sheet_number' => 'A-101']);
+    $otherSheet = PlanSheet::factory()->create(['project_id' => $project->id, 'sheet_number' => 'A-102']);
+
+    PlanSheetRevision::factory()->count(2)->create([
+        'plan_set_id' => $selectedSet->id,
+        'plan_sheet_id' => $matchingSheet->id,
+    ]);
+    PlanSheetRevision::factory()->create([
+        'plan_set_id' => $otherSet->id,
+        'plan_sheet_id' => $otherSheet->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Index::class, ['project' => $project])
+        ->set('setId', $selectedSet->id)
+        ->assertSee('A-101')
+        ->assertDontSee('A-102');
 });

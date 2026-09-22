@@ -149,6 +149,29 @@ it('opens a sheet that has no revisions at all so its metadata can still be edit
         ->title->toBe('Roof Plan');
 });
 
+it('loads only revision fields required by the viewer', function (): void {
+    $user = viewerTestUser(['plans.view', 'projects.view']);
+    $project = Project::factory()->create();
+    $sheet = PlanSheet::factory()->create(['project_id' => $project->id]);
+    $revision = makeCurrentRevision($sheet, revisionAttributes: [
+        'text_layer' => str_repeat('large OCR payload ', 100),
+        'tile_manifest' => ['levels' => [['width' => 4096, 'height' => 4096]]],
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test(Viewer::class, ['project' => $project, 'sheet' => $sheet])
+        ->assertOk()
+        ->assertSee((string) $revision->page_number);
+
+    /** @var PlanSheet $loadedSheet */
+    $loadedSheet = $component->get('sheet');
+    $loadedRevision = $loadedSheet->revisions->firstOrFail();
+
+    expect($loadedRevision->getAttributes())
+        ->toHaveKeys(['id', 'plan_sheet_id', 'plan_set_id', 'revision_label', 'page_number', 'thumbnail_path', 'preview_path', 'is_current', 'created_at'])
+        ->not->toHaveKeys(['text_layer', 'tile_manifest', 'detected_sheet_number', 'detected_title']);
+});
+
 it('rejects a duplicate sheet number when saving metadata', function (): void {
     $user = viewerTestUser(['plans.view', 'plans.update', 'projects.view']);
     $project = Project::factory()->create();
