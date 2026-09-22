@@ -9,17 +9,17 @@ it('converts normalized title block coordinates to bounded pixels', function ():
     $method->setAccessible(true);
 
     $region = $method->invoke(new PlanTitleBlockImageCropper, [
-        'x' => 0.78,
-        'y' => 0.55,
-        'width' => 0.22,
-        'height' => 0.45,
+        'x' => 0.84,
+        'y' => 0.80,
+        'width' => 0.16,
+        'height' => 0.20,
     ], 1000, 2000);
 
     expect($region)->toBe([
-        'x' => 780,
-        'y' => 1100,
-        'width' => 220,
-        'height' => 900,
+        'x' => 840,
+        'y' => 1600,
+        'width' => 160,
+        'height' => 400,
     ]);
 });
 
@@ -30,8 +30,8 @@ it('keeps title block crop dimensions positive at page edges', function (): void
     $region = $method->invoke(new PlanTitleBlockImageCropper, [
         'x' => 1.0,
         'y' => 1.0,
-        'width' => 0.22,
-        'height' => 0.45,
+        'width' => 0.16,
+        'height' => 0.20,
     ], 1000, 2000);
 
     expect($region)->toBe([

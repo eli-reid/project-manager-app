@@ -13,12 +13,11 @@ final class PlanTitleBlockRegion
      */
     public function resolve(): ?array
     {
-        $value = trim(Settings::get('plans.title_block_region', config('plans.title_block_region', 'right-strip'))->toString());
+        $value = trim(Settings::get('plans.title_block_region', config('plans.title_block_region', 'bottom-right'))->toString());
 
         return match ($value) {
             '', 'full-page' => null,
-            'right-strip' => ['x' => 0.78, 'y' => 0.0, 'width' => 0.22, 'height' => 1.0],
-            'bottom-right' => ['x' => 0.78, 'y' => 0.55, 'width' => 0.22, 'height' => 0.45],
+            'right-strip', 'bottom-right' => ['x' => 0.84, 'y' => 0.80, 'width' => 0.16, 'height' => 0.20],
             default => $this->fromJson($value),
         };
     }
