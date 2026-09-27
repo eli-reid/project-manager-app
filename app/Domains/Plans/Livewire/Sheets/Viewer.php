@@ -6,6 +6,7 @@ namespace App\Domains\Plans\Livewire\Sheets;
 
 use App\Core\Identity\Models\User;
 use App\Domains\Plans\Models\PlanAnnotation;
+use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Plans\Models\PlanViewState;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -46,6 +48,8 @@ class Viewer extends Component
     public string $metaTitle = '';
 
     public string $metaDiscipline = '';
+
+    public string $metaPlanDate = '';
 
     public string $notesScope = 'current';
 
@@ -129,12 +133,18 @@ class Viewer extends Component
         $this->metaSheetNumber = (string) $this->sheet->sheet_number;
         $this->metaTitle = (string) $this->sheet->title;
         $this->metaDiscipline = (string) $this->sheet->discipline;
+        $this->metaPlanDate = $this->activePlanSet()?->issued_at?->toDateString() ?? '';
         $this->editingMetadata = true;
     }
 
     public function saveMetadata(): void
     {
         $this->authorize('update', $this->sheet);
+        $planSet = $this->activePlanSet();
+
+        if ($planSet instanceof PlanSet) {
+            $this->authorize('update', $planSet);
+        }
 
         $data = $this->validate([
             'metaSheetNumber' => [
@@ -143,15 +153,23 @@ class Viewer extends Component
             ],
             'metaTitle' => ['nullable', 'string', 'max:255'],
             'metaDiscipline' => ['nullable', 'string', 'max:100'],
+            'metaPlanDate' => ['nullable', 'date_format:Y-m-d'],
         ]);
 
-        $this->sheet->update([
-            'sheet_number' => $data['metaSheetNumber'] !== '' ? $data['metaSheetNumber'] : null,
-            'title' => $data['metaTitle'] !== '' ? $data['metaTitle'] : null,
-            'discipline' => $data['metaDiscipline'] !== '' ? $data['metaDiscipline'] : null,
-        ]);
+        DB::transaction(function () use ($data, $planSet): void {
+            $this->sheet->update([
+                'sheet_number' => $data['metaSheetNumber'] !== '' ? $data['metaSheetNumber'] : null,
+                'title' => $data['metaTitle'] !== '' ? $data['metaTitle'] : null,
+                'discipline' => $data['metaDiscipline'] !== '' ? $data['metaDiscipline'] : null,
+            ]);
+
+            $planSet?->update([
+                'issued_at' => $data['metaPlanDate'] !== '' ? $data['metaPlanDate'] : null,
+            ]);
+        });
 
         $this->sheet->refresh();
+        $this->loadSheetRevisions();
         $this->editingMetadata = false;
         session()->flash('success', 'Sheet details updated.');
     }
@@ -347,6 +365,16 @@ class Viewer extends Component
         $this->sheet->load([
             'revisions' => fn ($query) => $query->withPlanViewData(),
         ]);
+    }
+
+    private function activePlanSet(): ?PlanSet
+    {
+        $revision = $this->sheet->revisions->firstWhere('id', $this->activeRevisionId);
+        $planSet = $revision?->set;
+
+        abort_if($planSet instanceof PlanSet && $planSet->project_id !== $this->project->id, 404);
+
+        return $planSet;
     }
 
     public function render()
