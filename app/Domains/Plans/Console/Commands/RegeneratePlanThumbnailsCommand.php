@@ -23,7 +23,8 @@ final class RegeneratePlanThumbnailsCommand extends Command
     public function handle(PlanThumbnailGenerator $thumbnails): int
     {
         $disk = Storage::disk(Settings::get('plans.storage_disk', 'local')->toString());
-        $thumbnailExtension = Settings::get('plans.derivative_format', 'webp')->toString() === 'webp' && function_exists('imagewebp') ? 'webp' : 'png';
+        $thumbnailFormat = Settings::get('plans.thumbnail_format', 'webp')->toString();
+        $thumbnailExtension = $thumbnailFormat === 'webp' && function_exists('imagewebp') ? 'webp' : 'png';
         $width = Settings::get('plans.thumbnail_width', 320)->toInt();
         $quality = Settings::get('plans.thumbnail_quality', 60)->toInt();
         $maxBytes = Settings::get('plans.thumbnail_max_bytes', 204800)->toInt();

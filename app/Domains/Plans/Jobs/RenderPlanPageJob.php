@@ -56,7 +56,8 @@ final class RenderPlanPageJob implements ShouldBeUnique, ShouldQueue
 
             // Thumbnails are a real derivative (not the full-resolution preview) so the
             // Plans grid view never has to ship a multi-megabyte render per sheet.
-            $thumbnailExtension = Settings::get('plans.derivative_format', 'webp')->toString() === 'webp' && function_exists('imagewebp') ? 'webp' : 'png';
+            $thumbnailFormat = Settings::get('plans.thumbnail_format', 'webp')->toString();
+            $thumbnailExtension = $thumbnailFormat === 'webp' && function_exists('imagewebp') ? 'webp' : 'png';
             $thumbnailPath = $directory.'/thumbnail.'.$thumbnailExtension;
             $thumbnails->generate(
                 $path.'/preview.png',
