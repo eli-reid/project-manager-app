@@ -12,7 +12,7 @@ use RuntimeException;
  */
 final class PlanThumbnailGenerator
 {
-    public function generate(string $absoluteSourcePath, string $absoluteDestinationPath, int $width): void
+    public function generate(string $absoluteSourcePath, string $absoluteDestinationPath, int $width, int $quality = 60): void
     {
         $source = imagecreatefrompng($absoluteSourcePath);
 
@@ -37,9 +37,10 @@ final class PlanThumbnailGenerator
         }
 
         $extension = strtolower((string) pathinfo($absoluteDestinationPath, PATHINFO_EXTENSION));
+        $quality = max(0, min(100, $quality));
         $written = $extension === 'webp' && function_exists('imagewebp')
-            ? imagewebp($thumbnail, $absoluteDestinationPath, 82)
-            : imagepng($thumbnail, $absoluteDestinationPath);
+            ? imagewebp($thumbnail, $absoluteDestinationPath, $quality)
+            : imagepng($thumbnail, $absoluteDestinationPath, 9);
 
         imagedestroy($thumbnail);
 

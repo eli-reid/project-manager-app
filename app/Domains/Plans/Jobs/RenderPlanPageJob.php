@@ -58,7 +58,12 @@ final class RenderPlanPageJob implements ShouldBeUnique, ShouldQueue
             // Plans grid view never has to ship a multi-megabyte render per sheet.
             $thumbnailExtension = Settings::get('plans.derivative_format', 'webp')->toString() === 'webp' && function_exists('imagewebp') ? 'webp' : 'png';
             $thumbnailPath = $directory.'/thumbnail.'.$thumbnailExtension;
-            $thumbnails->generate($path.'/preview.png', $path.'/thumbnail.'.$thumbnailExtension, Settings::get('plans.thumbnail_width', 320)->toInt());
+            $thumbnails->generate(
+                $path.'/preview.png',
+                $path.'/thumbnail.'.$thumbnailExtension,
+                Settings::get('plans.thumbnail_width', 320)->toInt(),
+                Settings::get('plans.thumbnail_quality', 60)->toInt(),
+            );
 
             $revision->update(['preview_path' => $directory.'/preview.png', 'thumbnail_path' => $thumbnailPath, 'status' => 'rendered', 'width' => null, 'height' => null]);
             $revision->set()->update(['processed_page_count' => DB::raw('processed_page_count + 1')]);

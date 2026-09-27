@@ -12,37 +12,40 @@ use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
- * Backfills small grid thumbnails for revisions rendered before thumbnails were
- * split out as a real derivative, i.e. rows still shipping the full-resolution
- * preview PNG to the Plans tab grid.
+ * Backfills and recompresses small grid thumbnails for rendered revisions.
  */
 final class RegeneratePlanThumbnailsCommand extends Command
 {
-    protected $signature = 'plans:regenerate-thumbnails {--chunk=50}';
+    protected $signature = 'plans:regenerate-thumbnails {--chunk=50} {--force : Recompress all existing thumbnails}';
 
-    protected $description = 'Regenerate small plan sheet thumbnails for revisions still pointing at the full-resolution preview.';
+    protected $description = 'Regenerate small plan sheet thumbnails, optionally recompressing all existing derivatives.';
 
     public function handle(PlanThumbnailGenerator $thumbnails): int
     {
         $disk = Storage::disk(Settings::get('plans.storage_disk', 'local')->toString());
         $thumbnailExtension = Settings::get('plans.derivative_format', 'webp')->toString() === 'webp' && function_exists('imagewebp') ? 'webp' : 'png';
         $width = Settings::get('plans.thumbnail_width', 320)->toInt();
+        $quality = Settings::get('plans.thumbnail_quality', 60)->toInt();
+        $force = (bool) $this->option('force');
 
         $regenerated = 0;
         $failed = 0;
 
-        PlanSheetRevision::query()
-            ->whereNotNull('preview_path')
-            ->where(function ($query): void {
+        $query = PlanSheetRevision::query()->whereNotNull('preview_path');
+
+        if (! $force) {
+            $query->where(function ($query): void {
                 $query->whereNull('thumbnail_path')
                     ->orWhereColumn('thumbnail_path', 'preview_path');
-            })
-            ->chunkById((int) $this->option('chunk'), function ($revisions) use ($disk, $thumbnails, $thumbnailExtension, $width, &$regenerated, &$failed): void {
+            });
+        }
+
+        $query->chunkById((int) $this->option('chunk'), function ($revisions) use ($disk, $thumbnails, $thumbnailExtension, $width, $quality, &$regenerated, &$failed): void {
                 foreach ($revisions as $revision) {
                     try {
                         $directory = dirname($revision->preview_path);
                         $thumbnailPath = $directory.'/thumbnail.'.$thumbnailExtension;
-                        $thumbnails->generate($disk->path($revision->preview_path), $disk->path($thumbnailPath), $width);
+                        $thumbnails->generate($disk->path($revision->preview_path), $disk->path($thumbnailPath), $width, $quality);
                         $revision->update(['thumbnail_path' => $thumbnailPath]);
                         $regenerated++;
                     } catch (Throwable $exception) {
