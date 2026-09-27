@@ -12,7 +12,7 @@ use RuntimeException;
  */
 final class PlanThumbnailGenerator
 {
-    public function generate(string $absoluteSourcePath, string $absoluteDestinationPath, int $width, int $quality = 60): void
+    public function generate(string $absoluteSourcePath, string $absoluteDestinationPath, int $width, int $quality = 60, int $maxBytes = 204800): void
     {
         $source = imagecreatefrompng($absoluteSourcePath);
 
@@ -22,13 +22,7 @@ final class PlanThumbnailGenerator
 
         $sourceWidth = imagesx($source);
         $sourceHeight = imagesy($source);
-        $targetWidth = min($width, $sourceWidth);
-        $targetHeight = (int) max(1, round($sourceHeight * ($targetWidth / $sourceWidth)));
-
-        $thumbnail = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagefill($thumbnail, 0, 0, (int) imagecolorallocate($thumbnail, 255, 255, 255));
-        imagecopyresampled($thumbnail, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
-        imagedestroy($source);
+        $targetWidth = min(max(1, $width), $sourceWidth);
 
         $directory = dirname($absoluteDestinationPath);
 
@@ -38,14 +32,50 @@ final class PlanThumbnailGenerator
 
         $extension = strtolower((string) pathinfo($absoluteDestinationPath, PATHINFO_EXTENSION));
         $quality = max(0, min(100, $quality));
-        $written = $extension === 'webp' && function_exists('imagewebp')
-            ? imagewebp($thumbnail, $absoluteDestinationPath, $quality)
-            : imagepng($thumbnail, $absoluteDestinationPath, 9);
+        $maxBytes = max(1, $maxBytes);
+        $minimumWidth = min($targetWidth, 64);
 
-        imagedestroy($thumbnail);
+        while ($targetWidth >= $minimumWidth) {
+            $targetHeight = (int) max(1, round($sourceHeight * ($targetWidth / $sourceWidth)));
+            $thumbnail = imagecreatetruecolor($targetWidth, $targetHeight);
+            imagefill($thumbnail, 0, 0, (int) imagecolorallocate($thumbnail, 255, 255, 255));
+            imagecopyresampled($thumbnail, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
 
-        if ($written === false) {
-            throw new RuntimeException("Unable to write thumbnail image [{$absoluteDestinationPath}].");
+            $written = $extension === 'webp' && function_exists('imagewebp')
+                ? imagewebp($thumbnail, $absoluteDestinationPath, $quality)
+                : imagepng($thumbnail, $absoluteDestinationPath, 9);
+
+            imagedestroy($thumbnail);
+
+            if ($written === false) {
+                imagedestroy($source);
+                throw new RuntimeException("Unable to write thumbnail image [{$absoluteDestinationPath}].");
+            }
+
+            $fileSize = filesize($absoluteDestinationPath);
+
+            if ($fileSize !== false && $fileSize <= $maxBytes) {
+                imagedestroy($source);
+
+                return;
+            }
+
+            if ($extension === 'webp' && function_exists('imagewebp') && $quality > 20) {
+                $quality = max(20, $quality - 10);
+
+                continue;
+            }
+
+            $nextWidth = (int) floor($targetWidth * 0.85);
+
+            if ($nextWidth === $targetWidth) {
+                break;
+            }
+
+            $targetWidth = $nextWidth;
         }
+
+        imagedestroy($source);
+        throw new RuntimeException("Unable to reduce thumbnail below {$maxBytes} bytes [{$absoluteDestinationPath}].");
     }
 }

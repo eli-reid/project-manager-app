@@ -63,6 +63,7 @@ final class RenderPlanPageJob implements ShouldBeUnique, ShouldQueue
                 $path.'/thumbnail.'.$thumbnailExtension,
                 Settings::get('plans.thumbnail_width', 320)->toInt(),
                 Settings::get('plans.thumbnail_quality', 60)->toInt(),
+                Settings::get('plans.thumbnail_max_bytes', 204800)->toInt(),
             );
 
             $revision->update(['preview_path' => $directory.'/preview.png', 'thumbnail_path' => $thumbnailPath, 'status' => 'rendered', 'width' => null, 'height' => null]);
