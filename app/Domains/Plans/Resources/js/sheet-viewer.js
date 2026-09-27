@@ -41,6 +41,7 @@ function planSheetViewer({ zoom, centerX, centerY, minZoom = 0.25, maxZoom = 6 }
         fullScreen: false,
         palette: false,
         panel: 'details', // details | revisions | notes
+        rightPanelOpen: true,
         showMarkup: true,
         tool: 'pan', // pan | pin | rect | capture
         isPointerDown: false,
@@ -121,6 +122,11 @@ function planSheetViewer({ zoom, centerX, centerY, minZoom = 0.25, maxZoom = 6 }
 
             const [nx, ny] = this.currentCenterFraction();
             this.centerOn(nx, ny, this.zoom);
+        },
+
+        toggleRightPanel() {
+            this.rightPanelOpen = !this.rightPanelOpen;
+            this.$nextTick(() => this.recenter());
         },
 
         currentCenterFraction() {
