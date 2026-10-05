@@ -60,13 +60,16 @@
         </div>
     </div>
 
-    <div class="grid flex-1 grid-cols-[4.5rem_minmax(0,1fr)_20rem] overflow-hidden">
+    <div
+        class="grid flex-1 grid-cols-[6rem_minmax(0,1fr)_20rem] overflow-hidden"
+        x-bind:style="rightPanelOpen ? 'grid-template-columns: 6rem minmax(0, 1fr) 20rem' : 'grid-template-columns: 6rem minmax(0, 1fr) 2.5rem'"
+    >
         @island(name: 'thumbnail-rail')
             <aside class="h-full overflow-y-auto border-r border-zinc-800 p-2">
                 <div class="space-y-2">
                     @foreach ($this->siblings as $sibling)
                         <a wire:key="viewer-sibling-{{ $sibling->id }}" href="{{ route('plans.sheets.show', [$project, $sibling]) }}" wire:navigate class="block rounded-lg p-1 {{ $sibling->is($sheet) ? 'bg-sky-600' : 'bg-zinc-800 hover:bg-zinc-700' }}">
-                            <div class="flex aspect-[4/3] items-center justify-center rounded bg-zinc-700 text-[10px] font-semibold">{{ $sibling->sheet_number ?: '?' }}</div>
+                            <div class="flex aspect-[4/3] items-center justify-center whitespace-nowrap rounded bg-zinc-700 px-1 text-[10px] font-semibold">{{ $sibling->sheet_number ?: '?' }}</div>
                         </a>
                     @endforeach
                 </div>
@@ -179,7 +182,7 @@
 
         {{-- Right panel --}}
         <aside class="flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-zinc-900">
-            <div class="flex border-b border-zinc-800">
+            <div x-show="rightPanelOpen" class="flex border-b border-zinc-800">
                 @foreach (['details' => 'Details', 'revisions' => 'Revisions', 'notes' => 'Notes'] as $key => $label)
                     <button
                         type="button"
@@ -188,9 +191,14 @@
                         class="flex-1 border-b-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors"
                     >{{ $label }}</button>
                 @endforeach
+                <flux:button size="sm" variant="ghost" icon="chevron-right" x-on:click="toggleRightPanel()" title="Collapse sidebar" aria-label="Collapse sidebar" />
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4">
+            <div x-show="!rightPanelOpen" x-cloak class="flex justify-center border-b border-zinc-800 py-1">
+                <flux:button size="sm" variant="ghost" icon="chevron-left" x-on:click="toggleRightPanel()" title="Expand sidebar" aria-label="Expand sidebar" />
+            </div>
+
+            <div x-show="rightPanelOpen" class="flex-1 overflow-y-auto p-4">
                 {{-- Details --}}
                 <div x-show="panel === 'details'" x-cloak>
                     <dl class="space-y-3 text-sm">
@@ -328,6 +336,13 @@
                     <flux:input wire:model="metaDiscipline" />
                     <flux:error name="metaDiscipline" />
                 </flux:field>
+                @if ($revision?->set)
+                    <flux:field>
+                        <flux:label>Plan date</flux:label>
+                        <flux:input type="date" wire:model="metaPlanDate" />
+                        <flux:error name="metaPlanDate" />
+                    </flux:field>
+                @endif
                 <div class="flex justify-end gap-2 border-t border-zinc-800 pt-4">
                     <flux:button type="button" variant="ghost" wire:click="$set('editingMetadata', false)">Cancel</flux:button>
                     <flux:button type="submit" variant="primary">Save</flux:button>

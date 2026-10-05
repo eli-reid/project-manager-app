@@ -65,21 +65,38 @@ it('allows a user with plans.update to edit sheet metadata', function (): void {
     $user = viewerTestUser(['plans.view', 'plans.update', 'projects.view']);
     $project = Project::factory()->create();
     $sheet = PlanSheet::factory()->create(['project_id' => $project->id, 'sheet_number' => 'A-100']);
-    makeCurrentRevision($sheet);
+    $revision = makeCurrentRevision($sheet, ['issued_at' => '2024-03-15']);
 
     Livewire::actingAs($user)
         ->test(Viewer::class, ['project' => $project, 'sheet' => $sheet])
         ->call('openMetadataEditor')
+        ->assertSet('metaPlanDate', '2024-03-15')
         ->set('metaSheetNumber', 'A-101')
         ->set('metaTitle', 'Updated Title')
         ->set('metaDiscipline', 'Structural')
+        ->set('metaPlanDate', '2024-04-20')
         ->call('saveMetadata')
         ->assertHasNoErrors();
 
     expect($sheet->fresh())
         ->sheet_number->toBe('A-101')
         ->title->toBe('Updated Title')
-        ->discipline->toBe('Structural');
+        ->discipline->toBe('Structural')
+        ->and($revision->set->fresh()->issued_at->toDateString())->toBe('2024-04-20');
+});
+
+it('rejects an invalid plan date when saving sheet metadata', function (): void {
+    $user = viewerTestUser(['plans.view', 'plans.update', 'projects.view']);
+    $project = Project::factory()->create();
+    $sheet = PlanSheet::factory()->create(['project_id' => $project->id]);
+    makeCurrentRevision($sheet, ['issued_at' => '2024-03-15']);
+
+    Livewire::actingAs($user)
+        ->test(Viewer::class, ['project' => $project, 'sheet' => $sheet])
+        ->call('openMetadataEditor')
+        ->set('metaPlanDate', 'not-a-date')
+        ->call('saveMetadata')
+        ->assertHasErrors(['metaPlanDate']);
 });
 
 it('prevents a user without plans.update from editing sheet metadata', function (): void {

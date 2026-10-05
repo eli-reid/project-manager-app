@@ -72,7 +72,7 @@ class PlanSheetRevision extends Model
                 'is_current',
                 'created_at',
             ])
-            ->with('set:id,issued_at');
+            ->with('set:id,project_id,issued_at');
     }
 
     /**

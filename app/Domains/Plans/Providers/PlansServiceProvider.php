@@ -9,6 +9,7 @@ use App\Core\Auth\Permission\Contracts\PermissionRegistryContract;
 use App\Core\Settings\Contracts\SettingsRegistryContract;
 use App\Domains\Plans\Console\Commands\CheckRasterizerCommand;
 use App\Domains\Plans\Console\Commands\PrunePlanDerivativesCommand;
+use App\Domains\Plans\Console\Commands\RegeneratePlanThumbnailsCommand;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
 use App\Domains\Plans\Contracts\SheetMetadataExtractorContract;
 use App\Domains\Plans\Models\PlanAnnotation;
@@ -54,7 +55,7 @@ final class PlansServiceProvider extends ServiceProvider
             return $app->make(SheetMetadataExtractorManager::class)->driver();
         });
 
-        $this->commands([CheckRasterizerCommand::class, PrunePlanDerivativesCommand::class]);
+        $this->commands([CheckRasterizerCommand::class, PrunePlanDerivativesCommand::class, RegeneratePlanThumbnailsCommand::class]);
     }
 
     public function boot(
