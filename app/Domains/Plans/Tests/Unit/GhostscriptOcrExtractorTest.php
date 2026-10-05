@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Plans\Services\GhostscriptOcrExtractor;
-use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
-use App\Domains\Plans\Services\PlanTextExtractionLogger;
-use App\Domains\Plans\Services\PlanTitleBlockImageCropper;
-use App\Domains\Plans\Services\PlanTitleBlockRegion;
-use App\Domains\Plans\Services\SheetTextDetector;
+use App\Domains\Plans\Services\Ocr\GhostscriptOcrExtractor;
+use App\Domains\Plans\Services\Ocr\GhostscriptPageTextExtractor;
+use App\Domains\Plans\Services\Ocr\PlanTextExtractionLogger;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockImageCropper;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockRegion;
+use App\Domains\Plans\Services\Ocr\SheetTextDetector;
 use App\Domains\Plans\Services\Support\GhostscriptBinaryLocator;
 
 it('throws when ghostscript is not available for ocr', function (): void {

@@ -27,6 +27,7 @@
         "laravel/pint": "^1.29",
         "laravel/sail": "^1.41",
         "laravel/telescope": "^5.18",
+        "laravel/vet": "*",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.4",
@@ -101,6 +102,7 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
+            "laravel/vet": true,
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
         }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domains\Plans\Jobs;
 
 use App\Domains\Plans\Models\PlanSet;
-use App\Domains\Plans\Services\PlanSetRollbackService;
-use App\Domains\Plans\Services\PlanSheetMatcher;
+use App\Domains\Plans\Services\Sets\PlanSetRollbackService;
+use App\Domains\Plans\Services\Sheets\PlanSheetMatcher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

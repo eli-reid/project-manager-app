@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Plans\Services;
+namespace App\Domains\Plans\Services\Sheets;
 
 use App\Domains\Plans\Models\PlanSheetRevision;
+use App\Domains\Plans\Services\Ocr\SheetTextDetector;
 use Illuminate\Support\Str;
 
 final class PlanSheetMetadataExtractor
@@ -57,7 +58,7 @@ final class PlanSheetMetadataExtractor
 
         $normalizedTitle = Str::squish($title);
 
-        if ($normalizedTitle === '' || strlen($normalizedTitle) > 255) {
+        if ($normalizedTitle === '' || \strlen($normalizedTitle) > 255) {
             return null;
         }
 

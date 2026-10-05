@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Plans\Services\GoogleVisionOcrExtractor;
-use App\Domains\Plans\Services\PdfPageIsolator;
-use App\Domains\Plans\Services\PlanTextExtractionLogger;
-use App\Domains\Plans\Services\PlanTitleBlockImageCropper;
-use App\Domains\Plans\Services\PlanTitleBlockRegion;
-use App\Domains\Plans\Services\SheetTextDetector;
+use App\Domains\Plans\Services\Ocr\GoogleVisionOcrExtractor;
+use App\Domains\Plans\Services\Ocr\PdfPageIsolator;
+use App\Domains\Plans\Services\Ocr\PlanTextExtractionLogger;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockImageCropper;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockRegion;
+use App\Domains\Plans\Services\Ocr\SheetTextDetector;
 use App\Domains\Plans\Services\Support\GhostscriptBinaryLocator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;

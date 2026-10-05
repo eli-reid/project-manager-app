@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Plans\Services;
+namespace App\Domains\Plans\Services\Ocr;
 
 use Illuminate\Support\Facades\File;
 use Throwable;

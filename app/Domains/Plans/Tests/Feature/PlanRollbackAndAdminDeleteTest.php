@@ -12,7 +12,7 @@ use App\Domains\Plans\Livewire\Sheets\Index;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
-use App\Domains\Plans\Services\PlanSetRollbackService;
+use App\Domains\Plans\Services\Sets\PlanSetRollbackService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;

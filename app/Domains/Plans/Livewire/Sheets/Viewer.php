@@ -10,7 +10,7 @@ use App\Domains\Plans\Models\PlanSheet;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Plans\Models\PlanViewState;
 use App\Domains\Plans\Services\PlanAnnotationService;
-use App\Domains\Plans\Services\PlanRevisionService;
+use App\Domains\Plans\Services\Sheets\PlanRevisionService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;

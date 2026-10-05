@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Plans\Services\SheetTextDetector;
+use App\Domains\Plans\Services\Ocr\SheetTextDetector;
 
 it('detects a sheet number and title with high confidence', function (): void {
     Settings::set('plans.sheet_number_pattern', '(?<![A-Z0-9])[A-Z]{1,3}[\\s.-]?\\d{1,3}(?:\\.\\d+)?(?![A-Z0-9])');

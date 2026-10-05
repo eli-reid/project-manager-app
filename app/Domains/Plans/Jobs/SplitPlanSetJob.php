@@ -7,7 +7,7 @@ namespace App\Domains\Plans\Jobs;
 use App\Domains\Plans\Contracts\PlanRasterizerContract;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
-use App\Domains\Plans\Services\PlanSetRollbackService;
+use App\Domains\Plans\Services\Sets\PlanSetRollbackService;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

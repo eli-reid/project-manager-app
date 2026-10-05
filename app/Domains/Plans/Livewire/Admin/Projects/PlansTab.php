@@ -10,7 +10,7 @@ use App\Domains\Plans\Jobs\PurgePlanDerivativesJob;
 use App\Domains\Plans\Jobs\ReindexPlanSetMetadataJob;
 use App\Domains\Plans\Models\PlanSet;
 use App\Domains\Plans\Models\PlanSheet;
-use App\Domains\Plans\Services\PlanSetIngestionService;
+use App\Domains\Plans\Services\Sets\PlanSetIngestionService;
 use App\Domains\Projects\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;

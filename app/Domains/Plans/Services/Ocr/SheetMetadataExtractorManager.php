@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Plans\Services;
+namespace App\Domains\Plans\Services\Ocr;
 
 use App\Core\Settings\Facades\Settings;
 use Illuminate\Support\Manager;

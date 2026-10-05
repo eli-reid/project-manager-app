@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Plans\Services\GhostscriptPageTextExtractor;
-use App\Domains\Plans\Services\NullOcrExtractor;
-use App\Domains\Plans\Services\PlanSheetTextResolver;
-use App\Domains\Plans\Services\PlanTextExtractionLogger;
-use App\Domains\Plans\Services\PlanTitleBlockRegion;
-use App\Domains\Plans\Services\SheetTextDetector;
+use App\Domains\Plans\Services\Ocr\GhostscriptPageTextExtractor;
+use App\Domains\Plans\Services\Ocr\NullOcrExtractor;
+use App\Domains\Plans\Services\Ocr\PlanTextExtractionLogger;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockRegion;
+use App\Domains\Plans\Services\Ocr\SheetTextDetector;
+use App\Domains\Plans\Services\Sheets\PlanSheetTextResolver;
 use Illuminate\Support\Facades\File;
 
 beforeEach(function (): void {

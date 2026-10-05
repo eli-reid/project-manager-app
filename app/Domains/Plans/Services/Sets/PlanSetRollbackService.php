@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Plans\Services;
+namespace App\Domains\Plans\Services\Sets;
 
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Models\PlanSet;

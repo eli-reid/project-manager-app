@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Plans\Services\GhostscriptOcrExtractor;
-use App\Domains\Plans\Services\GoogleVisionOcrExtractor;
-use App\Domains\Plans\Services\SheetMetadataExtractorManager;
-use App\Domains\Plans\Services\TesseractOcrExtractor;
+use App\Domains\Plans\Services\Ocr\GhostscriptOcrExtractor;
+use App\Domains\Plans\Services\Ocr\GoogleVisionOcrExtractor;
+use App\Domains\Plans\Services\Ocr\SheetMetadataExtractorManager;
+use App\Domains\Plans\Services\Ocr\TesseractOcrExtractor;
 
 it('defaults to the ghostscript ocr driver', function (): void {
     Settings::set('plans.ocr_driver', 'ghostscript');

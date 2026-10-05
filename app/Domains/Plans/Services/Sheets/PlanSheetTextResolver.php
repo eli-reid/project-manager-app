@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Plans\Services;
+namespace App\Domains\Plans\Services\Sheets;
 
 use App\Core\Settings\Facades\Settings;
 use App\Domains\Plans\Contracts\SheetMetadataExtractorContract;
-use RuntimeException;
+use App\Domains\Plans\Services\Ocr\GhostscriptPageTextExtractor;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockRegion;
+use App\Domains\Plans\Services\Ocr\SheetTextDetector;
 
 /**
  * Resolves sheet metadata for a page, preferring the fast, free PDF text
@@ -36,14 +38,14 @@ final class PlanSheetTextResolver
         if ($this->shouldPreferFocusedOcr()) {
             try {
                 return $this->ocrExtractor->extract($absolutePdfPath, $page);
-            } catch (RuntimeException $exception) {
+            } catch (\RuntimeException $exception) {
                 $focusedOcrError = $exception;
             }
         }
 
         try {
             $text = $this->textExtractor->extract($absolutePdfPath, $page);
-        } catch (RuntimeException $exception) {
+        } catch (\RuntimeException $exception) {
             $ghostscriptError = $exception;
         }
 
@@ -73,7 +75,7 @@ final class PlanSheetTextResolver
     private function needsOcrFallback(string $text): bool
     {
         return $this->ocrFallbackEnabled()
-            && mb_strlen(trim($text)) < Settings::get('plans.ocr_min_text_length', config('plans.ocr_min_text_length', 12))->toInt();
+            && \mb_strlen(\trim($text)) < Settings::get('plans.ocr_min_text_length', config('plans.ocr_min_text_length', 12))->toInt();
     }
 
     private function shouldPreferFocusedOcr(): bool

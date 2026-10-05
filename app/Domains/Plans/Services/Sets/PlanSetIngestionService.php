@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Plans\Services;
+namespace App\Domains\Plans\Services\Sets;
 
 use App\Core\Assets\Contracts\AssetOrchestratorContract;
 use App\Core\Assets\DTOs\AssetReferenceTarget;

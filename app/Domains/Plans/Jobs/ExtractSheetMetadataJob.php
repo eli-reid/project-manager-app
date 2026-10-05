@@ -6,8 +6,8 @@ namespace App\Domains\Plans\Jobs;
 
 use App\Core\Assets\Models\Asset;
 use App\Domains\Plans\Models\PlanSheetRevision;
-use App\Domains\Plans\Services\PlanSheetMetadataExtractor;
-use App\Domains\Plans\Services\PlanSheetTextResolver;
+use App\Domains\Plans\Services\Sheets\PlanSheetMetadataExtractor;
+use App\Domains\Plans\Services\Sheets\PlanSheetTextResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

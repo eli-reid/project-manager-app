@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Domains\Plans\Services\PlanTitleBlockImageCropper;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockImageCropper;
 
 it('converts normalized title block coordinates to bounded pixels', function (): void {
     $method = new ReflectionMethod(PlanTitleBlockImageCropper::class, 'pixelRegion');

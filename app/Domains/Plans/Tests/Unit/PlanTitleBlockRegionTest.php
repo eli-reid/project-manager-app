@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Settings\Facades\Settings;
-use App\Domains\Plans\Services\PlanTitleBlockRegion;
+use App\Domains\Plans\Services\Ocr\PlanTitleBlockRegion;
 
 it('keeps the legacy right side preset focused on the bottom-right title and number', function (): void {
     Settings::set('plans.title_block_region', 'right-strip');
