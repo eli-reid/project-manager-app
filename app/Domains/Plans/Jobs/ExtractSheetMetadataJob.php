@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Plans\Jobs;
 
+use RuntimeException; 
 use App\Core\Assets\Models\Asset;
 use App\Domains\Plans\Models\PlanSheetRevision;
 use App\Domains\Plans\Services\Sheets\PlanSheetMetadataExtractor;
@@ -29,7 +30,7 @@ final class ExtractSheetMetadataJob implements ShouldQueue
         $asset = $revision->set?->sourceAsset;
 
         if (! $asset instanceof Asset) {
-            throw new \RuntimeException('Plan source asset is missing.');
+            throw new RuntimeException('Plan source asset is missing.');
         }
 
         $path = Storage::disk($asset->storage_disk)->path($asset->storage_path);

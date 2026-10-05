@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Core\WeatherApi\Services;
-
+use Throwable;
 use App\Core\Settings\Facades\Settings;
 use App\Core\WeatherApi\Contracts\WeatherApiContract;
 use Carbon\Carbon;
@@ -9,7 +9,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Throwable;
+
 
 class WeatherApiService implements WeatherApiContract
 {
@@ -390,10 +390,14 @@ class WeatherApiService implements WeatherApiContract
 
             return null;
         } catch (Throwable $exception) {
-            Log::error('Weather API request exception.', [
+            if (ENV('APP_ENV') === 'local') {
+                Log::error('Weather API request exception.', [
                 'endpoint' => $endpoint,
                 'message' => $exception->getMessage(),
-            ]);
+                ]);
+
+            }
+            
 
             return null;
         }
