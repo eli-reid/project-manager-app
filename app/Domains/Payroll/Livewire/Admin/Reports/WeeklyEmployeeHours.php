@@ -151,6 +151,8 @@ class WeeklyEmployeeHours extends Component
                     'first_name' => (string) ($base['first_name'] ?? $employee?->first_name ?? ''),
                     'last_name' => (string) ($base['last_name'] ?? $employee?->last_name ?? ''),
                     'source_hours' => round($sourceHours, 2),
+                    'vacation_hours' => round((float) ($base['vacation_hours'] ?? 0.0), 2),
+                    'sick_hours' => round((float) ($base['sick_hours'] ?? 0.0), 2),
                     'hours' => round($effectiveHours, 2),
                     'is_adjusted' => $adjustment !== null,
                     'adjustment_reason' => $adjustment?->reason,
@@ -165,6 +167,16 @@ class WeeklyEmployeeHours extends Component
     public function getTotalHoursProperty(): float
     {
         return round($this->employeeHours->sum('hours'), 2);
+    }
+
+    public function getTotalVacationHoursProperty(): float
+    {
+        return round($this->employeeHours->sum('vacation_hours'), 2);
+    }
+
+    public function getTotalSickHoursProperty(): float
+    {
+        return round($this->employeeHours->sum('sick_hours'), 2);
     }
 
     public function previousWeek(): void

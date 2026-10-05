@@ -6,6 +6,7 @@ use App\Core\Settings\Facades\Settings;
 use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyEmployeeHours;
 use App\Domains\Payroll\Livewire\Admin\Reports\WeeklyHourAdjustmentReport;
 use App\Domains\Payroll\Models\WeeklyEmployeeHoursAdjustment;
+use App\Domains\Projects\Models\Project;
 use App\Domains\Timecards\Models\Timecard;
 use App\Domains\Timecards\Models\TimecardEntry;
 use Carbon\CarbonImmutable;
@@ -39,6 +40,8 @@ it('does not render employee id column in weekly employee hours pdf', function (
             'first_name' => 'Jane',
             'last_name' => 'Doe',
             'source_hours' => 40.0,
+            'vacation_hours' => 8.0,
+            'sick_hours' => 4.0,
             'hours' => 40.0,
             'is_adjusted' => false,
             'adjustment_reason' => null,
@@ -53,7 +56,11 @@ it('does not render employee id column in weekly employee hours pdf', function (
 
     expect($html)
         ->not->toContain('Employee ID')
-        ->and($html)->not->toContain('123');
+        ->and($html)->not->toContain('123')
+        ->and($html)->toContain('Vacation')
+        ->and($html)->toContain('Sick')
+        ->and($html)->toContain('8.00')
+        ->and($html)->toContain('4.00');
 });
 
 it('forbids unauthorized users from accessing weekly employee hours report', function (): void {
@@ -171,6 +178,71 @@ it('calculates total hours correctly', function (): void {
     Livewire::actingAs($admin)
         ->test(WeeklyEmployeeHours::class, ['weekStart' => $weekStart->toDateString()])
         ->assertSet('totalHours', 26.0);
+});
+
+it('shows vacation and sick hours as separate columns', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $employee = User::factory()->create();
+    $weekStart = CarbonImmutable::parse('2026-03-30')->startOfWeek(CarbonImmutable::SUNDAY);
+
+    $vacationProject = Project::factory()->create([
+        'leave_category' => 'vacation',
+    ]);
+
+    $sickProject = Project::factory()->create([
+        'leave_category' => 'sick',
+    ]);
+
+    $workProject = Project::factory()->create([
+        'leave_category' => null,
+    ]);
+
+    $timecard = Timecard::factory()
+        ->for($employee, 'user')
+        ->create([
+            'week_starting' => $weekStart,
+            'week_ending' => $weekStart->endOfWeek(),
+            'status' => Timecard::STATUS_APPROVED,
+        ]);
+
+    TimecardEntry::factory()
+        ->for($timecard)
+        ->for($employee, 'user')
+        ->for($workProject, 'project')
+        ->create(['hours' => 16.0, 'date' => $weekStart]);
+
+    TimecardEntry::factory()
+        ->for($timecard)
+        ->for($employee, 'user')
+        ->for($vacationProject, 'project')
+        ->create(['hours' => 8.0, 'date' => $weekStart->addDay()]);
+
+    TimecardEntry::factory()
+        ->for($timecard)
+        ->for($employee, 'user')
+        ->for($sickProject, 'project')
+        ->create(['hours' => 4.0, 'date' => $weekStart->addDays(2)]);
+
+    Livewire::actingAs($admin)
+        ->test(WeeklyEmployeeHours::class, ['weekStart' => $weekStart->toDateString()])
+        ->assertSee('Vacation')
+        ->assertSee('Sick')
+        ->assertSee('8.00')
+        ->assertSee('4.00')
+        ->assertSet('totalVacationHours', 8.0)
+        ->assertSet('totalSickHours', 4.0)
+        ->assertSet('totalHours', 28.0)
+        ->assertSet('employeeHours', function ($hours) use ($employee): bool {
+            $row = $hours->firstWhere('user_id', $employee->id);
+
+            if (! is_array($row)) {
+                return false;
+            }
+
+            return (float) $row['vacation_hours'] === 8.0
+                && (float) $row['sick_hours'] === 4.0
+                && (float) $row['hours'] === 28.0;
+        });
 });
 
 it('allows navigation between weeks', function (): void {

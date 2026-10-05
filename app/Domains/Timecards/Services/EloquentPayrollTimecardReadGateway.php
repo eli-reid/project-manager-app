@@ -128,19 +128,22 @@ class EloquentPayrollTimecardReadGateway implements PayrollTimecardReadGateway
         return TimecardEntry::query()
             ->join('timecards', 'timecards.id', '=', 'timecard_entries.timecard_id')
             ->join('users', 'users.id', '=', 'timecard_entries.user_id')
+            ->leftJoin('projects', 'projects.id', '=', 'timecard_entries.project_id')
             ->whereDate('timecard_entries.date', '>=', $normalizedWeekStart->toDateString())
             ->whereDate('timecard_entries.date', '<=', $weekEnd)
             ->whereIn('timecards.status', [Timecard::STATUS_SUBMITTED, Timecard::STATUS_APPROVED])
             ->groupBy('users.id', 'users.first_name', 'users.last_name')
             ->orderBy('users.first_name')
             ->orderBy('users.last_name')
-            ->selectRaw('users.id as user_id, users.first_name, users.last_name, ROUND(SUM(timecard_entries.hours), 2) as hours')
+            ->selectRaw("users.id as user_id, users.first_name, users.last_name, ROUND(SUM(timecard_entries.hours), 2) as hours, ROUND(SUM(CASE WHEN projects.leave_category = 'vacation' THEN timecard_entries.hours ELSE 0 END), 2) as vacation_hours, ROUND(SUM(CASE WHEN projects.leave_category = 'sick' THEN timecard_entries.hours ELSE 0 END), 2) as sick_hours")
             ->get()
             ->map(fn ($row): array => [
                 'user_id' => (string) $row->user_id,
                 'first_name' => (string) $row->first_name,
                 'last_name' => (string) $row->last_name,
                 'hours' => (float) $row->hours,
+                'vacation_hours' => (float) ($row->vacation_hours ?? 0),
+                'sick_hours' => (float) ($row->sick_hours ?? 0),
             ]);
     }
 }

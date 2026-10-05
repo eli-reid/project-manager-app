@@ -20,6 +20,8 @@
             <tr>
                 <th>Employee Name</th>
                 <th>Source Hours</th>
+                <th>Vacation</th>
+                <th>Sick</th>
                 <th>Reported Hours</th>
                 <th>Adjusted</th>
                 <th>Adjustment Reason</th>
@@ -30,6 +32,8 @@
                 <tr>
                     <td>{{ $item['first_name'] }} {{ $item['last_name'] }}</td>
                     <td>{{ number_format($item['source_hours'], 2) }}</td>
+                    <td>{{ number_format($item['vacation_hours'] ?? 0, 2) }}</td>
+                    <td>{{ number_format($item['sick_hours'] ?? 0, 2) }}</td>
                     <td>{{ number_format($item['hours'], 2) }}</td>
                     <td>{{ $item['is_adjusted'] ? 'Yes' : 'No' }}</td>
                     <td>{{ $item['adjustment_reason'] ?? '' }}</td>
@@ -37,7 +41,12 @@
             @endforeach
         </tbody>
     </table>
-    <p><strong>Total Hours:</strong> {{ number_format($employeeHours->sum('hours'), 2) }}</p>
+    <p>
+        <strong>Totals:</strong>
+        Vacation {{ number_format($employeeHours->sum('vacation_hours'), 2) }},
+        Sick {{ number_format($employeeHours->sum('sick_hours'), 2) }},
+        Total Hours {{ number_format($employeeHours->sum('hours'), 2) }}
+    </p>
     <p>Generated on {{ now()->format('M j, Y \a\t g:i A') }}</p>
 </body>
 </html>

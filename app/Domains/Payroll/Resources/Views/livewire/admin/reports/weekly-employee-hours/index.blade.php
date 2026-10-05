@@ -75,6 +75,12 @@
                             Source Hours
                         </th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            Vacation
+                        </th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            Sick
+                        </th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                             Reported Hours
                         </th>
                         @if ($this->canAdjustHours)
@@ -92,6 +98,12 @@
                             </td>
                             <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
                                 {{ number_format($item['source_hours'], 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
+                                {{ number_format($item['vacation_hours'], 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-right text-sm text-zinc-700 dark:text-zinc-300">
+                                {{ number_format($item['sick_hours'], 2) }}
                             </td>
                             <td class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                 {{ number_format($item['hours'], 2) }}
@@ -115,7 +127,7 @@
 
                         @if ($this->canAdjustHours && $editingUserId === $item['user_id'])
                             <tr class="bg-zinc-50 dark:bg-zinc-800/50">
-                                <td colspan="{{ $this->canAdjustHours ? 4 : 3 }}" class="px-4 py-4">
+                                <td colspan="{{ $this->canAdjustHours ? 6 : 5 }}" class="px-4 py-4">
                                     <div class="grid gap-3 md:grid-cols-2">
                                         <div>
                                             <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -165,7 +177,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="{{ $this->canAdjustHours ? 4 : 3 }}" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                            <td colspan="{{ $this->canAdjustHours ? 6 : 5 }}" class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
                                 No approved timecards for this week.
                             </td>
                         </tr>
@@ -176,6 +188,12 @@
                         <tr>
                             <td colspan="2" class="px-4 py-3 text-right text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                 Total Hours:
+                            </td>
+                            <td class="px-4 py-3 text-right text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                                {{ number_format($this->totalVacationHours, 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-right text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                                {{ number_format($this->totalSickHours, 2) }}
                             </td>
                             <td class="px-4 py-3 text-right text-sm font-bold text-zinc-900 dark:text-zinc-100">
                                 {{ number_format($this->totalHours, 2) }}
