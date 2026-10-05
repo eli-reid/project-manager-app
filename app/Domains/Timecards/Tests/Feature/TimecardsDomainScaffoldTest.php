@@ -294,10 +294,13 @@ it('allows authorized users to access non-admin timecards routes', function (): 
 
 it('allows authorized users to access non-admin mobile timecards routes', function (): void {
     $user = userWithTimecardDomainPermissions(['timecards.view', 'timecards.create', 'timecards.edit', 'timecards.submit']);
+    $weekStart = app(TimecardWeekService::class)->currentWeekStart();
 
     $timecard = Timecard::factory()->create([
         'user_id' => $user->id,
         'status' => Timecard::STATUS_DRAFT,
+        'week_starting' => $weekStart->toDateString(),
+        'week_ending' => $weekStart->copy()->addDays(6)->toDateString(),
     ]);
 
     actingAs($user);
@@ -306,17 +309,20 @@ it('allows authorized users to access non-admin mobile timecards routes', functi
         ->assertOk()
         ->assertSee('My Timecards');
 
-    get(route('timecards.mobile.create'))
-        ->assertOk()
-        ->assertSee('Create Timecard');
+    get(route('timecards.mobile.create', ['week_starting' => $timecard->week_starting->toDateString()]))
+        ->assertRedirect(route('timecards.mobile.show', $timecard));
 
     get(route('timecards.mobile.show', $timecard))
         ->assertOk()
-        ->assertSee('Timecard Details');
+        ->assertSee('Week of')
+        ->assertSee('Add Entry');
 
     get(route('timecards.mobile.edit', $timecard))
+        ->assertRedirect(route('timecards.mobile.show', $timecard));
+
+    get(route('timecards.mobile.entries.create', $timecard))
         ->assertOk()
-        ->assertSee('Edit Timecard');
+        ->assertSee('Add Entry');
 });
 
 it('allows users with timecard permissions to access their own index', function (): void {

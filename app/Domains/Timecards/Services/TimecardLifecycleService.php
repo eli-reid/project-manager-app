@@ -91,6 +91,89 @@ class TimecardLifecycleService
     }
 
     /**
+     * Return the user's timecard for the given week, creating a draft when none exists.
+     */
+    public function findOrCreateForWeek(User $user, Carbon|string $weekStarting): Timecard
+    {
+        return $this->timecardWeekService->existingTimecardForWeek((string) $user->id, $weekStarting)
+            ?? $this->createDraftForUser($user, $weekStarting);
+    }
+
+    /**
+     * Create or update a single entry on a draft timecard.
+     *
+     * @param  array{date:string,project_id?:string|null,cost_code_id?:string|null,custom_project_name?:string|null,start_time?:string|null,hours:float|int|string,notes?:string|null}  $attributes
+     */
+    public function saveEntry(Timecard $timecard, array $attributes, ?TimecardEntry $entry = null): TimecardEntry
+    {
+        $this->ensureDraft($timecard);
+
+        if ($entry !== null && $entry->timecard_id !== $timecard->id) {
+            throw ValidationException::withMessages([
+                'entry' => 'The entry does not belong to this timecard.',
+            ]);
+        }
+
+        $date = Carbon::parse($attributes['date'])->startOfDay();
+
+        if ($date->lt($timecard->week_starting) || $date->gt($timecard->week_ending)) {
+            throw ValidationException::withMessages([
+                'date' => 'The entry date must fall within the timecard week.',
+            ]);
+        }
+
+        $projectId = filled($attributes['project_id'] ?? null) ? (string) $attributes['project_id'] : null;
+
+        $payload = [
+            'user_id' => $timecard->user_id,
+            'project_id' => $projectId,
+            'cost_code_id' => $projectId !== null && filled($attributes['cost_code_id'] ?? null) ? (string) $attributes['cost_code_id'] : null,
+            'custom_project_name' => $projectId === null ? (trim((string) ($attributes['custom_project_name'] ?? '')) ?: null) : null,
+            'date' => $date->toDateString(),
+            'start_time' => filled($attributes['start_time'] ?? null) ? (string) $attributes['start_time'] : null,
+            'hours' => (float) $attributes['hours'],
+            'notes' => filled($attributes['notes'] ?? null) ? (string) $attributes['notes'] : null,
+        ];
+
+        return DB::transaction(function () use ($timecard, $entry, $payload): TimecardEntry {
+            if ($entry !== null) {
+                $entry->update($payload);
+            } else {
+                $entry = $timecard->entries()->create($payload);
+            }
+
+            $this->timecardEntrySyncService->recalculateTotals($timecard);
+
+            return $entry->fresh();
+        });
+    }
+
+    public function deleteEntry(Timecard $timecard, TimecardEntry $entry): void
+    {
+        $this->ensureDraft($timecard);
+
+        if ($entry->timecard_id !== $timecard->id) {
+            throw ValidationException::withMessages([
+                'entry' => 'The entry does not belong to this timecard.',
+            ]);
+        }
+
+        DB::transaction(function () use ($timecard, $entry): void {
+            $entry->delete();
+            $this->timecardEntrySyncService->recalculateTotals($timecard);
+        });
+    }
+
+    private function ensureDraft(Timecard $timecard): void
+    {
+        if ($timecard->status !== Timecard::STATUS_DRAFT) {
+            throw ValidationException::withMessages([
+                'timecard' => 'Only draft timecards may be updated.',
+            ]);
+        }
+    }
+
+    /**
      * @param  array{notes?:string|null}  $attributes
      * @param  array<int, array<string, mixed>>|null  $entries
      */

@@ -1,6 +1,7 @@
 <?php
 
-use App\Domains\Timecards\Livewire\Mobile\Timecards\Form as MobileForm;
+use App\Domains\Timecards\Livewire\Mobile\Timecards\Create as MobileCreate;
+use App\Domains\Timecards\Livewire\Mobile\Timecards\EntryForm as MobileEntryForm;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Index as MobileIndex;
 use App\Domains\Timecards\Livewire\Mobile\Timecards\Show as MobileShow;
 use App\Domains\Timecards\Models\Timecard;
@@ -13,7 +14,7 @@ Route::prefix('timecards/mobile')
             ->middleware('can:viewAny,'.Timecard::class)
             ->name('index');
 
-        Route::livewire('/create', MobileForm::class)
+        Route::livewire('/create', MobileCreate::class)
             ->middleware('can:create,'.Timecard::class)
             ->name('create');
 
@@ -21,7 +22,15 @@ Route::prefix('timecards/mobile')
             ->middleware('can:view,timecard')
             ->name('show');
 
-        Route::livewire('/{timecard}/edit', MobileForm::class)
-            ->middleware('can:update,timecard')
+        Route::redirect('/{timecard}/edit', '/timecards/mobile/{timecard}')
             ->name('edit');
+
+        Route::livewire('/{timecard}/entries/create', MobileEntryForm::class)
+            ->middleware('can:update,timecard')
+            ->name('entries.create');
+
+        Route::livewire('/{timecard}/entries/{entry}/edit', MobileEntryForm::class)
+            ->middleware('can:update,timecard')
+            ->scopeBindings()
+            ->name('entries.edit');
     });
