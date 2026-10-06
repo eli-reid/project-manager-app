@@ -164,6 +164,7 @@
                                 <th class="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-300">Effective</th>
                                 <th class="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-300">Expires</th>
                                 <th class="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-300">Approved By</th>
+                                <th class="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-300">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -180,10 +181,23 @@
                                     <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">{{ optional($payRate->effective_date)->toDateString() }}</td>
                                     <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">{{ optional($payRate->expiration_date)->toDateString() ?? 'Active' }}</td>
                                     <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">{{ $payRate->approver?->first_name }} {{ $payRate->approver?->last_name }}</td>
+                                    <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">
+                                        @if ($payRate->expiration_date === null)
+                                            <button
+                                                type="button"
+                                                wire:click="expirePayRate('{{ $payRate->id }}')"
+                                                class="rounded-md border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                                            >
+                                                Expire Today
+                                            </button>
+                                        @else
+                                            <span class="text-xs font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Expired</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-3 py-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                                    <td colspan="7" class="px-3 py-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
                                         No pay rates assigned yet.
                                     </td>
                                 </tr>

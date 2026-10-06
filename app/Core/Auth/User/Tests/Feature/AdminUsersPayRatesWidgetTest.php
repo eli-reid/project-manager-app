@@ -26,6 +26,7 @@ it('shows the pay rates widget on user edit when a payroll profile exists', func
         ->test(UserForm::class, ['user' => $managedUser])
         ->assertSee('Pay Rates')
         ->assertSee('Add Pay Rate')
+        ->assertSee('Expire Today')
         ->assertSee('Standard');
 });
 
@@ -49,6 +50,32 @@ it('adds a pay rate from the user edit widget', function (): void {
         'pay_rate_type_id' => $rateType->id,
         'approved_by' => $admin->id,
     ])->exists())->toBeTrue();
+});
+
+it('expires an active pay rate from the user edit widget', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $managedUser = User::factory()->create();
+    $profile = PayrollEmployeeProfile::factory()->create(['user_id' => $managedUser->id]);
+    $rateType = PayRateType::factory()->standard()->create();
+
+    $payRate = PayRate::factory()->create([
+        'payroll_employee_profile_id' => $profile->id,
+        'pay_rate_type_id' => $rateType->id,
+        'effective_date' => '2026-04-13',
+        'expiration_date' => null,
+        'approved_by' => $admin->id,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class, ['user' => $managedUser])
+        ->call('expirePayRate', $payRate->id)
+        ->assertHasNoErrors();
+
+    $payRate->refresh();
+
+    expect(optional($payRate->expiration_date)->toDateString())
+        ->toBe(now()->toDateString())
+        ->and($payRate->approved_by)->toBe($admin->id);
 });
 
 it('creates a payroll profile from the user edit widget', function (): void {

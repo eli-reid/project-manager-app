@@ -270,6 +270,49 @@ class Form extends Component
         session()->flash('success', 'Pay rate added successfully.');
     }
 
+    public function expirePayRate(string $payRateId): void
+    {
+        if (! $this->isEdit || $this->user === null) {
+            return;
+        }
+
+        if (! $this->canManagePayrollRates) {
+            abort(403);
+        }
+
+        if ($this->payrollProfile === null) {
+            $this->addError('pay_rates', 'This user does not have a payroll employee profile yet.');
+
+            return;
+        }
+
+        $payRate = PayRate::query()
+            ->where('payroll_employee_profile_id', $this->payrollProfile->id)
+            ->find($payRateId);
+
+        if ($payRate === null) {
+            $this->addError('pay_rates', 'The selected pay rate could not be found.');
+
+            return;
+        }
+
+        if ($payRate->expiration_date !== null) {
+            session()->flash('success', 'Pay rate is already expired.');
+
+            return;
+        }
+
+        $approverId = Auth::id();
+        abort_unless(is_string($approverId), 401);
+
+        $payRate->update([
+            'expiration_date' => now()->toDateString(),
+            'approved_by' => $approverId,
+        ]);
+
+        session()->flash('success', 'Pay rate expired successfully.');
+    }
+
     public function createPayrollProfile(): void
     {
         if (! $this->isEdit || $this->user === null) {
