@@ -55,7 +55,10 @@ it('avoids caching navigation html in the service worker to prevent stale csrf t
         ->toBeString()
         ->toContain('clearBrowserAuthState')
         ->toContain('caches.keys()')
-        ->toContain("url.pathname === '/logout' || url.pathname.endsWith('/logout')");
+        ->toContain("url.pathname === '/logout' || url.pathname.endsWith('/logout')")
+        ->toContain("form.dataset.submitting === '1'")
+        ->toContain("attribute.name.startsWith('wire:submit')")
+        ->toContain("window.addEventListener('pageshow', resetSubmittingForms)");
 });
 
 it('renders the mobile dashboard shell for authenticated users', function (): void {

@@ -2,6 +2,7 @@
 
 use App\Core\Audit\Models\AuditLog;
 use App\Core\Identity\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Features;
@@ -192,3 +193,73 @@ test('mobile users are redirected to the mobile dashboard after login', function
 
     $this->assertAuthenticated();
 });
+
+/**
+ * Laravel skips CSRF verification while running unit tests; force it on so the
+ * stale-token (double submit) scenario can be exercised.
+ */
+function enforceCsrfVerification(): void
+{
+    app()->bind(ValidateCsrfToken::class, fn ($app) => new class($app, $app['encrypter']) extends ValidateCsrfToken
+    {
+        protected function runningUnitTests()
+        {
+            return false;
+        }
+    });
+}
+
+test('authenticated users resubmitting the login form with a stale csrf token are redirected to the dashboard', function () {
+    enforceCsrfVerification();
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->from(route('login'))
+        ->post(route('login.store'), [
+            '_token' => 'stale-token',
+            'login' => $user->email,
+            'password' => 'password',
+        ])
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticatedAs($user);
+});
+
+test('guests submitting the login form with a stale csrf token are sent back with an error and their login input', function () {
+    enforceCsrfVerification();
+
+    $this->from(route('login'))
+        ->post(route('login.store'), [
+            '_token' => 'stale-token',
+            'login' => 'casey.jones',
+            'password' => 'secret-password',
+        ])
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors(['login' => 'Your session expired. Please try again.'])
+        ->assertSessionHasInput('login', 'casey.jones')
+        ->assertSessionMissing('_old_input.password')
+        ->assertSessionMissing('_old_input._token');
+
+    $this->get(route('login'))
+        ->assertSee('Your session expired. Please try again.')
+        ->assertSee('value="casey.jones"', false);
+
+    $this->assertGuest();
+});
+
+test('stale csrf tokens on livewire and json requests still return 419', function (array $headers) {
+    enforceCsrfVerification();
+
+    $this->withHeaders($headers)
+        ->from(route('login'))
+        ->post(route('login.store'), [
+            '_token' => 'stale-token',
+            'login' => 'casey.jones',
+            'password' => 'secret-password',
+        ])
+        ->assertStatus(419);
+})->with([
+    'livewire' => [['X-Livewire' => 'true']],
+    'json' => [['Accept' => 'application/json']],
+]);

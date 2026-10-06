@@ -2,17 +2,20 @@
 
 use App\Core\Identity\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\AddSecurityHeaders;
-use App\Http\Middleware\RedirectMobileRoutes;
 use App\Http\Middleware\LoadSettings;
+use App\Http\Middleware\RedirectMobileRoutes;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -44,5 +47,26 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // A double-submitted form (e.g. login) carries a CSRF token that was
+        // rotated by the first request. Recover gracefully instead of a 419 page.
+        // Livewire and JSON requests keep the 419 so client-side hooks can reload.
+        // Laravel converts TokenMismatchException into a 419 HttpException before
+        // render callbacks run, so match on the wrapped previous exception.
+        $exceptions->render(function (HttpException $exception, Request $request) {
+            if (! $exception->getPrevious() instanceof TokenMismatchException) {
+                return null;
+            }
+
+            if ($request->expectsJson() || $request->hasHeader('X-Livewire')) {
+                return null;
+            }
+
+            if ($request->user() !== null) {
+                return redirect()->intended(config('fortify.home', '/dashboard'));
+            }
+
+            return redirect()->back()
+                ->withInput($request->except('password', 'password_confirmation', 'current_password', '_token'))
+                ->withErrors(['login' => __('Your session expired. Please try again.')]);
+        });
     })->create();

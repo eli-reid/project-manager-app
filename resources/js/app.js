@@ -73,7 +73,68 @@ document.addEventListener('submit', (event) => {
     } catch {
         // Ignore invalid form actions.
     }
+
+    preventDoubleSubmit(form, event);
 });
+
+/**
+ * Block a second submit of the same plain POST form. The first request rotates
+ * the session's CSRF token, so a repeat submit (double-tap, impatient retry)
+ * would otherwise fail with 419 Page Expired.
+ */
+function isLivewireForm(form) {
+    return Array.from(form.attributes).some((attribute) => attribute.name.startsWith('wire:submit'));
+}
+
+function preventDoubleSubmit(form, event) {
+    if (
+        event.defaultPrevented
+        || form.method.toLowerCase() !== 'post'
+        || isLivewireForm(form)
+        || ('allowResubmit' in form.dataset)
+        || (form.target && form.target !== '_self')
+    ) {
+        return;
+    }
+
+    if (form.dataset.submitting === '1') {
+        event.preventDefault();
+
+        return;
+    }
+
+    form.dataset.submitting = '1';
+    form.setAttribute('aria-busy', 'true');
+
+    // Defer disabling so the submitter's name/value is still included in this submission.
+    setTimeout(() => {
+        form.querySelectorAll('button[type="submit"], button:not([type]), input[type="submit"]').forEach((button) => {
+            button.disabled = true;
+            button.dataset.submitDisabled = '1';
+        });
+    }, 0);
+
+    // Safety net for responses that never navigate away (e.g. file downloads).
+    setTimeout(() => resetSubmittingForm(form), 15000);
+}
+
+function resetSubmittingForm(form) {
+    delete form.dataset.submitting;
+    form.removeAttribute('aria-busy');
+
+    form.querySelectorAll('[data-submit-disabled="1"]').forEach((button) => {
+        button.disabled = false;
+        delete button.dataset.submitDisabled;
+    });
+}
+
+function resetSubmittingForms() {
+    document.querySelectorAll('form[data-submitting="1"]').forEach(resetSubmittingForm);
+}
+
+// Never leave a form stuck in the submitting state when the page is restored
+// from the back-forward cache.
+window.addEventListener('pageshow', resetSubmittingForms);
 
 // Recover from stale SPA state by forcing one full reload if Livewire cannot
 // resolve a component during navigation.
