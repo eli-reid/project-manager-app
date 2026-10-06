@@ -183,13 +183,25 @@
                                     <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">{{ $payRate->approver?->first_name }} {{ $payRate->approver?->last_name }}</td>
                                     <td class="px-3 py-2 text-zinc-600 dark:text-zinc-300">
                                         @if ($payRate->expiration_date === null)
-                                            <button
-                                                type="button"
-                                                wire:click="expirePayRate('{{ $payRate->id }}')"
-                                                class="rounded-md border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/40"
-                                            >
-                                                Expire Today
-                                            </button>
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start">
+                                                <div>
+                                                    <input
+                                                        type="date"
+                                                        wire:model.live="pay_rate_expiration_dates.{{ $payRate->id }}"
+                                                        value="{{ $pay_rate_expiration_dates[$payRate->id] ?? now()->toDateString() }}"
+                                                        class="w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                                                    />
+                                                    @error('pay_rate_expiration_dates.'.$payRate->id) <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    wire:click="expirePayRate('{{ $payRate->id }}')"
+                                                    class="rounded-md border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                                                >
+                                                    Expire Rate
+                                                </button>
+                                            </div>
                                         @else
                                             <span class="text-xs font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Expired</span>
                                         @endif

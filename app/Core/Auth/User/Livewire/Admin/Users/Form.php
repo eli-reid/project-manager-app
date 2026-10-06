@@ -13,6 +13,7 @@ use App\Domains\Projects\Models\Project;
 use DomainException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -70,6 +71,11 @@ class Form extends Component
     public string $new_effective_date = '';
 
     public string $new_expiration_date = '';
+
+    /**
+     * @var array<string, string>
+     */
+    public array $pay_rate_expiration_dates = [];
 
     public string $profile_employee_number = '';
 
@@ -302,11 +308,33 @@ class Form extends Component
             return;
         }
 
+        $selectedExpirationDate = $this->pay_rate_expiration_dates[$payRateId] ?? now()->toDateString();
+
+        $validator = Validator::make(
+            [
+                'expiration_date' => $selectedExpirationDate,
+                'effective_date' => optional($payRate->effective_date)->toDateString(),
+            ],
+            [
+                'expiration_date' => ['required', 'date', 'after_or_equal:effective_date'],
+                'effective_date' => ['required', 'date'],
+            ],
+            [
+                'expiration_date.after_or_equal' => 'The expiration date must be on or after the effective date.',
+            ],
+        );
+
+        if ($validator->fails()) {
+            $this->addError('pay_rate_expiration_dates.'.$payRateId, $validator->errors()->first('expiration_date'));
+
+            return;
+        }
+
         $approverId = Auth::id();
         abort_unless(is_string($approverId), 401);
 
         $payRate->update([
-            'expiration_date' => now()->toDateString(),
+            'expiration_date' => $selectedExpirationDate,
             'approved_by' => $approverId,
         ]);
 

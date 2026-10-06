@@ -26,7 +26,7 @@ it('shows the pay rates widget on user edit when a payroll profile exists', func
         ->test(UserForm::class, ['user' => $managedUser])
         ->assertSee('Pay Rates')
         ->assertSee('Add Pay Rate')
-        ->assertSee('Expire Today')
+        ->assertSee('Expire Rate')
         ->assertSee('Standard');
 });
 
@@ -68,14 +68,40 @@ it('expires an active pay rate from the user edit widget', function (): void {
 
     Livewire::actingAs($admin)
         ->test(UserForm::class, ['user' => $managedUser])
+        ->set('pay_rate_expiration_dates.'.$payRate->id, '2026-04-15')
         ->call('expirePayRate', $payRate->id)
         ->assertHasNoErrors();
 
     $payRate->refresh();
 
     expect(optional($payRate->expiration_date)->toDateString())
-        ->toBe(now()->toDateString())
+        ->toBe('2026-04-15')
         ->and($payRate->approved_by)->toBe($admin->id);
+});
+
+it('validates that backdated expiration cannot be before the effective date', function (): void {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $managedUser = User::factory()->create();
+    $profile = PayrollEmployeeProfile::factory()->create(['user_id' => $managedUser->id]);
+    $rateType = PayRateType::factory()->standard()->create();
+
+    $payRate = PayRate::factory()->create([
+        'payroll_employee_profile_id' => $profile->id,
+        'pay_rate_type_id' => $rateType->id,
+        'effective_date' => '2026-04-13',
+        'expiration_date' => null,
+        'approved_by' => $admin->id,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(UserForm::class, ['user' => $managedUser])
+        ->set('pay_rate_expiration_dates.'.$payRate->id, '2026-04-10')
+        ->call('expirePayRate', $payRate->id)
+        ->assertHasErrors(['pay_rate_expiration_dates.'.$payRate->id]);
+
+    $payRate->refresh();
+
+    expect($payRate->expiration_date)->toBeNull();
 });
 
 it('creates a payroll profile from the user edit widget', function (): void {
