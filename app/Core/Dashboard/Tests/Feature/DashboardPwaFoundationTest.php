@@ -40,6 +40,24 @@ it('renders pwa metadata on the dashboard shell', function (): void {
         ->assertSee('viewport-fit=cover', false);
 });
 
+it('uses local system fonts without requesting external font stylesheets', function (): void {
+    $headPartials = [
+        file_get_contents(resource_path('views/partials/head.blade.php')),
+        file_get_contents(resource_path('views/livewire/layouts/head.blade.php')),
+    ];
+    $appCss = file_get_contents(resource_path('css/app.css'));
+    $offlinePage = file_get_contents(public_path('offline.html'));
+
+    expect($headPartials)
+        ->each->not->toContain('fonts.bunny.net')
+        ->and($appCss)
+        ->toContain('--font-sans: ui-sans-serif, system-ui, sans-serif')
+        ->not->toContain('Instrument Sans')
+        ->and($offlinePage)
+        ->toContain('font-family: system-ui, sans-serif')
+        ->not->toContain('Instrument Sans');
+});
+
 it('avoids caching navigation html in the service worker to prevent stale csrf tokens', function (): void {
     $serviceWorker = file_get_contents(public_path('sw.js'));
     $appJs = file_get_contents(base_path('resources/js/app.js'));
