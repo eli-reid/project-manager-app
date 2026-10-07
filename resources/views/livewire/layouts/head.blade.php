@@ -27,8 +27,5 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260517-2">
 <meta name="msapplication-TileImage" content="/icon-192.png?v=20260517-2" />
 
-<link rel="preconnect" href="https://fonts.bunny.net">
-<link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance

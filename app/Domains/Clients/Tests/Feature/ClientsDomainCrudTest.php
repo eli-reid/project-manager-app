@@ -22,6 +22,21 @@ it('allows authorized users to view clients index route', function (): void {
         ->assertSee('Vertex Builders');
 });
 
+it('renders the client create and edit pages within the client management layout', function (): void {
+    $user = userWithClientDomainPermissions(['clients.create', 'clients.edit', 'clients.view']);
+
+    $client = Client::factory()->create(['company_name' => 'Layout Builders']);
+
+    $this->actingAs($user)
+        ->get(route('admin.clients.create'))
+        ->assertSuccessful();
+
+    $this->actingAs($user)
+        ->get(route('admin.clients.edit', $client))
+        ->assertSuccessful()
+        ->assertSee('Layout Builders');
+});
+
 it('creates a client through livewire form', function (): void {
     $user = userWithClientDomainPermissions(['clients.create', 'clients.view']);
 

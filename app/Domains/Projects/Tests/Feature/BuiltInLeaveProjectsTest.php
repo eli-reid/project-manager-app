@@ -3,6 +3,7 @@
 use App\Domains\Payroll\Models\PayRateType;
 use App\Domains\Projects\Database\Seeders\BuiltInLeaveProjectsSeeder;
 use App\Domains\Projects\Models\Project;
+use Illuminate\Support\Facades\Schema;
 
 it('seeds built-in sick and vacation projects', function (): void {
     $this->seed(BuiltInLeaveProjectsSeeder::class);
@@ -64,4 +65,16 @@ it('prevents changing leave category for built-in leave projects', function (): 
         ->firstOrFail();
 
     expect(fn () => $project->update(['leave_category' => null]))->toThrow(DomainException::class);
+});
+
+it('backfills the leave category column on projects tables created without it', function (): void {
+    Schema::table('projects', fn ($table) => $table->dropColumn('leave_category'));
+
+    expect(Schema::hasColumn('projects', 'leave_category'))->toBeFalse();
+
+    $migration = require base_path('app/Domains/Projects/Database/Migrations/2026_10_07_090000_add_leave_category_to_projects_table.php');
+    $migration->up();
+    $migration->up();
+
+    expect(Schema::hasColumn('projects', 'leave_category'))->toBeTrue();
 });
