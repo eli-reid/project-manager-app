@@ -12,6 +12,7 @@ use App\Domains\Invoices\Livewire\Admin\Projects\ProjectTab;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Models\InvoiceLineItem;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use Livewire\Livewire;
 
 // ---------------------------------------------------------------------------
@@ -119,6 +120,80 @@ it('shows the create form to authorised users', function (): void {
         ->assertSee('Create Invoice');
 });
 
+it('opens the invoice create form inside the project tab', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view', 'invoices.create']);
+    $project = Project::factory()->create(['name' => 'Invoice Context Project']);
+    $links = app(ProjectTabLinkBuilder::class);
+
+    $this->actingAs($user)
+        ->get($links->to($project, 'invoices'))
+        ->assertSuccessful()
+        ->assertSee($links->to($project, 'invoices', mode: 'create'))
+        ->assertDontSee('href="'.route('admin.invoices.create').'"', false);
+
+    $this->get($links->to($project, 'invoices', mode: 'create'))
+        ->assertSuccessful()
+        ->assertSeeLivewire(Form::class)
+        ->assertSee('Create Invoice')
+        ->assertSee('Invoice Context Project');
+});
+
+it('creates an invoice for the preselected project and returns to its invoices tab', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view', 'invoices.create']);
+    $project = Project::factory()->create(['is_active' => false]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true])
+        ->assertSet('project_id', $project->id)
+        ->assertSee($project->name)
+        ->assertDontSee('Select a project')
+        ->assertSee('href="'.app(ProjectTabLinkBuilder::class)->to($project, 'invoices').'"', false)
+        ->set('vendor_name', 'Project Tab Vendor')
+        ->set('invoice_date', '2026-03-24')
+        ->set('subtotal', '100.00')
+        ->set('tax_amount', '10.00')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(app(ProjectTabLinkBuilder::class)->to($project, 'invoices'));
+
+    $invoice = Invoice::query()->where('vendor_name', 'Project Tab Vendor')->sole();
+    expect($invoice->project_id)->toBe($project->id)
+        ->and($invoice->created_by)->toBe($user->id)
+        ->and((float) $invoice->total_amount)->toBe(110.00);
+
+    Livewire::actingAs($user)
+        ->test(Index::class, ['project' => $project, 'embedded' => true])
+        ->assertSee('Project Tab Vendor');
+});
+
+it('rejects changing the project when creating an invoice within a project tab', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.create']);
+    $project = Project::factory()->create();
+    $otherProject = Project::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true])
+        ->set('project_id', $otherProject->id)
+        ->set('vendor_name', 'Wrong Project Vendor')
+        ->set('invoice_date', '2026-03-24')
+        ->call('save')
+        ->assertHasErrors(['project_id' => 'in']);
+
+    expect(Invoice::query()->count())->toBe(0);
+});
+
+it('requires invoice creation and project access permissions for the embedded form', function (array $permissions): void {
+    $user = userWithInvoicePermissions($permissions);
+    $project = Project::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true])
+        ->assertForbidden();
+})->with([
+    'no invoice creation' => [['projects.view', 'invoices.view']],
+    'no project access' => [['invoices.view', 'invoices.create']],
+]);
+
 it('creates an invoice with line items via livewire form', function (): void {
     $user = userWithInvoicePermissions(['invoices.view', 'invoices.create']);
     $project = Project::factory()->create();
@@ -196,6 +271,66 @@ it('updates an invoice with the edit permission', function (): void {
         ->call('save');
 
     expect($invoice->fresh()->vendor_name)->toBe('Corrected Vendor');
+});
+
+it('allows admins to edit invoices in every status', function (InvoiceStatusEnum $status): void {
+    $admin = userWithInvoicePermissions(['invoices.view', 'invoices.edit']);
+    $admin->update(['is_admin' => true]);
+    $invoice = Invoice::factory()->for(Project::factory())->create([
+        'status' => $status,
+        'created_by' => $admin->id,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.invoices.edit', $invoice))
+        ->assertSuccessful();
+
+    Livewire::actingAs($admin)
+        ->test(Index::class)
+        ->assertSee(route('admin.invoices.edit', $invoice), false);
+
+    Livewire::actingAs($admin)
+        ->test(Show::class, ['invoice' => $invoice])
+        ->assertSee(route('admin.invoices.edit', $invoice), false);
+
+    Livewire::actingAs($admin)
+        ->test(Form::class, ['invoice' => $invoice])
+        ->set('vendor_name', 'Admin Corrected Vendor')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('admin.invoices.show', $invoice));
+
+    expect($invoice->fresh()->vendor_name)->toBe('Admin Corrected Vendor')
+        ->and($invoice->fresh()->status)->toBe($status);
+})->with(InvoiceStatusEnum::cases());
+
+it('allows users with the built-in admin role to edit paid invoices', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.edit']);
+    $role = Role::query()->where('name', Role::BUILT_IN_ADMIN)->firstOrFail();
+    $user->roles()->attach($role);
+    $user->flushAuthorizationCache();
+    $invoice = Invoice::factory()->paid()->create(['created_by' => $user->id]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['invoice' => $invoice])
+        ->set('vendor_name', 'Role Admin Corrected Vendor')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($invoice->fresh()->vendor_name)->toBe('Role Admin Corrected Vendor');
+});
+
+it('still prevents non-admin editors from editing paid invoices', function (): void {
+    $user = userWithInvoicePermissions(['invoices.view', 'invoices.edit']);
+    $invoice = Invoice::factory()->paid()->create(['created_by' => $user->id]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['invoice' => $invoice])
+        ->assertForbidden();
+
+    Livewire::actingAs($user)
+        ->test(Index::class)
+        ->assertDontSee(route('admin.invoices.edit', $invoice), false);
 });
 
 it('deletes an invoice with the delete permission from the invoice index', function (): void {

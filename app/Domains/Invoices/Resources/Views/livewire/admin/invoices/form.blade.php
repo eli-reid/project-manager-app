@@ -4,7 +4,7 @@
             <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $isEdit ? 'Edit Invoice' : 'Create Invoice' }}</h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $isEdit ? 'Update invoice details, totals, and optional line items.' : 'Enter invoice totals first, then add line items only if needed.' }}</p>
         </div>
-        <a href="{{ $isEdit ? route('admin.invoices.show', $invoice) : route('admin.invoices.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Back</a>
+        <a href="{{ $backUrl }}" wire:navigate class="rounded-md border border-zinc-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Back</a>
     </div>
 
     @if (session('success'))
@@ -19,12 +19,18 @@
             <div class="grid gap-4 md:grid-cols-2">
                 <div class="md:col-span-2">
                     <label class="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Project <span class="text-red-500">*</span></label>
-                    <select wire:model="project_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-                        <option value="">Select a project</option>
-                        @foreach ($projects as $project)
-                            <option value="{{ $project->id }}">{{ $project->name }}{{ $project->project_number ? ' ('.$project->project_number.')' : '' }}</option>
-                        @endforeach
-                    </select>
+                    @if ($embeddedProject)
+                        <p class="text-sm text-zinc-900 dark:text-zinc-100">
+                            {{ $embeddedProject->name }}{{ $embeddedProject->project_number ? ' ('.$embeddedProject->project_number.')' : '' }}
+                        </p>
+                    @else
+                        <select wire:model="project_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                            <option value="">Select a project</option>
+                            @foreach ($projects as $project)
+                                <option value="{{ $project->id }}">{{ $project->name }}{{ $project->project_number ? ' ('.$project->project_number.')' : '' }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                     @error('project_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
@@ -216,7 +222,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-2">
-            <a href="{{ $isEdit ? route('admin.invoices.show', $invoice) : route('admin.invoices.index') }}" wire:navigate class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</a>
+            <a href="{{ $backUrl }}" wire:navigate class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">Cancel</a>
             <button type="submit" wire:loading.attr="disabled" class="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
                 <span wire:loading.remove>{{ $isEdit ? 'Update Invoice' : 'Create Invoice' }}</span>
                 <span wire:loading>Saving...</span>

@@ -111,6 +111,8 @@ Legend: `[ ]` Not started · `[~]` In progress/partial · `[x]` Complete
 
 ## Invoices
 - [x] Admin CRUD baseline
+- [x] Admin editing across all invoice statuses (including paid); non-admin paid-invoice restrictions retained
+- [x] Invoice creation within the project Invoices tab, with the project preselected and return-to-tab navigation
 - [ ] User-facing invoice routes and views
 - [ ] Invoice services
 - [ ] Material Invoices with AI PDF extraction (Invoice V2)
