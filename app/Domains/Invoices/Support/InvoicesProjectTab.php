@@ -27,6 +27,12 @@ final class InvoicesProjectTab extends ProjectTab
                         'baseProps' => ['embedded' => true],
                         'keyPattern' => 'project-{tab}-tab-{projectId}-create',
                     ],
+                    'edit' => [
+                        'component' => 'invoices::admin.invoices.form',
+                        'baseProps' => ['embedded' => true],
+                        'detailProp' => 'invoiceId',
+                        'keyPattern' => 'project-{tab}-tab-{projectId}-edit-{detailId}',
+                    ],
                 ],
             ),
         );

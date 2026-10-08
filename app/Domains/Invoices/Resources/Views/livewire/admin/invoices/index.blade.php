@@ -139,7 +139,7 @@
                                         <a href="{{ route('admin.invoices.show', $invoice) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">View</a>
                                     @endcan
                                     @can('update', $invoice)
-                                        <a href="{{ route('admin.invoices.edit', $invoice) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
+                                        <a href="{{ $embeddedProject ? app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($embeddedProject, 'invoices', mode: 'edit', detailId: $invoice->id) : route('admin.invoices.edit', $invoice) }}" wire:navigate class="block px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800" @click="closeMenu()">Edit</a>
                                     @endcan
                                     @can('delete', $invoice)
                                         <button type="button" wire:click="deleteInvoice('{{ $invoice->id }}')" wire:confirm="Are you sure you want to delete this invoice? This cannot be undone." class="block w-full px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/20" @click="closeMenu()">Delete</button>

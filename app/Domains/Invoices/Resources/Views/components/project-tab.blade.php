@@ -51,7 +51,7 @@
                                         View
                                     </a>
                                     @can('update', $invoice)
-                                        <a href="{{ route('admin.invoices.edit', $invoice) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                        <a href="{{ app(\App\Domains\Projects\Services\ProjectTabLinkBuilder::class)->to($project, 'invoices', mode: 'edit', detailId: $invoice->id) }}" wire:navigate class="inline-flex items-center rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                                             Edit
                                         </a>
                                     @endcan
