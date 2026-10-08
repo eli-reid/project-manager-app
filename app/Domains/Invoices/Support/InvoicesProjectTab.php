@@ -21,6 +21,13 @@ final class InvoicesProjectTab extends ProjectTab
             panel: new LivewireComponentTabPanel(
                 component: 'invoices::admin.invoices.index',
                 baseProps: ['embedded' => true],
+                modeViews: [
+                    'create' => [
+                        'component' => 'invoices::admin.invoices.form',
+                        'baseProps' => ['embedded' => true],
+                        'keyPattern' => 'project-{tab}-tab-{projectId}-create',
+                    ],
+                ],
             ),
         );
     }

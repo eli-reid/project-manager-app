@@ -6,10 +6,13 @@ use App\Domains\Accounting\Models\AccountingCode;
 use App\Domains\Invoices\Enums\InvoiceStatusEnum;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Services\ProjectTabLinkBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -20,6 +23,12 @@ class Form extends Component
     use AuthorizesRequests;
 
     public ?Invoice $invoice = null;
+
+    #[Locked]
+    public ?Project $project = null;
+
+    #[Locked]
+    public bool $embedded = false;
 
     public bool $isEdit = false;
 
@@ -48,7 +57,7 @@ class Form extends Component
     /** @var array<int, array<string, mixed>> */
     public array $lineItems = [];
 
-    public function mount(?Invoice $invoice = null): void
+    public function mount(?Invoice $invoice = null, ?Project $project = null, bool $embedded = false): void
     {
         if ($invoice !== null && $invoice->exists) {
             $this->authorize('update', $invoice);
@@ -78,6 +87,14 @@ class Form extends Component
         }
 
         $this->authorize('create', Invoice::class);
+        $this->embedded = $embedded && $project instanceof Project;
+
+        if ($this->embedded) {
+            $this->authorize('view', $project);
+            $this->project = $project;
+            $this->project_id = (string) $project->id;
+        }
+
         $this->lineItems = [];
     }
 
@@ -178,7 +195,11 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'project_id' => ['required', 'exists:projects,id'],
+            'project_id' => [
+                'required',
+                'exists:projects,id',
+                Rule::when($this->embedded, fn () => Rule::in([$this->project?->id])),
+            ],
             'accounting_code_id' => ['nullable', 'exists:accounting_codes,id'],
             'vendor_name' => ['required', 'string', 'max:255'],
             'invoice_number' => ['nullable', 'string', 'max:100'],
@@ -267,6 +288,12 @@ class Form extends Component
             }
 
             session()->flash('success', 'Invoice created successfully.');
+            if ($this->embedded && $this->project instanceof Project) {
+                $this->redirect(app(ProjectTabLinkBuilder::class)->to($this->project, 'invoices'), navigate: true);
+
+                return;
+            }
+
             $this->redirectRoute('admin.invoices.show', $invoice, navigate: true);
         });
     }
@@ -283,6 +310,10 @@ class Form extends Component
                 ->orderBy('code')
                 ->get(['id', 'code', 'name']),
             'statuses' => InvoiceStatusEnum::toArray(),
+            'embeddedProject' => $this->embedded ? $this->project : null,
+            'backUrl' => $this->embedded && $this->project instanceof Project
+                ? app(ProjectTabLinkBuilder::class)->to($this->project, 'invoices')
+                : ($this->isEdit ? route('admin.invoices.show', $this->invoice) : route('admin.invoices.index')),
         ]);
     }
 }
