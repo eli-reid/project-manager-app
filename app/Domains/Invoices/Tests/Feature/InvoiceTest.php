@@ -12,7 +12,9 @@ use App\Domains\Invoices\Livewire\Admin\Projects\ProjectTab;
 use App\Domains\Invoices\Models\Invoice;
 use App\Domains\Invoices\Models\InvoiceLineItem;
 use App\Domains\Projects\Models\Project;
+use App\Domains\Projects\Models\ProjectTabDefinition;
 use App\Domains\Projects\Services\ProjectTabLinkBuilder;
+use App\Domains\Projects\Services\ProjectTabRegistry;
 use Livewire\Livewire;
 
 // ---------------------------------------------------------------------------
@@ -258,6 +260,203 @@ it('validates required fields on create', function (): void {
         ->assertHasErrors(['vendor_name', 'invoice_date', 'project_id']);
 });
 
+it('resolves invoice create and edit panels through the project tab registry', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view']);
+    $project = Project::factory()->create();
+    $registry = app(ProjectTabRegistry::class);
+
+    foreach (['create', 'edit'] as $mode) {
+        $panels = $registry->tabPanels($project, $user, [
+            'invoices' => [
+                'modeParam' => 'invoiceMode',
+                'mode' => $mode,
+                'detailParam' => 'invoiceId',
+                'detailId' => 'invoice-123',
+                'isCreateMode' => $mode === 'create',
+            ],
+        ], activeTab: 'invoices');
+
+        expect($panels)->toHaveCount(1)
+            ->and($panels[0]['component'])->toBe('invoices::admin.invoices.form')
+            ->and($panels[0]['props'])->toBe([
+                'project' => $project,
+                'embedded' => true,
+                ...($mode === 'edit' ? ['invoiceId' => 'invoice-123'] : []),
+            ])
+            ->and($panels[0]['key'])->toBe(
+                'project-invoices-tab-'.$project->id.'-'.$mode.($mode === 'edit' ? '-invoice-123' : '')
+            );
+    }
+});
+
+it('opens the invoice edit form inside the project tab using registered query parameters', function (string $modeParam): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view', 'invoices.create', 'invoices.edit']);
+    $project = Project::factory()->create(['name' => 'Invoice Edit Context Project']);
+    $invoice = Invoice::factory()->for($project)->pending()->create(['created_by' => $user->id]);
+
+    ProjectTabDefinition::query()->updateOrCreate(
+        ['key' => 'invoices'],
+        ['label' => 'Invoices', 'sort_order' => 40, 'mode_query_param' => $modeParam, 'is_active' => true],
+    );
+    app()->forgetInstance(ProjectTabRegistry::class);
+    app()->forgetInstance(ProjectTabLinkBuilder::class);
+
+    $links = app(ProjectTabLinkBuilder::class);
+    $editUrl = $links->to($project, 'invoices', mode: 'edit', detailId: $invoice->id);
+
+    expect($editUrl)->toContain($modeParam.'=edit')->toContain('invoiceId='.$invoice->id);
+
+    $this->actingAs($user)
+        ->get($links->to($project, 'invoices'))
+        ->assertSuccessful()
+        ->assertSee($links->to($project, 'invoices', mode: 'create'))
+        ->assertSee($editUrl)
+        ->assertDontSee('href="'.route('admin.invoices.edit', $invoice).'"', false);
+
+    $this->get($editUrl)
+        ->assertSuccessful()
+        ->assertSeeLivewire(Form::class)
+        ->assertSee('Edit Invoice')
+        ->assertSee('Invoice Edit Context Project')
+        ->assertSee($invoice->vendor_name)
+        ->assertSee('href="'.$links->to($project, 'invoices').'"', false)
+        ->assertDontSee('Select a project');
+})->with(['invoiceMode', 'invoiceAction']);
+
+it('updates an invoice inside its project and returns to the invoices tab', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view', 'invoices.edit']);
+    $project = Project::factory()->create(['is_active' => false]);
+    $invoice = Invoice::factory()->for($project)->pending()->create(['created_by' => $user->id]);
+    InvoiceLineItem::factory()->for($invoice)->create(['description' => 'Old line item']);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true, 'invoiceId' => $invoice->id])
+        ->assertSet('isEdit', true)
+        ->assertSet('embedded', true)
+        ->assertSet('project_id', $project->id)
+        ->assertSet('vendor_name', $invoice->vendor_name)
+        ->assertSee('href="'.app(ProjectTabLinkBuilder::class)->to($project, 'invoices').'"', false)
+        ->assertDontSee('Select a project')
+        ->set('vendor_name', 'Project Updated Vendor')
+        ->set('tax_amount', '5.00')
+        ->set('lineItems', [
+            ['description' => 'Replacement item', 'quantity' => '2', 'unit_price' => '25.00', 'total' => '0.00', 'sort_order' => 0],
+        ])
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(app(ProjectTabLinkBuilder::class)->to($project, 'invoices'));
+
+    $invoice->refresh();
+    expect(Invoice::query()->count())->toBe(1)
+        ->and($invoice->project_id)->toBe($project->id)
+        ->and($invoice->vendor_name)->toBe('Project Updated Vendor')
+        ->and((float) $invoice->total_amount)->toBe(55.00)
+        ->and($invoice->lineItems()->sole()->description)->toBe('Replacement item');
+});
+
+it('rejects changing the project when editing an embedded invoice', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.edit']);
+    $project = Project::factory()->create();
+    $otherProject = Project::factory()->create();
+    $invoice = Invoice::factory()->for($project)->pending()->create(['created_by' => $user->id]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true, 'invoice' => $invoice])
+        ->assertSet('embedded', true)
+        ->set('project_id', $otherProject->id)
+        ->set('vendor_name', 'Rejected Vendor')
+        ->call('save')
+        ->assertHasErrors(['project_id' => 'in']);
+
+    expect($invoice->fresh()->project_id)->toBe($project->id)
+        ->and($invoice->fresh()->vendor_name)->not->toBe('Rejected Vendor');
+});
+
+it('rejects invoice edit links with unrelated missing or deleted invoices', function (string $target): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view', 'invoices.edit']);
+    $project = Project::factory()->create();
+    $invoice = Invoice::factory()->pending()->create(['created_by' => $user->id]);
+    $invoiceId = match ($target) {
+        'unrelated' => $invoice->id,
+        'missing' => (string) str()->uuid(),
+        'empty' => '',
+        'deleted' => $invoice->id,
+    };
+
+    if ($target === 'deleted') {
+        $invoice->update(['project_id' => $project->id]);
+        $invoice->delete();
+    }
+
+    $this->actingAs($user)
+        ->get(app(ProjectTabLinkBuilder::class)->to($project, 'invoices', mode: 'edit', detailId: $invoiceId))
+        ->assertNotFound();
+})->with(['unrelated', 'missing', 'empty', 'deleted']);
+
+it('rejects directly embedding an invoice from another project', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.edit']);
+    $project = Project::factory()->create();
+    $invoice = Invoice::factory()->pending()->create(['created_by' => $user->id]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true, 'invoice' => $invoice])
+        ->assertNotFound();
+});
+
+it('requires invoice editing and project access permissions for the embedded edit form', function (array $permissions): void {
+    $user = userWithInvoicePermissions($permissions);
+    $project = Project::factory()->create();
+    $invoice = Invoice::factory()->for($project)->pending()->create(['created_by' => $user->id]);
+
+    Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true, 'invoiceId' => $invoice->id])
+        ->assertForbidden();
+})->with([
+    'no invoice editing' => [['projects.view', 'invoices.view']],
+    'no project access' => [['invoices.view', 'invoices.edit']],
+]);
+
+it('preserves paid invoice edit restrictions inside the project tab', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view', 'invoices.edit']);
+    $project = Project::factory()->create();
+    $invoice = Invoice::factory()->for($project)->paid()->create(['created_by' => $user->id]);
+
+    $this->actingAs($user)
+        ->get(app(ProjectTabLinkBuilder::class)->to($project, 'invoices', mode: 'edit', detailId: $invoice->id))
+        ->assertForbidden();
+});
+
+it('does not move an invoice back after it leaves the embedded project', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.edit']);
+    $project = Project::factory()->create();
+    $otherProject = Project::factory()->create();
+    $invoice = Invoice::factory()->for($project)->pending()->create(['created_by' => $user->id]);
+
+    $form = Livewire::actingAs($user)
+        ->test(Form::class, ['project' => $project, 'embedded' => true, 'invoiceId' => $invoice->id]);
+
+    $invoice->update(['project_id' => $otherProject->id]);
+
+    $form->call('save')->assertNotFound();
+
+    expect($invoice->fresh()->project_id)->toBe($otherProject->id);
+});
+
+it('keeps legacy project invoice edit links within the project view', function (): void {
+    $user = userWithInvoicePermissions(['projects.view', 'invoices.view', 'invoices.edit']);
+    $project = Project::factory()->create();
+    $invoice = Invoice::factory()->for($project)->pending()->create(['created_by' => $user->id]);
+
+    Livewire::actingAs($user)
+        ->test(ProjectTab::class, [
+            'project' => $project,
+            'invoices' => collect([$invoice]),
+            'invoiceCount' => 1,
+        ])
+        ->assertSee(app(ProjectTabLinkBuilder::class)->to($project, 'invoices', mode: 'edit', detailId: $invoice->id))
+        ->assertDontSee('href="'.route('admin.invoices.edit', $invoice).'"', false);
+});
+
 it('updates an invoice with the edit permission', function (): void {
     $user = userWithInvoicePermissions(['invoices.view', 'invoices.edit']);
     $invoice = Invoice::factory()->for(Project::factory())->pending()->create([
@@ -267,8 +466,13 @@ it('updates an invoice with the edit permission', function (): void {
 
     Livewire::actingAs($user)
         ->test(Form::class, ['invoice' => $invoice])
+        ->assertSet('embedded', false)
+        ->assertSee('Select a project')
+        ->assertSee('href="'.route('admin.invoices.show', $invoice).'"', false)
         ->set('vendor_name', 'Corrected Vendor')
-        ->call('save');
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('admin.invoices.show', $invoice));
 
     expect($invoice->fresh()->vendor_name)->toBe('Corrected Vendor');
 });

@@ -30,6 +30,7 @@ class Form extends Component
     #[Locked]
     public bool $embedded = false;
 
+    #[Locked]
     public bool $isEdit = false;
 
     public string $project_id = '';
@@ -57,9 +58,25 @@ class Form extends Component
     /** @var array<int, array<string, mixed>> */
     public array $lineItems = [];
 
-    public function mount(?Invoice $invoice = null, ?Project $project = null, bool $embedded = false): void
+    public function mount(?Invoice $invoice = null, ?Project $project = null, bool $embedded = false, ?string $invoiceId = null): void
     {
+        $this->embedded = $embedded && $project instanceof Project;
+
+        if ($this->embedded) {
+            $this->authorize('view', $project);
+            $this->project = $project;
+            $this->project_id = (string) $project->id;
+
+            if ($invoiceId !== null) {
+                $invoice = $project->invoices()->findOrFail($invoiceId);
+            }
+        }
+
         if ($invoice !== null && $invoice->exists) {
+            if ($this->embedded) {
+                abort_unless($invoice->project_id === $this->project->id, 404);
+            }
+
             $this->authorize('update', $invoice);
 
             $this->invoice = $invoice;
@@ -87,14 +104,6 @@ class Form extends Component
         }
 
         $this->authorize('create', Invoice::class);
-        $this->embedded = $embedded && $project instanceof Project;
-
-        if ($this->embedded) {
-            $this->authorize('view', $project);
-            $this->project = $project;
-            $this->project_id = (string) $project->id;
-        }
-
         $this->lineItems = [];
     }
 
@@ -220,6 +229,14 @@ class Form extends Component
 
     public function save(): void
     {
+        if ($this->embedded && $this->project instanceof Project) {
+            $this->authorize('view', $this->project);
+
+            if ($this->isEdit) {
+                abort_unless($this->invoice?->project_id === $this->project->id, 404);
+            }
+        }
+
         $this->lineItems = $this->normalizedLineItems();
 
         if (! empty($this->lineItems)) {
@@ -244,12 +261,10 @@ class Form extends Component
             'notes' => filled($validated['notes']) ? $validated['notes'] : null,
         ];
 
-        DB::transaction(function () use ($invoiceData, $validated): void {
+        $invoice = DB::transaction(function () use ($invoiceData, $validated): Invoice {
             if ($this->isEdit) {
                 $invoice = $this->invoice;
-                if ($invoice === null) {
-                    return;
-                }
+                abort_unless($invoice instanceof Invoice, 404);
 
                 $this->authorize('update', $invoice);
                 $invoice->update($invoiceData);
@@ -266,9 +281,8 @@ class Form extends Component
                 }
 
                 session()->flash('success', 'Invoice updated successfully.');
-                $this->redirectRoute('admin.invoices.show', $invoice, navigate: true);
 
-                return;
+                return $invoice;
             }
 
             $this->authorize('create', Invoice::class);
@@ -288,14 +302,17 @@ class Form extends Component
             }
 
             session()->flash('success', 'Invoice created successfully.');
-            if ($this->embedded && $this->project instanceof Project) {
-                $this->redirect(app(ProjectTabLinkBuilder::class)->to($this->project, 'invoices'), navigate: true);
 
-                return;
-            }
-
-            $this->redirectRoute('admin.invoices.show', $invoice, navigate: true);
+            return $invoice;
         });
+
+        if ($this->embedded && $this->project instanceof Project) {
+            $this->redirect(app(ProjectTabLinkBuilder::class)->to($this->project, 'invoices'), navigate: true);
+
+            return;
+        }
+
+        $this->redirectRoute('admin.invoices.show', $invoice, navigate: true);
     }
 
     public function render()
